@@ -1,0 +1,219 @@
+# lab/docker-compose.yml — lab Docker LCD sur PC (branche lab/docker).
+# Code dans CE repo, tests ici, déploiement prod/box ENSUITE (jamais depuis le lab).
+# 0 € logiciel (images python:slim). LAN du lab = réseau docker interne (pas de WAN).
+# Secrets : env LCD_* (valeurs FAUSSES de lab) ou lab/secrets.lab.yaml —
+# JAMAIS commités (voir .gitignore lab/*state*/ lab/secrets*), JAMAIS de clés réelles.
+# Règle persistante : secrets/clés API dans secrets.yaml, jamais commitées.
+#
+# Usage :
+#   cd lab && docker compose up -d --build
+#   python3 tests_lab.py            # batterie P2-14 (résa <60 s + conflit ICS + bornes)
+#   docker compose down -v          # teardown (volumes runtime supprimés)
+
+name: lcd-lab
+
+services:
+  ics-sync:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/ics-sync/ics_sync.py
+        CONFIG: lab/lab-config/ics-sync.yaml
+    ports: ["8090:8090"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8090"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      # Secrets de LAB (faux) — jamais de clés réelles ici :
+      LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+    volumes:
+      - ics-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+    command: >
+      sh -c "python3 /opt/lcd/custom/ics-sync/ics_sync.py
+      --config /opt/lcd/config.yaml"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8090/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  pricing:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/pricing-engine/pricing_engine.py
+        CONFIG: lab/lab-config/pricing-engine.yaml
+    ports: ["8091:8091"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8091"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+      LCD_ICS_SYNC_URL: http://ics-sync:8090
+    volumes:
+      - pricing-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+    depends_on:
+      ics-sync:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8091/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  decision:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/decision-engine/decision.py
+        CONFIG: lab/lab-config/decision-engine.yaml
+    ports: ["8092:8092"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8092"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+      LCD_ICS_SYNC_URL: http://ics-sync:8090
+      LCD_PRICING_URL: http://pricing:8091
+    volumes:
+      - decision-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      - ../custom/acces.yaml:/opt/lcd/acces.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+    command: >
+      sh -c "python3 /opt/lcd/custom/decision-engine/decision.py
+      --config /opt/lcd/config.yaml
+      --logements /opt/lcd/logements.yaml
+      --acces /opt/lcd/acces.yaml --serve"
+    depends_on:
+      ics-sync:
+        condition: service_healthy
+      pricing:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8092/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  facturation:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/facturation/facturation.py
+        CONFIG: lab/lab-config/facturation.yaml
+    ports: ["8093:8093"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8093"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+    volumes:
+      - facturation-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      - ./branding.lab.yaml:/opt/lcd/branding.yaml:ro
+    command: >
+      sh -c "python3 /opt/lcd/custom/facturation/facturation.py
+      --config /opt/lcd/config.yaml
+      --logements /opt/lcd/logements.yaml
+      --branding /opt/lcd/branding.yaml --serve"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8093/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  caution:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/caution/caution.py
+        CONFIG: lab/lab-config/caution.yaml
+    ports: ["8094:8094"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8094"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+    volumes:
+      - caution-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8094/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  booking-direct:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/booking-direct/booking_direct.py
+        CONFIG: lab/lab-config/booking-direct.yaml
+    ports: ["8095:8095"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8095"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+      LCD_ICS_URL: http://ics-sync:8090
+      LCD_PRICING_URL: http://pricing:8091
+      LCD_FACTURATION_URL: http://facturation:8093
+      LCD_CAUTION_URL: http://caution:8094
+    volumes:
+      - booking-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+    depends_on:
+      ics-sync:
+        condition: service_healthy
+      pricing:
+        condition: service_healthy
+      facturation:
+        condition: service_healthy
+      caution:
+        condition: service_healthy
+      decision:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8095/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  ics-state:
+  pricing-state:
+  decision-state:
+  facturation-state:
+  caution-state:
+  booking-state:
+  ics-logs:

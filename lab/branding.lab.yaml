@@ -1,0 +1,9 @@
+# lab/branding.lab.yaml — branding FICTIF de lab (facturation --branding).
+# Le réel custom/branding.yaml est privé et n'entre JAMAIS dans le lab.
+marque: "Marque Lab Fictive"
+raison_sociale: "Lab Fictif — raison sociale fictive"
+siret: "000 000 000 00000"
+adresse: "1 rue du Lab, 06270 Villeneuve-Loubet (fictif)"
+telephone: "+33 0 00 00 00 00"
+email: "lab@example.invalid"
+site: "https://example.invalid"

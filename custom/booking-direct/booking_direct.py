@@ -133,12 +133,21 @@ def lire_logements(path):
     return logts
 
 
+def _proxy_erreur(e):
+    """HTTPError -> vrai code + corps JSON ; réseau -> code 0."""
+    code = getattr(e, "code", 0) or 0
+    try:
+        return code, json.loads(e.read() or b"{}")
+    except Exception:
+        return code, {"erreur": f"proxy_ko:{type(e).__name__}"}
+
+
 def proxy_get(url, timeout=10):
     try:
         with urllib.request.urlopen(url, timeout=timeout) as r:
             return r.status, json.loads(r.read() or b"{}")
     except Exception as e:
-        return 0, {"erreur": f"proxy_ko:{type(e).__name__}"}
+        return _proxy_erreur(e)
 
 
 def proxy_post(url, payload, timeout=15):
@@ -149,7 +158,7 @@ def proxy_post(url, payload, timeout=15):
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return r.status, json.loads(r.read() or b"{}")
     except Exception as e:
-        return 0, {"erreur": f"proxy_ko:{type(e).__name__}"}
+        return _proxy_erreur(e)
 
 
 class BookingDirect:
@@ -329,6 +338,8 @@ class BookingDirect:
         if code not in (200, 201):
             self.log_decision(logement_id, ref, qui, "confirmation_ko",
                               meta["montant"], f"ics-sync -> {code} {rep}")
+            if 400 <= code < 500:  # refus métier (409 conflit…) : propager tel quel
+                return code, rep
             return 502, {"erreur": "ics-sync indisponible", "detail": rep}
         ics_txt = self.generer_ics(meta)
         d = os.path.join(self.state_dir, logement_id)
@@ -486,7 +497,8 @@ def main():
         return 0
     port = int(os.environ.get("LCD_HTTP_PORT", cfg.get("http_port", 8095)))
     Handler.engine = eng
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    bind = os.environ.get("LCD_BIND", "127.0.0.1")  # lab Docker : 0.0.0.0
+    srv = ThreadingHTTPServer((bind, port), Handler)
     print(f"booking-direct :8095 (moteur maison, {len(logts)} logements, "
           f"{len(extras)} extras)", flush=True)
     try:

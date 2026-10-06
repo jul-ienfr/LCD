@@ -557,7 +557,8 @@ def main():
             print(json.dumps(eng.recalculer(log, jours=7), ensure_ascii=False)[:500] + "...")
         return 0
     port = int(os.environ.get("LCD_HTTP_PORT", cfg.get("http_port", 8091)))
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    bind = os.environ.get("LCD_BIND", "127.0.0.1")  # lab Docker : 0.0.0.0
+    srv = ThreadingHTTPServer((bind, port), Handler)
     print(f"pricing-engine : HTTP 127.0.0.1:{port} ({', '.join(logts)})", flush=True)
     try:
         srv.serve_forever()

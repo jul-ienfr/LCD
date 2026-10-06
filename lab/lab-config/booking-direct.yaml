@@ -1,0 +1,18 @@
+# lab/lab-config/booking-direct.yaml — config LAB booking-direct :8095 (P2-15 §4-bis).
+http_port: 8095
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+secrets_yaml: "/opt/lcd/secrets.yaml"
+logements_yaml: "/opt/lcd/custom/logements.yaml"
+ics_url: "http://ics-sync:8090"
+pricing_url: "http://pricing:8091"
+facturation_url: "http://facturation:8093"
+caution_url: "http://caution:8094"
+extras:
+  late_checkout_14h: Late checkout 14h (si pas d'arrivée jour J) | 50
+  early_checkin_12h: Early check-in 12h (si pas de départ jour J) | 30
+  petit_dej: Petit-déj (par pers, coût 5) | 15
+  kit_bebe: Kit bébé / séjour | 40
+urls:
+  location_voiture_velo: "https://example.invalid/partenaire-auto-velo"
+  resa_resto_plage: "https://example.invalid/partenaire-resto-plage"

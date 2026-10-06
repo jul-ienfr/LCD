@@ -1,0 +1,30 @@
+# lab/Dockerfile.moteur — image générique stdlib pour les 6 moteurs LCD (P2).
+# Python stdlib seule, 0 € logiciel. Aucun secret ici : tout passe par env LCD_*.
+# Buildé avec build-args SCRIPT + CONFIG (chemin du moteur et de sa config LAB) :
+#   docker build -f lab/Dockerfile.moteur --build-arg SCRIPT=custom/ics-sync/ics_sync.py \
+#     --build-arg CONFIG=lab/lab-config/ics-sync.yaml .
+ARG PYTHON_IMAGE=python:3.12-slim
+FROM ${PYTHON_IMAGE}
+
+ARG SCRIPT
+ARG CONFIG
+ENV LCD_SCRIPT=${SCRIPT}
+
+WORKDIR /opt/lcd
+COPY custom/ /opt/lcd/custom/
+COPY docs/templates/ /opt/lcd/docs/templates/
+COPY lab/lab-config/ /opt/lcd/lab-config/
+COPY ${CONFIG} /opt/lcd/config.yaml
+
+# Utilisateur non-root (défense en profondeur ; UI :8050 jamais WAN de toute façon).
+# /opt/lcd/logements.yaml = COPIE de lab (montée par compose, jamais custom/logements.yaml).
+RUN useradd -r -u 10001 lcd && mkdir -p /opt/lcd/state /opt/lcd/logs \
+    && chown -R lcd:lcd /opt/lcd
+USER lcd
+
+# state/logs = volumes (runtime, jamais commités). Ports moteurs 8090-8095.
+EXPOSE 8090 8091 8092 8093 8094 8095
+
+# --config : config de LAB seule. --logements : copie lab montée par compose.
+# --branding ignoré par la plupart des moteurs sauf facturation (branding lab monté).
+CMD ["sh", "-c", "python3 /opt/lcd/${LCD_SCRIPT} --config /opt/lcd/config.yaml --logements /opt/lcd/logements.yaml --serve"]

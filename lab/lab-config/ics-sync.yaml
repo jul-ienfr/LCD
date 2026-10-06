@@ -1,0 +1,17 @@
+# lab/lab-config/ics-sync.yaml — config LAB ics-sync :8090 (P2-4 §4/§4-ter).
+# Format PLAT (niveau 0) exigé par charger_yaml() — pas de clé englobante.
+http_port: 8090
+poll_minutes: 15
+delai_humain_minutes: 15
+stop_sell_heure_limite: "18:00"
+ha_url: ""
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+secrets_yaml: "/opt/lcd/secrets.yaml"
+logements: [log1, log2]
+canaux_ota: [airbnb, booking, abritel, expedia]
+ordre_arbitrage: [direct, airbnb, booking, abritel]
+commission_direct: 0.00
+commission_airbnb: 0.15
+commission_booking: 0.17
+commission_abritel: 0.10

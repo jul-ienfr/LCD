@@ -1,0 +1,11 @@
+# lab/lab-config/decision-engine.yaml — config LAB decision :8092 (P2-8 §5.11/§1.6).
+ha_url: ""
+ics_sync_url: "http://ics-sync:8090"
+pricing_url: "http://pricing:8091"
+http_port: 8092
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+commission_direct: 0.00
+commission_airbnb: 0.15
+commission_booking: 0.17
+commission_abritel: 0.10

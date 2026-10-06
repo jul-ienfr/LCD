@@ -25,6 +25,9 @@ coordinator_backup.json
 
 # Runtime moteurs locaux custom/* (P2 — JAMAIS commité : brouillons, ICS, JSONL)
 custom/*/state/
+lab/*state*/
+lab/secrets.lab.yaml
+lab/*.log
 state-test-*/
 *.pid
 

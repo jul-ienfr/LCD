@@ -1,0 +1,106 @@
+# lab/logements.lab.yaml — COPIE de lab de custom/logements.yaml (JAMAIS l'original).
+# Différences vs prod : copro.verifiee=true (sinon moteurs 403 = tests impossibles),
+# moteur_direct=maison (tunnel P2-15 testé ici). Données fictives de lab.
+# Le réel custom/logements.yaml garde verifiee:false (BLOQUÉ, défaut sûr).
+
+global:
+  devise: EUR
+  langue_hote: fr
+  langues_socle: [fr, en, es, it, de]
+  prix_min: 75
+  prix_max: 290
+  hold_caution_min: 500
+  hold_caution_max: 800
+  ics_poll_minutes: 15
+  menage_montant_defaut: 110
+  llm_proxy: "http://llm-stub:4000"
+  ui_routage: "http://lab-ui:8050"
+
+logements:
+  log1:
+    nom: "Santa Severa (LAB)"
+    commune: "Villeneuve-Loubet"
+    logement_id: log1
+    surface_m2: 65
+    capacite: 5
+    vue_mer: true
+    pricing:
+      prix_base: 110
+      prix_min: 75
+      prix_max: 290
+      mode_gestion_defaut: equilibre
+    copro:
+      verifiee: true                     # LAB SEUL — réel reste false (BLOQUÉ)
+      meuble_entier: true
+      chambres_separees: false
+      fetes: false
+      heures_calmes: "22h-8h"
+      occupants_max: 5
+      animaux: false
+      non_fumeur: true
+      taxe_sejour_majoration: 0.44
+    features:
+      smart_lock: true
+      voix: true
+      clim_ir: true
+      extras_upsell: true
+      etat_lieux_auto: true
+      sinistre_auto: true
+      compta_auto: true
+      traca_intervenants: true
+      inventaire_biens: true
+      annuaire_presta: true
+      mode_auto_saison: false
+      events_auto: true
+      memoire_voyageur: true
+      vitrines_gratuites: false
+    menage:
+      montant: 110
+      facturation: supplement
+    zones: [santa_severa, villeneuve_loubet_plage]
+    zone_defaut: santa_severa
+    moteur_direct: maison              # LAB : tunnel maison testé ici
+
+  log2:
+    nom: "Logement 2 (LAB)"
+    commune: "Villeneuve-Loubet"
+    logement_id: log2
+    surface_m2: 45
+    capacite: 4
+    vue_mer: false
+    pricing:
+      prix_base: 90
+      prix_min: 75
+      prix_max: 290
+      mode_gestion_defaut: remplissage_max
+    copro:
+      verifiee: true                     # LAB SEUL — réel reste false (BLOQUÉ)
+      meuble_entier: true
+      chambres_separees: false
+      fetes: false
+      heures_calmes: "22h-8h"
+      occupants_max: 4
+      animaux: false
+      non_fumeur: true
+      taxe_sejour_majoration: 0.44
+    features:
+      smart_lock: false
+      voix: false
+      clim_ir: false
+      extras_upsell: false
+      etat_lieux_auto: true
+      sinistre_auto: false
+      compta_auto: true
+      traca_intervenants: true
+      inventaire_biens: false
+      annuaire_presta: true
+      mode_auto_saison: false
+      events_auto: true
+      memoire_voyageur: true
+      vitrines_gratuites: false
+    menage:
+      montant: 90
+      facturation: supplement
+    zones: []
+    zone_defaut: null
+    moteur_direct: maison

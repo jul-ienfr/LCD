@@ -373,8 +373,17 @@ class Sync:
         if src:
             sej["src"] = src
         conflit = self._conflit(connus, sej)
+        if conflit and conflit.get("canal") == "direct":
+            # Direct-direct : jamais d'éjection auto — refus 409, humain requis
+            # (P2-14 : 2e résa mêmes dates = refus, pas d'écrasement silencieux).
+            self.log_decision(logement_id, ref, payload.get("qui", "moteur_direct"),
+                              "resa_directe_conflit", "direct", sej.get("montant"),
+                              f"conflit avec {conflit['ref']} (direct existant) : "
+                              f"refus, humain requis")
+            return 409, {"erreur": "conflit : séjour direct existant sur ces dates",
+                         "conflit_ref": conflit["ref"]}
         if conflit:
-            # Direct = priorité max : éjecte l'OTA en conflit, humain informé <15 min.
+            # Direct = priorité max sur OTA : éjecte l'OTA en conflit, humain informé <15 min.
             self.log_decision(logement_id, conflit["ref"], "ics-sync",
                               "conflit_direct_gagne", conflit.get("canal"), None,
                               f"ejecte par resa directe {ref} ; humain <15 min")
@@ -496,7 +505,8 @@ def main():
         return 0
 
     port = int(os.environ.get("LCD_HTTP_PORT", cfg.get("http_port", 8090)))
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    bind = os.environ.get("LCD_BIND", "127.0.0.1")  # lab Docker : 0.0.0.0
+    srv = ThreadingHTTPServer((bind, port), Handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     print(f"ics-sync : HTTP 127.0.0.1:{port} ; poll "
           f"{cfg.get('poll_minutes', 15)} min ({', '.join(sync.logements)})", flush=True)

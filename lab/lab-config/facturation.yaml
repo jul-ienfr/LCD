@@ -1,0 +1,13 @@
+# lab/lab-config/facturation.yaml — config LAB facturation :8093 (P2-10 §12.2/§12.5-bis).
+http_port: 8093
+state_dir: "/opt/lcd/state"
+templates_dir: "/opt/lcd/docs/templates"
+contrats_dir: "/opt/lcd/state/contrats"
+decision_log_dir: "/opt/lcd/logs"
+interdits_garde_fou: ["amende forfaitaire", "non contractuel", "sans recours",
+  "paiement intégral d'avance sans remboursement", "médiation payante",
+  "clause attributive", "expulsion sans", "retenue automatique"]
+mentions_contrat: ["L.221-28", "L.612-1", "ec.europa.eu/consumers/odr"]
+mentions_facture_b2c: ["L.612-1", "ec.europa.eu/consumers/odr"]
+mentions_facture_b2b: []
+phrase_caution: "Une empreinte de"

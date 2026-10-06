@@ -355,7 +355,8 @@ def main():
         return 0
     port = int(os.environ.get("LCD_HTTP_PORT", cfg.get("http_port", 8094)))
     Handler.engine = eng
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    bind = os.environ.get("LCD_BIND", "127.0.0.1")  # lab Docker : 0.0.0.0
+    srv = ThreadingHTTPServer((bind, port), Handler)
     print(f"caution :8094 (hold {bornes['min']}-{bornes['max']} EUR, taxe CASA +{eng.taxe_maj:.0%})",
           flush=True)
     try:
