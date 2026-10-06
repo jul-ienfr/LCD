@@ -96,7 +96,7 @@ Règlement intérieur voyageurs (imposé par copro) :
 
 ### 10. Extras / upsells (revenus additionnels pilotés)
 
-Principe : **offert d'un côté, payant de l'autre** — le kit de bienvenue soigne l'arrivée et les avis, le mini-bar et les extras génèrent la marge. Tout extra payant = pré-commandé avant J-1 18h (case QloApps / message J-2), payé d'avance (Stripe Payment Link / Swikly), todo auto ménage. Rien d'improvisé sur place.
+Principe : **offert d'un côté, payant de l'autre** — le kit de bienvenue soigne l'arrivée et les avis, le mini-bar et les extras génèrent la marge. Tout extra payant = pré-commandé via le **questionnaire pré-arrivée J-2** (1 lien PWA avec le PIN, 3 min : arrivée + préférences + extras + contrat — détail §5.7-quinquies plan technique), payé d'avance (Stripe Payment Link / Swikly), todo auto ménage. Rien d'improvisé sur place. Cut-off J-1 18h. Sans réponse au questionnaire (rappel J-1 15h) = kit standard + consignes défaut, l'accès n'est jamais bloqué.
 
 **Kit de bienvenue OFFERT (inclus dans chaque séjour, ~3-5 €)** :
 - Objectif : effet « waouh » à l'arrivée → meilleurs avis / notes, pour un coût dérisoire. Présenté sur la table avec carte « Bienvenue » (socle FR/EN/ES/IT/DE + maternelle auto §5.7-ter plan technique).
@@ -121,7 +121,7 @@ Principe : **offert d'un côté, payant de l'autre** — le kit de bienvenue soi
 | Kit bébé (lit + chaise + baignoire) | 30-45 €/séjour | stock ~120 € amorti | installation ménage |
 | Kit plage (parasol + 4 serviettes + glacière + jeux) | 15-25 €/séjour | stock ~80 € amorti | checklist |
 | Petit-déj (viennoiseries + jus + café) | 15 €/pers | ~5 €/pers Intermarché | commande J-1 |
-| Ménage intermédiaire (séjours 7 j+) | 60 € | presta 40-45 € | dispatch auto |
+| Ménage intermédiaire (séjours 7 j+, date certaine selon préférences §5.7-quater : fréquence + heure + pendant absence si possible) | 60 € (offert dès 14 j si remplissage) | presta 40-45 € | dispatch auto + todo daté |
 | Linge supplémentaire | 15 €/pers | ~3 € lavage | sac prêt |
 | Consigne bagages | 15 € | 0 € | code / local |
 | Déco anniversaire / romantique | 49 € | ~15 € | 20 min ménage |
@@ -148,7 +148,7 @@ Copro : pas de distributeur bruyant, pas de fêtes — extras calmes uniquement.
 
 **Langues voyageurs (socle 5 + maternelle auto, détail §5.7-ter plan technique)** : tout le parcours (messages J-2/J-1, guide PWA/tablette, voix, enquête J+1, contrat) dans la langue du voyageur (`input_text.log1_langue_voyageur` depuis résa QloApps/OTA) — socle validé humain FR + EN + ES + IT + DE (templates `docs/log1/reglement-interieur.{fr,en,es,it,de}.md`), toute autre langue maternelle (PT, NL, PL, AR, ZH, JA, RU…) en traduction auto LLM via proxy `:4000` + glossaire (PIN/codes/adresses/montants/horaires jamais traduits, placeholders `{{ }}`) + cache phrase+langue + fallback EN + badge « traduction automatique ». PWA : sélecteur langue manuel toujours visible. 20 phrases critiques (accès, urgences, départ, caution) = contrôle humain 1-tap avant ouverture langue auto (`langues_auto: [pt, nl, pl]` dans `branding.yaml`, extensible sans code).
 
-**Mémoire voyageur (fidélisation, détail §5.7-quater plan technique)** : à l'arrivée, le voyageur peut accepter (PWA, 1-tap, révocable, purge auto 24 mois) que l'on mémorise ses préférences : température chauffage/clim préférée, heure d'arrivée/départ type, pack télétravail oui/non, mini-bar favoris (refs les + consommées → pré-garni à son retour), goûts kit bienvenue (café/thé, sucré/salé + allergies → courses Intermarché ciblées), courses type, petit-déj, kits bébé/plage, consigne bagages, allergies affichées ménage en rouge. Au retour : message « Bon retour ! », langue PWA déjà réglée, pré-chauffe calée sur son heure, extras favoris proposés en 1-tap J-2, **même clé WiFi ré-appliquée → ses appareils se reconnectent seuls, zéro friction**. La mémoire sert le confort, jamais le prix (remises = critères objectifs affichés uniquement). RGPD : fiche locale hashée, jamais visible des prestas (ils voient la todo, pas la fiche).
+**Mémoire voyageur (fidélisation, détail §5.7-quater plan technique)** : à l'arrivée, le voyageur peut accepter (PWA, 1-tap, révocable, purge auto 24 mois) que l'on mémorise ses préférences : température chauffage/clim préférée, heure d'arrivée/départ type, pack télétravail oui/non, mini-bar favoris (refs les + consommées → pré-garni à son retour), goûts kit bienvenue (café/thé, sucré/salé + allergies → courses Intermarché ciblées), courses type, petit-déj, kits bébé/plage, consigne bagages, **ménage (fréquence en jours, heure pref, pendant absence oui/non → ménage intermédiaire à date certaine planifié auto)**, allergies affichées ménage en rouge. Au retour : message « Bon retour ! », langue PWA déjà réglée, pré-chauffe calée sur son heure, extras favoris proposés en 1-tap J-2, **même clé WiFi ré-appliquée → ses appareils se reconnectent seuls, zéro friction**. La mémoire sert le confort, jamais le prix (remises = critères objectifs affichés uniquement). RGPD : fiche locale hashée, jamais visible des prestas (ils voient la todo, pas la fiche).
 
 **Pilotage mensuel (Vue Finances)** : RevPAR, prix moyen, occupation, marge nette/séjour, CA extras/séjour — courbes 12 mois + comparatif N-1 ; rapprochement bancaire CSV (alerte écart >2 %) ; maintenance préventive calendaire (hotte, clim, DAAF, VMC…) ; score ménage 1-5 + temps vs 3h ; registre incidents + post-mortem si récidive.
 
@@ -201,7 +201,7 @@ Garde-fous : mandat écrit de gestion saisonnière, RC pro conciergerie, fonds v
 6. [ ] Règlement intérieur + affichage taxe dans logement
 7. [ ] Mise en ligne avec n° déclaration + DPE
 8. [ ] Déclaration revenus BIC
-9. [ ] Extras 0 € : kit bienvenue + mini-bar soft + PWA/QloApps (pré-commande J-1 18h, Stripe/Swikly)
+9. [ ] Extras 0 € : kit bienvenue + mini-bar soft + PWA/moteur direct (§4-bis) (pré-commande J-1 18h, Stripe/Swikly)
 10. [ ] Partenariats commission : VTC, traiteur, massage, babysitting, pressing, cowork (RC pro vérifiée)
 11. [ ] Fiabilisation : Minut (~150 €) + CO2 (~35 €) + clé Zigbee secours (~30 €)
 12. [ ] Boucle avis : enquête J+1 + livret vidéo QR + objets trouvés + IT/DE
