@@ -1,0 +1,57 @@
+# homeassistant/blueprints/automation/location/fuite_vanne.yaml — blueprint fuite + vanne (P1-8/P5-2).
+# Fermeture <2 s = règle déterministe (critère P5-2). Réarmement TOUJOURS manuel :
+# aucune action de ce blueprint (ni d'aucun autre) ne rouvre la vanne.
+# Jev = résumé post-événement seul, jamais de décision temps réel (§6.7).
+
+blueprint:
+  name: LCD Fuite + vanne
+  description: Fuite détectée → ferme la vanne (<2 s), alerte, réarmement manuel seul.
+  domain: automation
+  input:
+    logement_id:
+      name: Logement
+      description: Slug logement (log1, log2...). Todo créée dans todo.logX_menage.
+      selector:
+        text:
+    detecteur:
+      name: Détecteur de fuite
+      description: Binary sensor humidité (Frient, sous évier / machine / ballon — jamais SDB/chambre en capteur audio/vidéo, cf. §5.4).
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: moisture
+    vanne:
+      name: Vanne d'arrivée d'eau
+      description: Vanne motorisée T1 (si vanne = switch et non valve, remplacer valve.close par switch.turn_off).
+      selector:
+        entity:
+          domain: valve
+    notify_service:
+      name: Service de notification
+      description: Alerte critique hôte (SMS Free/Telegram).
+      default: notify.persistent_notification
+      selector:
+        text:
+
+variables:
+  logement: !input logement_id
+
+trigger:
+  - platform: state
+    entity_id: !input detecteur
+    to: "on"
+
+action:
+  - service: valve.close_valve
+    target:
+      entity_id: !input vanne
+  - service: todo.add_item
+    target:
+      entity_id: "todo.{{ logement }}_menage"
+    data:
+      item: "URGENT fuite d'eau — vanne fermée auto, réarmement MANUEL après contrôle (photos avant/après)."
+  - service: !input notify_service
+    data:
+      message: "{{ logement }} : FUITE DÉTECTÉE — vanne fermée. Réarmement manuel après contrôle sur place."
+
+mode: single

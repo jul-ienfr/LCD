@@ -1,0 +1,13 @@
+# custom/branding.yaml.EXAMPLE — template marque blanche (§1.5.4).
+# Copier vers custom/branding.yaml (PRIVÉ, jamais commité — 1 dossier privé par client).
+# Changer de client = 1 fichier + logos, 0 code. Aucune mention LCD/HA en dur côté voyageur/presta.
+
+branding:
+  marque: "VotreConciergerie"            # nom commercial affiché PWA/SMS/tablette
+  logo: /local/branding/logo.svg
+  couleurs: {primaire: "#0E7C6B", secondaire: "#F2B705", fond: "#FAFAF7"}
+  domaine: sejour.votreconciergerie.fr   # QR/PWA/SMS pointent ici, jamais IP/nom interne
+  contact: {tel_urgence: "+33...", email: "bonjour@...", siren: "..."}
+  mentions: {cgu_url: "...", rgpd_url: "...", reglement_pdf: "/local/branding/reglement.pdf"}
+  langues: [fr, en, es, it, de]
+  langues_auto: [pt, nl, pl]             # toute autre maternelle en auto LLM §5.7-ter

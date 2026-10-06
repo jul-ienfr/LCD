@@ -1,0 +1,82 @@
+# homeassistant/packages/log2/log2.yaml — COMMUNS log2 LIGHT : bandeau offline, copro (Phase 1, §2.8-bis).
+# Les packages sont déclarés UNE fois dans configuration.yaml (clé `packages:` unique).
+
+# Backends Phase 7 (P7-4/P7-5) — à l'identique log1, dashboard /systeme §1.6.4-4, UI :8050 lit routing.json
+input_select:
+  log2_llm_backend:
+    name: "log2 backend LLM"
+    options: [lcd-chat-fast, lcd-chat-strong, lcd-chat-eu, lcd-chat-local]
+    initial: lcd-chat-fast
+  log2_jev_backend:
+    name: "log2 backend Jev"
+    options: [jev-latest, jev-1.13.0, off]
+    initial: jev-latest
+
+input_text:
+  log2_llm_model_override:
+    name: "log2 override modèle LLM (vide = alias)"
+    initial: ""
+    max: 64
+  log2_jev_endpoint_override:
+    name: "log2 override endpoint Jev custom (vide = défaut)"
+    initial: ""
+    max: 128
+
+# Bandeau offline permanent (§1.6)
+template:
+  - sensor:
+      - name: log2_offline_mode
+        unique_id: log2_offline_mode
+        state: >
+          {% if is_state('binary_sensor.wan_ok', 'on') %}LAN+WAN
+          {% else %}local seul{% endif %}
+      - name: log2_config_ok
+        unique_id: log2_config_ok
+        # Rouge si copro.verifiee:false (mise en ligne BLOQUÉE) — log2 = false défaut sûr
+        state: "{{ states('input_boolean.log2_copro_verifiee') }}"
+
+input_boolean:
+  log2_copro_verifiee:
+    name: "log2 copro vérifiée (accord écrit + Cerfa)"
+    initial: false
+  # Features on/off ← custom/logements.yaml log2.features: (§1.5.5, §1.6.4-1)
+  # 1 feature = 1 flag + 1 dossier + 1 dashboard visibility:
+  log2_enable_smart_lock:
+    name: "log2 smart lock (on = Nuki, off = boîte à clés)"
+    initial: false
+  log2_enable_voix:
+    name: "log2 voix"
+    initial: false
+  log2_enable_clim_ir:
+    name: "log2 clim IR"
+    initial: false
+  log2_enable_extras_upsell:
+    name: "log2 extras / mini-bar"
+    initial: false
+  log2_enable_etat_lieux_auto:
+    name: "log2 état des lieux auto"
+    initial: true
+  log2_enable_sinistre_auto:
+    name: "log2 sinistre auto"
+    initial: false
+  log2_enable_compta_auto:
+    name: "log2 compta auto"
+    initial: true
+  log2_enable_traca_intervenants:
+    name: "log2 traça intervenants"
+    initial: true
+  log2_enable_inventaire_biens:
+    name: "log2 inventaire biens"
+    initial: false
+  log2_enable_annuaire_presta:
+    name: "log2 annuaire prestataires"
+    initial: true
+  log2_enable_mode_auto_saison:
+    name: "log2 mode auto saison (proposition 1-tap seule)"
+    initial: false
+  log2_enable_events_auto:
+    name: "log2 events auto"
+    initial: true
+  log2_enable_memoire_voyageur:
+    name: "log2 mémoire voyageur (opt-in, purge 24 mois)"
+    initial: true

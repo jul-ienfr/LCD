@@ -1,0 +1,13 @@
+# custom/prestataires/log1.yaml — annuaire presta log1 (§12.4-bis, §1.6.1 Vue Incidents).
+# Règle : ≥2 actifs / métier critique, filtre zone + RC. Hors zone = 2e choix + surcoût, jamais auto.
+# Alerte si <2 actifs / métier / zone.
+
+metiers_critiques: [menage_externe, plombier, elec, serrurier]
+
+prestataires: []
+# Exemple (anonymisé) :
+# - id: presta_01
+#   metier: plombier
+#   zones: [santa_severa, villeneuve_loubet_plage]
+#   rc_pro: true
+#   actif: true

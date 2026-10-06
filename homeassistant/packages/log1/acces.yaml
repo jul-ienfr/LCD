@@ -1,0 +1,26 @@
+# homeassistant/packages/log1/acces.yaml — KeyMaster slots + lock log1 (Phase 3, cf. §5.2).
+# Slots 1-10 voyageurs (arrivée-2h → départ+30min) + slot ménage permanent séparé.
+# Jamais de PIN en clair : 4 derniers chiffres + exclude recorder/logbook (configuration.yaml).
+# Sans WAN : PIN test ouvre en Thread local (critère Phase 3).
+
+# NOTE Phase 3 : installer KeyMaster (HACS) + Nuki Hub (ESP32) puis décommenter/adapter ci-dessous.
+# keymaster:
+#   log1:
+#     lock_entity: lock.log1_porte
+#     slots: 10
+
+# automation — instanciations blueprints (Phase 3, décommenter sur box après KeyMaster+Nuki Hub)
+# automation:
+#   - alias: "log1 arrivée J-2/J-1"
+#     use_blueprint:
+#       path: location/arrivee.yaml
+#       input:
+#         logement_id: log1
+#         notify_service: notify.persistent_notification  # TODO-BOX Phase 3 : notify.sms_free_log1
+#   - alias: "log1 départ + ménage"
+#     use_blueprint:
+#       path: location/depart_menage.yaml
+#       input:
+#         logement_id: log1
+#         notify_service: notify.persistent_notification  # TODO-BOX Phase 3 : notify ménage/hôte
+automation: []

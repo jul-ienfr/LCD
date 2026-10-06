@@ -1,0 +1,116 @@
+# homeassistant/packages/log1/dashboards/guest.yaml — PWA voyageur (§1.6.3).
+# 3 vues socle FR/EN/ES/IT/DE + maternelle auto selon `input_text.log1_langue_voyageur`.
+# Aucun nom LCD/HA en dur — logo + nom + couleurs depuis custom/branding.yaml.
+# WiFi QR <3 s + fallback manuel. Offline : guide local seul, bandeau orange,
+# codes déjà valides. 5 temps : arrivée guidée / guide QR / séjour / départ / SAV.
+# Visibility §1.6 + §1.6.4-1 : switcher `input_select.logement_actif in [log1, tous]`
+# + `input_boolean.log1_enable_<feature>` par carte (1 feature = 1 flag + 1 visibility).
+
+title: Séjour
+views:
+  - title: Accueil
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: entities
+        entities:
+          - input_text.log1_langue_voyageur
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Bienvenue ! WiFi invité : scannez le QR (connexion <3 s) ou saisie
+          manuelle. Code porte rappelé (heure limitée). Horaires, contact urgence.
+          Arrivée guidée : QR accueil salon → tour des pièces.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          État des lieux entrée : photos horodatées par pièce via cette page
+          (salon, cuisine, chambre, SDB, entrée : grand angle + points sensibles).
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_etat_lieux_auto
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Parler OU écrire : micro voix OU chat texte, même pipeline, même langue.
+          Consentement par échange, révocable, aucun enregistrement audio.
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_voix
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Guide
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          QR par pièce/appareil : LV/LL (bouton fin de cycle), clim
+          (chaud 19-21,5 / froid 25-27), tri CASA, bruit 22h-8h.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Extras (`extras_upsell: on`) : mini-bar honnêteté (conso déclarée +
+          QR paiement), catalogue (late/early, kits, courses, petit-déj) —
+          pré-commande avant J-1 18h, paiement d'avance.
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_extras_upsell
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Urgences
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          Urgences : 112. Hôte : voir contact accueil.
+          Coupure eau/élec : voir consignes guide. Extincteur : entrée.
+          Incendie : évacuer, la porte se déverrouille, appeler le 112.
+          SAV : réponse humaine <15 min (8h-22h), file suivie côté hôte.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous

@@ -1,0 +1,59 @@
+# homeassistant/blueprints/automation/location/depart_menage.yaml — blueprint départ + todo ménage (P1-8/P3-5).
+# Trigger : event lcd_checkout (webhook moteur direct §4-bis / poll ICS), data
+#   {logement_id, pin, deadline_menage, message}. Actions : révoque le PIN départ+30 min
+#   (vérif lock + alerte si échec, P3-5), crée todo.logX_menage (deadline = check-in −2h,
+#   dans le texte — pas de due_date pour rester compatible), coupe l'occupation,
+#   réassort kit + mini-bar si extras_upsell: on (data.message adapté par decision-engine).
+# Jamais de révocation punitive en cours de séjour.
+
+blueprint:
+  name: LCD Départ + ménage
+  description: Révocation PIN départ+30 min + todo ménage (deadline check-in −2h).
+  domain: automation
+  input:
+    logement_id:
+      name: Logement
+      description: Slug logement (log1, log2...). Filtre l'event + entités dérivées.
+      selector:
+        text:
+    notify_service:
+      name: Service de notification
+      description: Service notify ménage/hôte (todo créé en plus dans todo.logX_menage).
+      default: notify.persistent_notification
+      selector:
+        text:
+
+variables:
+  logement: !input logement_id
+
+trigger:
+  - platform: event
+    event_type: lcd_checkout
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.event.data.get('logement_id', '') == logement }}"
+
+action:
+  - if:
+      - condition: template
+        value_template: "{{ trigger.event.data.get('pin', '') != '' }}"
+    then:
+      - service: mqtt.publish
+        data:
+          topic: "nukihub/{{ logement }}/keypad/command/remove"
+          # Format Nuki Hub keypad remove — adapter au firmware installé (cf. §5.2).
+          payload: "{{ {'code': trigger.event.data.pin} | tojson }}"
+      - service: homeassistant.turn_off
+        target:
+          entity_id: "input_boolean.{{ logement }}_occupation"
+  - service: todo.add_item
+    target:
+      entity_id: "todo.{{ logement }}_menage"
+    data:
+      item: "Ménage + réassort — deadline {{ trigger.event.data.get('deadline_menage', 'check-in −2h') }}"
+  - service: !input notify_service
+    data:
+      message: "{{ trigger.event.data.get('message', 'Départ ' + logement + ' : ménage à faire (deadline check-in −2h).') }}"
+
+mode: single

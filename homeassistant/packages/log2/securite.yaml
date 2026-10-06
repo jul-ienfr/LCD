@@ -1,0 +1,9 @@
+# homeassistant/packages/log2/securite.yaml — log2 LIGHT (Phase 5).
+# Fuite/vanne + DAAF + bruit 3 niveaux identiques log1 (blueprints location/*).
+# dB seuls, jamais audio. Capteurs jamais chambres/SDB. Réarmement vanne manuel.
+
+# NOTE Phase 5 : déclarer vanne + Alarmo + ESP32 bruit puis décommenter/adapter.
+# Instanciations identiques log1 (bruit/fuite/incendie) SAUF incendie sans serrure :
+#   serrure: "" (boîte à clés → pas de déverrouillage auto, cf. blueprint incendie).
+# alarm_control_panel: []
+automation: []

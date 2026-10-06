@@ -1,0 +1,10 @@
+# custom/memoire/voyageurs.yaml — mémoire voyageur + WiFi returning (Phase 6, §5.7-quater).
+# Opt-in séjour seul, jamais de discrimination tarifaire. Purge 24 mois, présence 90 j.
+# WiFi : rotative défaut, ré-appliquée si hash reconnu. Jamais de CSI brut.
+
+voyageurs: []
+# Exemple :
+# - hash: "<sha256>"
+#   wifi_reconnue: true
+#   preferences: {}
+#   opt_in_le: null

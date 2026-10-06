@@ -1,0 +1,62 @@
+# homeassistant/blueprints/automation/location/bridage_chauffage.yaml — blueprint bridage 21 °C (P1-8/P4-1).
+# Versatile presets Confort 19 / Eco 16 / HG 12 ; toute consigne > max est redescendue en code.
+# Critère P4-9 : consigne bloquée. Mémoire voyageur (P4-10) : consigne Confort mémorisée
+# réappliquée par decision-engine, bornes inviolables, proposition 1-tap si au-delà.
+
+blueprint:
+  name: LCD Bridage chauffage 21 °C
+  description: Redescend toute consigne thermostat au-dessus du max (défaut 21 °C).
+  domain: automation
+  input:
+    logement_id:
+      name: Logement
+      description: Slug logement (log1, log2...). Utilisé dans le message de bridage.
+      selector:
+        text:
+    thermostat:
+      name: Thermostat
+      description: Climate Versatile à brider (1 par zone, cf. comptage radiateurs P0-1).
+      selector:
+        entity:
+          domain: climate
+    consigne_max:
+      name: Consigne max (°C)
+      description: Plafond inviolable en code (défaut 21, cf. §5.3).
+      default: 21
+      selector:
+        number:
+          min: 7
+          max: 21
+          step: 0.5
+          unit_of_measurement: "°C"
+    notify_service:
+      name: Service de notification
+      description: Notifie le bridage (hôte + voyageur PWA).
+      default: notify.persistent_notification
+      selector:
+        text:
+
+variables:
+  logement: !input logement_id
+  thermostat: !input thermostat
+  consigne_max: !input consigne_max
+
+trigger:
+  - platform: state
+    entity_id: !input thermostat
+
+condition:
+  - condition: template
+    value_template: "{{ state_attr(thermostat, 'temperature') is not none and (state_attr(thermostat, 'temperature') | float) > (consigne_max | float) }}"
+
+action:
+  - service: climate.set_temperature
+    target:
+      entity_id: "{{ thermostat }}"
+    data:
+      temperature: "{{ consigne_max }}"
+  - service: !input notify_service
+    data:
+      message: "{{ logement }} : consigne bridée à {{ consigne_max }} °C (presets Confort 19 / Eco 16 / HG 12)."
+
+mode: single

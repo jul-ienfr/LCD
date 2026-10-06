@@ -1,0 +1,6 @@
+# custom/prestataires/log2.yaml — annuaire presta log2 (§12.4-bis).
+# Mêmes règles que log1. Zones à définir au wizard log2.
+
+metiers_critiques: [menage_externe, plombier, elec, serrurier]
+
+prestataires: []

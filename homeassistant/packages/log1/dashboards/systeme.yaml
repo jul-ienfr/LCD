@@ -1,0 +1,122 @@
+# homeassistant/packages/log1/dashboards/systeme.yaml — Dashboard SYSTÈME (§1.6.4).
+# Wizard onboarding §2.7, routage :8050 (panel_iframe), supervision, kill-switch jev_enabled.
+# super_admin/admin seuls. `copro.verifiee: false` = mise en ligne BLOQUÉE (carte rouge).
+# Visibility §1.6 + §1.6.4-1 : `input_select.logement_actif in [log1, tous]` sur toutes les vues/cartes.
+# Features on/off : `input_boolean.log1_enable_*` (§1.5.5, miroir custom/logements.yaml).
+
+title: Système
+views:
+  - title: Système
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: entities
+        title: Configuration
+        entities:
+          - sensor.log1_config_ok
+          - input_boolean.log1_copro_verifiee
+          - input_select.logement_actif
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: entities
+        title: Features on/off (§1.5.5 + §1.6.4-1)
+        entities:
+          - input_boolean.log1_enable_smart_lock
+          - input_boolean.log1_enable_voix
+          - input_boolean.log1_enable_clim_ir
+          - input_boolean.log1_enable_extras_upsell
+          - input_boolean.log1_enable_etat_lieux_auto
+          - input_boolean.log1_enable_sinistre_auto
+          - input_boolean.log1_enable_compta_auto
+          - input_boolean.log1_enable_traca_intervenants
+          - input_boolean.log1_enable_inventaire_biens
+          - input_boolean.log1_enable_annuaire_presta
+          - input_boolean.log1_enable_mode_auto_saison
+          - input_boolean.log1_enable_events_auto
+          - input_boolean.log1_enable_memoire_voyageur
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Features on/off par logement (`custom/logements.yaml`, §1.5.1) :
+          toggle → écrit YAML + reload + backup auto + entrée `decision.log1.jsonl`.
+          Désactivation incendie/vanne = double confirmation + motif.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Onboarding log1 (§2.7) : photo tableau + radiateurs + vanne Ø +
+          cylindre débrayable + interphone + accord syndic + WiFi >−70 dBm.
+          Extensions : pilotage (mode_gestion, ménage_facturation, bornes),
+          inventaire (étiquettes + 1 h guidée), events ICS, annuaire presta
+          (≥2/métier, zone réelle), fiscalité (SIRET, régime, classement),
+          extras (catalogue + stock + QR), comptes 5 rôles (`acces.yaml`).
+          Photos versées dans `docs/log1/` (privé).
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Maintenance : tests mensuels (vanne <2 s, sirènes, piles, PIN sans WAN),
+          backup quotidien vérifié + copie hebdo chiffrée hors site + restore
+          trimestriel, détecteurs 10 ans, LQI/batteries.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: entities
+        title: LLM / Jev
+        entities:
+          - input_boolean.llm_eu_only
+          - input_boolean.jev_enabled
+          - input_select.log1_llm_backend
+          - input_text.log1_llm_model_override
+          - input_select.log1_jev_backend
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          `select.log1_llm_backend` + override + kill-switch `jev_enabled`
+          + `cache_ttl: 0` verrouillé `lcd-jev-*`. Backend actif + fallback +
+          latence + coûts (`sensor.llm_cout_mois`, alerte >5 €).
+          Bouton Tester dans l'UI routage ci-dessous.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: webpage
+        url: http://<ip-lan>:8050
+        title: Routage LLM
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous

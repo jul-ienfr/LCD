@@ -1,0 +1,94 @@
+# homeassistant/packages/log2/dashboards/systeme.yaml — Dashboard SYSTÈME log2 (§1.6.4).
+# super_admin/admin seuls. `copro.verifiee: false` = mise en ligne BLOQUÉE.
+# Visibility §1.6 + §1.6.4-1 : switcher `input_select.logement_actif in [log2, tous]`
+# + `input_boolean.log2_enable_*` (§1.5.5, miroir custom/logements.yaml LIGHT).
+
+title: Système
+views:
+  - title: Système
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: entities
+        title: Configuration
+        entities:
+          - sensor.log2_config_ok
+          - input_boolean.log2_copro_verifiee
+          - input_select.logement_actif
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: entities
+        title: Features on/off (§1.5.5 + §1.6.4-1)
+        entities:
+          - input_boolean.log2_enable_smart_lock
+          - input_boolean.log2_enable_voix
+          - input_boolean.log2_enable_clim_ir
+          - input_boolean.log2_enable_extras_upsell
+          - input_boolean.log2_enable_etat_lieux_auto
+          - input_boolean.log2_enable_sinistre_auto
+          - input_boolean.log2_enable_compta_auto
+          - input_boolean.log2_enable_traca_intervenants
+          - input_boolean.log2_enable_inventaire_biens
+          - input_boolean.log2_enable_annuaire_presta
+          - input_boolean.log2_enable_mode_auto_saison
+          - input_boolean.log2_enable_events_auto
+          - input_boolean.log2_enable_memoire_voyageur
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Features log2 (LIGHT) : `smart_lock: off` → boîte à clés,
+          `voix: off`, `clim_ir: off`, `extras_upsell: off`.
+          Migration : flip flags + cartes log1 comme modèle.
+          Onboarding : wizard §2.7, photos versées dans `docs/log2/` (privé).
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: entities
+        title: LLM / Jev
+        entities:
+          - input_boolean.llm_eu_only
+          - input_boolean.jev_enabled
+          - input_select.log2_llm_backend
+          - input_text.log2_llm_model_override
+          - input_select.log2_jev_backend
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Maintenance : tests mensuels, backup quotidien vérifié + copie hebdo
+          chiffrée hors site, détecteurs 10 ans, LQI/batteries.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: webpage
+        url: http://<ip-lan>:8050
+        title: Routage LLM
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous

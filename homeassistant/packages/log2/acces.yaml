@@ -1,0 +1,20 @@
+# homeassistant/packages/log2/acces.yaml — log2 LIGHT sans Nuki (Phase 3, §2.8-bis).
+# smart_lock: off → branche boîte à clés (code manuel/Keybox auto, ex 4 derniers chiffres tél).
+# Messages J-2/J-1 adaptés (adresse boîte, pas de PIN). Migration Nuki = flip smart_lock: true.
+
+# NOTE Phase 3 : boîte Master Lock + consigne coupure (backup hall / appeler hôte).
+# Instanciations LIGHT (smart_lock off → pin vide, message boîte à clés, cf. blueprint arrivée)
+# automation:
+#   - alias: "log2 arrivée J-2/J-1 (boîte à clés)"
+#     use_blueprint:
+#       path: location/arrivee.yaml
+#       input:
+#         logement_id: log2
+#         notify_service: notify.persistent_notification
+#   - alias: "log2 départ + ménage"
+#     use_blueprint:
+#       path: location/depart_menage.yaml
+#       input:
+#         logement_id: log2
+#         notify_service: notify.persistent_notification
+automation: []

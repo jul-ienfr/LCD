@@ -1,0 +1,22 @@
+# custom/zones.yaml — zones desservies PARTAGÉES tous logements (v2.4).
+# Règle : clés seules (slugs), jamais de texte libre. Dispatch = filtre zone+actif+RC.
+# Alerte si <2 actifs/métier/zone. Hors zone = 2e choix + surcoût, jamais auto.
+
+zones:
+  santa_severa:
+    label: "Santa Severa"
+    communes: ["Villeneuve-Loubet"]
+  villeneuve_loubet_plage:
+    label: "Villeneuve-Loubet plage"
+    communes: ["Villeneuve-Loubet"]
+  villeneuve_loubet_centre:
+    label: "Villeneuve-Loubet centre / village"
+    communes: ["Villeneuve-Loubet"]
+  nice_ouest:
+    label: "Nice ouest / aéroport"
+    communes: ["Nice", "Saint-Laurent-du-Var"]
+  sophia_antipolis:
+    label: "Sophia Antipolis"
+    communes: ["Valbonne", "Biot", "Mougins"]
+
+zone_defaut: santa_severa

@@ -1,0 +1,6 @@
+# homeassistant/packages/log2/voix.yaml — log2 LIGHT : pas de voix (§2.8-bis).
+# Fichier conservé pour structure identique (ajouter log3 = même squelette).
+# Si voix ajoutée plus tard : S3-BOX-3 + Wyoming + proxy :4000, flip voix: true.
+
+# assist_pipeline: []
+automation: []

@@ -1,0 +1,34 @@
+# homeassistant/packages/log1/securite.yaml — Alarmo, bruit, fuite/vanne, incendie (Phase 5, cf. §5.4).
+# Vanne <2s, réarmement TOUJOURS manuel. Incendie désarme intrusion (jamais blocage sortie).
+# dB seuls, jamais audio. Capteurs jamais chambres/SDB.
+# NOTE Phase 5 : installer Alarmo + Frient + vanne + Wiser puis décommenter ci-dessous.
+# automation:
+#   - alias: "log1 bruit 3 niveaux"
+#     use_blueprint:
+#       path: location/bruit_3niveaux.yaml
+#       input:
+#         logement_id: log1
+#         capteur_db: sensor.log1_bruit_db              # TODO-BOX Phase 5 : ESP32+INMP441 réel
+#         alarme: alarm_control_panel.log1              # TODO-BOX Phase 5 : Alarmo réel
+#         notify_voyageur: notify.persistent_notification
+#         notify_hote: notify.persistent_notification   # TODO-BOX : SMS Free/Telegram
+#   - alias: "log1 fuite + vanne"
+#     use_blueprint:
+#       path: location/fuite_vanne.yaml
+#       input:
+#         logement_id: log1
+#         detecteur: binary_sensor.log1_fuite           # TODO-BOX Phase 5 : Frient réel
+#         vanne: valve.log1_arrivee_eau                # TODO-BOX : si switch → switch.turn_off
+#         notify_service: notify.persistent_notification
+#   - alias: "log1 incendie"
+#     use_blueprint:
+#       path: location/incendie.yaml
+#       input:
+#         logement_id: log1
+#         detecteur_fumee: binary_sensor.log1_fumee     # TODO-BOX Phase 5 : DAAF réel
+#         alarme: alarm_control_panel.log1
+#         serrure: lock.log1_porte                     # smart_lock on → déverrouille sortie
+#         notify_service: notify.persistent_notification
+
+alarm_control_panel: []
+automation: []

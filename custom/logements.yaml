@@ -1,0 +1,107 @@
+# custom/logements.yaml — source vérité : héritage global -> logX.
+# Cf. Plan §1.5.3 (topologie), §1.5.5 (modulaire), §3 (pricing), §12.1 (copro).
+# Règles : jamais d'entity_id en dur (logement_id partout), bornes 75/290 inviolables,
+# `copro.verifiee: false` = mise en ligne BLOQUÉE (sensor.logX_config_ok rouge).
+
+global:
+  devise: EUR
+  langue_hote: fr
+  langues_socle: [fr, en, es, it, de]   # validées humain, cf. §5.7-ter
+  prix_min: 75                           # BORNES INVOLABLES EN CODE (§3)
+  prix_max: 290
+  hold_caution_min: 500                  # Swikly/Stripe/TPE, cf. §12.4
+  hold_caution_max: 800
+  ics_poll_minutes: 15
+  menage_montant_defaut: 110             # ligne séparée, cf. §12.2-ter
+  llm_proxy: "http://<ip-lan>:4000"      # jamais exposé WAN, cf. §6.5
+  ui_routage: "http://<ip-lan>:8050"     # LAN+WireGuard seule
+
+logements:
+  log1:
+    nom: "Santa Severa"
+    commune: "Villeneuve-Loubet"
+    logement_id: log1
+    surface_m2: 65
+    capacite: 5
+    vue_mer: true
+    # --- Pricing pivot direct (§3) ---
+    pricing:
+      prix_base: 110
+      prix_min: 75
+      prix_max: 290
+      mode_gestion_defaut: equilibre
+    # --- Copropriété art. 8/9 (§12.1) : tout changement = MAJ + régénération docs ---
+    copro:
+      verifiee: false                    # passer à true après accord écrit syndic + Cerfa
+      meuble_entier: true
+      chambres_separees: false
+      fetes: false
+      heures_calmes: "22h-8h"
+      occupants_max: 5
+      animaux: false
+      non_fumeur: true
+      taxe_sejour_majoration: 0.44       # CASA +44 %
+    # --- Features on/off (1 feature = 1 flag + 1 dossier + 1 dashboard) ---
+    features:
+      smart_lock: true
+      voix: true
+      clim_ir: true
+      extras_upsell: true                # mini-bar + kits, cf. §5.6-ter
+      etat_lieux_auto: true
+      sinistre_auto: true
+      compta_auto: true
+      traca_intervenants: true
+      inventaire_biens: true
+      annuaire_presta: true
+      mode_auto_saison: false             # proposition 1-tap seule, jamais silencieuse
+      events_auto: true
+      memoire_voyageur: true             # opt-in séjour, purge 24 mois
+    menage:
+      montant: 110
+      facturation: supplement            # supplement | inclus_nuit
+    zones: [santa_severa, villeneuve_loubet_plage]
+    zone_defaut: santa_severa
+    moteur_direct: qloapps                # qloapps (Phase 1) | maison (Phase 2+), cf. §4-bis
+
+  log2:
+    nom: "Logement 2 (à définir)"
+    commune: "À définir"
+    logement_id: log2
+    surface_m2: null
+    capacite: 4
+    vue_mer: false
+    pricing:
+      prix_base: 90
+      prix_min: 75
+      prix_max: 290
+      mode_gestion_defaut: remplissage_max
+    copro:
+      verifiee: false
+      meuble_entier: true
+      chambres_separees: false
+      fetes: false
+      heures_calmes: "22h-8h"
+      occupants_max: 4
+      animaux: false
+      non_fumeur: true
+      taxe_sejour_majoration: 0.44
+    features:
+      smart_lock: false                  # light : boîte à clés, cf. §1.5.3
+      voix: false
+      clim_ir: false
+      extras_upsell: false
+      etat_lieux_auto: true
+      sinistre_auto: false
+      compta_auto: true
+      traca_intervenants: true
+      inventaire_biens: false
+      annuaire_presta: true
+      mode_auto_saison: false
+      events_auto: true
+      memoire_voyageur: true
+    menage:
+      montant: 90
+      facturation: supplement
+    zones: []
+    zone_defaut: null
+    moteur_direct: qloapps

@@ -1,0 +1,25 @@
+# homeassistant/packages/log1/energie.yaml — Versatile + ZLinky + ECS (Phase 4, cf. §5.3).
+# Presets Confort 19 / Eco 16 / HG 12, bridage 21 °C, PAPP>85 % délestage.
+# NOTE Phase 4 : installer Versatile Thermostat + ZLinky + Shelly EM puis compléter.
+
+# climate — squelette (1 thermostat par zone, cf. comptage radiateurs P0-1)
+climate: []
+
+# NOTE Phase 4 : 1 instanciation bridage par thermostat Versatile (décommenter sur box)
+# automation:
+#   - alias: "log1 bridage salon"
+#     use_blueprint:
+#       path: location/bridage_chauffage.yaml
+#       input:
+#         logement_id: log1
+#         thermostat: climate.log1_salon  # TODO-BOX Phase 4 : entity_id Versatile réel
+#         consigne_max: 21
+#         notify_service: notify.persistent_notification
+
+# sensor — squelette conso (Energy dashboard)
+template:
+  - sensor:
+      - name: log1_prix_nuit
+        unique_id: log1_prix_nuit
+        unit_of_measurement: EUR
+        state: "110"   # pricing-engine écrase via PUT (bornes 75/290 en code, cf. §3)

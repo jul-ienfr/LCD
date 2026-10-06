@@ -1,0 +1,224 @@
+# homeassistant/packages/log2/dashboards/hote.yaml — Dashboard HÔTE log2 (§1.6.1, LIGHT).
+# smart_lock: off → Vue Accès = branche boîte à clés (pas de lock, pas de MQTT,
+# pas de déverrouillage auto incendie). Pas d'extras (`extras_upsell: off`),
+# pas de clim IR, pas de voix. Même 7 onglets, cartes réduites.
+# Visibility §1.6 + §1.6.4-1 : switcher `input_select.logement_actif in [log2, tous]`
+# + `input_boolean.log2_enable_<feature>` par carte (flip = cartes log1 comme modèle).
+
+title: Hôte
+views:
+  - title: Planning
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: calendar
+        entities: [calendar.log2_planning]
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: entities
+        title: Séjour en cours
+        entities:
+          - input_boolean.log2_occupation
+          - input_text.log2_langue_voyageur
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+  - title: Accès
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: entities
+        title: Porte log2
+        entities:
+          - lock.log2_porte
+        visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_smart_lock
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Boîte à clés (smart_lock: off) : code manuel/Keybox auto
+          (ex 4 derniers chiffres tél) + adresse boîte + validité.
+          Messages J-2/J-1 adaptés (pas de PIN Nuki).
+          Migration Nuki = flip `smart_lock: true` + carte serrure log1.
+          Journal 90 j : heures, jamais le code.
+        visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_smart_lock
+            state: "off"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+  - title: Prix
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: entities
+        title: Prix nuit
+        entities:
+          - sensor.log2_prix_nuit
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Pivot 90 €, bornes 75/290 inviolables. `mode_gestion_defaut:
+          remplissage_max`. Ménage 90 € en supplément, ligne séparée.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Extras (§5.6-ter) : CA extras/séjour + mini-bar stock vs seuil Grocy.
+          Catalogue late/early, kits, courses — pré-commande avant J-1 18h.
+        visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_extras_upsell
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+  - title: Énergie
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          Versatile + ZLinky + prises selon équipement réel. Bridage 21 °C
+          (blueprint, thermostat à déclarer Phase 4). Pas de RM4 si pas de clim IR.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Clim RM4 si `clim_ir: on` (chaud 19-21,5 / froid 25-27).
+        visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_clim_ir
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+  - title: Incidents
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: alarm-panel
+        entity: alarm_control_panel.log2
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Fuite/vanne + DAAF + bruit 3 niveaux identiques log1
+          (blueprints `location/*`). dB seuls, jamais audio.
+          Réarmement vanne manuel. Incendie désarme intrusion.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Sinistres (`sinistre_auto: on`) : dossier `/config/sinistres/log2/`
+          + compte à rebours plateforme (AirCover 14 j / Booking 48 h / Vrbo ~14 j).
+          Si `off` → dossier manuel, mêmes champs, pas de dispatch auto.
+        visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_sinistre_auto
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+  - title: Supervision
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: entities
+        title: Santé
+        entities:
+          - binary_sensor.wan_ok
+          - sensor.log2_offline_mode
+          - sensor.log2_config_ok
+          - input_boolean.log2_copro_verifiee
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+  - title: Finances
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          CA/mois log2 + parc, saisie manuelle (`compta_auto: on` = ingestion auto
+          Phase 6). Jauges 15 000 € / 77 700 € + 120 j. Clôture le 5.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous

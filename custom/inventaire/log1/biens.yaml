@@ -1,0 +1,9 @@
+# custom/inventaire/log1/biens.yaml — inventaire biens log1 (QR linge/équipement, §5.6).
+# QR thermocollant linge + sticker vinyle / NFC NTAG215 équipement. État 1-5.
+
+biens: []
+# Exemple :
+# - qr: LINGE-DRAP-001
+#   type: linge
+#   utilisations: 0
+#   etat: 5

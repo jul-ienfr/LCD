@@ -1,0 +1,119 @@
+# homeassistant/packages/log1/dashboards/menage.yaml — Dashboard MÉNAGE, 3 onglets (§1.6.2).
+# Todos / Checklist / Stocks. FR + pictos. Pas de codes complets (slot ménage seul),
+# pas de Système. Clôture bloquée si photos/pointage manquants (`etat_lieux_auto: on`,
+# `traca_intervenants: on`).
+# Visibility §1.6 + §1.6.4-1 : switcher `input_select.logement_actif in [log1, tous]`
+# + `input_boolean.log1_enable_<feature>` par carte (1 feature = 1 flag + 1 visibility).
+
+title: Ménage
+views:
+  - title: Todos
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: todo-list
+        entity: todo.log1_menage
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: todo-list
+        entity: todo.log1_extras
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_extras_upsell
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          `todo.log1_menage` auto au checkout (deadline = check-in suivant −2 h).
+          `todo.log1_extras` si `extras_upsell: on` : kits, courses, réassort
+          mini-bar + kit bienvenue offert systématique au checkout.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Checklist
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          ☐ Draps ☐ Consommables ☐ Poubelles/tri ☐ LV/LL lancés
+          ☐ Photos entrée/sortie (Companion App → dossier daté)
+          → clôture = remise en dispo auto, **bloquée si preuves manquantes**.
+          Comparatif état des lieux voyageur vs ménage côte-à-côte
+          (`etat_lieux_auto: on`). Photos horodatées exigées (AirCover/Booking/Vrbo).
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_etat_lieux_auto
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          ☐ Pointage arrivée/départ PWA/QR (`traca_intervenants: on`)
+          ☐ Photos AVANT/APRÈS par pièce + `intervention.json`
+          → clôture todo + validation facturation BLOQUÉES si incomplet
+          (statut `preuves_manquantes` + rappel auto + notif hôte).
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_traca_intervenants
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Stocks
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          Seuils Grocy : café, papier, sacs aspirateur, piles AA, produits.
+          Liste courses auto + notif hebdo groupée.
+          Bouton test mensuel vanne/sirène/piles.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Inventaire (`inventaire_biens: on`) : scan QR/NFC → fiche bien
+          (`custom/inventaire/log1/biens.yaml`), alertes dormant >90 j /
+          état ≤2 / garantie <30 j.
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_inventaire_biens
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous

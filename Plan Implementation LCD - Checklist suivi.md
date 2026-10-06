@@ -5,9 +5,9 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `0 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `3 / ~120` tâches.
 - Phase 0 Commandes : 0/8
-- Phase 1 Socle : 0/14
+- Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 0/16
 - Phase 3 Accès : 0/8
 - Phase 4 Énergie : 0/10
@@ -41,11 +41,11 @@ Dépendances à installer : Proxmox VE, VM HAOS (4 vCPU/8 Go), Mosquitto, Zigbee
 - [ ] P1-4 DuckDNS + Let's Encrypt + WireGuard (seul port ouvert UDP) ; jamais d'expo HA sans auth
 - [ ] P1-5 NUT (onduleur) + `system_monitor` + BIOS `power restore ON` + automation retour courant
 - [ ] P1-6 Box FAI **sur onduleur** (impératif §5.1-bis) ; option 2e petit UPS box+SLZB ~40 €
-- [ ] P1-7 Packages `log1` vides selon arborescence §1.5.6 : `homeassistant/packages/log1/{log1,acces,energie,securite,exploitation,voix}.yaml` + `dashboards/{hote,menage,guest,systeme}.yaml` + `logements.yaml` (héritage global→logX) + `branding.yaml` + `acces.yaml` (5 rôles) + `zones.yaml` + `docs/templates/` + `/config/{interventions,etat_lieux,sinistres,preuves,contrats,logs}/`
-- [ ] P1-7bis Vérifier arborescence §1.5.6 : 1 feature = 1 flag + 1 dossier + 1 dashboard `visibility:` ; nommage `logX_<objet>_<fonction>` ; versionné (code + `*.example` + `docs/templates/`) vs privé chiffré (`branding.yaml` + `logements.yaml` + `secrets.yaml` + `docs/logN/` + `/config/...`) ; `sensor.logX_config_ok` rouge si `copro.verifiee:false`
-- [ ] P1-8 Blueprints `location/*` : arrivée, départ-ménage, bridage, bruit, fuite, incendie
-- [ ] P1-9 `secrets.yaml` (clés API, master_key proxy, exports banque) — jamais commitée ; rotation clé API accès
-- [ ] P1-10 Recorder purge 10 j (InfluxDB exclu) ; logbook + `decision.log1.jsonl` (`/config/logs/`)
+- [x] P1-7 Packages `log1` vides selon arborescence §1.5.6 (55 fichiers créés 2026-10-06 : `configuration.yaml` + packages log1/log2 + dashboards + blueprints squelettes + `logements.yaml` + `branding.yaml.example` + `acces.yaml` (5 rôles) + `zones.yaml` + `secrets.yaml.example` + squelettes decision-engine/ics-sync/pricing/llm-proxy×3/router-ui/jev/qloapps-module + prestataires/inventaire/mémoire + `docs/templates/` 8 fichiers + `.gitignore`) — `/config/{...}/` = runtime HA, créé sur la box, couvert par `.gitignore` ; socle sans-box étendu 2026-10-06 : 13 flags `input_boolean.logX_enable_*` log1+log2 miroir `logements.yaml`, `select.logX_llm_backend` + `select.logX_jev_backend` + overrides modèle/endpoint, `visibility:` 8/8 dashboards (switcher + features), squelettes `rest_command.lcd_chat` + `typesafe_systemone` commentés TODO-BOX en `voix.yaml` log1
+- [x] P1-7bis Arborescence §1.5.6 vérifiée 2026-10-06 : 55/55 fichiers présents (dont `configuration.yaml` clé `packages:` unique 12 entrées) ; 1 feature = 1 flag + 1 dossier + 1 dashboard `visibility:` ; nommage `logX_<objet>_<fonction>` ; versionné (code + `*.example` + `docs/templates/`) vs privé (`branding.yaml` + `logements.yaml` + `secrets.yaml` + `docs/logN/` + `/config/...`, `.gitignore` OK) ; `sensor.logX_config_ok` rouge si `copro.verifiee:false` (les 2 logements à `false` défaut sûr)
+- [x] P1-8 Blueprints `location/*` : arrivée (J-2 PIN Nuki Hub + message localisé, J-1 rappel), départ-ménage (révocation départ+30 min + todo deadline check-in −2h), bridage 21 °C, bruit 3 niveaux (75 dB jour/60 dB nuit), fuite→vanne <2 s + réarmement manuel, incendie (désarme intrusion + déverrouille + 112) — `logement_id` partout, adaptateurs firmware/KeyMaster/W-vers-valve notés (reste : tests box Phases 3-5) ; instanciations commentées FAIT 2026-10-06 (`acces.yaml` log1/log2 arrivée+départ avec TODO-BOX notify, `energie.yaml` bridage par thermostat, `securite.yaml` log1 bruit+fuite+incendie avec TODO-BOX entités, log2 LIGHT serrure vide — décommenter sur box Phases 3-5)
+- [ ] P1-9 `secrets.yaml` (clés API, master_key proxy, exports banque) — jamais commitée ; rotation clé API accès — template 22 clés FAIT en `secrets.yaml.example` 2026-10-06 (wifi log1/log2 ssid+key, llm master+groq+mistral+custom_llm_api_key_1, typesafe_api_key Bearer préférée + jev_api_key legacy, stripe/swikly, free×2, qloapps, telegram, alarme_code, webhook token, ics×4 log1 — reste : renseigner sur box + rotation)
+- [ ] P1-10 Recorder purge 10 j (FAIT en `configuration.yaml` : `purge_keep_days: 10` + exclude PIN/codes recorder+logbook, InfluxDB exclu — reste à valider sur box) ; logbook + `decision.log1.jsonl` (`/config/logs/`, runtime box — schéma documenté 2026-10-06 en `custom/decision-engine/README.md`) ; entités socle FAIT 2026-10-06 (`input_text.logX_wifi_key`, `input_select.logX_mode_gestion/menage_facturation`, `sensor.llm/jev_cout_mois` stubs, `input_boolean.llm_eu_only/jev_enabled` en log1.yaml)
 - [ ] P1-11 Test coupure WAN 10 min : serrure Thread, chauffage, ECS, bruit→local, incendie survivent
 - [ ] P1-12 Test coupure secteur 20 min (NUT + coupe ECS/pré-chauffe) + arrêt propre + remontée seule + digest
 - [ ] P1-13 Dashboard hôte v1 : santé (WAN, Zigbee LQI, Thread, MQTT, backup vérifié), batteries/LQI

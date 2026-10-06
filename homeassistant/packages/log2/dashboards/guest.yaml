@@ -1,0 +1,84 @@
+# homeassistant/packages/log2/dashboards/guest.yaml — PWA voyageur log2 (§1.6.3).
+# Aucun nom LCD/HA en dur — branding.yaml seul. Pas de voix, pas d'extras payants.
+# Visibility §1.6 + §1.6.4-1 : switcher `input_select.logement_actif in [log2, tous]`
+# + `input_boolean.log2_enable_<feature>` par carte (1 feature = 1 flag + 1 visibility).
+
+title: Séjour
+views:
+  - title: Accueil
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: entities
+        entities:
+          - input_text.log2_langue_voyageur
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Bienvenue ! WiFi invité : scannez le QR (connexion <3 s) ou saisie
+          manuelle. Code boîte à clés rappelé (heure limitée, adresse dans
+          le message J-1). Horaires, contact urgence.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          État des lieux entrée : photos horodatées par pièce via cette page.
+        visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_etat_lieux_auto
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+  - title: Guide
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          QR par pièce/appareil : LV/LL, chauffage (bornes), tri CASA,
+          bruit 22h-8h. Kit bienvenue offert (pas de mini-bar payant ici).
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+  - title: Urgences
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log2
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          Urgences : 112. Hôte : voir contact accueil.
+          Coupure eau/élec : voir consignes guide. Extincteur : entrée.
+          SAV : réponse humaine <15 min (8h-22h).
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous

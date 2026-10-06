@@ -1,0 +1,111 @@
+# homeassistant/packages/log1/log1.yaml — COMMUNS log1 : switcher, bandeau offline, copro (Phase 1).
+# Les packages sont déclarés UNE fois dans configuration.yaml (clé `packages:` unique).
+# (log1.yaml = nom du tree §1.5.6 "include principal" — contenu = communs, pas d'includes.)
+
+# Switcher multi-logements (§1.6) — input_select.logement_actif : log1/log2/tous
+input_select:
+  logement_actif:
+    name: Logement actif
+    options: [log1, log2, tous]
+    initial: log1
+  # Backends Phase 7 (P7-4/P7-5) — dashboard /systeme §1.6.4-4, UI :8050 lit routing.json
+  log1_llm_backend:
+    name: "log1 backend LLM"
+    options: [lcd-chat-fast, lcd-chat-strong, lcd-chat-eu, lcd-chat-local]
+    initial: lcd-chat-fast
+  log1_jev_backend:
+    name: "log1 backend Jev"
+    options: [jev-latest, jev-1.13.0, off]
+    initial: jev-latest
+
+input_text:
+  log1_llm_model_override:
+    name: "log1 override modèle LLM (vide = alias)"
+    initial: ""
+    max: 64
+  log1_jev_endpoint_override:
+    name: "log1 override endpoint Jev custom (vide = défaut)"
+    initial: ""
+    max: 128
+
+# Bandeau offline permanent (§1.6) — binary_sensor.wan_ok + sensor.log1_offline_mode
+template:
+  - binary_sensor:
+      - name: wan_ok
+        unique_id: wan_ok
+        state: "{{ not is_state('sensor.wan_latency', 'unknown') }}"
+  - sensor:
+      - name: log1_offline_mode
+        unique_id: log1_offline_mode
+        state: >
+          {% if is_state('binary_sensor.wan_ok', 'on') %}LAN+WAN
+          {% else %}local seul{% endif %}
+      - name: log1_config_ok
+        unique_id: log1_config_ok
+        # Rouge si copro.verifiee:false (mise en ligne BLOQUÉE) — decision-engine lit custom/logements.yaml
+        state: "{{ states('input_boolean.log1_copro_verifiee') }}"
+        attributes:
+          blocage_motif: >
+            {% if is_state('input_boolean.log1_copro_verifiee', 'off') %}copro non vérifiée — voir custom/logements.yaml{% endif %}
+      # Stubs coûts LLM/Jev (Phase 7 P7-4/P7-5 écrase — alerte >5 € Vue Supervision)
+      - name: llm_cout_mois
+        unique_id: llm_cout_mois
+        unit_of_measurement: EUR
+        state: "0.0"
+      - name: jev_cout_mois
+        unique_id: jev_cout_mois
+        unit_of_measurement: EUR
+        state: "0.0"
+
+input_boolean:
+  log1_copro_verifiee:
+    name: "log1 copro vérifiée (accord écrit + Cerfa)"
+    initial: false
+  # Features on/off ← custom/logements.yaml log1.features: (§1.5.5, §1.6.4-1)
+  # 1 feature = 1 flag + 1 dossier + 1 dashboard visibility:
+  log1_enable_smart_lock:
+    name: "log1 smart lock (on = Nuki, off = boîte à clés)"
+    initial: true
+  log1_enable_voix:
+    name: "log1 voix"
+    initial: true
+  log1_enable_clim_ir:
+    name: "log1 clim IR"
+    initial: true
+  log1_enable_extras_upsell:
+    name: "log1 extras / mini-bar"
+    initial: true
+  log1_enable_etat_lieux_auto:
+    name: "log1 état des lieux auto"
+    initial: true
+  log1_enable_sinistre_auto:
+    name: "log1 sinistre auto"
+    initial: true
+  log1_enable_compta_auto:
+    name: "log1 compta auto"
+    initial: true
+  log1_enable_traca_intervenants:
+    name: "log1 traça intervenants"
+    initial: true
+  log1_enable_inventaire_biens:
+    name: "log1 inventaire biens"
+    initial: true
+  log1_enable_annuaire_presta:
+    name: "log1 annuaire prestataires"
+    initial: true
+  log1_enable_mode_auto_saison:
+    name: "log1 mode auto saison (proposition 1-tap seule)"
+    initial: false
+  log1_enable_events_auto:
+    name: "log1 events auto"
+    initial: true
+  log1_enable_memoire_voyageur:
+    name: "log1 mémoire voyageur (opt-in, purge 24 mois)"
+    initial: true
+  # Globaux (1 seule déclaration — log2 référence les mêmes)
+  llm_eu_only:
+    name: "LLM UE seule (force Mistral)"
+    initial: false                  # Phase 7 P7-4 ; off = Groq primaire → Mistral → Ollama
+  jev_enabled:
+    name: "Jev activé (kill-switch)"
+    initial: true                   # Phase 7 P7-5 ; off = LLM seul + règles code

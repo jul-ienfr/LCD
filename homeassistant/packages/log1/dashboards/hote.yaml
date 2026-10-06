@@ -1,0 +1,281 @@
+# homeassistant/packages/log1/dashboards/hote.yaml — Dashboard HÔTE, 7 onglets (§1.6.1).
+# Planning / Accès / Prix / Énergie / Incidents / Supervision / Finances.
+# Entités Phase 2+ (calendar, lock, Alarmo, KeyMaster, pricing) : créées par ics-sync,
+# Nuki Hub, decision-engine — le dashboard les référence d'avance, tests sur box.
+# Filtres `visibility:` par feature (input_boolean.log1_enable_<feature>) + switcher
+# `input_select.logement_actif in [log1, tous]` (§1.6 + §1.6.4-1). Phase 7 posée, tests box.
+# Marque blanche : hôte/système seuls nomment la stack.
+
+title: Hôte
+views:
+  - title: Planning
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: calendar
+        entities: [calendar.log1_planning]
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: entities
+        title: Séjour en cours
+        entities:
+          - input_boolean.log1_occupation
+          - input_text.log1_langue_voyageur
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Alertes : chevauchement = critique + blocage sortant ; arrivée <18 h non
+          confirmée → stop-sell same-day auto. Boutons J-2 / rappel J-1 :
+          renvoyer via events `lcd_j2_envoi_acces` / `lcd_j1_rappel`
+          (voir blueprint arrivée). Messages envoyés consultables sans PIN en clair.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Accès
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: entities
+        title: Porte log1
+        entities:
+          - lock.log1_porte
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_smart_lock
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Slots KeyMaster 1-10 (`keymaster.log1_pin_1` … `keymaster.log1_pin_10`) :
+          actif arrivée−2 h → départ+30 min, slot ménage permanent séparé.
+          Générer / renvoyer / révoquer via blueprint arrivée + event `lcd_checkout`.
+          Ouverture à distance = double confirmation. **Test PIN sans WAN**
+          (critère P3-7) : couper WAN 10 min, le PIN test ouvre en Thread local.
+          Journal 90 j : heures + slot, jamais le code.
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_smart_lock
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Boîte à clés (fallback si `smart_lock: off`) : code manuel + adresse boîte
+          + validité. Flip `smart_lock: true` = retour Nuki. Journal 90 j :
+          heures, jamais le code.
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_smart_lock
+            state: "off"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Prix
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: entities
+        title: Prix nuit
+        entities:
+          - sensor.log1_prix_nuit
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Pivot × K_saison × K_events × K_we × K_occ × K_duree × K_lastmin,
+          bornes 75/290 inviolables. `input_select.log1_mode_gestion`
+          (défaut `equilibre`) + `input_select.log1_menage_facturation`
+          (`supplement` = 110 € séparés). Bouton copier vers OTA (1-tap),
+          dérogation hors bornes = motif obligatoire, humain seul.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Extras (§5.6-ter) : CA extras/séjour + mini-bar stock vs seuil Grocy.
+          Catalogue late/early, kits, courses — pré-commande avant J-1 18h.
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_extras_upsell
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Énergie
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          Versatile presets Confort 19 / Eco 16 / HG 12, consigne max 21 °C
+          bridée en code (blueprint bridage). Alertes : inoccupé >0,5 kWh/h,
+          PAPP >85 %. ECS : état + relance calculée + légionellose.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Clim RM4 si `clim_ir: on` (chaud 19-21,5 / froid 25-27).
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_clim_ir
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Incidents
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: alarm-panel
+        entity: alarm_control_panel.log1
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Bruit : dB/30 s, 75 dB jour/10 min → N1, 60 dB nuit/5 min → N3 hôte +
+          Alarmo. Fuite : vanne fermée auto, **réarmement manuel seul**.
+          Incendie : interlink + déverrouillage + 112, **désarme l'intrusion
+          en priorité**. Capteur muet >24 h → maintenance auto.
+          Chaque incident est loggué dans `decision.log1.jsonl`.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Sinistres (`sinistre_auto: on`) : dossier `/config/sinistres/log1/`
+          + compte à rebours plateforme (AirCover 14 j / Booking 48 h / Vrbo ~14 j).
+          Si `off` → dossier manuel, mêmes champs, pas de dispatch auto.
+        visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_sinistre_auto
+            state: "on"
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Supervision
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: entities
+        title: Santé
+        entities:
+          - binary_sensor.wan_ok
+          - sensor.log1_offline_mode
+          - sensor.log1_config_ok
+          - input_boolean.log1_copro_verifiee
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: markdown
+        content: >
+          Batteries/LQI par device, `sensor.llm_cout_mois` + `sensor.jev_cout_mois`,
+          alerte >5 €. Proxy `:4000` santé seule, Grocy, moteur direct
+          (interface §4-bis). 1 notif groupée/jour + critiques temps réel.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: webpage
+        url: http://<ip-lan>:8050
+        title: Routage LLM
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+  - title: Finances
+    visibility:
+      - condition: state
+        entity: input_select.logement_actif
+        state:
+          - log1
+          - tous
+    cards:
+      - type: markdown
+        content: >
+          CA/mois log1 + parc, charges par rubrique (`compta_auto: on`),
+          simulateur micro-BIC vs réel, jauges 15 000 € / 77 700 € + 120 j,
+          alertes 80 %/100 %, clôture mensuelle auto le 5 + export 1-clic
+          (`docs/parc/<annee>/`). Détail §12.6.5. Si `compta_auto: off` →
+          saisie manuelle, mêmes jauges.
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous

@@ -1,0 +1,33 @@
+# LCD — jamais commité (privé / runtime / secrets)
+# Versionné : code + *.example + docs/templates/ seuls.
+
+# Secrets — jamais commités (P1-9)
+secrets.yaml
+custom/branding.yaml
+!custom/branding.yaml.example
+
+# Instances privées par logement / parc (P1-7)
+docs/log1/
+docs/log2/
+docs/parc/
+!docs/templates/
+
+# Runtime HA /config/ — backup chiffré quotidien + hebdo hors site (P1-1)
+/config/
+*.log
+*.jsonl
+
+# Backups / images / coordinator
+*.backup
+*.tar
+backups/
+coordinator_backup.json
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Outillage local (config machine, audits locaux — jamais versionnés)
+.claude/

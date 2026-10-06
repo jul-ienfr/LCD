@@ -243,9 +243,10 @@ branding:
 ```
 LCD/  # repo template public générique — jamais de données client en dur
 ├── homeassistant/
+│   ├── configuration.yaml         # colle socle : 1 clé `packages:` unique (log1+log2, log3 = +2 lignes), recorder 10 j + exclude PIN/codes, panel_iframe :8050
 │   ├── packages/
 │   │   ├── log1/
-│   │   │   ├── log1.yaml          # include principal (packages: !include_dir_named)
+│   │   │   ├── log1.yaml          # communs (switcher, bandeau offline, copro) — déclaré dans configuration.yaml
 │   │   │   ├── acces.yaml         # KeyMaster slots 1-10, lock, boîte log2 si smart_lock: off
 │   │   │   ├── energie.yaml       # Versatile, ZLinky, Shelly EM, prises Nous, RM4, ECS
 │   │   │   ├── securite.yaml      # Alarmo, bruit 3 niveaux, fuite/vanne, incendie, PIR, NUT

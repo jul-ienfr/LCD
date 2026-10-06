@@ -1,0 +1,10 @@
+# homeassistant/packages/log2/energie.yaml — log2 LIGHT (Phase 4, §2.8-bis).
+# Pas de RM4 si pas de clim IR. Versatile + ZLinky + prises selon équipement réel.
+# sensor.log2_prix_nuit : pricing-engine écrase, bornes 75/290 inviolables en code.
+
+template:
+  - sensor:
+      - name: log2_prix_nuit
+        unique_id: log2_prix_nuit
+        unit_of_measurement: EUR
+        state: "90"

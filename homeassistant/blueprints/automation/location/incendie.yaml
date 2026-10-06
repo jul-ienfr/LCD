@@ -1,0 +1,68 @@
+# homeassistant/blueprints/automation/location/incendie.yaml — blueprint incendie (P1-8/P5-3).
+# Interlink déterministe immédiat : désarme l'intrusion en priorité (jamais de blocage
+# sortie), déverrouille la porte si smart_lock, alerte + rappel 112. DAAF + remplacement
+# 10 ans + test mensuel auto-rappelé (todo + bip loggué, muet >24 h → alerte, P5-3).
+# Jev = résumé post-événement seul, jamais de décision temps réel (§6.7).
+
+blueprint:
+  name: LCD Incendie
+  description: Fumée → désarme intrusion, déverrouille sortie, alerte + rappel 112.
+  domain: automation
+  input:
+    logement_id:
+      name: Logement
+      description: Slug logement (log1, log2...).
+      selector:
+        text:
+    detecteur_fumee:
+      name: Détecteur de fumée
+      description: Binary sensor fumée (DAAF interconnectés, 1/séjour + 1/cuisine).
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: smoke
+    alarme:
+      name: Alarmo
+      description: Panneau intrusion à désarmer en priorité (jamais de blocage sortie).
+      selector:
+        entity:
+          domain: alarm_control_panel
+    serrure:
+      name: Serrure (optionnel)
+      description: Entity_id lock si smart_lock (log1) — déverrouillée pour évacuer. Laisser vide si boîte à clés (log2).
+      default: ""
+      selector:
+        text:
+    notify_service:
+      name: Service de notification
+      description: Alerte critique hôte + voyageur (SMS Free/Telegram/PWA).
+      default: notify.persistent_notification
+      selector:
+        text:
+
+variables:
+  logement: !input logement_id
+  serrure: !input serrure
+
+trigger:
+  - platform: state
+    entity_id: !input detecteur_fumee
+    to: "on"
+
+action:
+  # Si un code est requis par Alarmo : ajouter `code: !secret alarme_code` (P1-9, jamais en clair).
+  - service: alarm_control_panel.alarm_disarm
+    target:
+      entity_id: !input alarme
+  - if:
+      - condition: template
+        value_template: "{{ serrure != '' }}"
+    then:
+      - service: lock.unlock
+        target:
+          entity_id: "{{ serrure }}"
+  - service: !input notify_service
+    data:
+      message: "{{ logement }} : INCENDIE DÉTECTÉ — intrusion désarmée, sortie déverrouillée. Évacuer, appeler le 112."
+
+mode: single

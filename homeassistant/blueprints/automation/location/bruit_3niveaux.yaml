@@ -1,0 +1,128 @@
+# homeassistant/blueprints/automation/location/bruit_3niveaux.yaml — blueprint bruit 3 niveaux (P1-8/P5-1).
+# Seuils : 75 dB jour (8h-22h) /10 min → N1 message voyageur ; persistance 25 min → N2
+# appel/PWA + info hôte ; 60 dB nuit (22h-8h) /5 min → N3 hôte + Alarmo (présomption fête,
+# confirmation humaine 2 sources <2 min, P5-4). Actif seulement si logement occupé.
+# dB seuls, jamais audio. Capteurs jamais chambres/SDB. Jamais d'amende auto.
+
+blueprint:
+  name: LCD Bruit 3 niveaux
+  description: Escalade bruit N1 voyageur → N2 appel/PWA → N3 hôte + Alarmo (nuit).
+  domain: automation
+  input:
+    logement_id:
+      name: Logement
+      description: Slug logement (log1, log2...). Occupation lue sur input_boolean.logX_occupation.
+      selector:
+        text:
+    capteur_db:
+      name: Capteur dB
+      description: Sensor ESP32+INMP441 (moyenne /30 s affichée, dB seuls, jamais audio).
+      selector:
+        entity:
+          domain: sensor
+    alarme:
+      name: Alarmo
+      description: Panneau Alarmo du logement (déclenché en N3 nuit, P5-5).
+      selector:
+        entity:
+          domain: alarm_control_panel
+    notify_voyageur:
+      name: Notification voyageur
+      description: Service notify voyageur (PWA/SMS, langue voyageur).
+      default: notify.persistent_notification
+      selector:
+        text:
+    notify_hote:
+      name: Notification hôte
+      description: Service notify hôte (SMS Free/Telegram).
+      default: notify.persistent_notification
+      selector:
+        text:
+    seuil_jour:
+      name: Seuil jour (dB)
+      description: Niveau N1/N2 jour 8h-22h (défaut 75, §5.4).
+      default: 75
+      selector:
+        number:
+          min: 50
+          max: 90
+          step: 1
+          unit_of_measurement: "dB"
+    seuil_nuit:
+      name: Seuil nuit (dB)
+      description: Niveau N3 nuit 22h-8h (défaut 60, §5.4).
+      default: 60
+      selector:
+        number:
+          min: 40
+          max: 80
+          step: 1
+          unit_of_measurement: "dB"
+
+variables:
+  logement: !input logement_id
+  capteur: !input capteur_db
+  seuil_jour: !input seuil_jour
+  seuil_nuit: !input seuil_nuit
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input capteur_db
+    above: !input seuil_jour
+    for: "00:10:00"
+    id: n1
+  - platform: numeric_state
+    entity_id: !input capteur_db
+    above: !input seuil_jour
+    for: "00:25:00"
+    id: n2
+  - platform: numeric_state
+    entity_id: !input capteur_db
+    above: !input seuil_nuit
+    for: "00:05:00"
+    id: n3
+
+condition:
+  - condition: template
+    value_template: "{{ is_state('input_boolean.' ~ logement ~ '_occupation', 'on') }}"
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: n1
+          - condition: time
+            after: "08:00:00"
+            before: "22:00:00"
+        sequence:
+          - service: !input notify_voyageur
+            data:
+              message: "Niveau sonore élevé détecté ({{ states(capteur) }} dB) — merci de baisser le volume (heures calmes 22h-8h)."
+      - conditions:
+          - condition: trigger
+            id: n2
+          - condition: time
+            after: "08:00:00"
+            before: "22:00:00"
+        sequence:
+          - service: !input notify_voyageur
+            data:
+              message: "Rappel : niveau sonore toujours élevé ({{ states(capteur) }} dB) — votre hôte va vous appeler."
+          - service: !input notify_hote
+            data:
+              message: "{{ logement }} : bruit N2 ({{ states(capteur) }} dB depuis 25 min) — appeler le voyageur (PWA/tél)."
+      - conditions:
+          - condition: trigger
+            id: n3
+          - condition: time
+            after: "22:00:00"
+            before: "08:00:00"
+        sequence:
+          - service: !input notify_hote
+            data:
+              message: "{{ logement }} : bruit N3 NUIT ({{ states(capteur) }} dB) — présomption fête, confirmation humaine 2 sources <2 min."
+          - service: alarm_control_panel.alarm_trigger
+            target:
+              entity_id: !input alarme
+
+mode: single

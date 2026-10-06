@@ -1,0 +1,38 @@
+# custom/llm-proxy/config.yaml — proxy LiteLLM :4000 (Phase 7, §6.5).
+# 0 € : Groq free (primaire) → Mistral UE (si llm_eu_only) → Ollama local (fallback).
+# temperature 0.2, max_tokens 250. Clé maître dans secrets.yaml (jamais ici).
+# Timeouts : 8 s voix / 6 s Jev, retry 1, cooldown 30 s (§6.7 garde-fous, voir endpoints.yaml).
+# BYOD consentement par échange, jamais de codes/serrure/vanne en vocal, jamais de PIN en clair.
+
+model_list:
+  - model_name: lcd-chat-fast
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+      temperature: 0.2
+      max_tokens: 250
+      timeout: 8
+  - model_name: lcd-chat-strong
+    litellm_params:
+      model: groq/llama-3.1-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+      temperature: 0.2
+      max_tokens: 250
+      timeout: 8
+  - model_name: lcd-chat-eu
+    litellm_params:
+      model: mistral/mistral-small-latest
+      api_key: os.environ/MISTRAL_API_KEY
+      temperature: 0.2
+      max_tokens: 250
+      timeout: 8
+  - model_name: lcd-chat-local
+    litellm_params:
+      model: ollama/qwen2.5:7b
+      api_base: http://localhost:11434
+      temperature: 0.2
+      max_tokens: 250
+      timeout: 8
+
+general_settings:
+  master_key: os.environ/LLM_PROXY_MASTER_KEY

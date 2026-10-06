@@ -1,0 +1,13 @@
+# custom/llm-proxy/routing.json — primaire + fallbacks (Phase 7, §6.5).
+# Versionné + backup auto. UI :8050 (LAN+WireGuard seule) : primaire + Tester + reload chaud.
+# Supervision : sensor.llm_cout_mois, alerte >5 €. Respecte input_boolean.llm_eu_only
+# (force lcd-chat-eu, données UE seules).
+{
+  "_comment": "custom/llm-proxy/routing.json — primaire + fallbacks (Phase 7, §6.5). Versionné + backup auto.",
+  "primaire": "lcd-chat-fast",
+  "fallbacks": ["lcd-chat-eu", "lcd-chat-local"],
+  "eu_only_override": "lcd-chat-eu",
+  "retry": 1,
+  "cooldown_seconds": 30,
+  "alerte_cout_mois_eur": 5
+}

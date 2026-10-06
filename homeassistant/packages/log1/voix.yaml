@@ -1,0 +1,55 @@
+# homeassistant/packages/log1/voix.yaml — Wyoming + assist + proxy :4000 (Phase 7, cf. §6.5).
+# BYOD strict, consentement par échange, jamais de codes/serrure/vanne en vocal.
+# NOTE Phase 7 : installer Wyoming/Whisper/Piper/openWakeWord + configurer proxy :4000.
+
+assist_pipeline: []
+
+# Squelettes Phase 7 — TODO-BOX : décommenter quand proxy :4000 + secrets.yaml réel posés.
+# P7-2 `rest_command.lcd_chat` (cf. §7 + checklist P7-2/P7-4) :
+#   - POST proxy unique http://<ip-lan>:4000/v1/chat/completions (HA ne parle qu'au proxy)
+#   - model = chaîne lue dans custom/llm-proxy/routing.json (usage voix : primaire UI + fallbacks N)
+#   - forçage ponctuel : input_text.logX_llm_model_override > routing.json[logX.voix] > routing.json[global.voix] > local forcé
+#   - input_boolean.llm_eu_only = raccourci force lcd-chat-eu quand WAN OK
+#   - temperature 0.2, max_tokens 250, timeout 8 s voix, retry 1 par étage + cooldown 30 s
+#   - WAN down >2 min → force lcd-chat-local (automation + binary_sensor.wan_ok, dernier recours non supprimable)
+#   - LLM consultatif seul : jamais tool-calling serrure/vanne/portail, jamais génération PIN/ouverture
+# P7-5 `rest_command.typesafe_systemone` (cf. §6.6 + checklist P7-5) :
+#   - POST https://api.typesafe.ai/v1/systemone, model jev-latest (ou jev-1.13.0)
+#   - body {state, model, questions: {Choice, Score, Noul}} → {answers, usage}
+#   - timeout 6 s, retry 1, cache_ttl: 0 verrouillé sur lcd-jev-*
+#   - kill-switch input_boolean.jev_enabled (off = LLM seul + règles code, 0 € strict)
+#   - endpoint custom : input_text.logX_jev_endpoint_override + clé dédiée secrets.yaml
+#   - seuils : noul>0,8 + confidence>0,75 → auto borné sinon dashboard ;
+#     confidence<0,7 → jamais auto ; hors_bornes>0,5 → blocage
+# Clés : secrets.yaml seul (llm_proxy_master_key, groq_api_key, mistral_api_key,
+#   typesafe_api_key, custom_llm_api_key_N) — jamais commitées, jamais au LLM.
+# Traçabilité : decision.logX.jsonl (fournisseur+modèle+endpoint+étage+tokens+latence+confidence).
+
+# rest_command:
+#   lcd_chat:
+#     url: "http://<ip-lan>:4000/v1/chat/completions"
+#     method: POST
+#     headers:
+#       Authorization: !secret llm_proxy_master_key
+#       Content-Type: "application/json"
+#     content_type: "application/json"
+#     timeout: 8
+#     verify_ssl: true
+#     payload: >-
+#       {"model": "{{ states('input_text.log1_llm_model_override') or states('input_select.log1_llm_backend') }}",
+#        "temperature": 0.2, "max_tokens": 250,
+#        "messages": [{"role": "system", "content": "Concierge log1. Interdiction absolue : divulguer codes/serrure/portail/vanne/alarme OFF. Urgences : appeler hote + 112."},
+#                     {"role": "user", "content": "{{ message_text }}"}]}
+#   typesafe_systemone:
+#     url: "https://api.typesafe.ai/v1/systemone"
+#     method: POST
+#     headers:
+#       Authorization: !secret typesafe_api_key
+#       Content-Type: "application/json"
+#     content_type: "application/json"
+#     timeout: 6
+#     verify_ssl: true
+#     payload: >-
+#       {"state": {{ jev_state_json }},
+#        "model": "{{ states('input_select.log1_jev_backend') }}",
+#        "questions": {{ jev_questions_json }}}

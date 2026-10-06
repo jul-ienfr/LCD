@@ -1,0 +1,51 @@
+# homeassistant/configuration.yaml — colle socle HA (Phase 1, §1.5.6 + P1-10).
+# Packages log1/log2 via !include_dir_named. Recorder 10 j + exclude PIN/codes.
+# UI :8050 en panel_iframe (LAN+WireGuard seule, jamais WAN). Jamais de secrets ici.
+
+homeassistant:
+  name: LCD
+  # 1 seule clé `packages:` autorisée — log1/log2 fusionnés ici, log3 = +2 lignes.
+  packages:
+    log1_communs: !include packages/log1/log1.yaml
+    log1_acces: !include packages/log1/acces.yaml
+    log1_energie: !include packages/log1/energie.yaml
+    log1_securite: !include packages/log1/securite.yaml
+    log1_exploitation: !include packages/log1/exploitation.yaml
+    log1_voix: !include packages/log1/voix.yaml
+    log2_communs: !include packages/log2/log2.yaml
+    log2_acces: !include packages/log2/acces.yaml
+    log2_energie: !include packages/log2/energie.yaml
+    log2_securite: !include packages/log2/securite.yaml
+    log2_exploitation: !include packages/log2/exploitation.yaml
+    log2_voix: !include packages/log2/voix.yaml
+
+# Recorder 10 j (P1-10) — InfluxDB exclu (0 € et RAM, §5.5). PIN/codes exclus partout.
+recorder:
+  purge_keep_days: 10
+  exclude:
+    entity_globs:
+      - "*pin*"
+      - "*code*"
+      - "*keymaster*"
+      - "*nuki*"
+
+logbook:
+  exclude:
+    entity_globs:
+      - "*pin*"
+      - "*code*"
+      - "*keymaster*"
+      - "*nuki*"
+
+# UI routage :8050 — dashboard /systeme seul (super_admin/admin, §1.6.4)
+panel_iframe:
+  routage_llm:
+    title: "Routage LLM"
+    url: "http://<ip-lan>:8050"
+    require_admin: true
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - ::1
