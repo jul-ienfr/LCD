@@ -17,6 +17,21 @@
 # - Dérogation hors bornes = motif obligatoire + humain uniquement (decision.logX.jsonl).
 # - Gap-night : trou 1-2 nuits → −20 % pivot (jamais < plancher) + push reco 1-tap.
 # - Superhost watch : note <4,8 ou réponse <90 % ou annulation hôte → alerte + plan rattrapage.
+#
+# ## Fichiers
+# - `pricing_engine.py` : code réel (stdlib seule) — formule §3 + K granulaires,
+#   `GET /prix` + `PUT /prix` (direct seul, 422 hors bornes sans motif humain) +
+#   `POST /recalcul` + `GET /reco-ota` + `GET /health`, gap-night, séjour min dynamique,
+#   tarifs flex/non-remb/flex+, late/early, Superhost watch, sensors HA, JSONL.
+# - `config.yaml` : K_saison mensuels + Noël/Nouvel An, commissions §4
+#   (expedia absente = taux inconnu → prix canal null + motif), presets modes §3-bis,
+#   seuils Superhost, ports/URLs (surcharge env `LCD_*`). Secrets JAMAIS ici.
+# - `pricing-engine.service` : systemd même LXC que ics-sync (`After=ics-sync.service`).
+# - Testé 2026-10-06 : log1 pivot 85 = 110×0,9×1,15×0,75 ✓, Airbnb 100 = 85/0,85 ✓,
+#   expedia → null ✓ ; `/prix` 14/07 nuits=7 occ 0,8 events 1,3 → pivot 246, séjour min
+#   3 nuits sam/mer ✓ ; PUT 50 → 422 sans motif ✓ ; PUT 180 → appliqué direct ✓ ;
+#   reco OTA 1-tap ✓. Secrets : `LCD_QLOAPPS_*`/`LCD_HA_TOKEN` > secrets.yaml,
+#   lecture ics-sync via `LCD_ICS_SYNC_URL` + state partagé.
 
 spec:
   recalcul: "1x/j + chaque resa"

@@ -1,0 +1,24 @@
+# custom/facturation/config.yaml — facturation P2-10 (§12.2 + §12.5-bis).
+# Moteur direct §4-bis : CGV 14 articles + contrat PWA 30 s + facture B2C PDF / B2B Factur-X.
+# Secrets : aucun externe (pas d'appel réseau). HA non requis. Montants TOUJOURS reçus
+# (moteur direct / pricing / compta), JAMAIS générés (M-LLM-7 : trous seuls).
+# Port :8093 (même LXC que ics-sync :8090 / pricing :8091 / decision :8092).
+http_port: 8093
+state_dir: "./state"
+templates_dir: "../../docs/templates"
+# Box : monter /config/contrats/ ici (PDF horodatés runtime, gitignorés — JAMAIS commités).
+contrats_dir: "./state/contrats"
+decision_log_dir: "./state"   # box : monter /config/logs/ ici (cf. ics-sync)
+# Garde-fou M-JEV-1 (déterministe, en attendant Noul Jev Phase 7) : motifs interdits
+# scannés dans tout document généré → >0 occurrence = BLOCAGE + log (R.212-1/R.212-2).
+interdits_garde_fou: ["amende forfaitaire", "non contractuel", "sans recours",
+  "paiement intégral d'avance sans remboursement", "médiation payante",
+  "clause attributive", "expulsion sans", "retenue automatique"]
+# Mentions obligatoires PAR TYPE DE DOC (M-JEV-1) : L.221-28 = absence de rétractation
+# hébergement → CGV/contrat seuls ; factures B2C = L.612-1 + ODR ; B2B pro = pas de
+# médiation conso (litiges pro) → mentions conso non exigées, interdits toujours scannés.
+mentions_contrat: ["L.221-28", "L.612-1", "ec.europa.eu/consumers/odr"]
+mentions_facture_b2c: ["L.612-1", "ec.europa.eu/consumers/odr"]
+mentions_facture_b2b: []
+# Phrase caution VERBATIM obligatoire dans tout contrat (M-LLM-1, ne jamais reformuler).
+phrase_caution: "Une empreinte de"

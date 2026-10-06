@@ -1,0 +1,25 @@
+# custom/copro-wizard/config.yaml — wizard copro P2-16 (§12.1-bis).
+# Code versionné ; pièces remplies dans docs/logX/copro/ (PRIVÉ, jamais commité).
+pieces_attendues:
+  - a_reglement_copro_extrait.md
+  - b_pv_ag.md
+  - c_accord_syndic.md
+  - d_mairie_enregistrement.md
+  - e_cgu_droit_fr.md
+taille_min_piece: 50        # en dessous = gabarit vide = manquante
+# Garde-fou R.212-1 (M-JEV-1) : formulation trouvée dans une pièce = wizard BLOQUÉ
+garde_fou_R212_1:
+  - amende forfaitaire
+  - expulsion
+  - coupure
+  - changement des codes
+  - paiement hors plateforme
+  - caution airbnb
+  - caméra intérieure
+  - copie passeport
+  - pas de recours
+  - modification unilatérale
+  - photos non contractuelles
+logements: [log1, log2]
+template_source: "../../docs/templates/reglement-interieur.fr.md"
+mention_sans_accord: "sous réserve du règlement + usages copro"

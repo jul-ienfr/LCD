@@ -1,0 +1,18 @@
+# custom/booking-direct/booking-direct.service — systemd (LXC utils, P2-15).
+# Installation box : copier /opt/lcd/booking-direct/ + renseigner LCD_SECRETS_YAML.
+# Démarre APRÈS ics-sync :8090 + pricing :8091 (proxies dispo/devis).
+[Unit]
+Description=LCD booking-direct (P2-15) — tunnel direct maison :8095
+After=network-online.target ics-sync.service pricing-engine.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/booking-direct/booking_direct.py --config /opt/lcd/booking-direct/config.yaml --logements /opt/lcd/logements.yaml --serve
+Environment=LCD_SECRETS_YAML=/opt/lcd/secrets.yaml
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,44 @@
+# custom/vitrines.yaml — vitrines gratuites P2-12 (§4-ter).
+# 1 vitrine = visibilité 0 € → lien systématique vers le tunnel direct (§4-bis).
+# Règles : UTM `?src=<vitrine>` tracé en decision.logX.jsonl (canal direct,
+# motif = src) ; jamais de double saisie calendrier (ICS import si la vitrine
+# le permet, sinon stop-sell manuel via ics-sync) ; jamais de prix différent
+# du pivot direct (règle_or §4 : prix facial TTC affiché avant résa, identique
+# partout — la vitrine REDIRIGE, elle ne vend pas).
+# Actif par logement : `vitrines_gratuites: on` (défaut off = direct + OTA seuls).
+
+vitrines:
+  - {id: google_vacation, nom: "Google Vacation Rentals", type: flux,
+     note: "vitrine + lien direct, via flux prix/dispo — à qualifier Phase 2+",
+     ics_import: false, action: "qualifier flux"}
+  - {id: tripadvisor, nom: "Tripadvisor Locations", type: redirection,
+     note: "redirection vers direct", ics_import: false, action: "créer fiche + lien UTM"}
+  - {id: leboncoin, nom: "Leboncoin", type: annonce,
+     note: "annonce location saisonnière + lien direct", ics_import: false,
+     action: "publier annonce + lien UTM"}
+  - {id: greengo, nom: "GreenGo", type: annonce,
+     note: "clientèle FR écoresponsable, 0 € ou adhésion modique", ics_import: false,
+     action: "publier annonce + lien UTM"}
+  - {id: gites_france, nom: "Gîtes de France", type: annonce,
+     note: "clientèle familles FR", ics_import: false, action: "candidature + lien UTM"}
+  - {id: clevacances, nom: "Clévacances", type: annonce,
+     note: "clientèle familles FR", ics_import: false, action: "candidature + lien UTM"}
+  - {id: seloger, nom: "SeLoger vacances", type: annonce,
+     note: "vitrine FR + lien direct", ics_import: false, action: "publier annonce + lien UTM"}
+  - {id: pap, nom: "PAP", type: annonce,
+     note: "particulier à particulier + lien direct", ics_import: false,
+     action: "publier annonce + lien UTM"}
+  - {id: facebook, nom: "Groupes Facebook locaux", type: social,
+     note: "groupes Côte d'Azur / Villeneuve-Loubet + lien direct", ics_import: false,
+     action: "post + lien UTM"}
+  - {id: instagram, nom: "Instagram", type: social,
+     note: "lien direct bio + stories", ics_import: false, action: "bio + stories UTM"}
+
+# UTM : ?src=<id> suffixé à l'URL du tunnel direct (branding.yaml domaine).
+# Ex : https://<domaine>/resa?src=leboncoin&logement=log1
+utm_modele: "?src={id}&logement={logement_id}"
+
+# Statut par logement (défaut off — activer 1 par 1 après go-live direct).
+statut_par_logement:
+  log1: {vitrines_gratuites: off, actives: []}
+  log2: {vitrines_gratuites: off, actives: []}

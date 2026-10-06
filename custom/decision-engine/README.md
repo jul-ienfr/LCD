@@ -21,3 +21,18 @@
 #
 # ## Schéma decision.logX.jsonl (P1-10/P2-8/P7-7 — runtime `/config/logs/`, gitignoré, 90 j accès)
 # {"ts": "...", "logement_id": "log1", "ref": "...", "qui": "decision-engine|humain:<role>", "quoi": "prix|acces|ics|energie|securite|llm|jev|menage|compta", "canal": "direct|airbnb|booking|abritel|expedia", "commission": 0.0, "net_hote": 0.0, "llm": {"alias": "...", "fournisseur": "...", "modele": "...", "tokens": 0, "latence_ms": 0}, "jev": {"backend": "...", "confidence": 0.0, "noul": 0.0}, "motif": "..."}
+#
+# ## Fichiers
+# - `decision.py` : code réel (stdlib seule) — `/etat` + `/autoriser` + `/decision`
+#   (porte unique RBAC + copro + bornes + Jev hors_bornes) + `/event`
+#   (lcd_j2_envoi_acces/lcd_j1_rappel/lcd_checkout -> HA, PIN jamais généré ici) +
+#   `--check` (copro + sensor.logX_config_ok) + `--serve` (:8092).
+# - `config.yaml` : URLs HA/ics-sync/pricing, commissions §4 (net_hôte JSONL,
+#   expedia → null), ports/chemins (surcharge env `LCD_*`). Secrets JAMAIS ici.
+# - `decision.service` : systemd même LXC (`After=ics-sync+pricing`).
+# - Testé 2026-10-06 : 7/7 verts — RBAC (opérateur ménage log1 oui, comptable non,
+#   opérateur log2 hors périmètre non), prix 50 → 422 sans motif humain,
+#   Jev hors_bornes 0,7 → 403, event J-2 copro false → 403 BLOQUÉE,
+#   prix 120 direct → autorisé + JSONL commission 0.0/net_hote 120.0 ✓ ;
+#   copro false → config_ok off + alerte mise en ligne BLOQUÉE ✓.
+#   Secrets : `LCD_HA_TOKEN` > `ha_api_token`, lecture prix via `LCD_PRICING_URL`.

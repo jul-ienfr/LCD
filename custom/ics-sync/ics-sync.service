@@ -1,0 +1,17 @@
+# custom/ics-sync/ics-sync.service — systemd (LXC utils, P2-4).
+# Installation box : copier /opt/lcd/ics-sync/ + renseigner LCD_SECRETS_YAML.
+[Unit]
+Description=LCD ics-sync (P2-4) — poll ICS OTA 15 min
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/ics-sync/ics_sync.py --config /opt/lcd/ics-sync/config.yaml
+Environment=LCD_SECRETS_YAML=/opt/lcd/secrets.yaml
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

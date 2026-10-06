@@ -28,7 +28,35 @@ views:
         title: Séjour en cours
         entities:
           - input_boolean.log1_occupation
+          - input_datetime.log1_arrivee
+          - input_datetime.log1_depart
           - input_text.log1_langue_voyageur
+          - input_text.log1_heure_arrivee
+          - input_number.log1_taxe_sejour
+          - input_text.log1_ref_sejour
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: entities
+        title: Stop-sell (forçage humain + motif loggué)
+        entities:
+          - input_boolean.log1_stop_sell
+          - input_text.log1_forcage_motif
+          - script.log1_forcage_stop_sell
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: entities
+        title: Renvoi messages J-2 / J-1
+        entities:
+          - script.log1_renvoi_j2
+          - script.log1_renvoi_j1
         visibility:
           - condition: state
             entity: input_select.logement_actif
@@ -108,9 +136,46 @@ views:
           - tous
     cards:
       - type: entities
-        title: Prix nuit
+        title: Prix nuit (pivot + faciaux par canal)
         entities:
           - sensor.log1_prix_nuit
+          - sensor.log1_prix_canal_direct
+          - sensor.log1_prix_canal_airbnb
+          - sensor.log1_prix_canal_booking
+          - sensor.log1_prix_canal_abritel
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: history-graph
+        title: Prix 30 j (pivot direct)
+        hours_to_show: 720
+        entities:
+          - sensor.log1_prix_nuit
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: entities
+        title: Pilotage modes (§3-bis)
+        entities:
+          - input_select.log1_mode_gestion
+          - input_select.log1_menage_facturation
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log1
+              - tous
+      - type: entities
+        title: Événements + concurrence (§3-ter)
+        entities:
+          - calendar.log1_events
+          - todo.log1_concurrence
         visibility:
           - condition: state
             entity: input_select.logement_actif

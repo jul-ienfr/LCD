@@ -1,0 +1,25 @@
+# custom/caution/config.yaml — hold caution + taxe séjour CASA P2-11 (§12.3 + §12.5).
+# Direct : hold LIBRE Swikly/Stripe/TPE 500-800 € (bornes logements.yaml global).
+# OTA : Airbnb = hold INTERDIT hors plateforme (AirCover seule) ; Booking = collecte
+# SÉPARÉE déclarée Policies (jamais VCC) ; Abritel = caution OU Damage Protection.
+# Taxe CASA : +10 % dép. 06 +34 % LNPCA = +44 % ; OTA collectent (reversement 0 €),
+# direct = vous collectez et déclarez sur casa.taxesejour.fr.
+# Secrets : Swikly/Stripe via env > secrets.yaml (jamais en dur, jamais commités).
+http_port: 8094
+state_dir: "./state"
+decision_log_dir: "./state"   # box : monter /config/logs/ ici (cf. ics-sync)
+# Délais restitution hold (jours) — affichés voyageur AVANT résa.
+delai_restitution_min_j: 7
+delai_restitution_max_j: 14
+# Info voyageur avant tout débit (heures) — Booking 48 h via messagerie plateforme.
+delai_info_voyageur_h: 48
+# Tarifs taxe CASA (§12.5) : base €/nuit/adulte AVANT majoration +44 %.
+taxe_base_par_classe: {1: 0.80, 2: 0.90, 3: 1.60, 4: 2.10, 5: 2.80}
+taxe_majoration: 0.44
+taxe_non_classe_pct: 0.05
+taxe_non_classe_plafond: 4.60
+# Modes hold autorisés par canal (airbnb ABSENT = refus code, AirCover seule).
+modes_par_canal:
+  direct: [swikly, stripe, tpe]
+  booking: [tpe_sur_place, lien_declare]
+  abritel_vrbo: [caution_vrbo, damage_protection]

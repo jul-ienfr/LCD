@@ -1,0 +1,19 @@
+# custom/ics-sync/config.yaml — ics-sync P2-4 (§4/§4-ter).
+# URLs ICS privées + token HA via env LCD_* ou secrets.yaml, jamais ici.
+poll_minutes: 15
+delai_humain_minutes: 15
+stop_sell_heure_limite: "18:00"
+ha_url: "http://<ip-lan>:8123"
+http_port: 8090
+state_dir: "./state"
+decision_log_dir: "./state"   # box : monter /config/logs/ ici (cf. README)
+secrets_yaml: "./secrets.yaml"  # surcharge via LCD_SECRETS_YAML (LXC)
+logements: [log1, log2]
+canaux_ota: [airbnb, booking, abritel, expedia]
+ordre_arbitrage: [direct, airbnb, booking, abritel]
+# Commissions §4 — override possible via commission_<canal>.
+# expedia volontairement absente = inconnue → net_hote null + motif "vérifier contrat".
+commission_direct: 0.00
+commission_airbnb: 0.15
+commission_booking: 0.17
+commission_abritel: 0.10

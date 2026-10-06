@@ -1,0 +1,16 @@
+# custom/pricing-engine/pricing-engine.service — systemd (même LXC que ics-sync, P2-5).
+[Unit]
+Description=LCD pricing-engine (P2-5) — pivot direct + reco OTA
+After=network-online.target ics-sync.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/pricing-engine/pricing_engine.py --config /opt/lcd/pricing-engine/config.yaml --logements /opt/lcd/logements.yaml
+Environment=LCD_SECRETS_YAML=/opt/lcd/secrets.yaml
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

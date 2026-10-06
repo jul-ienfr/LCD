@@ -1,0 +1,16 @@
+# custom/decision-engine/config.yaml — decision-engine P2-8 (§5.11, §1.6).
+# État unifié, RBAC, JSONL. Secrets (token HA) via env LCD_* ou secrets.yaml, jamais ici.
+# Secrets YAML : ha_api_token.
+ha_url: "http://<ip-lan>:8123"
+ics_sync_url: "http://127.0.0.1:8090"    # /dispo + planning fusionné (même LXC)
+pricing_url: "http://127.0.0.1:8091"     # /prix pivot J (même LXC)
+http_port: 8092
+state_dir: "./state"
+decision_log_dir: "./state"   # box : monter /config/logs/ ici (cf. ics-sync)
+#Bornes rappel : 75/290 inviolables en code (lues depuis custom/logements.yaml).
+#Ordre priorités : securite > occupation(actes/ics/menage) > energie > confort(compta) > prix > llm/jev.
+# Commissions §4 (traçabilité net_hôte JSONL — expedia absente = taux inconnu -> null + motif).
+commission_direct: 0.00
+commission_airbnb: 0.15
+commission_booking: 0.17
+commission_abritel: 0.10

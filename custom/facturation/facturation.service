@@ -1,0 +1,16 @@
+# custom/facturation/facturation.service — systemd (même LXC que ics-sync, P2-10).
+[Unit]
+Description=LCD facturation (P2-10) — CGV/contrat PWA/factures B2C-B2B
+After=network-online.target pricing-engine.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/facturation/facturation.py --config /opt/lcd/facturation/config.yaml --logements /opt/lcd/logements.yaml --branding /opt/lcd/branding.yaml --serve
+Environment=LCD_SECRETS_YAML=/opt/lcd/secrets.yaml
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

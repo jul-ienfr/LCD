@@ -23,6 +23,11 @@ docs/parc/
 backups/
 coordinator_backup.json
 
+# Runtime moteurs locaux custom/* (P2 — JAMAIS commité : brouillons, ICS, JSONL)
+custom/*/state/
+state-test-*/
+*.pid
+
 # OS / éditeurs
 .DS_Store
 Thumbs.db

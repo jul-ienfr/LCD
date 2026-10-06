@@ -1,0 +1,16 @@
+# custom/decision-engine/decision.service — systemd (même LXC que ics-sync/pricing, P2-8).
+[Unit]
+Description=LCD decision-engine (P2-8) — état unifié + RBAC + JSONL
+After=network-online.target ics-sync.service pricing-engine.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/decision-engine/decision.py --config /opt/lcd/decision-engine/config.yaml --logements /opt/lcd/logements.yaml --acces /opt/lcd/acces.yaml --serve
+Environment=LCD_SECRETS_YAML=/opt/lcd/secrets.yaml
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
