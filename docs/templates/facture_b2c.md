@@ -4,7 +4,7 @@
 # (M-LLM-7 : LLM remplit les trous seuls, jamais de clause ni de montant inventé).
 # Placeholders {{ }} INTOUCHABLES : montants, dates, SIRET, adresses = injectés APRÈS traduction.
 # Taxe de séjour : ligne DISTINCTE, hors CA, jamais dans le total (direct = voyageur paie via
-# casa.taxesejour.fr ; OTA = collectée par la plateforme). Validation 1-tap avant envoi.
+# portail taxe Métropole Nice Côte d'Azur ; OTA = collectée par la plateforme). Validation 1-tap avant envoi.
 
 # Facture — {{ marque }}
 
@@ -20,7 +20,7 @@ Logement : {{ logement }} ({{ adresse_logement }}) — Séjour : du {{ arrivee }
 | Extras pré-commandés ({{ detail_extras }}) | {{ nb_extras }} | — | {{ total_extras }} € |
 
 Total TTC acquitté : {{ prix_total_ttc }} € via {{ canal_paiement }}.
-Taxe de séjour (hors CA, reversée CASA) : {{ taxe_sejour }} € — {{ mode_collecte_taxe }}.
+Taxe de séjour (hors CA, reversée Métropole Nice Côte d'Azur) : {{ taxe_sejour }} € — {{ mode_collecte_taxe }}.
 TVA non applicable (LMNP micro-BIC, art. 293 B CGI) — à adapter selon régime fiscal (§12.6).
 
 Mentions : L.111-1 / L.112-1 — réclamation : {{ email_hote }}, médiation {{ mediateur_nom }}

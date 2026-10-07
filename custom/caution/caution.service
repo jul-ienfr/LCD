@@ -1,6 +1,6 @@
 # custom/caution/caution.service — systemd (même LXC que ics-sync, P2-11).
 [Unit]
-Description=LCD caution + taxe CASA (P2-11) — hold 500-800 EUR + calcul taxe
+Description=LCD caution + taxe séjour Métropole NCA (P2-11) — hold 500-800 EUR + calcul taxe
 After=network-online.target facturation.service
 Wants=network-online.target
 

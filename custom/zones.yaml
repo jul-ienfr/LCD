@@ -5,7 +5,7 @@
 zones:
   santa_severa:
     label: "Santa Severa"
-    communes: ["Villeneuve-Loubet"]
+    communes: ["Saint-Laurent-du-Var"]
   villeneuve_loubet_plage:
     label: "Villeneuve-Loubet plage"
     communes: ["Villeneuve-Loubet"]

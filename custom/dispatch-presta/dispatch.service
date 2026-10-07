@@ -1,0 +1,17 @@
+# custom/dispatch-presta/dispatch.service — systemd (même LXC/box que ics-sync, P6-8).
+[Unit]
+Description=LCD dispatch prestataires + sinistre (P6-8) — annuaire zone+RC, :8096
+After=network-online.target decision.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/dispatch-presta/dispatch.py --config /opt/lcd/dispatch-presta/config.yaml --logements /opt/lcd/logements.yaml --serve
+Environment=LCD_PRESTATAIRES_DIR=/opt/lcd/prestataires
+Environment=LCD_ZONES_YAML=/opt/lcd/zones.yaml
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

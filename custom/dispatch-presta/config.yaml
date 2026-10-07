@@ -1,0 +1,11 @@
+# custom/dispatch-presta/config.yaml — dispatch prestataires P6-8 (§12.4-bis).
+# Box/prod : state local, logs vers /config/logs/ (monter decision_log_dir).
+# `carte_motifs` : motif signalé -> métier requis (clés = slugs, jamais texte libre).
+# `sla_h` : SLA affiché par métier (heures). `delais_plateforme_j` : rappel dossier
+# sinistre (Booking 48 h = 2 j). Annuaires lus dans ../prestataires/logX.yaml.
+http_port: 8096
+state_dir: "./state"
+decision_log_dir: "./state"   # box : monter /config/logs/ ici (cf. ics-sync)
+carte_motifs: "fuite_eau:plombier panne_elec:elec serrure_bloquee:serrurier menage:menage_externe linge:blanchisserie"
+sla_h: "plombier:24 elec:24 serrurier:4 menage_externe:48 blanchisserie:72"
+delais_plateforme_j: "airbnb:14 booking:2 vrbo:14 direct:0"

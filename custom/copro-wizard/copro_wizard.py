@@ -95,7 +95,7 @@ def cmd_init(logx):
                 "- [ ] (c) accord écrit syndic (sinon mention « sous réserve » + relance tracée)\n"
                 "- [ ] (d) mairie/PLU : Cerfa 14004*04 + n° enregistrement + 120j/90j + quota\n"
                 "- [ ] (e) CGU 4 plateformes + droit FR §12.1 vérifiés\n"
-                "- [ ] M-LLM-2 : DPE, taxe CASA, RC/PNO/MRH, classement, jamais n° inventé\n"
+                "- [ ] M-LLM-2 : DPE, taxe séjour Métropole NCA, RC/PNO/MRH, classement, jamais n° inventé\n"
                 "- [ ] relecture juriste datée avant verifiee:true\n")
     print(f"init {logx} -> {d} (privé, jamais commité — .gitignore docs/{logx}/ OK)")
 

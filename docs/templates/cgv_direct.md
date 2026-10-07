@@ -28,8 +28,8 @@ Règlement intérieur applicable : affiché dans le logement et remis avant rés
 
 Prix total TTC en euros, détaillé avant réservation : nuitée {{ prix_nuitee_ttc }} € TTC,
 frais de ménage {{ montant_menage }} € TTC en ligne séparée (§12.2-ter), linge et charges inclus,
-taxe de séjour {{ taxe_sejour }} €/nuit/adulte collectée pour le compte de la CASA
-(intercommunale +44 % : +10 % départemental 06 +34 % LNPCA), hors chiffre d'affaires, jamais du CA.
+taxe de séjour {{ taxe_sejour }} €/nuit/adulte collectée pour le compte de la Métropole Nice Côte d'Azur
+(taux + parts additionnelles selon délibération en vigueur), hors chiffre d'affaires, jamais du CA.
 Caution (dépôt de garantie, restitué — ce n'est pas du prix, §12.3) : mentionnée à part, article 6.
 Aucun frais caché après réservation (L.121-1). Remises éventuelles (durée 7+/28+, saison, early-bird,
 last-minute, jour semaine) : critères objectifs affichés avant réservation uniquement —

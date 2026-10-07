@@ -6,7 +6,7 @@
 # - `GET /dispo {logement_id, debut, fin}` → `{disponible: bool, conflit_ref?: str}`
 #   (lu par pricing-engine + moteur direct avant toute confirmation).
 # - `POST /resa-direct` `{ref, logement_id, debut, fin, voyageurs, langue,
-#   heure_arrivee (HH:MM, défaut 17:00), taxe_sejour (€ CASA hors CA, défaut 0.0),
+#   heure_arrivee (HH:MM, défaut 17:00), taxe_sejour (€ Métropole NCA hors CA, défaut 0.0),
 #   montant, extras[]}` → directe = occupation <60 s (priorité max, §4),
 #   idempotence par ref (201 créée / 200 déjà connue / 400 / 404).
 #   Champs P2-3 stockés tels quels + propagés aux events J-2/J-1

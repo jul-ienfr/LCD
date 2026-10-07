@@ -73,7 +73,7 @@ views:
       - type: markdown
         content: >
           QR par pièce/appareil : LV/LL (bouton fin de cycle), clim
-          (chaud 19-21,5 / froid 25-27), tri CASA, bruit 22h-8h.
+          (chaud 19-21,5 / froid 25-27), tri Métropole NCA, bruit 22h-8h.
         visibility:
           - condition: state
             entity: input_select.logement_actif

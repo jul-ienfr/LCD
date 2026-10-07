@@ -1,0 +1,7 @@
+# lab/lab-config/dispatch.yaml — config LAB dispatch :8096 (P6-8 §12.4-bis).
+http_port: 8096
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+carte_motifs: "fuite_eau:plombier panne_elec:elec serrure_bloquee:serrurier menage:menage_externe linge:blanchisserie"
+sla_h: "plombier:24 elec:24 serrurier:4 menage_externe:48 blanchisserie:72"
+delais_plateforme_j: "airbnb:14 booking:2 vrbo:14 direct:0"

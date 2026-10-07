@@ -275,7 +275,7 @@ class BookingDirect:
                "voyageurs": voyageurs, "pivot_nuit": pivot, "pivots": pivots,
                "nuitees": nuitees, "extras": extras_lignes,
                "menage_supplement": supplement_menage, "total_ttc": total,
-               "taxe_sejour": "hors CA, calculée à la résa (moteur caution, CASA +44 %)",
+               "taxe_sejour": "hors CA, calculée à la résa (moteur caution, Métropole NCA)",
                "src": src or ""}
         self.log_decision(logement_id, f"devis-{debut}", "moteur-direct",
                           "devis_calcule", total,

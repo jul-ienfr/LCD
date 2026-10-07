@@ -1,0 +1,44 @@
+# lab/prestataires.lab/log1.yaml — annuaire FICTIF lab log1 (P6-8 §12.4-bis).
+# Données inventées pour tester le dispatch comme sur la box. Jamais de vrais contacts.
+# Cas couverts : 2 plombiers en zone (tri prix), 1 élec HORS zone (2e choix),
+# 1 serrurier RC expirée (suspendu_assurance), ménage/serrurerie <2 actifs (alerte).
+
+metiers_critiques: [menage_externe, plombier, elec, serrurier]
+
+prestataires:
+  - id: lab_plomb_01
+    metier: plombier
+    zones: [santa_severa, villeneuve_loubet_plage]
+    rc_pro: true
+    rc_pro_fin: 2027-06-30
+    actif: true
+    tarif_h: 55
+    deplacement: 30
+    note: 4.5
+  - id: lab_plomb_02
+    metier: plombier
+    zones: [santa_severa]
+    rc_pro: true
+    rc_pro_fin: 2027-03-15
+    actif: true
+    tarif_h: 60
+    deplacement: 25
+    note: 4.0
+  - id: lab_elec_hz
+    metier: elec
+    zones: [nice_ouest]
+    rc_pro: true
+    rc_pro_fin: 2027-09-01
+    actif: true
+    tarif_h: 50
+    deplacement: 40
+    note: 4.2
+  - id: lab_serr_expire
+    metier: serrurier
+    zones: [santa_severa]
+    rc_pro: true
+    rc_pro_fin: 2020-01-01
+    actif: true
+    tarif_h: 70
+    deplacement: 35
+    note: 4.8

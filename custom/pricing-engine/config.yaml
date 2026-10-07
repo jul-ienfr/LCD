@@ -8,7 +8,7 @@ http_port: 8091
 state_dir: "./state"
 decision_log_dir: "./state"   # box : monter /config/logs/ ici (cf. ics-sync)
 mode_gestion_defaut: equilibre   # equilibre | remplissage_max | revenu_max (cf. §3-bis)
-# Saisonnalité Côte d'Azur depuis Villeneuve-Loubet (§3, table K_saison).
+# Saisonnalité Côte d'Azur depuis Saint-Laurent-du-Var (§3, table K_saison).
 # Mois -> K. Événements moveables (Carnaval/Cannes/GP) via calendar events (K_events).
 k_saison_par_mois: {1: 0.80, 2: 0.80, 3: 1.00, 4: 1.00, 5: 1.40, 6: 1.50,
                     7: 1.70, 8: 1.70, 9: 1.30, 10: 1.00, 11: 0.85, 12: 0.85}

@@ -1,0 +1,14 @@
+# lab/prestataires.lab/log2.yaml — annuaire FICTIF lab log2 (P6-8 §12.4-bis).
+# Log2 sans zone (zones: [] côté logements.lab) -> dispatch = escalade + 2e choix.
+# Cas : ancien champ `zone:` texte (migration auto testée).
+
+metiers_critiques: [menage_externe, plombier, elec, serrurier]
+
+prestataires:
+  - id: lab_menage_01
+    metier: menage_externe
+    zone: santa_severa
+    rc_pro: true
+    actif: true
+    tarif_h: 28
+    note: 4.6

@@ -1,11 +1,11 @@
 # custom/qloapps-module-ha/champs_custom.md — spec P2-3 (§5.2, §5.7-ter).
 
-# Champs custom QloApps + taxe CASA + gabarits check-in socle 5.
+# Champs custom QloApps + taxe séjour Métropole NCA + gabarits check-in socle 5.
 # À créer sur box LXC LAMP P2-1 (BO QloApps > Catalogue > Champs personnalisés
 # rattachés aux produits log1/log2). Valeurs lues par `buildPayload()` dans
 # `lcd_ha_hook.php` → POST /resa-direct vers ics-sync (même LXC 127.0.0.1:8090).
 # Contrat stable : {ref, logement_id, debut, fin, voyageurs, langue, montant, extras[]}
-# + P2-3 : heure_arrivee (HH:MM), taxe_sejour (montant € TTC reversé CASA).
+# + P2-3 : heure_arrivee (HH:MM), taxe_sejour (montant € TTC reversé Métropole NCA).
 # Secrets : aucun ici (réseau local seul) ; token HA côté ics-sync (`ha_api_token`).
 
 ## 1. Champs custom à créer (par produit log1/log2)
@@ -16,7 +16,7 @@
 | 2 | `lcd_heure_arrivee` | texte HH:MM | 00:00-23:59 | 17:00 | → pré-chauffe/ECS calées (§5.11) |
 | 3 | `lcd_voyageurs_adultes` | nombre | 1-5 (log1) / 1-4 (log2) | 2 | nb réel adultes |
 | 4 | `lcd_voyageurs_enfants` | nombre | 0-5 | 0 | nb réel enfants (clause copro occupants déclarés) |
-| 5 | `lcd_taxe_sejour` | montant € | calcul auto (voir §2) | 0 | reversement CASA, jamais du CA |
+| 5 | `lcd_taxe_sejour` | montant € | calcul auto (voir §2) | 0 | reversement Métropole NCA, jamais du CA |
 | 6 | `lcd_extras` | cases | kit_bienvenue_offert, minibar_*, late, early, transfert, courses, pack_teletravail… (§5.6-ter) | kit seul | → `todo.logX_extras` + paiement avance, cut-off J-1 18h |
 
 Règles : `voyageurs` payload = adultes+enfants (jamais un id) ; `langue` = ISO
@@ -24,10 +24,10 @@ envoyé tel quel (socle validé humain, autre = auto LLM badge auto, fallback EN
 `extras[]` = refs catalogue `logements.yaml` bloc `extras:` prix TTC affichés
 avant résa (§12.2) ; cut-off J-1 18h : extra non pré-commandé = ne rentre pas.
 
-## 2. Taxe de séjour CASA (+44 % : +10 % dép +34 % LNPCA)
+## 2. Taxe de séjour Métropole Nice Côte d'Azur (taux + parts additionnelles à confirmer en mairie)
 
-- Grille : 3* 2,30 €/adulte/nuit ; non classé 5 % plafonné 4,60 €/adulte/nuit.
-- Direct = VOUS collectez via casa.taxesejour.fr (process dashboard).
+- Grille : taux par classe + majorations selon délibération Métropole NCA en vigueur (précédemment CASA : 3* 2,30 €/adulte/nuit ; non classé 5 % plafonné 4,60 € — ne plus utiliser).
+- Direct = VOUS collectez via portail taxe de la Métropole NCA (process dashboard).
 - OTA intermédiaires de paiement = elles collectent (jamais double reversement).
 - `ca_annee` = hors taxe séjour (ligne compta séparée).
 - `lcd_taxe_sejour` = montant calculé stocké sur la commande (traçabilité).

@@ -23,7 +23,7 @@
 #
 # ## Champs custom QloApps (P2-3, FAIT 2026-10-06 — reste branchement box)
 # Spec `champs_custom.md` (§5.2, §5.7-ter) : 6 champs (lcd_langue, lcd_heure_arrivee,
-# lcd_voyageurs_adultes/enfants, lcd_taxe_sejour CASA +44 %, lcd_extras §5.6-ter)
+# lcd_voyageurs_adultes/enfants, lcd_taxe_sejour Métropole NCA, lcd_extras §5.6-ter)
 # + dates HotelReservation (pas dates commande) + gabarits `docs/templates/`
 # (message_checkin_j2.md FR source, message_checkin_j1.md FR source, socle 5).
 # `buildPayload()` lit tout via lireDatesSejour()/lireCustom()/lireExtras()

@@ -19,7 +19,7 @@ global:
 logements:
   log1:
     nom: "Santa Severa (LAB)"
-    commune: "Villeneuve-Loubet"
+    commune: "Saint-Laurent-du-Var"
     logement_id: log1
     surface_m2: 65
     capacite: 5
@@ -57,13 +57,13 @@ logements:
     menage:
       montant: 110
       facturation: supplement
-    zones: [santa_severa, villeneuve_loubet_plage]
+    zones: [santa_severa, nice_ouest]
     zone_defaut: santa_severa
     moteur_direct: maison              # LAB : tunnel maison testé ici
 
   log2:
     nom: "Logement 2 (LAB)"
-    commune: "Villeneuve-Loubet"
+    commune: "Saint-Laurent-du-Var"
     logement_id: log2
     surface_m2: 45
     capacite: 4

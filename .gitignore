@@ -30,6 +30,8 @@ lab/secrets.lab.yaml
 lab/*.log
 state-test-*/
 *.pid
+__pycache__/
+*.pyc
 
 # OS / éditeurs
 .DS_Store

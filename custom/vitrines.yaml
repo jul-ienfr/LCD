@@ -29,7 +29,7 @@ vitrines:
      note: "particulier à particulier + lien direct", ics_import: false,
      action: "publier annonce + lien UTM"}
   - {id: facebook, nom: "Groupes Facebook locaux", type: social,
-     note: "groupes Côte d'Azur / Villeneuve-Loubet + lien direct", ics_import: false,
+     note: "groupes Côte d'Azur / Saint-Laurent-du-Var + lien direct", ics_import: false,
      action: "post + lien UTM"}
   - {id: instagram, nom: "Instagram", type: social,
      note: "lien direct bio + stories", ics_import: false, action: "bio + stories UTM"}

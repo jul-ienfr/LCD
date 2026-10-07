@@ -55,7 +55,7 @@ views:
     cards:
       - type: markdown
         content: >
-          QR par pièce/appareil : LV/LL, chauffage (bornes), tri CASA,
+          QR par pièce/appareil : LV/LL, chauffage (bornes), tri Métropole NCA,
           bruit 22h-8h. Kit bienvenue offert (pas de mini-bar payant ici).
         visibility:
           - condition: state

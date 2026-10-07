@@ -3,6 +3,7 @@
 # Dispatch : métier + zone + RC (§12.4-bis). Pas de codes complets (slot mission seul).
 
 - Logement : {{ logement }}
+- Presta : {{ presta }} — Motif : {{ motif }} ({{ date }})
 - Fenêtre : {{ debut }} → {{ fin }}
 - Tâches : voir todo mission (checklist PWA).
 - Photos : avant/après obligatoires → /config/interventions/{{ logement }}/{{ date }}_{{ presta }}_{{ motif }}/

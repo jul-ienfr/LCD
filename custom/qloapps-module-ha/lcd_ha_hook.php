@@ -13,7 +13,7 @@
 //
 // Payload POST /resa-direct (JSON, champs plats — pas de "dates") :
 //   {ref, logement_id, debut, fin (AAAA-MM-JJ), voyageurs, langue,
-//    heure_arrivee (HH:MM), taxe_sejour (€ CASA hors CA), montant, extras[],
+//    heure_arrivee (HH:MM), taxe_sejour (€ Métropole NCA hors CA), montant, extras[],
 //    src (P2-12 : vitrine d'origine ?src=<id>, transmis tel quel par le tunnel)}
 // Champs custom P2-3 : spec champs_custom.md (lcd_langue, lcd_heure_arrivee,
 // lcd_voyageurs_*, lcd_taxe_sejour, lcd_extras) ; gabarits docs/templates/.
@@ -115,7 +115,7 @@ class LcdHa extends Module
             'voyageurs' => max(1, $adultes + $enfants),
             'langue' => $langue,                         // ISO tel quel (socle validé, sinon auto)
             'heure_arrivee' => $heure_arrivee,            // HH:MM -> pré-chauffe/ECS (§5.11)
-            'taxe_sejour' => $taxe_sejour,               // € CASA, jamais du CA
+            'taxe_sejour' => $taxe_sejour,               // € Métropole NCA, jamais du CA
             'montant' => (float) $order->total_paid,
             'extras' => $extras,                         // refs catalogue prix TTC, cut-off J-1 18h
             'src' => $src,                               // '' = direct pur, sinon id vitrine

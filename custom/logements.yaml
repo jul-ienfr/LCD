@@ -19,7 +19,7 @@ global:
 logements:
   log1:
     nom: "Santa Severa"
-    commune: "Villeneuve-Loubet"
+    commune: "Saint-Laurent-du-Var"
     logement_id: log1
     surface_m2: 65
     capacite: 5
@@ -40,7 +40,7 @@ logements:
       occupants_max: 5
       animaux: false
       non_fumeur: true
-      taxe_sejour_majoration: 0.44       # CASA +44 %
+      taxe_sejour_majoration: 0.44       # À VÉRIFIER Métropole NCA (pas CASA : taux + parts additionnelles à confirmer mairie)
     # --- Features on/off (1 feature = 1 flag + 1 dossier + 1 dashboard) ---
     features:
       smart_lock: true
@@ -60,7 +60,7 @@ logements:
     menage:
       montant: 110
       facturation: supplement            # supplement | inclus_nuit
-    zones: [santa_severa, villeneuve_loubet_plage]
+    zones: [santa_severa, nice_ouest]
     zone_defaut: santa_severa
     moteur_direct: qloapps                # qloapps (Phase 1) | maison (Phase 2+), cf. §4-bis
 

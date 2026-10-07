@@ -1,5 +1,9 @@
-# lab/Dockerfile.moteur — image générique stdlib pour les 6 moteurs LCD (P2).
+# lab/Dockerfile.moteur — image générique stdlib pour les 7 moteurs LCD (P2 + P6-8).
 # Python stdlib seule, 0 € logiciel. Aucun secret ici : tout passe par env LCD_*.
+# Image TRANSFÉRABLE : même image pour tous les logements/box — seuls
+# logements.yaml + secrets.yaml + branding.yaml + annuaires sont montés par box.
+# Scalable : nouveau logement = bloc logements.yaml + prestataires/logX.yaml, 0 rebuild.
+# Déployable : `docker compose up -d` (<2 min) ou `export-box.sh` -> box (docker load).
 # Buildé avec build-args SCRIPT + CONFIG (chemin du moteur et de sa config LAB) :
 #   docker build -f lab/Dockerfile.moteur --build-arg SCRIPT=custom/ics-sync/ics_sync.py \
 #     --build-arg CONFIG=lab/lab-config/ics-sync.yaml .
@@ -22,8 +26,8 @@ RUN useradd -r -u 10001 lcd && mkdir -p /opt/lcd/state /opt/lcd/logs \
     && chown -R lcd:lcd /opt/lcd
 USER lcd
 
-# state/logs = volumes (runtime, jamais commités). Ports moteurs 8090-8095.
-EXPOSE 8090 8091 8092 8093 8094 8095
+# state/logs = volumes (runtime, jamais commités). Ports moteurs 8090-8096.
+EXPOSE 8090 8091 8092 8093 8094 8095 8096
 
 # --config : config de LAB seule. --logements : copie lab montée par compose.
 # --branding ignoré par la plupart des moteurs sauf facturation (branding lab monté).

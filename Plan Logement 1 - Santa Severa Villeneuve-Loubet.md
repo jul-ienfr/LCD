@@ -1,11 +1,11 @@
 # Plan Location Courte Durée — Logement 1
-## Résidence Santa Severa – Villeneuve-Loubet (à côté Intermarché, ~3 km aéroport)
+## Résidence Santa Severa – Saint-Laurent-du-Var (avenue Louis Ravet — adresse exacte en docs/log1/ privé)
 
 Date MAJ : 5 octobre 2026
 
 ### 1. Logement
-- Logement 1, Résidence Santa Severa, Villeneuve-Loubet 06270
-- Repères : entre deux routes, Intermarché juste à côté, ~3 km aéroport Nice-Côte d'Azur (atout accès et commerces ; environnement urbain — possibles nuisances de ville : circulation, livraisons ; avions inaudibles à l'intérieur en pratique — par transparence, mentionner dans l'annonce : « à ~3 km de l'aéroport, sous certaines conditions météo on peut percevoir un passage lointain »)
+- Logement 1, Résidence Santa Severa, 81 A avenue Louis Ravet, 06700 Saint-Laurent-du-Var (adresse exacte : fichier privé `docs/log1/infos-adresse.md`, hors git)
+- Repères : résidence urbaine classique (routes à proximité, normal en ville), Intermarché juste à côté, ~3 km aéroport Nice-Côte d'Azur, **vue mer** (pas en pied d'eau) (atout accès, commerces + vue ; avions inaudibles à l'intérieur en pratique — par transparence, mentionner dans l'annonce : « à ~3 km de l'aéroport, sous certaines conditions météo on peut percevoir un passage lointain »)
 - Usage prévu : location meublée courte durée, appartement **entier** (Airbnb / Booking / Abritel / Leboncoin)
 
 ### 2. Copropriété — ce qui est autorisé
@@ -34,12 +34,12 @@ Conclusion copro :
 Modèle relance à envoyer :
 > Bonjour, merci pour l'envoi du règlement. Pouvez-vous me confirmer par écrit, au vu des articles 8 et 9 autorisant la location en meublé d'appartements entiers, qu'aucune restriction complémentaire ni vote en AG n'interdit la location saisonnière de courte durée (type Airbnb) pour un appartement entier au Santa Severa ? Cordialement, [Propriétaire]
 
-### 4. Mairie Villeneuve-Loubet — déclaration obligatoire
-- Cerfa n°14004*04 : déclaration en mairie de meublé de tourisme, à déposer à la Mairie – Direction Urbanisme / Affaires générales, Place de la Mairie, 06270 Villeneuve-Loubet – 04 93 02 66 00.
+### 4. Mairie Saint-Laurent-du-Var — déclaration obligatoire
+- Cerfa n°14004*04 : déclaration en mairie de meublé de tourisme, à déposer à la Mairie de Saint-Laurent-du-Var (adresse/guichet à confirmer — précédemment noté par erreur Villeneuve-Loubet).
 - Récépissé avec n° de déclaration → **obligatoire sur toutes les annonces**. Sans lui, plateformes doivent dépublier.
 - En attendant Registre national (loi 19/11/2024, mise en service 2026), Cerfa reste la procédure.
-- Résidence principale : max 120 jours/an. Villeneuve-Loubet n'a pas voté les 90 jours à ce jour → à vérifier en mairie.
-- Résidence secondaire / investissement : pas d'autorisation de changement d'usage type Nice/Paris à ce jour, mais vérifier PLU + délibération contraire.
+- Résidence principale : max 120 jours/an (vérifier si Saint-Laurent-du-Var / Métropole a voté les 90 jours).
+- Résidence secondaire / investissement : Saint-Laurent-du-Var ∈ Métropole Nice Côte d'Azur — vérifier PLU + délibération changement d'usage / quota meublés / compensation éventuelle (régime plus strict possible qu'en CASA).
 - [ ] Déposer Cerfa
 - [ ] Récupérer n° déclaration
 - [ ] Vérifier PLU / quota meublés / zone résidence principale
@@ -49,23 +49,22 @@ Modèle relance à envoyer :
 - [ ] Obtenir SIRET
 - [ ] Choisir fiscalité : micro-BIC vs réel (loi Le Meur : non classé 30% dans limite 15 000 € ; classé / chambres d'hôtes 50% dans limite 77 700 €)
 
-### 6. Taxe de séjour CASA — déclaration « automatique » autant que possible
+### 6. Taxe de séjour Métropole Nice Côte d'Azur — déclaration « automatique » autant que possible
 Principe :
-- Villeneuve-Loubet ∈ CASA (24 communes). Taxe intercommunale au réel toute l'année.
-- Airbnb, Booking.com, Expedia, Vrbo **collectent automatiquement** la taxe auprès du voyageur quand ils sont intermédiaires de paiement, et reversent directement à la CASA / Trésor 2x/an (avant 30/06 et 31/12).
+- Saint-Laurent-du-Var ∈ Métropole Nice Côte d'Azur (PAS la CASA — précédemment noté par erreur). Taxe métropolitaine au réel toute l'année, taux + parts additionnelles (département 06 + régionale) à confirmer en mairie / sur le portail taxe de la Métropole.
+- Airbnb, Booking.com, Expedia, Vrbo **collectent automatiquement** la taxe auprès du voyageur quand ils sont intermédiaires de paiement, et reversent directement (2x/an).
 - Voyageur voit ligne « Taxe de séjour » sur facture. Hôte n'a rien à ajouter sur ces canaux.
-- Tarifs de base CASA + **+10% départemental 06 +34% LNPCA = +44%** :
-  - Ex : 3* : 1,60 € x 1,44 = 2,30 € / nuit / adulte ; non classé : 5% du prix nuitée/pers. plafonné 4,60 € (+44%).
+- Tarifs de base + majorations : **à re-vérifier côté Métropole NCA** (précédemment : CASA +44 % — ne plus utiliser).
   - Exonérations : -18 ans, saisonniers employés commune, hébergement d'urgence, loyers très faibles.
 
 Ce que vous devez QUAND MÊME faire (pas 100% auto) :
-- [ ] Créer compte sur casa.taxesejour.fr (opérateur 3D Ouest / Nouveaux Territoires)
+- [ ] Créer compte sur le portail taxe de séjour de la Métropole Nice Côte d'Azur (à confirmer — précédemment casa.taxesejour.fr, ne plus utiliser)
 - [ ] Déclarer périodiquement les nuitées : indiquer « collectée par Airbnb/Booking = 0 € à reverser » + reverser vous-même UNIQUEMENT les nuits en direct / plateformes qui ne collectent pas (ex : réservation directe, Leboncoin sans paiement intégré)
 - [ ] Ne jamais reverser 2 fois ce qu'Airbnb a déjà prélevé
 - [ ] Conserver : factures Airbnb, attestations collecte, registre du logeur, historique « Taxe collectée » tableau de bord Airbnb > Revenus
 - [ ] Afficher tarifs en vigueur dans le logement
 
-Contact : agglo-casa.fr > Taxe de séjour – Service Taxe de séjour CASA pour confirmation reversement sur votre SIRET/adresse.
+Contact : Mairie de Saint-Laurent-du-Var + service Taxe de séjour Métropole Nice Côte d'Azur pour confirmation reversement sur votre SIRET/adresse.
 
 ### 7. Mise en conformité logement (loi 19/11/2024 dite Le Meur)
 - [ ] DPE (obligatoire, performance minimale exigée, montée en gamme jusqu'en 2034)
@@ -189,14 +188,14 @@ Formules (Côte d'Azur, % du CA) :
 
 À la carte : mise en valeur + shooting 150-300 €, création annonce + pricing forfait 150 €, remise en route après dégât (forfait + presta), gestion copro/syndic 30 €/mois.
 Garde-fous : mandat écrit de gestion saisonnière, RC pro conciergerie, fonds via Stripe/Swikly tagué par logement, transport/garde d'enfants = prestas assurés uniquement.
-**Zones prestataires (détail technique §12.4-bis)** : log1 = zone `Antibes / Villeneuve-Loubet` (Antibes, Villeneuve-Loubet, Biot, Valbonne, Sophia Antipolis, ~10 km) — dispatch auto limité aux prestas actifs + RC pro valide de cette zone ; hors zone = 2e choix avec surcoût déplacement, jamais auto sans validation. Exigence : ≥2 actifs par métier critique (plomberie, élec, serrurerie, ménage) sur la zone, sinon alerte.
+**Zones prestataires (détail technique §12.4-bis)** : log1 = zones `santa_severa` + `nice_ouest` (Saint-Laurent-du-Var, Nice ouest / aéroport, ~10 km) — dispatch auto limité aux prestas actifs + RC pro valide de ces zones ; hors zone = 2e choix avec surcoût déplacement, jamais auto sans validation. Exigence : ≥2 actifs par métier critique (plomberie, élec, serrurerie, ménage) sur la zone, sinon alerte.
 **5 rôles utilisateurs (détail technique §1.6)** : super admin / admin (vous seuls, multi-logements + secrets), gestionnaire (opérateur quotidien + comptable lecture seule + support santé, périmètre ses logX), propriétaire (client tiers = que SES logements : Planning/Prix/Finances son périmètre, jamais les autres clients ni le système), prestataires (ménage interne = /menage ; externes = PWA mission seule, accès expiré fin mission), voyageur (PWA Guest durée séjour seule, jamais d'accès HA direct). 1 compte nominatif/personne, 2FA super admin/admin/gestionnaire, révocation auto checkout/fin mission/résiliation (`custom/acces.yaml`).
 
 ### 11. Next actions — checklist
 1. [ ] Relance syndic Santa Severa pour confirmation écrite
-2. [ ] Mairie Villeneuve-Loubet : Cerfa 14004 + vérif 120j / 90j + PLU
+2. [ ] Mairie Saint-Laurent-du-Var : Cerfa 14004 + vérif 120j / 90j + PLU (Métropole NCA)
 3. [ ] SIRET LMNP INPI
-4. [ ] Compte casa.taxesejour.fr
+4. [ ] Compte portail taxe de séjour Métropole Nice Côte d'Azur (à confirmer en mairie)
 5. [ ] Assurance + DPE + détecteur fumée + diagnostics
 6. [ ] Règlement intérieur + affichage taxe dans logement
 7. [ ] Mise en ligne avec n° déclaration + DPE
@@ -209,4 +208,4 @@ Garde-fous : mandat écrit de gestion saisonnière, RC pro conciergerie, fonds v
 14. [ ] Runbook 2 pages imprimé + plastifié dans logement + drill trimestriel
 
 ---
-*Document de travail – informatif, pas un avis juridique. Confirmer avec Mairie Villeneuve-Loubet, CASA taxe de séjour, [Syndic – nom masqué].*
+*Document de travail – informatif, pas un avis juridique. Confirmer avec Mairie Saint-Laurent-du-Var, Métropole Nice Côte d'Azur (taxe de séjour), [Syndic – nom masqué].*

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# custom/caution/caution.py — hold caution + taxe séjour CASA P2-11 (§12.3 + §12.5).
+# custom/caution/caution.py — hold caution + taxe séjour Métropole NCA P2-11 (§12.3 + §12.5).
 # 0 € : stdlib seule. Même LXC que ics-sync :8090 / pricing :8091 / decision :8092 /
 # facturation :8093. Port :8094.
 #
@@ -14,11 +14,12 @@
 #   - abritel_vrbo : caution remboursable OU Damage Protection, jamais cumul.
 # Info voyageur sous 48 h via messagerie plateforme avant tout débit ; restitution 7-14 j.
 #
-# Taxe de séjour CASA (§12.5) : Villeneuve-Loubet ∈ CASA, +10 % dép. 06 +34 % LNPCA
-# = +44 % ; OTA collectent (reversement hôte = 0 €, jamais double reversement) ;
-# direct = vous collectez et déclarez sur casa.taxesejour.fr.
-# Calcul local informatif (jamais de reversement auto) : classe → base × 1,44 ;
-# non classé → 5 % nuitée/pers. plafonné 4,60 € (+44 %) ; exonérés : −18 ans,
+# Taxe de séjour Métropole NCA (§12.5) : log1 Saint-Laurent-du-Var ∈ Métropole Nice
+# Côte d'Azur — taux + parts additionnelles À VÉRIFIER en mairie / portail taxe Métropole
+# (précédemment CASA +44 % — ne plus utiliser) ; OTA collectent (reversement hôte = 0 €,
+# jamais double reversement) ; direct = vous collectez et déclarez sur portail Métropole.
+# Calcul local informatif (jamais de reversement auto) : classe → base × (1+majoration) ;
+# non classé → 5 % nuitée/pers. plafonné (+ majoration) ; exonérés : −18 ans,
 # saisonniers employés commune, urgence/relogement.
 #
 # Le moteur ne débite JAMAIS : il prépare (hold), calcule (taxe), rappelle (délais).
@@ -79,7 +80,7 @@ def charger_yaml_plat(path):
 
 
 def lire_bornes(path):
-    """Bornes hold global + majoration CASA par logement depuis logements.yaml."""
+    """Bornes hold global + majoration taxe séjour par logement depuis logements.yaml."""
     bornes = {"min": 500, "max": 800}
     major = {}
     try:
@@ -220,7 +221,7 @@ class Caution:
                "par_nuit_adulte": par_nuit_adulte, "nuits": nuits,
                "adultes_payants": payants, "total": total,
                "collecte_par": "plateforme (reversement hôte 0 €, jamais double)"
-                               if ota_collecte else "hôte — déclarer casa.taxesejour.fr",
+                               if ota_collecte else "hôte — déclarer portail taxe Métropole NCA",
                "reversement_hote": 0.0 if ota_collecte else total}
         if exoneration:
             res["exoneration"] = exoneration
@@ -315,7 +316,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="LCD caution + taxe CASA P2-11")
+    ap = argparse.ArgumentParser(description="LCD caution + taxe séjour Métropole NCA P2-11")
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--logements", default="../logements.yaml")
     ap.add_argument("--serve", action="store_true")
