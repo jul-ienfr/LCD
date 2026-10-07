@@ -1,0 +1,39 @@
+# custom/tourisme/sophia_antipolis.yaml — office de tourisme zone sophia_antipolis (P6-5/P6-9).
+# Zone sans logement pour l'instant (prête pour log futur). Mêmes règles (lecture seule, humain via git).
+lieux:
+  - id: biot_village
+    nom: Biot village + verrerie
+    categorie: visite
+    commune: Biot
+    acces: 15 min en voiture
+    prix_indicatif: gratuit
+    lien: ""
+    mode: ""
+    extra_id: ""
+  - id: valbonne_marche
+    nom: Valbonne village + marché provençal
+    categorie: pratique
+    commune: Valbonne
+    acces: 20 min en voiture
+    prix_indicatif: gratuit
+    lien: ""
+    mode: ""
+    extra_id: ""
+  - id: mougins_gastro
+    nom: Mougins village gastronomique
+    categorie: resto
+    commune: Mougins
+    acces: 20 min en voiture
+    prix_indicatif: voir carte
+    lien: ""
+    mode: ""
+    extra_id: ""
+  - id: golf_biot
+    nom: Golf partenaire (lien affilié)
+    categorie: activite
+    commune: Biot
+    acces: 15 min en voiture, sur réservation
+    prix_indicatif: voir extra
+    lien: ""
+    mode: affiliation_10_15
+    extra_id: ""

@@ -1,4 +1,4 @@
-# custom/dispatch-presta — dispatch prestataires + dossier sinistre (P6-8, §12.4-bis)
+# custom/dispatch-presta — dispatch prestataires + dossier sinistre (P6-8, §12.4-bis) + todos ménage (P6-1, §1.6.2)
 
 Moteur stdlib `:8096`. Proposition seule, jamais d'envoi auto ; mission = 1-tap humaine.
 
@@ -31,6 +31,22 @@ Moteur stdlib `:8096`. Proposition seule, jamais d'envoi auto ; mission = 1-tap 
   `sinistres/logX/<AAAA-MM-JJ>_<motif>/fiche.json` + échéance plateforme
   (Airbnb 14 j ET avant suivant / Booking 48 h / Vrbo ~14 j). Suivi caution :
   jamais de retenue sans justificatifs.
+- `POST /todos {logement_id, ref_resa?, checkout?, checkin_suivant?, arrivee?,
+  presta_dispo?, sejours_rapproches?, extras_payes[]?, qui}` → 201, dossier
+  `menage/logX/<date>_<ref>_menage/{todos.json, entree/, sortie/}`. 7 items
+  socle + deadline check-in −2h + assigné interne/presta + extras fusionnés si
+  `extras_upsell: on` + notifs multi-destinataires (hôte + intervenant +
+  voyageur si `etat_lieux_auto: on`). `qui=auto/llm/jev` → 400.
+- `GET /todos?logement_id=log1[&dossier=...]` → liste ou détail + statut.
+- `POST /menage-pointage {logement_id, dossier, evenement: arrivee|depart, qui}`
+  → 200 (départ sans arrivée → 409 ; `qui=auto` → 400).
+- `POST /menage-photo {logement_id, dossier, phase: entree|sortie, piece, nom,
+  donnees_base64, qui}` → 201 (jpg/png/webp ≤8 Mo).
+- `POST /menage-cloture {logement_id, dossier, checklist?, photos_voyageur_ok?,
+  dossier_intervention?, qui}` → 409 `preuves_manquantes` (pointage, photos
+  E/S par pièce, photos voyageur si `etat_lieux_auto`, dossier intervention
+  clôturé si `traca_intervenants`) / `cases_manquantes` (checklist 7 cases) ;
+  201 `remise_en_dispo`. Traversée `..` bloquée comme P6-2.
 
 ## Règles verrouillées
 

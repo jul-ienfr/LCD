@@ -1,0 +1,4 @@
+# lab/lab-config/stocks.yaml — config LAB stocks consommables :8099 (P6-3 §5.6).
+http_port: 8099
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"

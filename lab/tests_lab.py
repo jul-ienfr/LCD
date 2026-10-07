@@ -19,6 +19,7 @@ BASE = {
     "dispatch": "http://127.0.0.1:8096",
     "inventaire": "http://127.0.0.1:8097",
     "extras": "http://127.0.0.1:8098",
+    "stocks": "http://127.0.0.1:8099",
 }
 ECHECS = []
 
@@ -73,7 +74,7 @@ def check(nom, cond, detail=""):
         ECHECS.append(nom)
 
 
-print("== 1. health des 9 moteurs ==")
+print("== 1. health des 10 moteurs ==")
 for m in BASE:
     code, obj = get(m, "/health")
     check(f"health {m}", code == 200, f"HTTP {code} {obj}")
@@ -408,13 +409,23 @@ code, trav = post("inventaire", "/bien", {"logement_id": "log1",
 check("qr traverse (..) bloque 400", code == 400,
       f"HTTP {code} {trav}")
 
-print("== 11. extras upsells : catalogue + cut-off J-1 18h + paiement avance (P6-5 §5.6-ter) ==")
+print("== 11. extras upsells : catalogue localise + cut-off J-1 18h + paiement avance (P6-5 §5.6-ter) ==")
 code, cat = get("extras", "/catalogue?" + urllib.parse.urlencode(
     {"logement_id": "log1"}))
 items = cat.get("catalogue", []) if isinstance(cat, dict) else []
 prix = {e.get("id"): e.get("prix_ttc") for e in items}
-check("catalogue log1 200 + 8 extras lab + late 50",
-      code == 200 and len(items) == 8 and prix.get("late_checkout_14h") == 50,
+ids = {e.get("id") for e in items}
+check("catalogue log1 200 + 25 extras (21 socle + 4 zones) + petit_dej socle 15 inviolable",
+      code == 200 and len(items) == 25 and prix.get("late_checkout_14h") == 50
+      and prix.get("minibar_soda") == 3
+      and prix.get("petit_dej") == 15
+      and "lab_paddle_santa" in ids
+      and "matelas_plage_partenaire" in ids
+      and "lab_golf_sophia" not in ids
+      and {e.get("id"): e.get("mode") for e in items}.get(
+          "location_voiture_velo") == "partenariat_commission_15_20"
+      and {e.get("id"): e.get("mode") for e in items}.get(
+          "resa_resto_plage") == "commission_resto_10",
       f"HTTP {code} nb={len(items)}")
 
 code, off = get("extras", "/catalogue?" + urllib.parse.urlencode(
@@ -460,7 +471,7 @@ code, cm = post("extras", "/commande", {"logement_id": "log1",
                                                    {"id": "kit_bienvenue_offert"}],
                                         "qui": "test-lab-humain"})
 cid = cm.get("commande_id", "") if isinstance(cm, dict) else ""
-check("commande 201 a_payer + total 30 (2 pers) + todo + compta accueil",
+check("commande 201 a_payer + total 30 (2 pers, prix socle 15 inviolable malgre collision lab 999)",
       code == 201 and isinstance(cm, dict)
       and cm.get("statut") == "a_payer" and cm.get("total_ttc") == 30
       and "petit_dej" in cm.get("todo_menage", [])
@@ -523,8 +534,449 @@ code, tj = post("extras", "/commande", {"logement_id": "log1",
 check("id traverse (..) bloque 400", code == 400,
       f"HTTP {code} {tj}")
 
+code, hz = post("extras", "/commande", {"logement_id": "log1",
+                                        "ref_resa": "LAB-HZ",
+                                        "arrivee": "2026-12-20",
+                                        "extras": [{"id": "lab_golf_sophia"}],
+                                        "qui": "test-lab-humain"})
+check("extra hors-zone refuse 400 extra_inconnu (comme dispatch, jamais auto)",
+      code == 400 and isinstance(hz, dict)
+      and hz.get("code") == "extra_inconnu",
+      f"HTTP {code} {hz}")
+
+code, zone = post("extras", "/commande", {"logement_id": "log1",
+                                          "ref_resa": "LAB-ZONE",
+                                          "arrivee": "2026-12-20",
+                                          "extras": [{"id": "matelas_plage_partenaire"}],
+                                          "qui": "test-lab-humain"})
+check("extra zone santa_severa 201 validee 0 (affiliation, rien a payer)",
+      code == 201 and isinstance(zone, dict)
+      and zone.get("statut") == "validee" and zone.get("total_ttc") == 0,
+      f"HTTP {code} {zone}")
+
+print("== 11-quater. office de tourisme par zone : lecture seule voyageur (P6-5/P6-9) ==")
+code, to = get("extras", "/tourisme?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+lieux = to.get("lieux", []) if isinstance(to, dict) else []
+lids = {l.get("id") for l in lieux}
+zones_to = to.get("zones", []) if isinstance(to, dict) else []
+par_id = {l.get("id"): l for l in lieux}
+check("tourisme log1 200 + 14 lieux (8 santa + 6 nice) + zones + zone_defaut",
+      code == 200 and isinstance(to, dict) and to.get("total") == 14
+      and len(lieux) == 14
+      and set(zones_to) == {"santa_severa", "nice_ouest"}
+      and to.get("zone_defaut") == "santa_severa"
+      and "promenade_littoral" in lids and "vieux_nice" in lids
+      and "biot_village" not in lids,
+      f"HTTP {code} nb={len(lieux)} zones={zones_to}")
+
+check("lien tourisme->extra : plage privee liee au matelas, dispo, prix 0",
+      isinstance(par_id.get("plage_privee_partenaire"), dict)
+      and par_id["plage_privee_partenaire"].get("extra_id") == "matelas_plage_partenaire"
+      and par_id["plage_privee_partenaire"].get("extra_disponible") is True
+      and par_id["plage_privee_partenaire"].get("prix_ttc") == 0,
+      f"{par_id.get('plage_privee_partenaire')}")
+
+code, to_cat = get("extras", "/tourisme?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "categorie": "plage"}))
+lieux_cat = to_cat.get("lieux", []) if isinstance(to_cat, dict) else []
+check("filtre categorie=plage : 3 lieux (2 santa + 1 nice)",
+      code == 200 and isinstance(to_cat, dict)
+      and len(lieux_cat) == 3
+      and all(l.get("categorie") == "plage" for l in lieux_cat),
+      f"HTTP {code} nb={len(lieux_cat)}")
+
+code, to_bad = get("extras", "/tourisme?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "categorie": "nope"}))
+check("categorie hors set = 400 categorie_inconnue",
+      code == 400 and isinstance(to_bad, dict)
+      and to_bad.get("code") == "categorie_inconnue",
+      f"HTTP {code} {to_bad}")
+
+code, to_off = get("extras", "/tourisme?" + urllib.parse.urlencode(
+    {"logement_id": "log2"}))
+check("tourisme log2 off = 503 extras_off",
+      code == 503 and isinstance(to_off, dict)
+      and to_off.get("code") == "extras_off",
+      f"HTTP {code} {to_off}")
+
+print("== 11-bis. mini-bar honnetete : fiche + conso sur place + stock + reassort (P6-6) ==")
+code, mb = get("extras", "/minibar?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+fiche = mb.get("fiche", []) if isinstance(mb, dict) else []
+fids = {e.get("id") for e in fiche}
+check("fiche log1 200 soft-only 9 refs TTC>0",
+      code == 200 and isinstance(mb, dict) and mb.get("soft_only") is True
+      and len(fiche) == 9 and "minibar_soda" in fids,
+      f"HTTP {code} nb={len(fiche)}")
+
+code, mb_off = get("extras", "/minibar?" + urllib.parse.urlencode(
+    {"logement_id": "log2"}))
+check("minibar log2 off = 503 extras_off",
+      code == 503 and isinstance(mb_off, dict)
+      and mb_off.get("code") == "extras_off",
+      f"HTTP {code} {mb_off}")
+
+code, mb_auto = post("extras", "/minibar-conso", {"logement_id": "log1",
+                                                 "extras": [{"id": "minibar_soda"}],
+                                                 "qui": "auto"})
+check("minibar-conso qui=auto refuse 400",
+      code == 400, f"HTTP {code} {mb_auto}")
+
+code, mb_inc = post("extras", "/minibar-conso", {"logement_id": "log1",
+                                                "extras": [{"id": "petit_dej"}],
+                                                "qui": "test-lab-humain"})
+check("minibar-conso ref non minibar refuse 400",
+      code == 400 and isinstance(mb_inc, dict)
+      and mb_inc.get("code") == "extra_inconnu",
+      f"HTTP {code} {mb_inc}")
+
+code, mc = post("extras", "/minibar-conso", {"logement_id": "log1",
+                                             "ref_resa": "LAB-MB",
+                                             "extras": [{"id": "minibar_soda",
+                                                         "qte": 2}],
+                                             "qui": "test-lab-humain"})
+check("minibar-conso 201 a_payer 6.0 + todo reassort + compta extras_ca",
+      code == 201 and isinstance(mc, dict)
+      and mc.get("statut") == "a_payer" and mc.get("total_ttc") == 6.0
+      and mc.get("todo_menage") == ["reassort_minibar"]
+      and any(c.get("rubrique") == "extras_ca"
+              for c in mc.get("compta", [])),
+      f"HTTP {code} {mc}")
+
+code, ms = get("extras", "/minibar-stock?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+stock = ms.get("stock", {}) if isinstance(ms, dict) else {}
+check("stock decremente soda=2 + valorisation>0",
+      code == 200 and isinstance(ms, dict) and stock.get("minibar_soda") == 2
+      and ms.get("valorisation_ttc", 0) > 0,
+      f"HTTP {code} {ms}")
+
+code, mr_auto = post("extras", "/minibar-reassort", {"logement_id": "log1",
+                                                    "qui": "auto"})
+check("minibar-reassort qui=auto refuse 400",
+      code == 400, f"HTTP {code} {mr_auto}")
+
+code, mr = post("extras", "/minibar-reassort", {"logement_id": "log1",
+                                               "qui": "test-lab-humain"})
+check("reassort checkout remonte soda a 4",
+      code == 200 and isinstance(mr, dict)
+      and mr.get("stock", {}).get("minibar_soda") == 4,
+      f"HTTP {code} {mr}")
+
+code, mr_trav = post("extras", "/minibar-reassort",
+                     {"logement_id": "log1",
+                      "quantites": {"../x": 1},
+                      "qui": "test-lab-humain"})
+check("reassort traverse (..) bloque 400",
+      code == 400, f"HTTP {code} {mr_trav}")
+
+print("== 11-ter. conciergerie partenariat : sans paiement, compta partenariat (P6-7) ==")
+code, cp = post("extras", "/commande", {"logement_id": "log1",
+                                        "ref_resa": "LAB-P67",
+                                        "arrivee": "2026-12-20",
+                                        "extras": [{"id": "location_voiture_velo"},
+                                                   {"id": "excursions"},
+                                                   {"id": "resa_resto_plage"},
+                                                   {"id": "day_pass_cowork"}],
+                                        "qui": "test-lab-humain"})
+cid_p67 = cp.get("commande_id", "") if isinstance(cp, dict) else ""
+check("commande partenariat 201 validee total 0 + compta partenariat",
+      code == 201 and isinstance(cp, dict)
+      and cp.get("statut") == "validee" and cp.get("total_ttc") == 0
+      and "location_voiture_velo" in cp.get("todo_menage", [])
+      and all(c.get("rubrique") == "partenariat"
+              for c in cp.get("compta", []))
+      and len(cp.get("compta", [])) == 4,
+      f"HTTP {code} {cp}")
+
+code, cp_pay = post("extras", "/payer", {"logement_id": "log1",
+                                        "commande_id": cid_p67,
+                                        "qui": "test-lab-humain"})
+check("payer commande partenariat = validee sans paiement",
+      code == 200 and isinstance(cp_pay, dict)
+      and cp_pay.get("statut") == "validee",
+      f"HTTP {code} {cp_pay}")
+
+code, cp_liv = post("extras", "/livrer", {"logement_id": "log1",
+                                         "commande_id": cid_p67,
+                                         "qui": "test-lab-humain"})
+check("livrer commande partenariat 200 livree",
+      code == 200 and isinstance(cp_liv, dict)
+      and cp_liv.get("statut") == "livree",
+      f"HTTP {code} {cp_liv}")
+
+code, cp_td = post("dispatch", "/todos",
+                   {"logement_id": "log1",
+                    "ref_resa": "LAB-P67",
+                    "checkout": "2026-12-20",
+                    "checkin_suivant": "2026-12-21",
+                    "extras_payes": ["location_voiture_velo",
+                                     "excursions"],
+                    "qui": "test-lab-humain"})
+check("dispatch fusionne extras partenariat en todo",
+      code == 201 and isinstance(cp_td, dict)
+      and "extra_location_voiture_velo" in (cp_td.get("checklist", []) or [])
+      and "extra_excursions" in (cp_td.get("checklist", []) or []),
+      f"HTTP {code} {cp_td}")
+
+print("== 12. todos menage + photos E/S + notifs + cloture bloquante (P6-1 §1.6.2) ==")
+code, td_auto = post("dispatch", "/todos", {"logement_id": "log1",
+                                            "ref_resa": "LAB-P61",
+                                            "qui": "auto"})
+check("todos qui=auto refuse 400", code == 400,
+      f"HTTP {code} {td_auto}")
+
+ref_p61 = f"LAB-P61-{int(time.time())}"
+code, td = post("dispatch", "/todos", {"logement_id": "log1",
+                                       "ref_resa": ref_p61,
+                                       "checkout": "2026-12-20",
+                                       "checkin_suivant": "2026-12-21",
+                                       "extras_payes": ["petit_dej"],
+                                       "qui": "test-lab-humain"})
+dos_p61 = (td.get("dossier", "") if isinstance(td, dict) else "")
+notifs = (td.get("notifs", []) if isinstance(td, dict) else [])
+dest = {n.get("destinataire") for n in notifs}
+check("todos 201 + assigne interne + deadline -2h + notifs hote/interne/voyageur",
+      code == 201 and isinstance(td, dict)
+      and td.get("assigne") == "interne"
+      and td.get("deadline") == "2026-12-21T13:00"
+      and "petit_dej" not in (td.get("checklist", []) or [])
+      and "extra_petit_dej" in (td.get("checklist", []) or [])
+      and dest == {"hote", "interne", "voyageur_suivant"},
+      f"HTTP {code} {td}")
+
+code, td_presta = post("dispatch", "/todos",
+                       {"logement_id": "log1",
+                        "ref_resa": ref_p61 + "-PRESTA",
+                        "checkout": "2026-12-20",
+                        "checkin_suivant": "2026-12-21",
+                        "sejours_rapproches": True,
+                        "qui": "test-lab-humain"})
+check("sejours rapproches = assigne presta_menage_externe",
+      code == 201 and isinstance(td_presta, dict)
+      and td_presta.get("assigne") == "presta_menage_externe",
+      f"HTTP {code} {td_presta}")
+
+code, tl = get("dispatch", "/todos?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+check("GET /todos liste le dossier",
+      code == 200 and isinstance(tl, dict)
+      and any(d.get("dossier") == dos_p61
+              for d in tl.get("dossiers", [])),
+      f"HTTP {code} total={tl.get('total') if isinstance(tl, dict) else tl}")
+
+code, mp_auto = post("dispatch", "/menage-pointage",
+                     {"logement_id": "log1", "dossier": dos_p61,
+                      "evenement": "arrivee", "qui": "auto"})
+check("menage-pointage qui=auto refuse 400", code == 400,
+      f"HTTP {code} {mp_auto}")
+
+code, mp_dep = post("dispatch", "/menage-pointage",
+                    {"logement_id": "log1", "dossier": dos_p61,
+                     "evenement": "depart", "qui": "lab_menage_01"})
+check("menage depart sans arrivee bloque 409", code == 409,
+      f"HTTP {code} {mp_dep}")
+
+code, mp_arr = post("dispatch", "/menage-pointage",
+                    {"logement_id": "log1", "dossier": dos_p61,
+                     "evenement": "arrivee", "qui": "lab_menage_01"})
+check("menage arrivee 200", code == 200
+      and mp_arr.get("evenement") == "arrivee",
+      f"HTTP {code} {mp_arr}")
+
+menage_photos_ok = True
+for phase, piece in (("entree", "salon"), ("sortie", "salon")):
+    code, mh = post("dispatch", "/menage-photo",
+                    {"logement_id": "log1", "dossier": dos_p61,
+                     "phase": phase, "piece": piece, "nom": "test.png",
+                     "donnees_base64": PETITE_PHOTO,
+                     "qui": "lab_menage_01"})
+    ok = code == 201 and mh.get("piece") == piece
+    menage_photos_ok = menage_photos_ok and ok
+    print(f"[{'OK' if ok else 'KO'}] menage photo {phase}/{piece} — HTTP {code} {mh}")
+    if not ok:
+        ECHECS.append(f"menage photo {phase}/{piece}")
+check("photos menage entree/sortie deposees", menage_photos_ok, "")
+
+code, mc_vide = post("dispatch", "/menage-cloture",
+                     {"logement_id": "log1", "dossier": dos_p61,
+                      "checklist": {}, "qui": "test-lab-humain"})
+check("menage-cloture sans depart/voyageur/traça = 409 preuves_manquantes",
+      code == 409 and mc_vide.get("code") == "preuves_manquantes"
+      and "photos voyageur E/S (comparatif etat des lieux)"
+      in mc_vide.get("manquants", [])
+      and "dossier intervention cloture (traca on)"
+      in mc_vide.get("manquants", []),
+      f"HTTP {code} {mc_vide}")
+
+code, mp_fin = post("dispatch", "/menage-pointage",
+                    {"logement_id": "log1", "dossier": dos_p61,
+                     "evenement": "depart", "qui": "lab_menage_01"})
+check("menage depart 200", code == 200
+      and mp_fin.get("duree_presence_min") is not None,
+      f"HTTP {code} {mp_fin}")
+
+# Dossier intervention cloture (traca on) : mission -> pointage -> photos -> cloture.
+code, mi3 = post("dispatch", "/mission", {"logement_id": "log1",
+                                          "presta_id": "lab_plomb_01",
+                                          "motif": f"menage_p61_{ref_p61}",
+                                          "qui": "test-lab-humain"})
+nom3 = (mi3.get("dossier", "") if isinstance(mi3, dict) else "").rsplit("/", 1)[-1]
+for ev in ("arrivee", "depart"):
+    post("dispatch", "/pointage", {"logement_id": "log1", "dossier": nom3,
+                                   "evenement": ev, "qui": "lab_plomb_01"})
+for phase in ("avant", "apres"):
+    post("dispatch", "/photo", {"logement_id": "log1", "dossier": nom3,
+                                "phase": phase, "piece": "cuisine",
+                                "nom": "test.png",
+                                "donnees_base64": PETITE_PHOTO,
+                                "qui": "lab_plomb_01"})
+post("dispatch", "/cloture", {"logement_id": "log1", "dossier": nom3,
+                              "qui": "test-lab-humain"})
+
+code, mc_cases = post("dispatch", "/menage-cloture",
+                      {"logement_id": "log1", "dossier": dos_p61,
+                       "checklist": {}, "photos_voyageur_ok": True,
+                       "dossier_intervention": nom3,
+                       "qui": "test-lab-humain"})
+check("checklist vide = 409 cases_manquantes (7 cases)",
+      code == 409 and mc_cases.get("code") == "cases_manquantes"
+      and len(mc_cases.get("cases_manquantes", [])) >= 7,
+      f"HTTP {code} {mc_cases}")
+
+cochees = {c: True for c in
+           (mc_cases.get("cases_manquantes", []) if isinstance(mc_cases, dict) else [])}
+code, mc = post("dispatch", "/menage-cloture",
+                {"logement_id": "log1", "dossier": dos_p61,
+                 "checklist": cochees, "photos_voyageur_ok": True,
+                 "dossier_intervention": nom3,
+                 "qui": "test-lab-humain"})
+check("menage-cloture 201 remise_en_dispo",
+      code == 201 and mc.get("statut") == "remise_en_dispo",
+      f"HTTP {code} {mc}")
+
+code, td_det = get("dispatch", "/todos?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "dossier": dos_p61}))
+t_det = td_det.get("todos", {}) if isinstance(td_det, dict) else {}
+check("GET /todos dossier = remise_en_dispo",
+      code == 200 and t_det.get("statut") == "remise_en_dispo",
+      f"HTTP {code} {td_det}")
+
+code, trav_m = post("dispatch", "/menage-pointage",
+                    {"logement_id": "log1", "dossier": "../decision.log1",
+                     "evenement": "arrivee", "qui": "lab_menage_01"})
+check("menage traversee dossier bloquee (nom seul)",
+      code in (400, 404), f"HTTP {code} {trav_m}")
+
+print("== 13. stocks consommables : seuils + courses + conso + reassort (P6-3 §5.6) ==")
+code, st_auto = post("stocks", "/stock", {"logement_id": "log1",
+                                          "id": "TEST-STOCK",
+                                          "qui": "auto"})
+check("stock qui=auto refuse 400", code == 400,
+      f"HTTP {code} {st_auto}")
+
+code, st = post("stocks", "/stock", {"logement_id": "log1",
+                                     "id": "TEST-STOCK",
+                                     "label": "Test stocks lab",
+                                     "stock": 3, "unite": "piece",
+                                     "seuil": 4, "cible": 10,
+                                     "conso_rotation": 2,
+                                     "qui": "test-lab-humain"})
+cons = (st.get("consommable", {}) if isinstance(st, dict) else {})
+check("stock TEST-STOCK pose 200/201 statut bas",
+      code in (200, 201) and cons.get("statut") == "bas",
+      f"HTTP {code} {st}")
+
+code, st_neg = post("stocks", "/stock", {"logement_id": "log1",
+                                         "id": "TEST-STOCK",
+                                         "stock": -1,
+                                         "qui": "test-lab-humain"})
+check("stock negatif refuse 400", code == 400,
+      f"HTTP {code} {st_neg}")
+
+code, lis = get("stocks", "/stocks?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+items = (lis.get("consommables", []) if isinstance(lis, dict) else [])
+test_item = next((c for c in items if c.get("id") == "TEST-STOCK"), {})
+check("GET /stocks liste TEST-STOCK bas",
+      code == 200 and test_item.get("statut") == "bas",
+      f"HTTP {code} total={lis.get('total') if isinstance(lis, dict) else lis}")
+
+code, co = get("stocks", "/courses?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+check("GET /courses = 0 rupture socle (sain) + bas (TEST-STOCK dedans)",
+      code == 200 and isinstance(co, dict)
+      and co.get("ruptures", []) == []
+      and any(b.get("id") == "TEST-STOCK" for b in co.get("bas", []))
+      and "courses : " in co.get("notif_hebdo", ""),
+      f"HTTP {code} {co}")
+
+code, co_auto = post("stocks", "/conso", {"logement_id": "log1",
+                                          "id": "TEST-STOCK",
+                                          "qui": "auto"})
+check("conso qui=auto refuse 400", code == 400,
+      f"HTTP {code} {co_auto}")
+
+code, co_md = post("stocks", "/conso", {"logement_id": "log1",
+                                        "id": "TEST-STOCK",
+                                        "qui": "moteur-dispatch"})
+t_md = ((co_md.get("consommables", []) or [{}])[0]
+        if isinstance(co_md, dict) else {})
+check("conso moteur-dispatch 200 (3 -> 1, reste bas)",
+      code == 200 and t_md.get("avant") == 3 and t_md.get("stock") == 1
+      and t_md.get("statut") == "bas",
+      f"HTTP {code} {co_md}")
+
+code, co_fin = post("stocks", "/conso", {"logement_id": "log1",
+                                         "id": "TEST-STOCK",
+                                         "qui": "test-lab-humain"})
+t_fin = ((co_fin.get("consommables", []) or [{}])[0]
+         if isinstance(co_fin, dict) else {})
+check("conso clamp 0 jamais negatif (1 -> 0 rupture)",
+      code == 200 and t_fin.get("stock") == 0
+      and t_fin.get("statut") == "rupture",
+      f"HTTP {code} {co_fin}")
+
+code, rea = post("stocks", "/reassort", {"logement_id": "log1",
+                                         "id": "TEST-STOCK",
+                                         "qui": "test-lab-humain"})
+remis = ((rea.get("remis_a_cible", []) or [{}])[0]
+         if isinstance(rea, dict) else {})
+check("reassort remet a cible (0 -> 10)",
+      code == 200 and remis.get("stock") == 10,
+      f"HTTP {code} {rea}")
+
+code, rea_tous = post("stocks", "/reassort", {"logement_id": "log1",
+                                              "tous": True,
+                                              "qui": "test-lab-humain"})
+check("reassort tous 200",
+      code == 200 and isinstance(rea_tous, dict)
+      and len(rea_tous.get("remis_a_cible", [])) >= 9,
+      f"HTTP {code} {rea_tous}")
+
+code, co_ras = get("stocks", "/courses?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+check("courses apres reassort : TEST-STOCK ok, notif a jour",
+      code == 200 and isinstance(co_ras, dict)
+      and not any(b.get("id") == "TEST-STOCK"
+                  for b in co_ras.get("bas", [])),
+      f"HTTP {code} {co_ras}")
+
+code, trav_s = post("stocks", "/stock", {"logement_id": "../x",
+                                         "id": "TEST-STOCK",
+                                         "qui": "test-lab-humain"})
+check("stocks traversee logement bloquee 400",
+      code == 400, f"HTTP {code} {trav_s}")
+
+code, al = get("stocks", "/alertes?" + urllib.parse.urlencode(
+    {"logement_id": "log2"}))
+check("GET /alertes log2 OK",
+      code == 200 and isinstance(al, dict) and "ruptures" in al,
+      f"HTTP {code} {al}")
+
 print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3.")

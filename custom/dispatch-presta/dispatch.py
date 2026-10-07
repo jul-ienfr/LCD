@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# custom/dispatch-presta/dispatch.py — dispatch prestataires + dossier sinistre P6-8 (§12.4-bis).
+# custom/dispatch-presta/dispatch.py — dispatch prestataires + dossier sinistre P6-8 (§12.4-bis) + todos ménage P6-1 (§1.6.2).
 # 0 € : stdlib seule. Même LXC/box que les 6 autres moteurs. Port :8096.
 #
 # Annuaire par logement `custom/prestataires/logX.yaml` (jamais de texte libre :
@@ -35,6 +35,18 @@
 #   POST /cloture {logement_id, dossier, temps_declare_min?, justificatif?, qui}
 #     -> 409 preuves_manquantes (pointage/photos par piece) ; 409
 #     justificatif_requis (ecart >20 %) ; 201 cloturee (temps facture = pointe)
+#   POST /todos {logement_id, ref_resa?, checkout?, checkin_suivant?,
+#                arrivee?, presta_dispo?, sejours_rapproches?,
+#                extras_payes[]?, qui?} -> 201 dossier date menage/logX
+#     (7 items socle + deadline check-in -2h + assigne interne/presta +
+#     extras fusionnes si extras_upsell on + notifs multi-destinataires)
+#   GET  /todos?logement_id=log1[&dossier=...] -> liste ou detail + statut
+#   POST /menage-pointage {logement_id, dossier, evenement, qui}
+#   POST /menage-photo {logement_id, dossier, phase: entree|sortie, piece,
+#                nom, donnees_base64, qui}
+#   POST /menage-cloture {logement_id, dossier, checklist?, photos_voyageur_ok?,
+#                dossier_intervention?, qui} -> 409 preuves_manquantes /
+#     cases_manquantes ; 201 remise_en_dispo
 #   POST /sinistre {logement_id, motif, declarant, description, canal?, resa?}
 #
 # Usage : python3 dispatch.py --config config.yaml --logements ../logements.yaml
@@ -607,6 +619,328 @@ class Dispatch:
                      "regle": "temps facture = temps pointe ; ecart >20 % = "
                               "alerte + justificatif, jamais sanction auto"}
 
+    # --- P6-1 : todos ménage + photos E/S + notifs + clôture bloquante ---
+    # Checkout -> todo auto + dispatch (interne défaut, presta si presta_dispo
+    # ou séjours rapprochés <6h) + deadline check-in suivant -2h. Checklist 7
+    # cases obligatoires. Comparatif état des lieux voyageur si
+    # etat_lieux_auto on (clôture bloquée si photos voyageur manquantes).
+    # Si traca_intervenants on : dossier intervention clôturé exigé.
+    # Remise en dispo BLOQUÉE si preuves manquantes (jamais auto).
+    CHECKLIST_MENAGE = ("draps_housse_propre", "consommables_kit",
+                        "poubelles_sorties_tri", "lv_ll_vides_propres",
+                        "photos_entree", "photos_sortie",
+                        "controle_final_poussieres")
+
+    def _dossier_menage(self, logement_id, dossier):
+        # Nom seul, reconstruit sous state/menage/logX (même garde que P6-2).
+        brut = str(dossier or "")
+        if ".." in brut or "\x00" in brut:
+            return None, "dossier invalide"
+        nom = os.path.basename(brut.strip())
+        if not nom or nom in (".", ".."):
+            return None, "dossier invalide (nom menage requis)"
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", nom):
+            return None, "dossier invalide (caracteres mission seuls)"
+        chemin = os.path.join(self.state_dir, "menage", logement_id, nom)
+        if not os.path.isdir(chemin):
+            return None, (f"dossier inconnu : menage/{logement_id}/{nom} "
+                           "(POST /todos d'abord)")
+        return chemin, None
+
+    def _lire_todos(self, chemin):
+        try:
+            with open(os.path.join(chemin, "todos.json"),
+                      encoding="utf-8") as f:
+                return json.load(f), None
+        except (FileNotFoundError, ValueError):
+            return None, "todos.json illisible (POST /todos d'abord)"
+
+    def _sauver_todos(self, chemin, obj):
+        with open(os.path.join(chemin, "todos.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(obj, f, ensure_ascii=False, indent=2)
+
+    @staticmethod
+    def _deadline_moins_2h(checkin_suivant):
+        if not checkin_suivant:
+            return ""
+        txt = str(checkin_suivant).strip()
+        try:
+            # Accepte date seule (jour même 15h-2h=13h) ou datetime ISO.
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", txt):
+                base = dt.datetime.fromisoformat(txt + "T15:00:00")
+            else:
+                base = dt.datetime.fromisoformat(txt.replace("Z", "+00:00"))
+                if base.tzinfo is not None:
+                    base = base.astimezone().replace(tzinfo=None)
+            return (base - dt.timedelta(hours=2)).isoformat(timespec="minutes")
+        except ValueError:
+            return ""
+
+    # --- POST /todos ---
+    def todos(self, logement_id, qui="", ref_resa="", checkout="",
+              checkin_suivant="", arrivee="", presta_dispo=False,
+              sejours_rapproches=False, extras_payes=None):
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "todos menage = creation HUMAINE "
+                                   "(qui != auto/llm/jev)"}
+        if not logement_id:
+            return 400, {"erreur": "logement_id requis"}
+        log = self._log(logement_id)
+        jour = dt.date.today().isoformat()
+        ref = (ref_resa or checkout or "sans-ref").strip() or "sans-ref"
+        slug = re.sub(r"[^a-z0-9]+", "_", ref.lower()).strip("_") or "menage"
+        nom = f"{jour}_{slug}_menage"
+        dossier = os.path.join(self.state_dir, "menage", logement_id, nom)
+        os.makedirs(os.path.join(dossier, "entree"), exist_ok=True)
+        os.makedirs(os.path.join(dossier, "sortie"), exist_ok=True)
+        # Dispatch : interne défaut, presta si dispo ou séjours rapprochés <6h.
+        assigne = ("presta_menage_externe"
+                   if (presta_dispo or sejours_rapproches) else "interne")
+        deadline = self._deadline_moins_2h(checkin_suivant)
+        items = [{"id": c, "coche": False} for c in self.CHECKLIST_MENAGE]
+        extras = [str(e) for e in (extras_payes or []) if str(e).strip()]
+        if extras and log["extras_upsell"]:
+            for e in extras:
+                items.append({"id": f"extra_{e}", "coche": False,
+                              "source": "extras_upsell"})
+        todo = {"logement_id": logement_id, "dossier": nom,
+                "ref_resa": ref_resa, "checkout": checkout,
+                "checkin_suivant": checkin_suivant, "arrivee": arrivee,
+                "assigne": assigne, "deadline": deadline,
+                "checklist": items, "photos_entree": [], "photos_sortie": [],
+                "pointage_arrivee": None, "pointage_depart": None,
+                "duree_presence_min": None, "photos_voyageur_ok": False,
+                "statut": "a_faire",
+                "regle": "remise en dispo BLOQUEE si preuves manquantes",
+                "extras_fusionnes": extras if log["extras_upsell"] else []}
+        self._sauver_todos(dossier, todo)
+        # Notifs multi-destinataires (todo + log, jamais d'envoi auto) :
+        # hôte + intervenant (+ voyageur si état des lieux auto).
+        notifs = [{"destinataire": "hote", "canal": "dashboard",
+                   "message": f"menage {nom} a faire (deadline {deadline or 'NC'})"},
+                  {"destinataire": assigne, "canal": "pwa",
+                   "message": f"mission menage {nom} : checklist 7 cases + photos E/S"}]
+        if log["etat_lieux_auto"]:
+            notifs.append({"destinataire": "voyageur_suivant", "canal": "pwa",
+                           "message": "photos entree PWA a deposer (comparatif)"})
+        self.log_decision(logement_id, ref, qui, "todo_menage_cree",
+                          f"{nom} assigne={assigne} deadline={deadline or 'NC'}"
+                          + (f" + {len(extras)} extras" if todo["extras_fusionnes"] else ""))
+        return 201, {"logement_id": logement_id, "dossier": nom,
+                     "statut": "a_faire", "assigne": assigne,
+                     "deadline": deadline, "checklist": [c["id"] for c in items],
+                     "notifs": notifs,
+                     "comparatif_etat_lieux": log["etat_lieux_auto"],
+                     "traca_intervenant_requise": log["traca_intervenants"]}
+
+    # --- GET /todos ---
+    def todos_lecture(self, logement_id, dossier=""):
+        if dossier:
+            chemin, err = self._dossier_menage(logement_id, dossier)
+            if err:
+                return 404, {"erreur": err}
+            todo, err = self._lire_todos(chemin)
+            if err:
+                return 404, {"erreur": err}
+            return 200, {"logement_id": logement_id,
+                         "dossier": os.path.basename(chemin),
+                         "todos": todo}
+        racine = os.path.join(self.state_dir, "menage", logement_id)
+        try:
+            noms = sorted(os.listdir(racine))
+        except FileNotFoundError:
+            noms = []
+        liste = []
+        for nom in noms:
+            chemin = os.path.join(racine, nom)
+            if os.path.isdir(chemin):
+                todo, _ = self._lire_todos(chemin)
+                if todo is not None:
+                    liste.append({"dossier": nom,
+                                  "statut": todo.get("statut"),
+                                  "assigne": todo.get("assigne"),
+                                  "deadline": todo.get("deadline")})
+        return 200, {"logement_id": logement_id, "total": len(liste),
+                     "dossiers": liste}
+
+    # --- POST /menage-pointage ---
+    def menage_pointage(self, logement_id, dossier, evenement, qui):
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "pointage menage = geste INTERVENANT "
+                                   "(qui != auto/llm/jev)"}
+        if evenement not in ("arrivee", "depart"):
+            return 400, {"erreur": "evenement = arrivee|depart"}
+        chemin, err = self._dossier_menage(logement_id, dossier)
+        if err:
+            return 404, {"erreur": err}
+        todo, err = self._lire_todos(chemin)
+        if err:
+            return 404, {"erreur": err}
+        if todo.get("statut") == "remise_en_dispo":
+            return 409, {"erreur": "menage deja cloture (reouverture = hote seul)"}
+        ts = utcnow_iso()
+        if evenement == "arrivee":
+            if todo.get("pointage_arrivee"):
+                return 409, {"erreur": "arrivee deja pointee",
+                             "arrivee": todo["pointage_arrivee"]}
+            todo["pointage_arrivee"] = ts
+            todo["pointe_par"] = qui
+            todo["statut"] = "en_cours"
+        else:
+            if not todo.get("pointage_arrivee"):
+                return 409, {"erreur": "depart sans arrivee "
+                                        "(pointer arrivee d'abord)",
+                             "code": "preuves_manquantes"}
+            if todo.get("pointage_depart"):
+                return 409, {"erreur": "depart deja pointe",
+                             "depart": todo["pointage_depart"]}
+            todo["pointage_depart"] = ts
+            try:
+                a = dt.datetime.fromisoformat(todo["pointage_arrivee"])
+                b = dt.datetime.fromisoformat(ts)
+                todo["duree_presence_min"] = max(
+                    0, int((b - a).total_seconds() // 60))
+            except ValueError:
+                todo["duree_presence_min"] = 0
+            todo["statut"] = "pointee"
+        self._sauver_todos(chemin, todo)
+        self.log_decision(logement_id, os.path.basename(chemin), qui,
+                          f"menage_pointage_{evenement}", ts)
+        return 200, {"logement_id": logement_id,
+                     "dossier": os.path.basename(chemin),
+                     "evenement": evenement, "ts": ts,
+                     "duree_presence_min": todo.get("duree_presence_min")}
+
+    # --- POST /menage-photo ---
+    def menage_photo(self, logement_id, dossier, phase, piece, nom,
+                     donnees_base64, qui):
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "photo menage = geste INTERVENANT "
+                                   "(qui != auto/llm/jev)"}
+        if phase not in ("entree", "sortie"):
+            return 400, {"erreur": "phase = entree|sortie"}
+        piece = re.sub(r"[^a-z0-9_-]+", "_",
+                       str(piece or "").lower()).strip("_")
+        if not piece:
+            return 400, {"erreur": "piece requise (ex : salon, sdb, cuisine)"}
+        nom_f = os.path.basename(str(nom or ""))
+        ext = os.path.splitext(nom_f)[1].lower()
+        if ext not in self.EXT_PHOTOS:
+            return 400, {"erreur": "photo jpg/png/webp seule"}
+        chemin, err = self._dossier_menage(logement_id, dossier)
+        if err:
+            return 404, {"erreur": err}
+        todo, err = self._lire_todos(chemin)
+        if err:
+            return 404, {"erreur": err}
+        if todo.get("statut") == "remise_en_dispo":
+            return 409, {"erreur": "menage deja cloture (reouverture = hote seul)"}
+        try:
+            brut = base64.b64decode(donnees_base64 or "", validate=True)
+        except Exception:
+            return 400, {"erreur": "donnees_base64 invalide"}
+        if not brut:
+            return 400, {"erreur": "photo vide"}
+        if len(brut) > 8_000_000:
+            return 413, {"erreur": "photo trop lourde (>8 Mo)"}
+        horodat = utcnow_iso().replace(":", "").replace("+", "")
+        cible = re.sub(r"[^a-z0-9_.-]+", "_",
+                       f"{piece}_{horodat}_{nom_f}").strip("._") or f"{piece}{ext}"
+        if not cible.lower().endswith(ext):
+            cible += ext
+        with open(os.path.join(chemin, phase, cible), "wb") as f:
+            f.write(brut)
+        cle = "photos_entree" if phase == "entree" else "photos_sortie"
+        todo.setdefault(cle, []).append({"fichier": cible, "piece": piece,
+                                         "ts": utcnow_iso(), "par": qui})
+        self._sauver_todos(chemin, todo)
+        self.log_decision(logement_id, os.path.basename(chemin), qui,
+                          f"menage_photo_{phase}",
+                          f"{piece}/{cible} ({len(brut)} o)")
+        return 201, {"logement_id": logement_id,
+                     "dossier": os.path.basename(chemin),
+                     "phase": phase, "piece": piece, "fichier": cible,
+                     "octets": len(brut)}
+
+    # --- POST /menage-cloture ---
+    def menage_cloture(self, logement_id, dossier, checklist=None,
+                       photos_voyageur_ok=False, dossier_intervention="",
+                       qui=""):
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "cloture menage = validation HUMAINE "
+                                   "(qui != auto/llm/jev)"}
+        chemin, err = self._dossier_menage(logement_id, dossier)
+        if err:
+            return 404, {"erreur": err}
+        todo, err = self._lire_todos(chemin)
+        if err:
+            return 404, {"erreur": err}
+        nom = os.path.basename(chemin)
+        if todo.get("statut") == "remise_en_dispo":
+            return 409, {"erreur": "menage deja cloture",
+                         "duree_presence_min": todo.get("duree_presence_min")}
+        manquants = []
+        if not todo.get("pointage_arrivee"):
+            manquants.append("pointage arrivee")
+        if not todo.get("pointage_depart"):
+            manquants.append("pointage depart")
+        ent = todo.get("photos_entree") or []
+        sor = todo.get("photos_sortie") or []
+        if not ent:
+            manquants.append("photos entree (>=1 par piece)")
+        if not sor:
+            manquants.append("photos sortie (>=1 par piece)")
+        sans_sortie = sorted({p.get("piece") for p in ent}
+                             - {p.get("piece") for p in sor})
+        if sans_sortie:
+            manquants.append("photos sortie manquantes pieces : "
+                             + ", ".join(sans_sortie))
+        # Checklist 7 cases obligatoires (fusion extras incluse si présente).
+        cochees = checklist or {}
+        cases_manquantes = [c["id"] for c in todo.get("checklist", [])
+                            if not cochees.get(c["id"], False)]
+        # Comparatif état des lieux voyageur si etat_lieux_auto on.
+        log = self._log(logement_id)
+        if log["etat_lieux_auto"] and not photos_voyageur_ok:
+            manquants.append("photos voyageur E/S (comparatif etat des lieux)")
+        # Traça intervenant si on : dossier intervention clôturé exigé.
+        if log["traca_intervenants"]:
+            if not dossier_intervention:
+                manquants.append("dossier intervention cloture (traca on)")
+            else:
+                ch, err_i = self._dossier(logement_id, dossier_intervention)
+                if err_i:
+                    manquants.append("dossier intervention inconnu (traca on)")
+                else:
+                    inter, err_i = self._lire_intervention(ch)
+                    if err_i or (inter or {}).get("statut") != "cloturee":
+                        manquants.append("intervention non cloturee (traca on)")
+        if manquants or cases_manquantes:
+            self.log_decision(logement_id, nom, qui, "menage_cloture_bloquee",
+                              "; ".join(manquants + cases_manquantes))
+            code = ("cases_manquantes" if cases_manquantes and not manquants
+                    else "preuves_manquantes")
+            return 409, {"erreur": "remise en dispo BLOQUEE : preuves manquantes",
+                         "code": code, "manquants": manquants,
+                         "cases_manquantes": cases_manquantes}
+        todo["checklist_cochee"] = {c["id"]: True
+                                    for c in todo.get("checklist", [])}
+        todo["photos_voyageur_ok"] = bool(photos_voyageur_ok)
+        if dossier_intervention:
+            todo["dossier_intervention"] = os.path.basename(
+                str(dossier_intervention))
+        todo["statut"] = "remise_en_dispo"
+        todo["cloturee_par"] = qui
+        todo["cloture_le"] = utcnow_iso()
+        self._sauver_todos(chemin, todo)
+        self.log_decision(logement_id, nom, qui, "menage_remise_en_dispo",
+                          f"pointe {todo.get('duree_presence_min')} min")
+        return 201, {"logement_id": logement_id, "dossier": nom,
+                     "statut": "remise_en_dispo",
+                     "duree_presence_min": todo.get("duree_presence_min")}
+
+
     def _fiche_mission(self, logement_id, presta, motif, debut, fin, dossier):
         candidats = []
         if self.templates_dir:
@@ -718,6 +1052,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(400, {"erreur": "logement_id + dossier requis"})
             code, obj = eng.intervention(logement_id, dossier)
             return self._json(code, obj)
+        if url.path == "/todos":
+            logement_id = qs.get("logement_id", [""])[0]
+            dossier = qs.get("dossier", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = eng.todos_lecture(logement_id, dossier)
+            return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 
     def do_POST(self):
@@ -750,6 +1091,37 @@ class Handler(BaseHTTPRequestHandler):
             code, obj = eng.cloture(p.get("logement_id", ""), p.get("dossier", ""),
                                     p.get("temps_declare_min"),
                                     p.get("justificatif", ""), p.get("qui", ""))
+            return self._json(code, obj)
+        if url.path == "/todos":
+            code, obj = eng.todos(
+                p.get("logement_id", ""), p.get("qui", ""),
+                p.get("ref_resa", ""), p.get("checkout", ""),
+                p.get("checkin_suivant", ""), p.get("arrivee", ""),
+                bool(p.get("presta_dispo", False)),
+                bool(p.get("sejours_rapproches", False)),
+                p.get("extras_payes", []))
+            return self._json(code, obj)
+        if url.path == "/menage-pointage":
+            code, obj = eng.menage_pointage(p.get("logement_id", ""),
+                                            p.get("dossier", ""),
+                                            p.get("evenement", ""),
+                                            p.get("qui", ""))
+            return self._json(code, obj)
+        if url.path == "/menage-photo":
+            code, obj = eng.menage_photo(p.get("logement_id", ""),
+                                         p.get("dossier", ""),
+                                         p.get("phase", ""),
+                                         p.get("piece", ""),
+                                         p.get("nom", ""),
+                                         p.get("donnees_base64", ""),
+                                         p.get("qui", ""))
+            return self._json(code, obj)
+        if url.path == "/menage-cloture":
+            code, obj = eng.menage_cloture(
+                p.get("logement_id", ""), p.get("dossier", ""),
+                p.get("checklist", {}),
+                bool(p.get("photos_voyageur_ok", False)),
+                p.get("dossier_intervention", ""), p.get("qui", ""))
             return self._json(code, obj)
         if url.path == "/sinistre":
             code, obj = eng.sinistre(p.get("logement_id", ""), p.get("motif", ""),

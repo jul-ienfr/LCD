@@ -1,0 +1,57 @@
+# custom/tourisme/nice_ouest.yaml — office de tourisme zone nice_ouest (P6-5/P6-9).
+# Mêmes règles que santa_severa.yaml (lecture seule, humain via git, slugs seuls).
+lieux:
+  - id: vieux_nice
+    nom: Vieux-Nice (visite guidée partenaire)
+    categorie: visite
+    commune: Nice
+    acces: 15 min en voiture / tram
+    prix_indicatif: voir extra
+    lien: ""
+    mode: affiliation_10_15
+    extra_id: visite_guidee_vieux_nice
+  - id: chateau_nice
+    nom: Colline du Château (panorama)
+    categorie: visite
+    commune: Nice
+    acces: 15 min en voiture / tram
+    prix_indicatif: gratuit
+    lien: ""
+    mode: ""
+    extra_id: ""
+  - id: plages_prom
+    nom: Plages publiques de la Promenade (surveillées l'été)
+    categorie: plage
+    commune: Nice
+    acces: 15 min en voiture / tram
+    prix_indicatif: gratuit
+    lien: ""
+    mode: ""
+    extra_id: kit_plage
+  - id: cours_saleya
+    nom: Cours Saleya (marché + restaurants)
+    categorie: resto
+    commune: Nice
+    acces: 15 min en voiture / tram
+    prix_indicatif: voir carte
+    lien: ""
+    mode: commission_resto_10
+    extra_id: resa_resto_plage
+  - id: cowork_nice_ouest
+    nom: Cowork partenaire (day pass)
+    categorie: activite
+    commune: Nice
+    acces: 15 min en voiture / tram
+    prix_indicatif: voir extra
+    lien: ""
+    mode: partenariat_commission_10_15
+    extra_id: day_pass_cowork
+  - id: excursion_lerins
+    nom: Excursion îles de Lérins (lien affilié)
+    categorie: activite
+    commune: Cannes (départ port)
+    acces: 30 min en voiture
+    prix_indicatif: voir extra
+    lien: ""
+    mode: affiliation_10_15
+    extra_id: excursions

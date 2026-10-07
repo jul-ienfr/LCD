@@ -10,6 +10,7 @@ custom/branding.yaml
 docs/log1/
 docs/log2/
 docs/parc/
+docs/strategie-famille/
 !docs/templates/
 
 # Runtime HA /config/ — backup chiffré quotidien + hebdo hors site (P1-1)

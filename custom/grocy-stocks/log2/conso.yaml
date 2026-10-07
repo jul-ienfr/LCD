@@ -1,0 +1,4 @@
+# custom/grocy-stocks/log2/conso.yaml — stocks consommables log2 (§5.6).
+# Géré par custom/grocy-stocks/stocks.py (P6-3). Même socle que log1.
+
+consommables: []

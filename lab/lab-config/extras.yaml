@@ -5,9 +5,22 @@ decision_log_dir: "/opt/lcd/logs"
 extras:
   kit_bienvenue_offert: Kit bienvenue OFFERT (charge accueil) | 0
   minibar_honnetete: Mini-bar honnêteté soft-only | 0
+  minibar_eau_50cl: Mini-bar eau 50cl | 2
+  minibar_soda: Mini-bar soda 33cl | 3
+  minibar_jus_bio: Mini-bar jus bio | 3.5
+  minibar_chips: Mini-bar chips | 3
+  minibar_biscuits: Mini-bar biscuits | 3.5
+  minibar_chocolat: Mini-bar chocolat | 3.5
+  minibar_cafe: Mini-bar café (dosette) | 1
+  minibar_the: Mini-bar thé | 1
+  minibar_kit_apero_soft: Mini-bar kit apéro soft | 12
   late_checkout_14h: Late checkout 14h (si pas d'arrivée jour J) | 50
   early_checkin_12h: Early check-in 12h (si pas de départ jour J) | 30
   petit_dej: Petit-déj (par pers, coût 5) | 15
   kit_bebe: Kit bébé / séjour | 40
   transfert_aeroport: Transfert aéroport (presta VTC commission) | 30
   courses_intermarche: Courses Intermarché (forfait + tickets) | 25
+  location_voiture_velo: Location voiture livrée / vélo électrique (partenariat local, lien affilié) | 0 | partenariat_commission_15_20
+  resa_resto_plage: Réservation resto/plage partenaire (gratuit voyageur, commission côté resto) | 0 | commission_resto_10
+  excursions: Excursions Lérins / Antibes / St-Paul-de-Vence (lien affilié) | 0 | affiliation_10_15
+  day_pass_cowork: Day pass cowork (partenariat, commission) | 0 | partenariat_commission_10_15

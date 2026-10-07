@@ -1,0 +1,15 @@
+# custom/grocy-stocks/stocks.service — systemd (même LXC/box que les autres moteurs, P6-3).
+[Unit]
+Description=LCD stocks consommables Grocy seuils + liste courses (P6-3) — seuils + conso rotation, :8099
+After=network-online.target dispatch.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/grocy-stocks/stocks.py --config /opt/lcd/grocy-stocks/config.yaml --logements /opt/lcd/logements.yaml --stocks /opt/lcd/grocy-stocks --serve
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

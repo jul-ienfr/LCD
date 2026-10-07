@@ -1,0 +1,12 @@
+# lab/extras.lab/log1.yaml — sur-couche extras LAB log1 (fictif, P6-5 §5.6-ter).
+# Miroir de custom/extras/log1.yaml (mêmes ids pour tester le lien tourisme->extra)
+# + 3 extras lab_* pour tester le filtrage par zones (2 visibles log1,
+# 1 zone sophia_antipolis invisible log1) + 1 collision prix volontaire
+# (petit_dej à 999 : le prix SOCLE 15 doit faire foi, art. 225-1).
+extras:
+  matelas_plage_partenaire: Matelas plage privée partenaire (lien affilié, LAB) | 0 | affiliation_10_15 | santa_severa
+  visite_guidee_vieux_nice: Visite guidée Vieux-Nice (partenaire, lien affilié, LAB) | 0 | affiliation_10_15 | nice_ouest
+  lab_paddle_santa: Paddle encadré baie (partenaire lab, lien affilié) | 0 | affiliation_10_15 | santa_severa
+  lab_visite_nice: Visite guidée Nice ouest (partenaire lab) | 0 | affiliation_10_15 | nice_ouest
+  lab_golf_sophia: Golf partenaire Biot (lien affilié lab) | 0 | affiliation_10_15 | sophia_antipolis
+  petit_dej: Petit-dej LAB PRIX FAUX (collision volontaire, socle 15 fait foi) | 999

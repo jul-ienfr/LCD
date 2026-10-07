@@ -1,0 +1,77 @@
+# custom/tourisme/santa_severa.yaml — office de tourisme zone santa_severa (P6-5/P6-9).
+# Lecture seule voyageur via GET /tourisme (filtre categorie?).
+# Ajouts = geste humain via git (versionné, jamais auto). Slugs seuls.
+# extra_id = lien vers un extra du catalogue (commande validée cut-off/paiement, compta auto).
+lieux:
+  - id: promenade_littoral
+    nom: Promenade du littoral
+    categorie: visite
+    commune: Saint-Laurent-du-Var
+    acces: 10 min à pied du logement
+    prix_indicatif: gratuit
+    lien: ""
+    mode: ""
+    extra_id: ""
+  - id: port_slv
+    nom: Port de plaisance
+    categorie: visite
+    commune: Saint-Laurent-du-Var
+    acces: 15 min à pied
+    prix_indicatif: gratuit
+    lien: ""
+    mode: ""
+    extra_id: ""
+  - id: plage_publique_surville
+    nom: Plage publique (surveillée l'été)
+    categorie: plage
+    commune: Saint-Laurent-du-Var
+    acces: 10 min à pied
+    prix_indicatif: gratuit
+    lien: ""
+    mode: ""
+    extra_id: kit_plage
+  - id: plage_privee_partenaire
+    nom: Plage privée partenaire (matelas 1er rang)
+    categorie: plage
+    commune: Saint-Laurent-du-Var
+    acces: 10 min à pied, sur réservation
+    prix_indicatif: voir extra
+    lien: ""
+    mode: affiliation_10_15
+    extra_id: matelas_plage_partenaire
+  - id: marche_slv
+    nom: Marché provençal (centre-ville)
+    categorie: pratique
+    commune: Saint-Laurent-du-Var
+    acces: 15 min à pied
+    prix_indicatif: gratuit
+    lien: ""
+    mode: ""
+    extra_id: courses_intermarche
+  - id: stade_nautique
+    nom: Base nautique (paddle/kayak encadrés)
+    categorie: activite
+    commune: Saint-Laurent-du-Var
+    acces: 15 min à pied
+    prix_indicatif: dès 15 €
+    lien: ""
+    mode: ""
+    extra_id: ""
+  - id: restos_port
+    nom: Restaurants du port (partenaires, sur réservation)
+    categorie: resto
+    commune: Saint-Laurent-du-Var
+    acces: 15 min à pied
+    prix_indicatif: voir carte
+    lien: ""
+    mode: commission_resto_10
+    extra_id: resa_resto_plage
+  - id: aeroport_nice
+    nom: Aéroport Nice-Côte d'Azur
+    categorie: pratique
+    commune: Nice
+    acces: 10 min en voiture
+    prix_indicatif: voir extra
+    lien: ""
+    mode: ""
+    extra_id: transfert_aeroport

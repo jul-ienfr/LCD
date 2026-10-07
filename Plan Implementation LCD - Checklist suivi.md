@@ -5,14 +5,14 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `18 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `22 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
 - Phase 3 Accès : 0/8
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
-- Phase 6 Exploitation : 1/22
+- Phase 6 Exploitation : 5/22
 - Phase 7 Voix + LLM/Jev : 0/20
 - Phase 8 Recette / go-live : 0/12
 
@@ -119,15 +119,16 @@ Dépendances : ESP32 + INMP441 (bruit dB seuls), Frient (5 ans), détecteurs fui
 
 Dépendances : Grocy (add-on + intégration), WallPanel, Telegram/Companion App, Tesseract OCR (compta), PWA Guest/Ménage/Presta.
 
-- [ ] P6-1 Todos + photos E/S (Companion App → dossier daté) + notifs multi-destinataires + clôture bloquante si manquantes
+- [x] P6-1 Todos + photos E/S + notifs multi-destinataires (hote/dashboard, assigne/pwa, voyageur_suivant/pwa) + comparatif état lieux + traça intervenant + deadline checkin −2h + clôture bloquante 409 (preuves/cases) / 201 remise_en_dispo — moteur :8096 (`custom/dispatch-presta/dispatch.py` : `POST/GET /todos`, `POST /menage-pointage`, `POST /menage-photo`, `POST /menage-cloture`, dossier `state/menage/logX/<date>_<slug>_menage/`) + batterie lab section 12 verte (lab = box)
 - [x] P6-2 Parcours intervenant PWA/QR : pointage arrivée/départ + photos AVANT/APRÈS par pièce + `intervention.json` (durée présence vs temps déclaré, écart >20 % → alerte) + dossier `/config/interventions/logX/<date>_<presta>_<motif>/{avant,apres}/` — pointage/photos/clôture :8096 + batterie lab 12/12 verte (lab = box)
-- [ ] P6-3 Grocy consommables (café, papier, sacs aspirateur, piles, produits) : seuils + liste courses auto
+- [x] P6-3 Grocy consommables (seuils + liste courses auto) : moteur :8099 (`custom/grocy-stocks/stocks.py` : `GET /stocks /courses /alertes`, `POST /stock /conso /reassort`, statuts rupture/bas/ok, traversée bloquée, écritures geste humain sauf /conso par `moteur-dispatch`) + batterie lab section 13 verte (lab = box)
 - [x] P6-4 Inventaire biens (`inventaire_biens: on`) : moteur :8097 (registre QR/NFC `custom/inventaire/inventaire.py` + `logX/biens.yaml`, scan/fiche, `/utilisation` clôture ménage +1 par `moteur-dispatch`, stats coût/séjour + budget prévisionnel, alertes dormant >90 j / état ≤2 / garantie <30 j) + batterie lab 12/12 verte + image transférable (lab = box)
-- [x] P6-5 Extras (`extras_upsell: on`) : moteur :8098 (`custom/extras-upsell/extras.py`, catalogue prix TTC affichés avant résa + cut-off J-1 18h 409 + paiement d'avance 402 + todo ménage auto + ligne `compta_auto` par extra + kit offert = charge « accueil ») + batterie lab 12/12 verte + image transférable (lab = box)
-- [ ] P6-6 Kit bienvenue OFFERT (~3-5 €, charge « accueil », jamais CA) vs mini-bar PAYANT honnêteté (QR + fiche prix, soft-only, réassort checkout + Grocy)
-- [ ] P6-7 Conciergerie séjour : arrivée/départ (accueil 30 €, transfert 40 €, location partenariat 15-20 %) + vie sur place 100 % partenariat (chef 69 €/pers, massage 75 €/h, babysitting 30 €/h, pressing 15 €, resto/plage 10 %, excursions 10-15 %) + pack télétravail 25 €/séjour (stock ~150 €)
+- [x] P6-5 Extras (`extras_upsell: on`) : moteur :8098 (`custom/extras-upsell/extras.py`, catalogue prix TTC affichés avant résa + cut-off J-1 18h 409 + paiement d'avance 402 + todo ménage auto + ligne `compta_auto` par extra + kit offert = charge « accueil ») + catalogue **localisé par zones** (slugs `custom/zones.yaml`, même pattern que P6-8 : socle `config.yaml` + sur-couche `custom/extras/<logX>.yaml` format `Nom | prix | mode? | zones?`, filtré par `zones`/`zone_defaut` du logement, prix socle inviolable en collision art. 225-1, hors-zone → 400 `extra_inconnu` à la commande) + batterie lab §11 25 refs (21 socle + 4 visibles log1, collision prix 999→15 prouvée, hors-zone exclu) + image transférable (lab = box)
+- [x] P6-6 Kit bienvenue OFFERT (~3-5 €, charge « accueil », jamais CA) vs mini-bar PAYANT honnêteté (QR + fiche prix, soft-only, réassort checkout + Grocy) — moteur :8098 (`custom/extras-upsell/extras.py` : `GET /minibar` fiche soft-only + `POST /minibar-conso` 201 `a_payer` sans cut-off + `GET /minibar-stock` valorisation + `POST /minibar-reassort` checkout, stock `state/<logX>/minibar_stock.json`, alcool → 403 sans `licence_alcool`) + batterie lab §11-bis 9/9 verte (lab = box)
+- [x] P6-7 Conciergerie séjour : arrivée/départ (accueil 30 €, transfert 40 €, location partenariat 15-20 %) + vie sur place 100 % partenariat (chef 69 €/pers, massage 75 €/h, babysitting 30 €/h, pressing 15 €, resto/plage 10 %, excursions 10-15 %) + pack télétravail 25 €/séjour (stock ~150 €) — 4 refs partenariat 0 € (modes + taux) sans paiement : `location_voiture_velo` `partenariat_commission_15_20` + `resa_resto_plage` `commission_resto_10` + `excursions` `affiliation_10_15` + `day_pass_cowork` `partenariat_commission_10_15` (commande `validee` total 0, `/payer` sans preuve = no-op 200, compta « partenariat », todo dispatch auto, `log_decision` commission+net_hôte) — moteur :8098 + batterie lab §11-ter 4/4 verte (lab = box)
 - [x] P6-8 Annuaire prestas + zones (`custom/zones.yaml`, clés jamais texte libre, `zone_defaut`, dispatch filtre zone+actif+RC, hors zone = 2e choix + surcoût jamais auto, alerte <2 actifs/métier/zone) — moteur :8096 + batterie lab 8/8 verte + image transférable `export-box.sh` (lab = box)
-- [ ] P6-9 Guide vivant : WallPanel kiosk + vues socle 5 + QR par pièce/appareil + arrivée guidée J-1 (lien PWA + PIN + WiFi + QR salon) + départ zéro friction (checklist + avis J+1)
+- [x] P6-9 Office de tourisme (brique voyageur, lecture seule) : moteur :8098 `GET /tourisme?logement_id[&categorie]` (lieux `custom/tourisme/<zone>.yaml` visite/resto/plage/activite/pratique, déclinés par zones du logement zone_defaut incluse, `extra_id` croisé catalogue fusionné `extra_disponible`+`prix_ttc`, categorie hors set → 400, `extras_upsell: off` → 503, ajouts = humain via git) + 18 lieux (santa_severa 8 + nice_ouest 6 + sophia_antipolis 4 prêt futur) + batterie lab §11-quater 14 lieux log1 verte (lab = box)
+- [ ] P6-9-bis Guide vivant : WallPanel kiosk + vues socle 5 + QR par pièce/appareil + arrivée guidée J-1 (lien PWA + PIN + WiFi + QR salon) + départ zéro friction (checklist + avis J+1)
 - [ ] P6-10 WiFi invité isolé : SSID guest + QR `WIFI:T:WPA;…` + clé rotative par défaut (`input_text.logX_wifi_key`), returning si même voyageur reconnu (message « Bon retour ! »), jamais en vocal/LLM/logs
 - [ ] P6-11 Langues (§5.7-ter) : socle FR/EN/ES/IT/DE (`docs/templates/*.{fr,en,es,it,de}.md`) + maternelle auto LLM (placeholders `{{ }}` intouchables, cache phrase+langue, badge auto, fallback EN) + sélecteur PWA + Piper `it_IT`/`de_DE` si satellites + 20 phrases critiques 1-tap + recette 50 requêtes/langue
 - [ ] P6-12 Mémoire voyageur (`memoire_voyageur: on`) : opt-in PWA révocable 1-tap + `custom/memoire/voyageurs.yaml` (hash, jamais prestas, jamais discrimination tarifaire, purge 24 mois) + pré-remplissage séjour suivant (langue, consignes, extras favoris 1-tap, « Bon retour [prénom] ! », WiFi returning)

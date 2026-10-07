@@ -1,0 +1,8 @@
+# custom/extras/log1.yaml — sur-couche extras Santa Severa (log1) P6-5 §5.6-ter.
+# Fusionnée au socle custom/extras-upsell/config.yaml puis filtrée par zones
+# du logement (slugs custom/zones.yaml seuls). Format `id: Nom | prix | mode? | zones?`.
+# Prix identiques pour tous (art. 225-1) : si l'id existe au socle, le prix socle fait foi.
+# 0 € affiliation/partenariat = lien externe, rien à encaisser, compta « partenariat ».
+extras:
+  matelas_plage_partenaire: Matelas plage privée partenaire (lien affilié) | 0 | affiliation_10_15 | santa_severa
+  visite_guidee_vieux_nice: Visite guidée Vieux-Nice (partenaire, lien affilié) | 0 | affiliation_10_15 | nice_ouest

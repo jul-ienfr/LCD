@@ -292,18 +292,59 @@ services:
       LCD_HTTP_PORT: "8098"
       LCD_STATE_DIR: /opt/lcd/state
       LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_EXTRAS_DIR: /opt/lcd/extras
+      LCD_TOURISME_DIR: /opt/lcd/tourisme
     volumes:
       - extras-state:/opt/lcd/state
       - ics-logs:/opt/lcd/logs
       - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      # Sur-couche extras par logement (données fictives de lab, versionnées).
+      - ./extras.lab/:/opt/lcd/extras:ro
+      # Office tourisme : lieux publics réels, identiques lab/prod (monté ro
+      # depuis custom, comme zones.yaml — pas de lab/*state* ici).
+      - ../custom/tourisme/:/opt/lcd/tourisme:ro
     command: >
       sh -c "python3 /opt/lcd/custom/extras-upsell/extras.py
       --config /opt/lcd/config.yaml
       --logements /opt/lcd/logements.yaml
-      --extras /opt/lcd/extras --serve"
+      --extras /opt/lcd/extras
+      --tourisme /opt/lcd/tourisme --serve"
     healthcheck:
       test: ["CMD", "python3", "-c",
         "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8098/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  stocks:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/grocy-stocks/stocks.py
+        CONFIG: lab/lab-config/stocks.yaml
+    ports: ["8099:8099"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8099"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_STOCKS_DIR: /opt/lcd/stocks
+    volumes:
+      - stocks-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      # stocks.lab en RW (box-equivalent) : les stocks sont mutés à chaque
+      # rotation (/conso) et réassort. Reset via `git checkout -- stocks.lab`.
+      - ./stocks.lab/:/opt/lcd/stocks
+    command: >
+      sh -c "python3 /opt/lcd/custom/grocy-stocks/stocks.py
+      --config /opt/lcd/config.yaml
+      --logements /opt/lcd/logements.yaml
+      --stocks /opt/lcd/stocks --serve"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8099/health',timeout=5)"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -318,4 +359,5 @@ volumes:
   dispatch-state:
   inventaire-state:
   extras-state:
+  stocks-state:
   ics-logs:
