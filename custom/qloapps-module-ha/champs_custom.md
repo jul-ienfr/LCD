@@ -26,7 +26,7 @@ avant résa (§12.2) ; cut-off J-1 18h : extra non pré-commandé = ne rentre pa
 
 ## 2. Taxe de séjour Métropole Nice Côte d'Azur (taux + parts additionnelles à confirmer en mairie)
 
-- Grille : taux par classe + majorations selon délibération Métropole NCA en vigueur (précédemment CASA : 3* 2,30 €/adulte/nuit ; non classé 5 % plafonné 4,60 € — ne plus utiliser).
+- Grille : taux par classe + majorations selon délibération Métropole NCA en vigueur (taux + parts à confirmer mairie ; ancienne grille : 3* 2,30 €/adulte/nuit ; non classé 5 % plafonné 4,60 € — ne plus utiliser).
 - Direct = VOUS collectez via portail taxe de la Métropole NCA (process dashboard).
 - OTA intermédiaires de paiement = elles collectent (jamais double reversement).
 - `ca_annee` = hors taxe séjour (ligne compta séparée).

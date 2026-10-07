@@ -8,6 +8,6 @@ prestataires: []
 # Exemple (anonymisé) :
 # - id: presta_01
 #   metier: plombier
-#   zones: [santa_severa, villeneuve_loubet_plage]
+#   zones: [santa_severa, nice_ouest]
 #   rc_pro: true
 #   actif: true

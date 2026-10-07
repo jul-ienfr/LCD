@@ -16,8 +16,7 @@
 #
 # Taxe de séjour Métropole NCA (§12.5) : log1 Saint-Laurent-du-Var ∈ Métropole Nice
 # Côte d'Azur — taux + parts additionnelles À VÉRIFIER en mairie / portail taxe Métropole
-# (précédemment CASA +44 % — ne plus utiliser) ; OTA collectent (reversement hôte = 0 €,
-# jamais double reversement) ; direct = vous collectez et déclarez sur portail Métropole.
+# (OTA collectent, reversement hôte = 0 €, jamais double reversement) ; direct = vous collectez et déclarez sur portail Métropole.
 # Calcul local informatif (jamais de reversement auto) : classe → base × (1+majoration) ;
 # non classé → 5 % nuitée/pers. plafonné (+ majoration) ; exonérés : −18 ans,
 # saisonniers employés commune, urgence/relogement.

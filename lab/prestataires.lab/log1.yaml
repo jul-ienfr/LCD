@@ -8,7 +8,7 @@ metiers_critiques: [menage_externe, plombier, elec, serrurier]
 prestataires:
   - id: lab_plomb_01
     metier: plombier
-    zones: [santa_severa, villeneuve_loubet_plage]
+    zones: [santa_severa, nice_ouest]
     rc_pro: true
     rc_pro_fin: 2027-06-30
     actif: true

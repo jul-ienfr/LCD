@@ -6,12 +6,6 @@ zones:
   santa_severa:
     label: "Santa Severa"
     communes: ["Saint-Laurent-du-Var"]
-  villeneuve_loubet_plage:
-    label: "Villeneuve-Loubet plage"
-    communes: ["Villeneuve-Loubet"]
-  villeneuve_loubet_centre:
-    label: "Villeneuve-Loubet centre / village"
-    communes: ["Villeneuve-Loubet"]
   nice_ouest:
     label: "Nice ouest / aéroport"
     communes: ["Nice", "Saint-Laurent-du-Var"]

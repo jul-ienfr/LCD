@@ -3,7 +3,7 @@
 # OTA : Airbnb = hold INTERDIT hors plateforme (AirCover seule) ; Booking = collecte
 # SÉPARÉE déclarée Policies (jamais VCC) ; Abritel = caution OU Damage Protection.
 # Taxe Métropole NCA (log1 Saint-Laurent-du-Var) : taux + parts additionnelles À VÉRIFIER
-# en mairie / portail taxe Métropole (précédemment CASA +44 % — ne plus utiliser) ;
+# en mairie / portail taxe Métropole (taux + parts additionnelles à confirmer) ;
 # OTA collectent (reversement 0 €), direct = vous collectez et déclarez sur portail Métropole.
 # Secrets : Swikly/Stripe via env > secrets.yaml (jamais en dur, jamais commités).
 http_port: 8094

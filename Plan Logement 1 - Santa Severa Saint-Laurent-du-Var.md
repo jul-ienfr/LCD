@@ -35,11 +35,11 @@ Modèle relance à envoyer :
 > Bonjour, merci pour l'envoi du règlement. Pouvez-vous me confirmer par écrit, au vu des articles 8 et 9 autorisant la location en meublé d'appartements entiers, qu'aucune restriction complémentaire ni vote en AG n'interdit la location saisonnière de courte durée (type Airbnb) pour un appartement entier au Santa Severa ? Cordialement, [Propriétaire]
 
 ### 4. Mairie Saint-Laurent-du-Var — déclaration obligatoire
-- Cerfa n°14004*04 : déclaration en mairie de meublé de tourisme, à déposer à la Mairie de Saint-Laurent-du-Var (adresse/guichet à confirmer — précédemment noté par erreur Villeneuve-Loubet).
+- Cerfa n°14004*04 : déclaration en mairie de meublé de tourisme, à déposer à la Mairie de Saint-Laurent-du-Var (adresse/guichet à confirmer).
 - Récépissé avec n° de déclaration → **obligatoire sur toutes les annonces**. Sans lui, plateformes doivent dépublier.
 - En attendant Registre national (loi 19/11/2024, mise en service 2026), Cerfa reste la procédure.
 - Résidence principale : max 120 jours/an (vérifier si Saint-Laurent-du-Var / Métropole a voté les 90 jours).
-- Résidence secondaire / investissement : Saint-Laurent-du-Var ∈ Métropole Nice Côte d'Azur — vérifier PLU + délibération changement d'usage / quota meublés / compensation éventuelle (régime plus strict possible qu'en CASA).
+- Résidence secondaire / investissement : Saint-Laurent-du-Var ∈ Métropole Nice Côte d'Azur — vérifier PLU + délibération changement d'usage / quota meublés / compensation éventuelle.
 - [ ] Déposer Cerfa
 - [ ] Récupérer n° déclaration
 - [ ] Vérifier PLU / quota meublés / zone résidence principale
@@ -51,14 +51,14 @@ Modèle relance à envoyer :
 
 ### 6. Taxe de séjour Métropole Nice Côte d'Azur — déclaration « automatique » autant que possible
 Principe :
-- Saint-Laurent-du-Var ∈ Métropole Nice Côte d'Azur (PAS la CASA — précédemment noté par erreur). Taxe métropolitaine au réel toute l'année, taux + parts additionnelles (département 06 + régionale) à confirmer en mairie / sur le portail taxe de la Métropole.
+- Saint-Laurent-du-Var ∈ Métropole Nice Côte d'Azur. Taxe métropolitaine au réel toute l'année, taux + parts additionnelles (département 06 + régionale) à confirmer en mairie / sur le portail taxe de la Métropole.
 - Airbnb, Booking.com, Expedia, Vrbo **collectent automatiquement** la taxe auprès du voyageur quand ils sont intermédiaires de paiement, et reversent directement (2x/an).
 - Voyageur voit ligne « Taxe de séjour » sur facture. Hôte n'a rien à ajouter sur ces canaux.
-- Tarifs de base + majorations : **à re-vérifier côté Métropole NCA** (précédemment : CASA +44 % — ne plus utiliser).
+- Tarifs de base + majorations : **à re-vérifier côté Métropole NCA**.
   - Exonérations : -18 ans, saisonniers employés commune, hébergement d'urgence, loyers très faibles.
 
 Ce que vous devez QUAND MÊME faire (pas 100% auto) :
-- [ ] Créer compte sur le portail taxe de séjour de la Métropole Nice Côte d'Azur (à confirmer — précédemment casa.taxesejour.fr, ne plus utiliser)
+- [ ] Créer compte sur le portail taxe de séjour de la Métropole Nice Côte d'Azur
 - [ ] Déclarer périodiquement les nuitées : indiquer « collectée par Airbnb/Booking = 0 € à reverser » + reverser vous-même UNIQUEMENT les nuits en direct / plateformes qui ne collectent pas (ex : réservation directe, Leboncoin sans paiement intégré)
 - [ ] Ne jamais reverser 2 fois ce qu'Airbnb a déjà prélevé
 - [ ] Conserver : factures Airbnb, attestations collecte, registre du logeur, historique « Taxe collectée » tableau de bord Airbnb > Revenus
@@ -160,7 +160,7 @@ Copro : pas de distributeur bruyant, pas de fêtes — extras calmes uniquement.
 **Pack télétravail / bureau (15 min Sophia Antipolis — remplit hors saison, 0 bruit copro)** :
 - Pack télétravail séjour 20-30 € : 2ᵉ écran + clavier/souris + chaise ergo pliante + multiprise + lampe (stock ~150 € amorti en ~6 séjours, installation 5 min ménage).
 - Option visio silencieuse +10 € : casque + fond neutre + 4G backup ; engagement « chambre fermée + volets + clim silencieuse » = argument annonce, coût 0 €.
-- Impression/scan 1 €/page via PWA ; day pass cowork Villeneuve/Sophia en partenariat (commission 10-15 %).
+- Impression/scan 1 €/page via PWA ; day pass cowork Saint-Laurent-du-Var/Sophia en partenariat (commission 10-15 %).
 
 **Conciergerie séjour (que du partenariat à commission — 0 min ménage en plus)** :
 

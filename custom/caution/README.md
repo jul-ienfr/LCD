@@ -16,9 +16,9 @@ Il **prépare, calcule, rappelle — jamais débiter seul** :
 - `POST /restituer {…, qui}` → mainlevée 1-tap (restitution 7-14 j).
 - `POST /taxe {canal, classe, prix_nuitee, adultes, nuits, mineurs}` → calcul
   Métropole NCA (base classe × (1+majoration) ; non classé 5 % plafonné + majoration,
-  taux + parts À VÉRIFIER mairie — précédemment CASA +44 %) + **qui reverse** :
+  taux + parts À VÉRIFIER mairie) + **qui reverse** :
   OTA = plateforme (reversement hôte 0 €, jamais double), direct = hôte sur
-  portail taxe Métropole NCA. Exemple indicatif (ancien CASA) : 3* 1,60 × 1,44 = **2,30 €/nuit/adulte**.
+  portail taxe Métropole NCA. Exemple indicatif (ancienne grille, ne plus utiliser) : 3* 1,60 × 1,44 = **2,30 €/nuit/adulte**.
 - `GET /hold`, `GET /health`.
 
 ## Règles inviolables
