@@ -16,7 +16,7 @@ delai_restitution_max_j: 14
 delai_info_voyageur_h: 48
 # Tarifs taxe Métropole NCA (§12.5) : base €/nuit/adulte AVANT majoration (taux + parts à confirmer mairie).
 taxe_base_par_classe: {1: 0.80, 2: 0.90, 3: 1.60, 4: 2.10, 5: 2.80}
-taxe_majoration: 0.44
+taxe_majoration: 0.10   # Métropole NCA = +10 % dept 06 seul — À CONFIRMER délibération 2026 + guichet mairie
 taxe_non_classe_pct: 0.05
 taxe_non_classe_plafond: 4.60
 # Modes hold autorisés par canal (airbnb ABSENT = refus code, AirCover seule).

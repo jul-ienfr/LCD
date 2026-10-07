@@ -40,7 +40,7 @@ logements:
       occupants_max: 5
       animaux: false
       non_fumeur: true
-      taxe_sejour_majoration: 0.44       # À VÉRIFIER Métropole NCA (taux + parts additionnelles à confirmer mairie)
+      taxe_sejour_majoration: 0.10       # Métropole NCA = +10 % dept 06 seul (pas de part régionale en PACA) — À CONFIRMER délibération Métropole 2026 + guichet mairie
     # --- Features on/off (1 feature = 1 flag + 1 dossier + 1 dashboard) ---
     features:
       smart_lock: true
@@ -85,7 +85,7 @@ logements:
       occupants_max: 4
       animaux: false
       non_fumeur: true
-      taxe_sejour_majoration: 0.44
+      taxe_sejour_majoration: 0.10       # idem log1 : +10 % dept 06 — À CONFIRMER délibération Métropole 2026
     features:
       smart_lock: false                  # light : boîte à clés, cf. §1.5.3
       voix: false

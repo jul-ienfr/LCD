@@ -114,7 +114,7 @@ class Caution:
         self.delai_max = cfg.get("delai_restitution_max_j", 14)
         self.delai_info = cfg.get("delai_info_voyageur_h", 48)
         self.taxe_base = cfg.get("taxe_base_par_classe", {})
-        self.taxe_maj = cfg.get("taxe_majoration", 0.44)
+        self.taxe_maj = cfg.get("taxe_majoration", 0.10)
         self.taxe_pct = cfg.get("taxe_non_classe_pct", 0.05)
         self.taxe_plaf = cfg.get("taxe_non_classe_plafond", 4.60)
         self.modes = cfg.get("modes_par_canal", {})

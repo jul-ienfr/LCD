@@ -93,7 +93,9 @@ def lire_logement(path, logement_id):
     Gère 2 niveaux : clés directes du bloc (zones, zone_defaut, indent 4) ET
     clés imbriquées (features.annuaire_presta, indent 6) — cf. logements.yaml.
     """
-    info = {"zones": [], "zone_defaut": None, "annuaire_presta": True}
+    info = {"zones": [], "zone_defaut": None, "annuaire_presta": True,
+            "traca_intervenants": False, "etat_lieux_auto": False,
+            "extras_upsell": False}
     try:
         with open(path, encoding="utf-8") as f:
             lignes = f.readlines()
@@ -121,6 +123,10 @@ def lire_logement(path, logement_id):
                 # niveau 1 (ancien) ou niveau 2 sous features: (même ligne
                 # stripée, le scan de bloc couvre les deux indents).
                 info["annuaire_presta"] = _scalaire(v) is True
+            elif k in ("traca_intervenants", "etat_lieux_auto",
+                       "extras_upsell"):
+                # Sous features: (indent 6) — P6-1 todos/photos/notifs.
+                info[k] = _scalaire(v) is True
     return info
 
 

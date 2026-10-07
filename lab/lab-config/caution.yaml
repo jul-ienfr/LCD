@@ -6,7 +6,7 @@ delai_restitution_min_j: 7
 delai_restitution_max_j: 14
 delai_info_voyageur_h: 48
 taxe_base_par_classe: {1: 0.80, 2: 0.90, 3: 1.60, 4: 2.10, 5: 2.80}
-taxe_majoration: 0.44
+taxe_majoration: 0.10   # idem prod : +10 % dept 06 — À CONFIRMER délibération 2026
 taxe_non_classe_pct: 0.05
 taxe_non_classe_plafond: 4.60
 modes_par_canal:

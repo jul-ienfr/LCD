@@ -18,7 +18,7 @@ Il **prépare, calcule, rappelle — jamais débiter seul** :
   Métropole NCA (base classe × (1+majoration) ; non classé 5 % plafonné + majoration,
   taux + parts À VÉRIFIER mairie) + **qui reverse** :
   OTA = plateforme (reversement hôte 0 €, jamais double), direct = hôte sur
-  portail taxe Métropole NCA. Exemple indicatif (ancienne grille, ne plus utiliser) : 3* 1,60 × 1,44 = **2,30 €/nuit/adulte**.
+  portail taxe Métropole NCA. Exemple indicatif (grille Métropole NCA +10 % dept 06, à confirmer délibération 2026) : 3* 1,60 × 1,10 = **1,76 €/nuit/adulte**.
 - `GET /hold`, `GET /health`.
 
 ## Règles inviolables
