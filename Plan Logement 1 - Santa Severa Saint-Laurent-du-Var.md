@@ -4,7 +4,7 @@
 Date MAJ : 5 octobre 2026
 
 ### 1. Logement
-- Logement 1, Résidence Santa Severa, 81 A avenue Louis Ravet, 06700 Saint-Laurent-du-Var (adresse exacte : fichier privé `docs/log1/infos-adresse.md`, hors git)
+- Logement 1, Résidence Santa Severa, avenue Louis Ravet, Saint-Laurent-du-Var (adresse exacte : fichier privé `docs/log1/infos-adresse.md`, hors git)
 - Repères : résidence urbaine classique (routes à proximité, normal en ville), Intermarché juste à côté, ~3 km aéroport Nice-Côte d'Azur, **vue mer** (pas en pied d'eau) (atout accès, commerces + vue ; avions inaudibles à l'intérieur en pratique — par transparence, mentionner dans l'annonce : « à ~3 km de l'aéroport, sous certaines conditions météo on peut percevoir un passage lointain »)
 - Usage prévu : location meublée courte durée, appartement **entier** (Airbnb / Booking / Abritel / Leboncoin)
 
