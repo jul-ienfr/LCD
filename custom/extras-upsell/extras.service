@@ -1,0 +1,18 @@
+[Unit]
+Description=LCD extras-upsell :8098 (P6-5 catalogue + pre-commandes J-1 18h)
+After=network.target booking-direct.service
+Wants=booking-direct.service
+
+[Service]
+Type=simple
+User=lcd
+WorkingDirectory=/opt/lcd/extras-upsell
+ExecStart=/usr/bin/python3 /opt/lcd/extras-upsell/extras.py --config /opt/lcd/extras-upsell/config.yaml --logements /opt/lcd/logements.yaml --extras /opt/lcd/extras-upsell --serve
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/lcd/extras-upsell/state
+
+[Install]
+WantedBy=multi-user.target

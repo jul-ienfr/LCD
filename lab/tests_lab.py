@@ -18,6 +18,7 @@ BASE = {
     "booking": "http://127.0.0.1:8095",
     "dispatch": "http://127.0.0.1:8096",
     "inventaire": "http://127.0.0.1:8097",
+    "extras": "http://127.0.0.1:8098",
 }
 ECHECS = []
 
@@ -72,7 +73,7 @@ def check(nom, cond, detail=""):
         ECHECS.append(nom)
 
 
-print("== 1. health des 8 moteurs ==")
+print("== 1. health des 9 moteurs ==")
 for m in BASE:
     code, obj = get(m, "/health")
     check(f"health {m}", code == 200, f"HTTP {code} {obj}")
@@ -407,8 +408,123 @@ code, trav = post("inventaire", "/bien", {"logement_id": "log1",
 check("qr traverse (..) bloque 400", code == 400,
       f"HTTP {code} {trav}")
 
+print("== 11. extras upsells : catalogue + cut-off J-1 18h + paiement avance (P6-5 §5.6-ter) ==")
+code, cat = get("extras", "/catalogue?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+items = cat.get("catalogue", []) if isinstance(cat, dict) else []
+prix = {e.get("id"): e.get("prix_ttc") for e in items}
+check("catalogue log1 200 + 8 extras lab + late 50",
+      code == 200 and len(items) == 8 and prix.get("late_checkout_14h") == 50,
+      f"HTTP {code} nb={len(items)}")
+
+code, off = get("extras", "/catalogue?" + urllib.parse.urlencode(
+    {"logement_id": "log2"}))
+check("log2 extras_upsell off = 503 extras_off",
+      code == 503 and isinstance(off, dict)
+      and off.get("code") == "extras_off",
+      f"HTTP {code} {off}")
+
+code, ca = post("extras", "/commande", {"logement_id": "log1",
+                                        "ref_resa": "LAB-X",
+                                        "arrivee": "2026-12-20",
+                                        "extras": [{"id": "petit_dej"}],
+                                        "qui": "auto"})
+check("commande qui=auto refusee 400",
+      code == 400, f"HTTP {code} {ca}")
+
+code, ci = post("extras", "/commande", {"logement_id": "log1",
+                                        "ref_resa": "LAB-X",
+                                        "arrivee": "2026-12-20",
+                                        "extras": [{"id": "nope"}],
+                                        "qui": "test-lab-humain"})
+check("extra inconnu refuse 400 extra_inconnu",
+      code == 400 and isinstance(ci, dict)
+      and ci.get("code") == "extra_inconnu",
+      f"HTTP {code} {ci}")
+
+code, ck = post("extras", "/commande", {"logement_id": "log1",
+                                        "ref_resa": "LAB-X",
+                                        "arrivee": "2020-01-05",
+                                        "extras": [{"id": "petit_dej"}],
+                                        "qui": "test-lab-humain"})
+check("cut-off J-1 18h depasse = 409 cutoff_depasse",
+      code == 409 and isinstance(ck, dict)
+      and ck.get("code") == "cutoff_depasse",
+      f"HTTP {code} {ck}")
+
+code, cm = post("extras", "/commande", {"logement_id": "log1",
+                                        "ref_resa": "LAB-X",
+                                        "arrivee": "2026-12-20",
+                                        "extras": [{"id": "petit_dej",
+                                                    "pers": 2},
+                                                   {"id": "kit_bienvenue_offert"}],
+                                        "qui": "test-lab-humain"})
+cid = cm.get("commande_id", "") if isinstance(cm, dict) else ""
+check("commande 201 a_payer + total 30 (2 pers) + todo + compta accueil",
+      code == 201 and isinstance(cm, dict)
+      and cm.get("statut") == "a_payer" and cm.get("total_ttc") == 30
+      and "petit_dej" in cm.get("todo_menage", [])
+      and any(c.get("rubrique") == "accueil"
+              for c in cm.get("compta", [])),
+      f"HTTP {code} {cm}")
+
+code, co = post("extras", "/commande", {"logement_id": "log1",
+                                        "ref_resa": "LAB-OFFERT",
+                                        "arrivee": "2026-12-20",
+                                        "extras": [{"id": "kit_bienvenue_offert"}],
+                                        "qui": "test-lab-humain"})
+check("kit offert seul = validee sans paiement (charge accueil)",
+      code == 201 and isinstance(co, dict)
+      and co.get("statut") == "validee" and co.get("total_ttc") == 0,
+      f"HTTP {code} {co}")
+
+code, li = post("extras", "/livrer", {"logement_id": "log1",
+                                      "commande_id": cid,
+                                      "qui": "test-lab-humain"})
+check("livrer avant paiement = 402 paiement_requis",
+      code == 402, f"HTTP {code} {li}")
+
+code, ps = post("extras", "/payer", {"logement_id": "log1",
+                                     "commande_id": cid,
+                                     "qui": "test-lab-humain"})
+check("payer sans preuve = 402 paiement_requis",
+      code == 402, f"HTTP {code} {ps}")
+
+code, py = post("extras", "/payer", {"logement_id": "log1",
+                                     "commande_id": cid,
+                                     "preuve": "pi_test_lab",
+                                     "qui": "test-lab-humain"})
+check("payer 200 payee + todo menage",
+      code == 200 and isinstance(py, dict)
+      and py.get("statut") == "payee" and py.get("todo_menage"),
+      f"HTTP {code} {py}")
+
+code, lv = post("extras", "/livrer", {"logement_id": "log1",
+                                      "commande_id": cid,
+                                      "qui": "test-lab-humain"})
+check("livrer apres paiement 200 livree",
+      code == 200 and isinstance(lv, dict)
+      and lv.get("statut") == "livree",
+      f"HTTP {code} {lv}")
+
+code, lc = get("extras", "/commandes?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+check("GET /commandes liste la commande",
+      code == 200 and isinstance(lc, dict)
+      and any(c.get("commande_id") == cid
+              for c in lc.get("commandes", [])),
+      f"HTTP {code} total={lc.get('total') if isinstance(lc, dict) else lc}")
+
+code, tj = post("extras", "/commande", {"logement_id": "log1",
+                                        "ref_resa": "LAB-X",
+                                        "arrivee": "2026-12-20",
+                                        "extras": [{"id": "../x"}],
+                                        "qui": "test-lab-humain"})
+check("id traverse (..) bloque 400", code == 400,
+      f"HTTP {code} {tj}")
+
 print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5.")

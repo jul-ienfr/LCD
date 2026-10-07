@@ -279,6 +279,35 @@ services:
       timeout: 5s
       retries: 5
 
+  extras:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/extras-upsell/extras.py
+        CONFIG: lab/lab-config/extras.yaml
+    ports: ["8098:8098"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8098"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+    volumes:
+      - extras-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+    command: >
+      sh -c "python3 /opt/lcd/custom/extras-upsell/extras.py
+      --config /opt/lcd/config.yaml
+      --logements /opt/lcd/logements.yaml
+      --extras /opt/lcd/extras --serve"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8098/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
 volumes:
   ics-state:
   pricing-state:
@@ -288,4 +317,5 @@ volumes:
   booking-state:
   dispatch-state:
   inventaire-state:
+  extras-state:
   ics-logs:

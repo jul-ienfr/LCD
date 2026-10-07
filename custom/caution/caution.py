@@ -358,7 +358,7 @@ def main():
     Handler.engine = eng
     bind = os.environ.get("LCD_BIND", "127.0.0.1")  # lab Docker : 0.0.0.0
     srv = ThreadingHTTPServer((bind, port), Handler)
-    print(f"caution :8094 (hold {bornes['min']}-{bornes['max']} EUR, taxe CASA +{eng.taxe_maj:.0%})",
+    print(f"caution :8094 (hold {bornes['min']}-{bornes['max']} EUR, taxe NCA +{eng.taxe_maj:.0%})",
           flush=True)
     try:
         srv.serve_forever()

@@ -40,7 +40,7 @@ logements:
       occupants_max: 5
       animaux: false
       non_fumeur: true
-      taxe_sejour_majoration: 0.44       # À VÉRIFIER Métropole NCA (pas CASA : taux + parts additionnelles à confirmer mairie)
+      taxe_sejour_majoration: 0.44       # À VÉRIFIER Métropole NCA (taux + parts additionnelles à confirmer mairie)
     # --- Features on/off (1 feature = 1 flag + 1 dossier + 1 dashboard) ---
     features:
       smart_lock: true

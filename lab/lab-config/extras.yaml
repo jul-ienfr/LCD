@@ -1,0 +1,13 @@
+# lab/lab-config/extras.yaml — config LAB extras-upsell :8098 (P6-5 §5.6-ter).
+http_port: 8098
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+extras:
+  kit_bienvenue_offert: Kit bienvenue OFFERT (charge accueil) | 0
+  minibar_honnetete: Mini-bar honnêteté soft-only | 0
+  late_checkout_14h: Late checkout 14h (si pas d'arrivée jour J) | 50
+  early_checkin_12h: Early check-in 12h (si pas de départ jour J) | 30
+  petit_dej: Petit-déj (par pers, coût 5) | 15
+  kit_bebe: Kit bébé / séjour | 40
+  transfert_aeroport: Transfert aéroport (presta VTC commission) | 30
+  courses_intermarche: Courses Intermarché (forfait + tickets) | 25

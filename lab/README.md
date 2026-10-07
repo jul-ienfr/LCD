@@ -24,10 +24,10 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 > de tests y ajoutent des biens `TEST-INV-*` (assertions en `>=`, jamais `==`) —
 > reset via `git checkout -- inventaire.lab/` si besoin.
 
-## Batterie (P2-14 : résa <60 s + conflit ICS ; P6-8 : dispatch prestataires ; P6-4 : inventaire)
+## Batterie (P2-14 : résa <60 s + conflit ICS ; P6-8 : dispatch prestataires ; P6-4 : inventaire ; P6-5 : extras)
 
 `tests_lab.py` vérifie, dans l'ordre :
-1. `/health` des 8 moteurs (8090→8097) ;
+1. `/health` des 9 moteurs (8090→8098) ;
 2. bornes prix 75/290 inviolables (pivot août ∈ [75,290]) ;
 3. garde-fou copro P2-16 (`copro_verifiee=true` dans le lab, `false` dans le réel) ;
 4. tunnel direct <60 s : `POST /devis` → `POST /resa` (brouillon) →
@@ -51,11 +51,20 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     log2 flag off = 503, `qui=auto` 400, création + `/utilisation` clôture
     `moteur-dispatch` 201 + lavage, `qui=auto` refusé, état 1 = remplacement
     proposé, état 6 refusé, qr `..` bloqué.
+11. extras upsells P6-5 (§5.6-ter) : catalogue log1 (8 extras lab, late 50),
+    log2 flag off = 503, `qui=auto` 400, extra inconnu 400, cut-off J-1 18h =
+    409, commande 201 `a_payer` (petit-déj 2 pers = 30, todo ménage, compta
+    rubrique `accueil` pour le kit offert), kit seul = `validee` 0 €,
+    livrer avant paiement 402, payer sans preuve 402, payer 200 `payee`,
+    livrer 200 `livree`, `GET /commandes`, id `..` bloqué.
+
+> Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
+> (jamais commité, comme `inventaire.lab/` pour le registre).
 
 ## Fichiers
 
 - `Dockerfile.moteur` : image générique stdlib (build-args `SCRIPT` + `CONFIG`).
-- `docker-compose.yml` : 7 moteurs + volumes state/logs + healthchecks.
+- `docker-compose.yml` : 9 moteurs + volumes state/logs + healthchecks.
 - `export-box.sh` : `docker save` → `.tar` transférable (box = `docker load` + up).
 - `prestataires.lab/log{1,2}.yaml` : annuaires FICTIFS lab (tri prix, hors zone,
   RC expirée, migration `zone:`) — le réel `custom/prestataires/` reste vide.
