@@ -1,9 +1,12 @@
-# homeassistant/packages/log2/dashboards/guest.yaml — PWA voyageur log2 (§1.6.3).
-# Aucun nom LCD/HA en dur — branding.yaml seul. Pas de voix, pas d'extras payants.
-# Visibility §1.6 + §1.6.4-1 : switcher `input_select.logement_actif in [log2, tous]`
+# homeassistant/packages/log2/dashboards/wallpanel.yaml — Dashboard kiosk WallPanel log2 LIGHT (P6-9-bis §5.7).
+# Miroir light de log1 : 3 vues socle, langue voyageur `input_text.log2_langue_voyageur`,
+# WiFi QR <3 s, boîte à clés (smart_lock: off — jamais de PIN, jamais de MQTT),
+# QR pièces light (LV/LL, chauffage bornes, tri, bruit), bandeau offline orange,
+# backup papier si tablette HS. Pas de voix, pas d'extras payants (défaut sûr light).
+# Visibility §1.6 + §1.6.4-1 : `input_select.logement_actif in [log2, tous]`
 # + `input_boolean.log2_enable_<feature>` par carte (1 feature = 1 flag + 1 visibility).
 
-title: Séjour
+title: WallPanel
 views:
   - title: Accueil
     visibility:
@@ -13,6 +16,18 @@ views:
           - log2
           - tous
     cards:
+      - type: markdown
+        content: >
+          Bienvenue ! WiFi invité : scannez le QR (connexion <3 s) ou saisie
+          manuelle. Code boîte à clés rappelé (heure limitée).
+          Arrivée guidée : QR salon → tour des pièces.
+          Langue : `input_text.log2_langue_voyageur` (socle + maternelle auto §5.7-ter).
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
       - type: entities
         entities:
           - input_text.log2_langue_voyageur
@@ -24,35 +39,9 @@ views:
               - tous
       - type: markdown
         content: >
-          WiFi invité : `input_text.log2_wifi_ssid` — QR ci-dessous
-          (connexion <3 s) ou saisie manuelle (`input_text.log2_wifi_key`).
-          Code boîte à clés rappelé (heure limitée, adresse dans le message J-1,
-          jamais en clair dans les logs). smart_lock: off — pas de PIN, pas de MQTT.
-          Arrivée guidée : QR accueil salon → tour des pièces.
+          Offline : bandeau orange, guide local seul, codes déjà valides.
+          Backup papier : QR pièces imprimés si tablette HS.
         visibility:
-          - condition: state
-            entity: input_select.logement_actif
-            state:
-              - log2
-              - tous
-      - type: markdown
-        content: >
-          Départ zéro friction : checklist 30 s (fenêtres, chauffage, LV/LL,
-          poubelles tri Métropole NCA, photos) puis enquête J+1 auto
-          (§5.7-bis : ≥4★ lien public, <4★ rattrapage privé <15 min 8h-22h).
-        visibility:
-          - condition: state
-            entity: input_select.logement_actif
-            state:
-              - log2
-              - tous
-      - type: markdown
-        content: >
-          État des lieux entrée : photos horodatées par pièce via cette page.
-        visibility:
-          - condition: state
-            entity: input_boolean.log2_enable_etat_lieux_auto
-            state: "on"
           - condition: state
             entity: input_select.logement_actif
             state:
@@ -68,8 +57,18 @@ views:
     cards:
       - type: markdown
         content: >
-          QR par pièce/appareil : LV/LL, chauffage (bornes), tri Métropole NCA,
-          bruit 22h-8h. Kit bienvenue offert (pas de mini-bar payant ici).
+          QR par pièce/appareil : LV/LL (bouton fin de cycle), chauffage (bornes),
+          tri Métropole NCA, bruit 22h-8h. Kit bienvenue offert (pas de mini-bar payant ici).
+        visibility:
+          - condition: state
+            entity: input_select.logement_actif
+            state:
+              - log2
+              - tous
+      - type: markdown
+        content: >
+          Départ zéro friction : checklist PWA 30 s + photos.
+          Enquête J+1 auto (§5.7-bis : ≥4★ lien public, <4★ rattrapage privé <15 min 8h-22h).
         visibility:
           - condition: state
             entity: input_select.logement_actif

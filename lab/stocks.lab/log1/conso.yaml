@@ -1,0 +1,66 @@
+# stocks consommables — seuils + liste courses (§5.6).
+# Généré/maintenu par custom/grocy-stocks/stocks.py (P6-3).
+consommables:
+  - id: papier_wc
+    label: Papier WC (rouleau)
+    stock: 12
+    unite: rouleau
+    seuil: 4
+    cible: 12
+    conso_rotation: 3
+  - id: essuie_tout
+    label: Essuie-tout (rouleau)
+    stock: 6
+    unite: rouleau
+    seuil: 2
+    cible: 6
+    conso_rotation: 1
+  - id: sac_poubelle_tri
+    label: Sacs poubelle tri (lot)
+    stock: 6
+    unite: lot
+    seuil: 2
+    cible: 6
+    conso_rotation: 1
+  - id: liquide_vaisselle
+    label: Liquide vaisselle (flacon)
+    stock: 2
+    unite: flacon
+    seuil: 1
+    cible: 2
+    conso_rotation: 0
+  - id: eponge
+    label: Eponge neuve
+    stock: 8
+    unite: piece
+    seuil: 2
+    cible: 8
+    conso_rotation: 1
+  - id: pastille_lv
+    label: Pastille lave-vaisselle
+    stock: 20
+    unite: piece
+    seuil: 4
+    cible: 20
+    conso_rotation: 2
+  - id: cafe_accueil
+    label: Cafe accueil (dosette)
+    stock: 20
+    unite: dosette
+    seuil: 6
+    cible: 20
+    conso_rotation: 5
+  - id: kit_bienvenue
+    label: Kit bienvenue OFFERT (charge accueil)
+    stock: 4
+    unite: kit
+    seuil: 1
+    cible: 4
+    conso_rotation: 1
+  - id: gel_douche
+    label: Gel douche (flacon recharge)
+    stock: 3
+    unite: flacon
+    seuil: 1
+    cible: 3
+    conso_rotation: 0

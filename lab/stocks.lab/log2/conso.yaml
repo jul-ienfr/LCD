@@ -1,0 +1,16 @@
+# stocks consommables LAB log2 — registre minimal (P6-3).
+consommables:
+  - id: papier_wc
+    label: Papier WC (rouleau)
+    stock: 8
+    unite: rouleau
+    seuil: 4
+    cible: 12
+    conso_rotation: 3
+  - id: cafe_accueil
+    label: Cafe accueil (dosette)
+    stock: 10
+    unite: dosette
+    seuil: 6
+    cible: 20
+    conso_rotation: 5

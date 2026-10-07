@@ -975,6 +975,111 @@ check("GET /alertes log2 OK",
       code == 200 and isinstance(al, dict) and "ruptures" in al,
       f"HTTP {code} {al}")
 
+print("== 11-quinquies. guide vivant : events localises J-2/J-1/J+1 (P6-9-bis §5.7-ter) ==")
+# Decision-engine :8092 — ha_url vide en lab -> 202 loge_sans_ha attendu.
+# Reponse = metadonnees SURES uniquement (jamais message ni PIN en clair).
+BASE_DATA = {"marque": "Test Marque", "logement": "log1",
+             "slot_nom": "Voyageur Test", "arrivee": "2026-11-10",
+             "depart": "2026-11-12", "wifi_qr": "WIFI:T:WPA;S:Test;P:faux;;",
+             "heure_arrivee": "16:00", "adresse": "Voie test, Commune",
+             "tel_urgence": "+33600000000", "lien_questionnaire": "http://q.test",
+             "lien_guide": "http://g.test", "lien_avis": "http://a.test"}
+
+
+def event(type_evt, logement, qui, data):
+    return post("decision", "/event", {"type": type_evt, "logement_id": logement,
+                                       "qui": qui, "ref": "LAB-GUIDE",
+                                       "data": data})
+
+
+code, j2_fr = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                    {**BASE_DATA, "langue": "fr", "pin": "482913"})
+check("J-2 FR log1 202 + gabarit + PIN transite (KeyMaster)",
+      code == 202 and isinstance(j2_fr, dict)
+      and j2_fr.get("statut") == "loge_sans_ha"
+      and j2_fr.get("gabarit_trouve") is True
+      and j2_fr.get("placeholders_restants") == 0
+      and j2_fr.get("pin_transmis") is True
+      and j2_fr.get("langue") == "fr"
+      and j2_fr.get("traduction_auto") is False
+      and j2_fr.get("message_longueur", 0) > 0,
+      f"HTTP {code} {j2_fr}")
+check("J-2 reponse sans message ni PIN en clair",
+      isinstance(j2_fr, dict) and "message" not in j2_fr
+      and "pin" not in j2_fr, f"{j2_fr}")
+
+code, j2_en = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                    {**BASE_DATA, "langue": "en", "pin": "482913"})
+check("J-2 EN log1 socle sans badge auto",
+      code == 202 and isinstance(j2_en, dict)
+      and j2_en.get("langue") == "en"
+      and j2_en.get("traduction_auto") is False
+      and j2_en.get("placeholders_restants") == 0,
+      f"HTTP {code} {j2_en}")
+
+code, j1_fr = event("lcd_j1_rappel", "log1", "personne_01",
+                    {**BASE_DATA, "langue": "fr", "pin": "482913"})
+check("J-1 FR rappel seul : PIN force vide (jamais re-push §5.2)",
+      code == 202 and isinstance(j1_fr, dict)
+      and j1_fr.get("pin_transmis") is False
+      and j1_fr.get("gabarit_trouve") is True
+      and j1_fr.get("placeholders_restants") == 0,
+      f"HTTP {code} {j1_fr}")
+
+code, avis_en = event("lcd_avis_j1", "log1", "personne_01",
+                      {**BASE_DATA, "langue": "en", "pin": "482913"})
+check("J+1 EN enquete : jamais de PIN",
+      code == 202 and isinstance(avis_en, dict)
+      and avis_en.get("pin_transmis") is False
+      and avis_en.get("langue") == "en"
+      and avis_en.get("placeholders_restants") == 0,
+      f"HTTP {code} {avis_en}")
+
+code, j2_l2 = event("lcd_j2_envoi_acces", "log2", "personne_01",
+                    {**BASE_DATA, "logement": "log2", "langue": "fr",
+                     "pin": "999999"})
+check("log2 LIGHT J-2 : pin vide + consigne boite a cles (jamais genere)",
+      code == 202 and isinstance(j2_l2, dict)
+      and j2_l2.get("pin_transmis") is False
+      and j2_l2.get("message_boite_cles") is True
+      and j2_l2.get("gabarit_trouve") is True
+      and j2_l2.get("placeholders_restants") == 0,
+      f"HTTP {code} {j2_l2}")
+
+code, j2_pt = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                    {**BASE_DATA, "langue": "pt", "pin": "482913"})
+check("fallback hors socle pt -> EN + badge auto",
+      code == 202 and isinstance(j2_pt, dict)
+      and j2_pt.get("langue") == "en"
+      and j2_pt.get("traduction_auto") is True
+      and j2_pt.get("gabarit_trouve") is True,
+      f"HTTP {code} {j2_pt}")
+
+code, co = event("lcd_checkout", "log1", "personne_01",
+                 {**BASE_DATA, "langue": "fr", "pin": "482913"})
+check("checkout forward seul (pas de gabarit) 200/202",
+      code in (200, 202) and isinstance(co, dict)
+      and co.get("gabarit_trouve") is False, f"HTTP {code} {co}")
+
+code, rbac = event("lcd_j2_envoi_acces", "log1", "personne_04",
+                   {**BASE_DATA, "langue": "fr", "pin": "482913"})
+check("RBAC comptable sans event_envoi -> 403",
+      code == 403, f"HTTP {code} {rbac}")
+
+code, peri = event("lcd_j2_envoi_acces", "log2", "personne_03",
+                   {**BASE_DATA, "logement": "log2", "langue": "fr",
+                    "pin": "482913"})
+check("RBAC hors perimetre operateur log1 sur log2 -> 403",
+      code == 403, f"HTTP {code} {peri}")
+
+code, inc = event("lcd_type_inconnu", "log1", "personne_01",
+                  {**BASE_DATA, "langue": "fr"})
+check("type event inconnu -> 400", code == 400, f"HTTP {code} {inc}")
+
+code, log_inc = event("lcd_j2_envoi_acces", "logX", "personne_01",
+                      {**BASE_DATA, "langue": "fr", "pin": "482913"})
+check("logement inconnu -> 404", code == 404, f"HTTP {code} {log_inc}")
+
 print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")

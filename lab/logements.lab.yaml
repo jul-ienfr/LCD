@@ -54,6 +54,11 @@ logements:
       events_auto: true
       memoire_voyageur: true
       vitrines_gratuites: false
+      guide_vivant: true                # P6-9-bis §5.7 : gabarits localisés + QR pièces + J-1/J+1
+      wallpanel: true                   # kiosk salon (BYOD voyageur seul par ailleurs)
+      qr_pieces: true                   # fiches docs/templates/qr_*.svg
+      questionnaire: true               # lien J-2 pré-arrivée 3 min
+      avis_j1: true                     # enquête J+1 §5.7-bis
     menage:
       montant: 110
       facturation: supplement
@@ -98,6 +103,11 @@ logements:
       events_auto: true
       memoire_voyageur: true
       vitrines_gratuites: false
+      guide_vivant: true                # P6-9-bis §5.7 light : gabarits localisés + QR + J-1/J+1
+      wallpanel: true                   # kiosk salon light (boîte à clés, pas de PIN)
+      qr_pieces: true                   # fiches docs/templates/qr_*.svg
+      questionnaire: true               # lien J-2 pré-arrivée 3 min
+      avis_j1: true                     # enquête J+1 §5.7-bis
     menage:
       montant: 90
       facturation: supplement

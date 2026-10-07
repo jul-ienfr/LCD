@@ -21,7 +21,7 @@
 #     -> {logement_id, config_ok, copro_verifiee, occupation{...}, prix{...}, alertes[]}
 #   POST /autoriser {qui_id, action, logement_id} -> {autorise, motif, role}
 #   POST /event {type, logement_id, qui, ref?, data?} -> vérifie RBAC + copro, log, forward HA
-#     types : lcd_j2_envoi_acces | lcd_j1_rappel | lcd_checkout
+#     types : lcd_j2_envoi_acces | lcd_j1_rappel | lcd_checkout | lcd_avis_j1
 #   POST /decision {logement_id, ref, qui, quoi, canal?, montant?, motif?, llm?, jev?}
 #     -> vérifie RBAC + bornes + hors_bornes Jev, log JSONL (bloqué si refusé, loggé aussi)
 #   GET  /health -> {"ok": true}
@@ -72,7 +72,85 @@ QUOI_VERS_ACTION = {
     "jev": "etat_lecture",
 }
 
-TYPES_EVENT = {"lcd_j2_envoi_acces", "lcd_j1_rappel", "lcd_checkout"}
+TYPES_EVENT = {"lcd_j2_envoi_acces", "lcd_j1_rappel", "lcd_checkout", "lcd_avis_j1"}
+
+# P6-9-bis §5.7-ter : gabarits voyageur socle 5 (FR source validée humain + EN/ES/IT/DE
+# validées humain). Autre maternelle = fallback EN + badge auto (LLM proxy :4000 hors
+# moteur, stdlib seule ici). Placeholders {{ }} INTOUCHABLES : injectés APRÈS choix
+# du gabarit, jamais traduits (montants, dates, heures, adresses, PIN/codes, noms).
+LANGUES_SOCLE = ["fr", "en", "es", "it", "de"]
+GABARIT_PAR_EVENT = {"lcd_j2_envoi_acces": "message_checkin_j2",
+                     "lcd_j1_rappel": "message_checkin_j1",
+                     "lcd_avis_j1": "message_avis_j1"}
+CONSIGNE_BOITE_CLES = {"fr": "boîte à clés (code envoyé séparément)",
+                       "en": "lockbox (code sent separately)",
+                       "es": "caja de llaves (código enviado por separado)",
+                       "it": "cassetta delle chiavi (codice inviato separatamente)",
+                       "de": "Schlüsselbox (Code separat gesendet)"}
+
+
+def _dossier_gabarits():
+    """Localise docs/templates/ (repo, container /opt/lcd, ou cwd)."""
+    ici = os.path.dirname(os.path.abspath(__file__))
+    for cand in (os.path.join(ici, "..", "..", "docs", "templates"),
+                 "/opt/lcd/docs/templates",
+                 os.path.join(os.getcwd(), "docs", "templates"),
+                 os.path.join(os.getcwd(), "custom", "decision-engine",
+                              "..", "..", "docs", "templates")):
+        if os.path.isdir(os.path.normpath(cand)):
+            return os.path.normpath(cand)
+    return ""
+
+
+def charger_gabarit(base, langue):
+    """Retourne (texte, langue_utilisee, traduction_auto). FR -> base.md, sinon
+    base.{langue}.md, fallback base.en.md + badge auto si hors socle."""
+    dossier = _dossier_gabarits()
+    code = (langue or "fr").lower()[:2]
+    candidats = []
+    if code in LANGUES_SOCLE and code != "fr":
+        candidats.append(f"{base}.{code}.md")
+    elif code == "fr":
+        candidats.append(f"{base}.md")
+    else:
+        candidats.append(f"{base}.en.md")
+    if f"{base}.md" not in candidats:
+        candidats.append(f"{base}.md")
+    if f"{base}.en.md" not in candidats:
+        candidats.append(f"{base}.en.md")
+    for nom in candidats:
+        if not dossier:
+            break
+        path = os.path.join(dossier, nom)
+        try:
+            with open(path, encoding="utf-8") as f:
+                lignes = [l for l in f if not l.startswith("#")]
+            texte = "".join(lignes).strip()
+            if texte:
+                utilisee = "fr" if nom == f"{base}.md" else nom.rsplit(".", 2)[-2]
+                return texte, utilisee, (code not in LANGUES_SOCLE)
+        except FileNotFoundError:
+            continue
+    return "", "fr", (code not in LANGUES_SOCLE)
+
+
+def composer_message(type_event, langue, variables):
+    """Compose le message voyageur : gabarit langue + injection placeholders APRÈS.
+    variables : dict (marque, logement, pin_affichage, slot_nom, arrivee, depart,
+    wifi_qr, heure_arrivee, adresse, tel_urgence, lien_questionnaire, lien_guide,
+    lien_avis, lien_pwa...). Clés manquantes -> '' (jamais de {{ }} résiduel envoyé)."""
+    base = GABARIT_PAR_EVENT.get(type_event)
+    if not base:
+        return "", langue or "fr", False
+    texte, utilisee, auto = charger_gabarit(base, langue)
+    if not texte:
+        return "", utilisee, auto
+    for k, v in (variables or {}).items():
+        texte = texte.replace("{{ " + str(k) + " }}", "" if v is None else str(v))
+    texte = re.sub(r"\{\{\s*\w+\s*\}\}", "", texte)
+    if auto:
+        texte = "[traduction automatique] " + texte
+    return texte.strip(), utilisee, auto
 
 
 def utcnow_iso():
@@ -361,9 +439,14 @@ class Moteur:
         return 200, {"statut": "autorise", "priorite": self.priorite(quoi), "detail": msg_rbac}
 
     def emettre_event(self, type_event, logement_id, qui_id, ref="", data=None):
-        """Émet lcd_j2_envoi_acces / lcd_j1_rappel / lcd_checkout vers HA (blueprints P1-8).
-        Messages composés ici (langue voyageur), jamais par les blueprints.
-        PIN : jamais généré ici — transite depuis KeyMaster ou reste vide (boîte à clés)."""
+        """Émet lcd_j2_envoi_acces / lcd_j1_rappel / lcd_checkout / lcd_avis_j1 vers HA.
+        Messages composés ici (langue voyageur socle + auto §5.7-ter, gabarits
+        docs/templates/message_{checkin_j2,checkin_j1,avis_j1}[.{en,es,it,de}].md),
+        jamais par les blueprints. J-1 : rappel seul, jamais de re-push PIN (§5.2).
+        J+1 : enquête avis (§5.7-bis : >=4★ lien public, <4★ rattrapage privé) —
+        jamais de PIN dans data.message ni data.pin J+1.
+        PIN : jamais généré ici — transite depuis KeyMaster ou reste vide (boîte à clés).
+        PIN : jamais en clair dans logs/recorder/logbook (motif loggé sans PIN)."""
         if type_event not in TYPES_EVENT:
             return 400, {"erreur": f"type inconnu (attendus {sorted(TYPES_EVENT)})"}
         l = self.logts.get(logement_id)
@@ -381,17 +464,44 @@ class Moteur:
             return 403, {"statut": "bloque",
                          "motif": "copro.verifiee=false : mise en ligne BLOQUÉE"}
         data = dict(data or {})
+        langue = (data.get("langue") or "fr")
         # log2 LIGHT / smart_lock off -> pin vide + message boîte à clés (jamais généré ici)
         if not l["features"].get("smart_lock", True):
             data["pin"] = ""
             data.setdefault("message_boite_cles", True)
+        # J-1 rappel seul + J+1 enquête : jamais de PIN transféré (ni MQTT, ni message)
+        if type_event in ("lcd_j1_rappel", "lcd_avis_j1"):
+            data["pin"] = ""
+        # Composition localisée (gabarit langue + injection placeholders APRÈS).
+        langue_utilisee, traduction_auto = langue, False
+        if type_event in GABARIT_PAR_EVENT:
+            variables = dict(data)
+            if not (variables.get("pin") or ""):
+                code_langue = (langue or "fr").lower()[:2]
+                variables["pin"] = CONSIGNE_BOITE_CLES.get(
+                    code_langue, CONSIGNE_BOITE_CLES["fr"])
+            message, langue_utilisee, traduction_auto = composer_message(
+                type_event, langue, variables)
+            data["message"] = message or data.get("message", "")
+            data["langue_utilisee"] = langue_utilisee
+            data["traduction_auto"] = traduction_auto
         ok_ha, info = self.ha_post(f"/api/events/{type_event}",
                                    {"logement_id": logement_id, **data})
         self.log_decision(logement_id, ref or type_event, qui, "acces", None, None,
                           f"event {type_event} -> HA {'OK' if ok_ha else info}")
         code = 200 if ok_ha else 202
+        # Réponse : métadonnées SÛRES uniquement — jamais le message (contient le
+        # PIN J-2) ni le PIN lui-même (jamais en clair logs/recorder/logbook).
+        msg = data.get("message", "")
         return code, {"statut": "emis" if ok_ha else "loge_sans_ha",
-                      "type": type_event, "ha": info}
+                      "type": type_event, "ha": info,
+                      "langue": langue_utilisee,
+                      "traduction_auto": traduction_auto,
+                      "gabarit_trouve": bool(msg),
+                      "message_longueur": len(msg),
+                      "placeholders_restants": msg.count("{{"),
+                      "pin_transmis": bool(data.get("pin")),
+                      "message_boite_cles": bool(data.get("message_boite_cles"))}
 
 
 class Handler(BaseHTTPRequestHandler):

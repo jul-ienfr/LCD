@@ -57,6 +57,11 @@ logements:
       events_auto: true
       memoire_voyageur: true             # opt-in séjour, purge 24 mois
       vitrines_gratuites: false          # P2-12 : off = direct+OTA seuls ; on = liens UTM (custom/vitrines.yaml)
+      guide_vivant: true                # P6-9-bis §5.7 : gabarits localisés + QR pièces + J-1/J+1
+      wallpanel: true                   # kiosk salon (BYOD voyageur seul par ailleurs)
+      qr_pieces: true                   # fiches docs/templates/qr_*.svg
+      questionnaire: true               # lien J-2 pré-arrivée 3 min
+      avis_j1: true                     # enquête J+1 §5.7-bis
     menage:
       montant: 110
       facturation: supplement            # supplement | inclus_nuit
@@ -101,6 +106,11 @@ logements:
       events_auto: true
       memoire_voyageur: true
       vitrines_gratuites: false          # P2-12 : off (défaut sûr, cf. log1)
+      guide_vivant: true                # P6-9-bis §5.7 : gabarits localisés + QR pièces + J-1/J+1
+      wallpanel: true                   # kiosk salon (BYOD voyageur seul par ailleurs)
+      qr_pieces: true                   # fiches docs/templates/qr_*.svg
+      questionnaire: true               # lien J-2 pré-arrivée 3 min
+      avis_j1: true                     # enquête J+1 §5.7-bis
     menage:
       montant: 90
       facturation: supplement

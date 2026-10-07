@@ -1,10 +1,12 @@
 # homeassistant/blueprints/automation/location/arrivee.yaml — blueprint arrivée (§5.2, P1-8/P3-3/P3-4).
 # Paramètre logement_id (jamais d'entity_id en dur). Déclenché par events decision-engine/ics-sync :
-#   lcd_j2_envoi_acces (J-2) et lcd_j1_rappel (J-1 15h), data {logement_id, pin, slot_nom, arrivee, depart, message}.
+#   lcd_j2_envoi_acces (J-2) et lcd_j1_rappel (J-1 15h), data {logement_id, pin, slot_nom,
+#   arrivee, depart, message, langue, lien_pwa, lien_guide, qr_salon, wifi_qr}.
 # J-2 : publie le PIN vers Nuki Hub (smart_lock: on) + envoie le message d'accès localisé
-#   (composé par decision-engine, langue voyageur socle + auto §5.7-ter).
-# J-1 15h : rappel seul. Log2 (smart_lock: off) : data.pin vide + data.message = consigne boîte
-#   à clés → pas de MQTT, pas d'alerte batterie, pas de déverrouillage auto incendie (§5.2).
+#   (composé par decision-engine, langue voyageur socle + auto §5.7-ter, lien PWA + QR salon).
+# J-1 15h : rappel seul, jamais de re-push PIN. Log2 (smart_lock: off) : data.pin vide +
+#   data.message = consigne boîte à clés → pas de MQTT, pas d'alerte batterie,
+#   pas de déverrouillage auto incendie (§5.2).
 # Contraintes : jamais de PIN en clair dans les logs (4 derniers chiffres + exclude recorder/logbook
 #   configuration.yaml) ; jamais de révocation punitive en cours de séjour (cf. depart_menage.yaml) ;
 #   sans WAN le PIN test ouvre en Thread local (critère P3-7).
