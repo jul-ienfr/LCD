@@ -18,6 +18,9 @@ views:
           - input_text.log2_langue_voyageur
         visibility:
           - condition: state
+            entity: input_boolean.log2_enable_guide_vivant
+            state: "on"
+          - condition: state
             entity: input_select.logement_actif
             state:
               - log2
@@ -31,6 +34,9 @@ views:
           Arrivée guidée : QR accueil salon → tour des pièces.
         visibility:
           - condition: state
+            entity: input_boolean.log2_enable_guide_vivant
+            state: "on"
+          - condition: state
             entity: input_select.logement_actif
             state:
               - log2
@@ -41,6 +47,9 @@ views:
           poubelles tri Métropole NCA, photos) puis enquête J+1 auto
           (§5.7-bis : ≥4★ lien public, <4★ rattrapage privé <15 min 8h-22h).
         visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_avis_j1
+            state: "on"
           - condition: state
             entity: input_select.logement_actif
             state:
@@ -71,6 +80,9 @@ views:
           QR par pièce/appareil : LV/LL, chauffage (bornes), tri Métropole NCA,
           bruit 22h-8h. Kit bienvenue offert (pas de mini-bar payant ici).
         visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_qr_pieces
+            state: "on"
           - condition: state
             entity: input_select.logement_actif
             state:

@@ -102,6 +102,21 @@ input_boolean:
   log1_enable_memoire_voyageur:
     name: "log1 mémoire voyageur (opt-in, purge 24 mois)"
     initial: true
+  log1_enable_guide_vivant:
+    name: "log1 guide vivant (gabarits localisés J-2/J-1/J+1)"
+    initial: true
+  log1_enable_wallpanel:
+    name: "log1 wallpanel kiosk salon"
+    initial: true
+  log1_enable_qr_pieces:
+    name: "log1 QR par pièce"
+    initial: true
+  log1_enable_questionnaire:
+    name: "log1 questionnaire pré-arrivée J-2"
+    initial: true
+  log1_enable_avis_j1:
+    name: "log1 enquête avis J+1"
+    initial: true
   # Globaux (1 seule déclaration — log2 référence les mêmes)
   llm_eu_only:
     name: "LLM UE seule (force Mistral)"

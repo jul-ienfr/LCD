@@ -41,6 +41,11 @@ views:
           - input_boolean.log2_enable_mode_auto_saison
           - input_boolean.log2_enable_events_auto
           - input_boolean.log2_enable_memoire_voyageur
+          - input_boolean.log2_enable_guide_vivant
+          - input_boolean.log2_enable_wallpanel
+          - input_boolean.log2_enable_qr_pieces
+          - input_boolean.log2_enable_questionnaire
+          - input_boolean.log2_enable_avis_j1
         visibility:
           - condition: state
             entity: input_select.logement_actif

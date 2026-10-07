@@ -21,6 +21,9 @@ views:
           - input_text.log1_langue_voyageur
         visibility:
           - condition: state
+            entity: input_boolean.log1_enable_guide_vivant
+            state: "on"
+          - condition: state
             entity: input_select.logement_actif
             state:
               - log1
@@ -34,6 +37,9 @@ views:
           (cuisine, chambre, SDB, entrée : fiches `docs/templates/qr_*.svg`).
         visibility:
           - condition: state
+            entity: input_boolean.log1_enable_guide_vivant
+            state: "on"
+          - condition: state
             entity: input_select.logement_actif
             state:
               - log1
@@ -44,6 +50,9 @@ views:
           poubelles tri Métropole NCA, photos) puis enquête J+1 auto
           (§5.7-bis : ≥4★ lien public, <4★ rattrapage privé <15 min 8h-22h).
         visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_avis_j1
+            state: "on"
           - condition: state
             entity: input_select.logement_actif
             state:
@@ -88,6 +97,9 @@ views:
           QR par pièce/appareil : LV/LL (bouton fin de cycle), clim
           (chaud 19-21,5 / froid 25-27), tri Métropole NCA, bruit 22h-8h.
         visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_qr_pieces
+            state: "on"
           - condition: state
             entity: input_select.logement_actif
             state:

@@ -80,3 +80,18 @@ input_boolean:
   log2_enable_memoire_voyageur:
     name: "log2 mémoire voyageur (opt-in, purge 24 mois)"
     initial: true
+  log2_enable_guide_vivant:
+    name: "log2 guide vivant (gabarits localisés J-2/J-1/J+1)"
+    initial: true
+  log2_enable_wallpanel:
+    name: "log2 wallpanel kiosk salon"
+    initial: true
+  log2_enable_qr_pieces:
+    name: "log2 QR par pièce"
+    initial: true
+  log2_enable_questionnaire:
+    name: "log2 questionnaire pré-arrivée J-2"
+    initial: true
+  log2_enable_avis_j1:
+    name: "log2 enquête avis J+1"
+    initial: true
