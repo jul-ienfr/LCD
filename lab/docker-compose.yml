@@ -245,6 +245,40 @@ services:
       timeout: 5s
       retries: 5
 
+  inventaire:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/inventaire/inventaire.py
+        CONFIG: lab/lab-config/inventaire.yaml
+    ports: ["8097:8097"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8097"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_INVENTAIRE_DIR: /opt/lcd/inventaire
+    volumes:
+      - inventaire-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      # inventaire.lab en RW (box-equivalent) : le registre est un état muté à
+      # chaque clôture ménage (+1 utilisation). Les runs de tests y ajoutent des
+      # biens TEST-INV-* (assertions en >=, reset via `git checkout -- inventaire.lab`).
+      - ./inventaire.lab/:/opt/lcd/inventaire
+    command: >
+      sh -c "python3 /opt/lcd/custom/inventaire/inventaire.py
+      --config /opt/lcd/config.yaml
+      --logements /opt/lcd/logements.yaml
+      --inventaire /opt/lcd/inventaire --serve"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8097/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
 volumes:
   ics-state:
   pricing-state:
@@ -253,4 +287,5 @@ volumes:
   caution-state:
   booking-state:
   dispatch-state:
+  inventaire-state:
   ics-logs:

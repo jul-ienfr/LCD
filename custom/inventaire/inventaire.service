@@ -1,0 +1,15 @@
+# custom/inventaire/inventaire.service — systemd (même LXC/box que dispatch, P6-4).
+[Unit]
+Description=LCD inventaire biens durables QR/NFC (P6-4) — registre + alertes, :8097
+After=network-online.target dispatch.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/inventaire/inventaire.py --config /opt/lcd/inventaire/config.yaml --logements /opt/lcd/logements.yaml --inventaire /opt/lcd/inventaire --serve
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

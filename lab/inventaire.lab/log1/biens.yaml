@@ -1,0 +1,61 @@
+# inventaire biens — registre durable QR/NFC (§5.6-bis).
+# Généré/maintenu par custom/inventaire/inventaire.py (P6-4).
+biens:
+  - qr: LINGE-DRAP-001
+    logement: log1
+    categorie: linge
+    label: Drap housse 160 (lot A)
+    date_achat: 2025-01-15
+    prix_achat: 25
+    fournisseur: Fournisseur Lab
+    lavages_nb: 12
+    utilisations_nb: 12
+    derniere_utilisation: 2026-10-01
+    etat: 4
+  - qr: LINGE-SERV-001
+    logement: log1
+    categorie: linge
+    label: Serviette bain (lot A)
+    date_achat: 2025-01-15
+    prix_achat: 8
+    fournisseur: Fournisseur Lab
+    lavages_nb: 8
+    utilisations_nb: 8
+    derniere_utilisation: 2026-09-20
+    etat: 3
+  - qr: EQUI-TV-001
+    logement: log1
+    categorie: equipement
+    label: TV salon 43 pouces
+    date_achat: 2023-06-01
+    prix_achat: 400
+    fournisseur: Fournisseur Lab
+    garantie_fin: 2025-06-01
+    lavages_nb: 0
+    utilisations_nb: 30
+    derniere_utilisation: 2026-10-05
+    etat: 2
+  - qr: EQUI-ASP-001
+    logement: log1
+    categorie: equipement
+    label: Aspirateur balai
+    date_achat: 2024-11-01
+    prix_achat: 150
+    fournisseur: Fournisseur Lab
+    garantie_fin: 2026-10-25
+    lavages_nb: 0
+    utilisations_nb: 20
+    derniere_utilisation: 2026-10-02
+    etat: 4
+  - qr: EQUI-LV-001
+    logement: log1
+    categorie: equipement
+    label: Lave-vaisselle (pièce détachée stock)
+    date_achat: 2024-03-01
+    prix_achat: 450
+    fournisseur: Fournisseur Lab
+    garantie_fin: 2026-03-01
+    lavages_nb: 0
+    utilisations_nb: 2
+    derniere_utilisation: 2026-02-01
+    etat: 5

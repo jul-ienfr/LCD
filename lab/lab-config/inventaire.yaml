@@ -1,0 +1,7 @@
+# lab/lab-config/inventaire.yaml — config LAB inventaire :8097 (P6-4 §5.6-bis).
+http_port: 8097
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+seuil_dormant_j: 90
+seuil_etat_remplacement: 2
+seuil_garantie_j: 30

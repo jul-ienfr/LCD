@@ -17,6 +17,7 @@ BASE = {
     "caution": "http://127.0.0.1:8094",
     "booking": "http://127.0.0.1:8095",
     "dispatch": "http://127.0.0.1:8096",
+    "inventaire": "http://127.0.0.1:8097",
 }
 ECHECS = []
 
@@ -33,9 +34,13 @@ def get(moteur, chemin):
     except Exception as e:
         code = getattr(e, "code", None) or 0
         try:
-            return code, e.read().decode("utf-8")
+            corps = e.read().decode("utf-8")
         except Exception:
             return code, str(e)
+        try:
+            return code, json.loads(corps)
+        except ValueError:
+            return code, corps
 
 
 def post(moteur, chemin, payload):
@@ -67,7 +72,7 @@ def check(nom, cond, detail=""):
         ECHECS.append(nom)
 
 
-print("== 1. health des 7 moteurs ==")
+print("== 1. health des 8 moteurs ==")
 for m in BASE:
     code, obj = get(m, "/health")
     check(f"health {m}", code == 200, f"HTTP {code} {obj}")
@@ -300,8 +305,110 @@ code, trav = post("dispatch", "/pointage", {"logement_id": "log1",
 check("traversee dossier bloquee (nom mission seul)",
       code in (400, 404), f"HTTP {code} {trav}")
 
+print("== 10. inventaire biens QR/NFC + alertes + stats (P6-4 §5.6-bis) ==")
+code, bi = get("inventaire", "/biens?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+total_biens = bi.get("total") if isinstance(bi, dict) else None
+check("biens log1 200 + >=5 biens seed",
+      code == 200 and isinstance(bi, dict) and (total_biens or 0) >= 5,
+      f"HTTP {code} total={total_biens}")
+
+code, fb = get("inventaire", "/bien?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qr": "EQUI-TV-001"}))
+fiche_tv = fb.get("bien", {}) if isinstance(fb, dict) else {}
+check("fiche TV + inactivite_jours",
+      code == 200 and fiche_tv.get("qr") == "EQUI-TV-001"
+      and fiche_tv.get("inactivite_jours") is not None,
+      f"HTTP {code} {fiche_tv}")
+
+code, al = get("inventaire", "/alertes?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+al = al if isinstance(al, dict) else {}
+check("dormant >90 j = EQUI-LV-001",
+      code == 200 and "EQUI-LV-001"
+      in [a.get("qr") for a in al.get("dormants", [])],
+      f"HTTP {code} dormants={al.get('dormants')}")
+check("remplacement etat<=2 = EQUI-TV-001",
+      code == 200 and "EQUI-TV-001"
+      in [a.get("qr") for a in al.get("remplacements", [])],
+      f"HTTP {code} remplacements={al.get('remplacements')}")
+check("garantie <30 j = EQUI-ASP-001",
+      code == 200 and "EQUI-ASP-001"
+      in [a.get("qr") for a in al.get("garanties", [])],
+      f"HTTP {code} garanties={al.get('garanties')}")
+
+code, st = get("inventaire", "/stats?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+couts = {c.get("qr"): c.get("cout_sejour")
+         for c in st.get("cout_sejour_bien", [])} if isinstance(st, dict) else {}
+check("stats >=5 biens + budget previsionnel >=400 (TV a remplacer)",
+      code == 200 and isinstance(st, dict) and (st.get("nb_biens") or 0) >= 5
+      and (st.get("budget_previsionnel_an") or 0) >= 400
+      and couts.get("LINGE-DRAP-001") == round(25 / 12, 2),
+      f"HTTP {code} {st}")
+
+code, off = get("inventaire", "/biens?" + urllib.parse.urlencode(
+    {"logement_id": "log2"}))
+off_code = off.get("code") if isinstance(off, dict) else None
+check("log2 inventaire_biens off = 503 inventaire_off",
+      code == 503 and off_code == "inventaire_off",
+      f"HTTP {code} {off}")
+
+code, ba = post("inventaire", "/bien", {"logement_id": "log1",
+                                        "qr": "TEST-AUTO",
+                                        "categorie": "linge",
+                                        "qui": "auto"})
+check("creation bien qui=auto refusee 400",
+      code == 400, f"HTTP {code} {ba}")
+
+tqr = f"TEST-INV-{int(time.time())}"
+code, bc = post("inventaire", "/bien", {"logement_id": "log1", "qr": tqr,
+                                        "categorie": "linge",
+                                        "label": "Drap test lab",
+                                        "date_achat": "2026-10-01",
+                                        "prix_achat": 20, "etat": 5,
+                                        "qui": "test-lab-humain"})
+check("creation bien 201", code == 201
+      and isinstance(bc, dict) and bc.get("cree") is True,
+      f"HTTP {code} {bc}")
+
+code, ut = post("inventaire", "/utilisation", {"logement_id": "log1",
+                                               "qr": tqr, "laver": True,
+                                               "qui": "moteur-dispatch"})
+check("utilisation clôture (moteur-dispatch) 201 + lavage",
+      code == 201 and ut.get("lavage") is True
+      and ut.get("biens") == [tqr],
+      f"HTTP {code} {ut}")
+
+code, ut2 = post("inventaire", "/utilisation", {"logement_id": "log1",
+                                                "qr": tqr,
+                                                "qui": "auto"})
+check("utilisation qui=auto refusee 400", code == 400,
+      f"HTTP {code} {ut2}")
+
+code, et = post("inventaire", "/etat", {"logement_id": "log1", "qr": tqr,
+                                        "etat": 1,
+                                        "note": "trou (lab)",
+                                        "qui": "test-lab-humain"})
+check("etat 1 = remplacement propose",
+      code == 200 and isinstance(et, dict)
+      and "remplacement_propose" in et,
+      f"HTTP {code} {et}")
+
+code, et6 = post("inventaire", "/etat", {"logement_id": "log1", "qr": tqr,
+                                         "etat": 6,
+                                         "qui": "test-lab-humain"})
+check("etat 6 refuse 400", code == 400, f"HTTP {code} {et6}")
+
+code, trav = post("inventaire", "/bien", {"logement_id": "log1",
+                                          "qr": "../biens",
+                                          "categorie": "linge",
+                                          "qui": "test-lab-humain"})
+check("qr traverse (..) bloque 400", code == 400,
+      f"HTTP {code} {trav}")
+
 print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4.")

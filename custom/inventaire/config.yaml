@@ -1,0 +1,9 @@
+# custom/inventaire/config.yaml — inventaire biens durables P6-4 (§5.6-bis).
+# Box/prod : state local, logs vers /config/logs/ (monter decision_log_dir).
+# Seuils verrouillés : dormant 90 j, état ≤2 = remplacement, garantie <30 j.
+http_port: 8097
+state_dir: "./state"
+decision_log_dir: "./state"   # box : monter /config/logs/ ici (cf. ics-sync)
+seuil_dormant_j: 90
+seuil_etat_remplacement: 2
+seuil_garantie_j: 30

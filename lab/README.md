@@ -19,10 +19,15 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 0 rebuild. Export box : `sh export-box.sh` → `lcd-box-<date>.tar`
 (`docker load -i ... && docker compose up -d` sur la box avec SES fichiers).
 
-## Batterie (P2-14 : résa <60 s + conflit ICS ; P6-8 : dispatch prestataires)
+> Note volumes : `inventaire.lab/` est monté en RW (box-équivalent) car le
+> registre est un état muté à chaque clôture ménage (+1 utilisation). Les runs
+> de tests y ajoutent des biens `TEST-INV-*` (assertions en `>=`, jamais `==`) —
+> reset via `git checkout -- inventaire.lab/` si besoin.
+
+## Batterie (P2-14 : résa <60 s + conflit ICS ; P6-8 : dispatch prestataires ; P6-4 : inventaire)
 
 `tests_lab.py` vérifie, dans l'ordre :
-1. `/health` des 7 moteurs (8090→8096) ;
+1. `/health` des 8 moteurs (8090→8097) ;
 2. bornes prix 75/290 inviolables (pivot août ∈ [75,290]) ;
 3. garde-fou copro P2-16 (`copro_verifiee=true` dans le lab, `false` dans le réel) ;
 4. tunnel direct <60 s : `POST /devis` → `POST /resa` (brouillon) →
@@ -36,6 +41,16 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
    choix (jamais auto), migration `zone:`→`zones:` (log2), mission
    `qui=auto` 400 + mission humaine 201 (dossier `interventions/`), mission
    RC expirée 403, sinistre airbnb 201 (échéance 14 j).
+9. parcours intervenant P6-2 (§12.4) : mission → pointage arrivée/départ
+   (départ sans arrivée 409, `qui=auto` 400) → photos AVANT/APRÈS par pièce
+   → clôture (preuves manquantes 409, écart >20 % sans justificatif 409,
+   temps facturé = temps pointé) + traversée dossier bloquée.
+10. inventaire biens P6-4 (§5.6-bis) : 5 biens seed log1, fiche + alertes
+    dormant >90 j (`EQUI-LV-001`) / état ≤2 (`EQUI-TV-001`) / garantie <30 j
+    (`EQUI-ASP-001`), stats (coût/séjour 25÷12=2.08, budget ≥400),
+    log2 flag off = 503, `qui=auto` 400, création + `/utilisation` clôture
+    `moteur-dispatch` 201 + lavage, `qui=auto` refusé, état 1 = remplacement
+    proposé, état 6 refusé, qr `..` bloqué.
 
 ## Fichiers
 
