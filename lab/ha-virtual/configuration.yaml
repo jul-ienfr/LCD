@@ -40,6 +40,9 @@ recorder:
       - "*nuki*"
       - "*wifi*"
 
+# Historique (Vue Prix graphe 30 j P2-7/P2-9 : lit le recorder, sans frontend).
+history:
+
 logbook:
   exclude:
     entity_globs:

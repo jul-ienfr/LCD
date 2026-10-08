@@ -215,6 +215,9 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     → `rest_command` → decision `:8092` (`qui=dashboard_hote`,
     matrice `gestionnaire/dashboard`, tracé au journal) ; compte
     machine audité (`/acces` : 8 comptes).
+41. recorder (P1-10/P2-7) : `history:` activé (graphe Vue Prix
+    30 j — manquait partout, box incluse) + `/api/history`
+    relit le pivot poussé en §40 (commit recorder prouvé).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

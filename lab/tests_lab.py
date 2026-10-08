@@ -4459,7 +4459,31 @@ check("decision journal : LAB-LOOP41 trace dashboard_hote (boucle fermee)",
       f"HTTP {code} refs={len(refs41)}")
 
 print()
+print("== 42. recorder : historique prix archive et lisible (lab/P1-10/P2-7) ==")
+hist_ok = False
+if ha_pret and pivot_j is not None:
+    debut = time.strftime("%Y-%m-%dT%H:%M:%S+00:00",
+                          time.gmtime(time.time() - 1800))
+    fin = time.strftime("%Y-%m-%dT%H:%M:%S+00:00",
+                        time.gmtime())
+    for _ in range(6):
+        code, hist = ha_get("/api/history/period/"
+                            + urllib.parse.quote(debut, safe="") + "?"
+                            + urllib.parse.urlencode(
+                                {"filter_entity_id":
+                                 "sensor.log1_prix_nuit",
+                                 "end_time": fin}))
+        plats = [e.get("state") for g in
+                 (hist if isinstance(hist, list) else []) for e in g]
+        if code == 200 and str(pivot_j) in plats:
+            hist_ok = True
+            break
+        time.sleep(10)
+check("history : sensor.log1_prix_nuit archive (graphe Vue Prix)",
+      hist_ok, f"pivot_j={pivot_j} (commit recorder)")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history.")
