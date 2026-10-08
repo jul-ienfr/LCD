@@ -1110,8 +1110,53 @@ code, log_inc = event("lcd_j2_envoi_acces", "logX", "personne_01",
                       {**BASE_DATA, "langue": "fr", "pin": "482913"})
 check("logement inconnu -> 404", code == 404, f"HTTP {code} {log_inc}")
 
+print("== 11-sexies. wifi invite isole (P6-10 §5.10) ==")
+# wifi_qr produit par decision depuis les secrets lab FAUX (wifi_logX_ssid/key),
+# jamais invente : data sans wifi_qr -> gabarit trouve, placeholders 0.
+# Les secrets lab FAUX ne sont verifies qu'en presence (jamais la valeur).
+code, j2_wifi = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                      {"langue": "fr", "pin": "482913"})
+check("wifi_qr produit par defaults (secrets lab) : gabarit sans placeholders",
+      code == 202 and isinstance(j2_wifi, dict)
+      and j2_wifi.get("gabarit_trouve") is True
+      and j2_wifi.get("placeholders_restants") == 0,
+      f"HTTP {code} {j2_wifi}")
+
+# wifi_qr fourni prime (jamais ecrase) : gabarit compose sans placeholders.
+code, j2_wifi_f = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                        {"langue": "fr", "pin": "482913",
+                         "wifi_qr": "WIFI:T:WPA;S:Fourni;P:faux;;"})
+check("wifi_qr fourni jamais ecrase par defaults",
+      code == 202 and isinstance(j2_wifi_f, dict)
+      and j2_wifi_f.get("gabarit_trouve") is True
+      and j2_wifi_f.get("placeholders_restants") == 0,
+      f"HTTP {code} {j2_wifi_f}")
+
+# Returning : retour_voyageur=true (geste humain/renvoi) -> prefixe « Bon retour »
+# localise (FR ici). Reponse = metadonnees SURES (prefixe dans message seul,
+# jamais expose ; jamais en vocal/LLM/logs — message jamais en reponse).
+code, j2_ret = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                     {**BASE_DATA, "langue": "fr", "pin": "482913",
+                      "retour_voyageur": True})
+check("returning FR : J-2 202 + gabarit + sans fuite message/PIN",
+      code == 202 and isinstance(j2_ret, dict)
+      and j2_ret.get("gabarit_trouve") is True
+      and j2_ret.get("placeholders_restants") == 0
+      and "message" not in j2_ret and "pin" not in j2_ret,
+      f"HTTP {code} {j2_ret}")
+
+# Non-returning : pas de flag -> pas de prefixe, comportement inchange.
+code, j2_new = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                     {**BASE_DATA, "langue": "en", "pin": "482913"})
+check("non-returning EN : J-2 202 + gabarit + placeholders 0",
+      code == 202 and isinstance(j2_new, dict)
+      and j2_new.get("gabarit_trouve") is True
+      and j2_new.get("placeholders_restants") == 0
+      and j2_new.get("langue") == "en",
+      f"HTTP {code} {j2_new}")
+
 print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10.")

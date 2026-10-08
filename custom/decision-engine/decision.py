@@ -88,6 +88,20 @@ CONSIGNE_BOITE_CLES = {"fr": "boîte à clés (code envoyé séparément)",
                        "it": "cassetta delle chiavi (codice inviato separatamente)",
                        "de": "Schlüsselbox (Code separat gesendet)"}
 
+# P6-10 §5.10 : préfixe « Bon retour ! » localisé socle 5. Posé par data
+# `retour_voyageur: true` (geste humain ou ics-sync futur : même voyageur
+# reconnu) — jamais auto ici (pas de mémoire avant P6-12, §5.7-ter).
+BON_RETOUR = {"fr": "Bon retour !",
+              "en": "Welcome back!",
+              "es": "¡Bienvenido de nuevo!",
+              "it": "Bentornato!",
+              "de": "Willkommen zurück!"}
+
+
+def echapper_wifi(val):
+    """Échappe une valeur au format WIFI: (spec : \\ ; , : préfixés de \\)."""
+    return re.sub(r"([\\;,:\"])", r"\\\1", val or "")
+
 
 def _dossier_gabarits():
     """Localise docs/templates/ (repo, container /opt/lcd, ou cwd)."""
@@ -351,7 +365,12 @@ class Moteur:
         identité logement (nom -> logement, commune -> adresse). Rendus dans
         `data` seulement si la clé est absente/vide — les données fournies
         (ics-sync/QloApps/KeyMaster/renvoi humain) priment TOUJOURS. Jamais
-        de PIN ici (KeyMaster seul, boîte à clés si vide)."""
+        de PIN ici (KeyMaster seul, boîte à clés si vide).
+        P6-10 §5.10 : `wifi_qr` produit depuis les secrets (wifi_<log>_ssid +
+        wifi_<log>_key, box P1-9/secrets, lab = valeurs FAUSSES) au format
+        `WIFI:T:WPA;S:<ssid>;P:<clé>;;` (échappement spec). Secrets absents
+        (box non renseignée) -> pas de wifi_qr (QR accueil/papier en fallback,
+        jamais de clé inventée ici)."""
         log = self.logts.get(logement_id, {})
         contact = self.branding.get("contact", "")
         brut = self.branding.get("tel_urgence", "")
@@ -371,11 +390,18 @@ class Moteur:
             if "." not in domaine:
                 domaine = ""
         base_url = f"https://{domaine}" if domaine else ""
+        # P6-10 §5.10 : QR WiFi `WIFI:T:WPA;S:<ssid>;P:<clé>;;` depuis secrets.
+        # Jamais de clé inventée : secrets absents -> "" (fallback QR/papier).
+        ssid = str(self.secrets.get(f"wifi_{logement_id}_ssid", "") or "").strip()
+        cle = str(self.secrets.get(f"wifi_{logement_id}_key", "") or "").strip()
+        wifi_qr = (f"WIFI:T:WPA;S:{echapper_wifi(ssid)};"
+                   f"P:{echapper_wifi(cle)};;") if (ssid and cle) else ""
         return {
             "marque": marque,
             "logement": log.get("nom", logement_id) or logement_id,
             "adresse": log.get("commune", "") or "",
             "tel_urgence": tel if isinstance(tel, str) else "",
+            "wifi_qr": wifi_qr,
             "lien_questionnaire": f"{base_url}/q/{logement_id}" if base_url else "",
             "lien_guide": f"{base_url}/guide/{logement_id}" if base_url else "",
             "lien_avis": f"{base_url}/avis/{logement_id}" if base_url else "",
@@ -564,6 +590,16 @@ class Moteur:
                     code_langue, CONSIGNE_BOITE_CLES["fr"])
             message, langue_utilisee, traduction_auto = composer_message(
                 type_event, langue, variables)
+            # P6-10 §5.10 : returning (même voyageur reconnu, data fournie par
+            # geste humain / renvoi / ics-sync futur, jamais auto ici) ->
+            # préfixe « Bon retour ! » localisé socle 5 (jamais traduit, jamais
+            # en vocal/LLM/logs — message seul, réponse sans message).
+            if (type_event == "lcd_j2_envoi_acces"
+                    and str(data.get("retour_voyageur", "")).lower()
+                    in ("true", "1", "oui", "yes")):
+                prefixe = BON_RETOUR.get((langue_utilisee or "fr")[:2],
+                                         BON_RETOUR["fr"])
+                message = f"{prefixe} {message}" if message else prefixe
             data["message"] = message or data.get("message", "")
             data["langue_utilisee"] = langue_utilisee
             data["traduction_auto"] = traduction_auto

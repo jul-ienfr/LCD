@@ -19,7 +19,8 @@ homeassistant:
     log2_exploitation: !include packages/log2/exploitation.yaml
     log2_voix: !include packages/log2/voix.yaml
 
-# Recorder 10 j (P1-10) — InfluxDB exclu (0 € et RAM, §5.5). PIN/codes exclus partout.
+# Recorder 10 j (P1-10) — InfluxDB exclu (0 € et RAM, §5.5). PIN/codes/WiFi exclus partout
+# (P6-10 §5.10 : clé WiFi jamais en vocal/LLM/logs — comme les PIN §5.2).
 recorder:
   purge_keep_days: 10
   exclude:
@@ -28,6 +29,7 @@ recorder:
       - "*code*"
       - "*keymaster*"
       - "*nuki*"
+      - "*wifi*"
 
 logbook:
   exclude:
@@ -36,6 +38,7 @@ logbook:
       - "*code*"
       - "*keymaster*"
       - "*nuki*"
+      - "*wifi*"
 
 # UI routage :8050 — dashboard /systeme seul (super_admin/admin, §1.6.4)
 panel_iframe:
