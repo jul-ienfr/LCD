@@ -5,14 +5,14 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `22 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `28 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
 - Phase 3 Accès : 0/8
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
-- Phase 6 Exploitation : 5/22
+- Phase 6 Exploitation : 11/22
 - Phase 7 Voix + LLM/Jev : 0/20
 - Phase 8 Recette / go-live : 0/12
 
@@ -128,8 +128,8 @@ Dépendances : Grocy (add-on + intégration), WallPanel, Telegram/Companion App,
 - [x] P6-7 Conciergerie séjour : arrivée/départ (accueil 30 €, transfert 40 €, location partenariat 15-20 %) + vie sur place 100 % partenariat (chef 69 €/pers, massage 75 €/h, babysitting 30 €/h, pressing 15 €, resto/plage 10 %, excursions 10-15 %) + pack télétravail 25 €/séjour (stock ~150 €) — 4 refs partenariat 0 € (modes + taux) sans paiement : `location_voiture_velo` `partenariat_commission_15_20` + `resa_resto_plage` `commission_resto_10` + `excursions` `affiliation_10_15` + `day_pass_cowork` `partenariat_commission_10_15` (commande `validee` total 0, `/payer` sans preuve = no-op 200, compta « partenariat », todo dispatch auto, `log_decision` commission+net_hôte) — moteur :8098 + batterie lab §11-ter 4/4 verte (lab = box)
 - [x] P6-8 Annuaire prestas + zones (`custom/zones.yaml`, clés jamais texte libre, `zone_defaut`, dispatch filtre zone+actif+RC, hors zone = 2e choix + surcoût jamais auto, alerte <2 actifs/métier/zone) — moteur :8096 + batterie lab 8/8 verte + image transférable `export-box.sh` (lab = box)
 - [x] P6-9 Office de tourisme (brique voyageur, lecture seule) : moteur :8098 `GET /tourisme?logement_id[&categorie]` (lieux `custom/tourisme/<zone>.yaml` visite/resto/plage/activite/pratique, déclinés par zones du logement zone_defaut incluse, `extra_id` croisé catalogue fusionné `extra_disponible`+`prix_ttc`, categorie hors set → 400, `extras_upsell: off` → 503, ajouts = humain via git) + 18 lieux (santa_severa 8 + nice_ouest 6 + sophia_antipolis 4 prêt futur) + batterie lab §11-quater 14 lieux log1 verte (lab = box)
-- [ ] P6-9-bis Guide vivant : WallPanel kiosk + vues socle 5 + QR par pièce/appareil + arrivée guidée J-1 (lien PWA + PIN + WiFi + QR salon) + départ zéro friction (checklist + avis J+1)
-- [ ] P6-10 WiFi invité isolé : SSID guest + QR `WIFI:T:WPA;…` + clé rotative par défaut (`input_text.logX_wifi_key`), returning si même voyageur reconnu (message « Bon retour ! »), jamais en vocal/LLM/logs
+- [x] P6-9-bis Guide vivant : WallPanel kiosk + vues socle 5 + QR par pièce/appareil + arrivée guidée J-1 (lien PWA + PIN + WiFi + QR salon) + départ zéro friction (checklist + avis J+1) — FAIT lab 2026-10-07/08 : visibilités par carte WallPanel (flags `guide_vivant/wallpanel/qr_pieces/questionnaire/avis_j1` log1+log2), composition localisée FR/EN/ES/IT/DE + maternelle auto (§5.7-ter, placeholders intouchables, injection APRÈS choix gabarit), defaults statiques `--branding` + `wifi_ssid` log1/log2, `input_text.logX_wifi_ssid` log1+log2, batterie lab §11-quinquies verte (lab = box)
+- [x] P6-10 WiFi invité isolé : SSID guest + QR `WIFI:T:WPA;…` + clé rotative par défaut (`input_text.logX_wifi_key`), returning si même voyageur reconnu (message « Bon retour ! »), jamais en vocal/LLM/logs — FAIT lab 2026-10-08 : `wifi_qr` produit par decision depuis secrets lab FAUSSES (`wifi_logX_ssid/key`, jamais inventé), préfixe « Bon retour ! » localisé socle 5 via `retour_voyageur` humain (jamais auto), excludes `*wifi*` recorder/logbook, batterie lab §11-sexies 4/4 verte (lab = box)
 - [ ] P6-11 Langues (§5.7-ter) : socle FR/EN/ES/IT/DE (`docs/templates/*.{fr,en,es,it,de}.md`) + maternelle auto LLM (placeholders `{{ }}` intouchables, cache phrase+langue, badge auto, fallback EN) + sélecteur PWA + Piper `it_IT`/`de_DE` si satellites + 20 phrases critiques 1-tap + recette 50 requêtes/langue
 - [ ] P6-12 Mémoire voyageur (`memoire_voyageur: on`) : opt-in PWA révocable 1-tap + `custom/memoire/voyageurs.yaml` (hash, jamais prestas, jamais discrimination tarifaire, purge 24 mois) + pré-remplissage séjour suivant (langue, consignes, extras favoris 1-tap, « Bon retour [prénom] ! », WiFi returning)
 - [ ] P6-13 Ménage à date certaine : `menage_frequence_j` + séjour ≥ durée → `todo.logX_menage_intermediaire` (heure pref, pendant absence si PIR+code=vide) + message voyageur + facturation (offert dès 14 j si `remplissage_max`, sinon 60 €) ; défaut J+7 si ≥10 j
