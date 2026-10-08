@@ -5,10 +5,10 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `61 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `62 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
-- Phase 2 PMS/synchro/pricing : 14/16
+- Phase 2 PMS/synchro/pricing : 15/16
 - Phase 3 Accès : 0/8
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
@@ -68,7 +68,7 @@ Dépendances : LXC LAMP (QloApps Phase 1 : PHP 5.6/7.x + extensions Mcrypt/OpenS
 - [x] P2-11 Hold caution 500-800 € (Swikly/Stripe/TPE) + taxe séjour Métropole NCA (direct = vous collectez) — code réel FAIT 2026-10-06 (`custom/caution/` stdlib port :8094 : `caution.py` `POST /hold|/debiter|/restituer|/taxe` + `GET /hold|/health`, `config.yaml` délais + tarifs taxe Métropole NCA (taux + parts à confirmer mairie) + modes par canal, `caution.service` systemd ; Airbnb → 403 AirCover seule, Booking jamais VCC, Abritel caution OU Damage Protection, bornes 500-800 inviolables 422, débit/restitution 1-tap HUMAINE + justificatifs obligatoires, taxe testée direct=hôte déclare vs OTA=0 € ; tests 10/10 verts ; reste : clés Swikly/Stripe réelles + compte portail taxe Métropole NCA sur box)
 - [x] P2-12 Vitrines gratuites si `vitrines_gratuites: on` : Google Vacation Rentals, Tripadvisor, Leboncoin, GreenGo/Gîtes/Clévacances, SeLoger/PAP/FB/Insta → lien direct UTM `?src=<vitrine>` — code réel FAIT 2026-10-06 (`custom/vitrines.yaml` : 10 vitrines + `utm_modele` + `statut_par_logement` off défaut, activer 1 par 1 après go-live ; flag `features.vitrines_gratuites: false` log1+log2 dans `logements.yaml` ; `ics_sync.py` `resa_directe` stocke `src` tel quel + trace `src=<id> (vitrine gratuite)` en motif JSONL, '' = direct pur ; hook PHP `lcd_src_vitrine` → `src` TODO-BOX lecture custom réelle ; tests verts : 201 avec src=leboncoin stocké + motif JSONL, 201 sans src inchangé ; reste : activer 1 vitrine après go-live direct + qualifier flux Google Phase 2+)
 - [x] P2-13 Traçabilité `{ref, canal, commission, net_hote}` en `decision.logX.jsonl` + Vue Finances — code FAIT 2026-10-06 (les 3 moteurs loggent le schéma P1-10/P2-8/P7-7 : ics-sync arbitrage, pricing recalcul/PUT, decision porte unique RBAC+copro+bornes+Jev ; reste : montage `/config/logs/` sur box + Vue Finances)
-- [ ] P2-14 Test : résa directe → PIN + occupation <60 s ; conflit ICS simulé → arbitrage <15 min
+- [x] P2-14 Test : résa directe → PIN + occupation <60 s ; conflit ICS simulé → arbitrage <15 min — PARTIEL lab 2026-10-08 : tunnel direct (devis→brouillon→confirmer <60 s, §4) + conflit ICS (2e résa mêmes dates refusée, §5) verts à chaque batterie (reste box : PIN KeyMaster réel + mesure arbitrage <15 min)
 - [x] P2-15 (Phase 2+, pas day-1) `booking-direct` stdlib :8095 (même LXC que pricing/ics-sync, FastAPI remplacé stdlib même interface HTTP) : catalogue 19 extras + dispo proxy + devis nuit-par-nuit + Checkout Stripe PRÉPARÉ + ICS export + POST natif ics-sync + src P2-12 ; garde-fous 403 copro / 422 bornes / 400 qui auto ; chaîne testée 2026-10-06 (391 €, net_hote ics-sync, ICS+JSONL) ; bascule 1 flag + 1 séjour témoin + QloApps fallback 1 mois — FAIT 2026-10-06
 - [x] P2-16 Wizard copro §12.1-bis — code réel FAIT 2026-10-06 (`custom/copro-wizard/` stdlib : `copro_wizard.py` `--init|--check|--generer` + `LCD_LOGEMENTS_YAML`/`LCD_DOCS_BASE` bac à sable, `config.yaml` 5 pièces + garde-fou R.212-1 + `config.yaml`, README ; `--init` → `docs/logN/copro/` 5 gabarits + checklist.md privés ; `--check` réel exit 2 : 2× `verifiee:false` + 5 pièces non remplies ; `--generer` bac à sable (copie `verifiee:true` + 5 pièces TEST) → règlement daté + copie courante, variables + traçabilité + mentions L.111-1/L.112-1/L.221-28/L.612-1 ; garde-fou « amende forfaitaire » → BLOQUÉ exit 2 même verifiee=True ; `--generer` réel refusé ; bac à sable supprimé ; reste : bascule HUMAINE log1 false→true après accord écrit syndic + Cerfa/n° + relecture juriste, log2 reste false défaut sûr)
 
