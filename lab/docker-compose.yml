@@ -97,11 +97,13 @@ services:
       - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
       - ../custom/acces.yaml:/opt/lcd/acces.yaml:ro
       - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+      - ./branding.lab.yaml:/opt/lcd/branding.yaml:ro
     command: >
       sh -c "python3 /opt/lcd/custom/decision-engine/decision.py
       --config /opt/lcd/config.yaml
       --logements /opt/lcd/logements.yaml
-      --acces /opt/lcd/acces.yaml --serve"
+      --acces /opt/lcd/acces.yaml
+      --branding /opt/lcd/branding.yaml --serve"
     depends_on:
       ics-sync:
         condition: service_healthy

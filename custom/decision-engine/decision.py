@@ -183,8 +183,40 @@ def charger_yaml_plat(path):
     return data
 
 
+def charger_branding(path):
+    """Variables statiques marque (fichier PRIVÉ, jamais commité). Plat (lab) ou
+    imbriqué sous `branding:` (exemple prod) : lit toute ligne `k: v` non vide,
+    niveau 0 comme indentée, sauf la clé `branding:` elle-même. Absent = {}."""
+    data = {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            for brute in f:
+                ligne = brute.split("#", 1)[0].rstrip()
+                if not ligne.strip() or ":" not in ligne:
+                    continue
+                k, v = ligne.strip().split(":", 1)
+                k, v = k.strip().strip("\"'"), v.strip().strip("\"'")
+                if not k or k == "branding" or not v:
+                    continue
+                if v.startswith("[") and v.endswith("]"):
+                    data[k] = [x.strip().strip("\"'") for x in v[1:-1].split(",")
+                               if x.strip()]
+                elif v in ("true", "false"):
+                    data[k] = (v == "true")
+                elif re.fullmatch(r"-?\d+", v):
+                    data[k] = int(v)
+                elif re.fullmatch(r"-?\d+\.\d+", v):
+                    data[k] = float(v)
+                else:
+                    data[k] = v
+    except FileNotFoundError:
+        pass
+    return data
+
+
 def lire_logements(path):
-    """Extrait par logement : pricing, copro.verifiee, features, mode (parseur minimal)."""
+    """Extrait par logement : identité (nom/commune) + pricing, copro.verifiee,
+    features, mode (parseur minimal)."""
     try:
         with open(path, encoding="utf-8") as f:
             lignes = f.readlines()
@@ -201,7 +233,8 @@ def lire_logements(path):
         prop = ligne.strip()
         if indent == 2 and prop in ("log1:", "log2:", "log3:"):
             cur = prop[:-1]
-            logts[cur] = {"prix_base": 110, "prix_min": 75, "prix_max": 290,
+            logts[cur] = {"nom": cur, "commune": "", "prix_base": 110,
+                          "prix_min": 75, "prix_max": 290,
                           "mode_gestion_defaut": "equilibre",
                           "copro_verifiee": False, "features": {}}
             section = None
@@ -213,6 +246,12 @@ def lire_logements(path):
             continue
         if indent == 4 and prop.endswith(":"):
             section = None  # menage:, autres blocs
+            continue
+        if indent == 4 and not section and ":" in prop:
+            # Identité statique logement (nom, commune) — sert les defaults J-2/J-1/J+1.
+            k_id, v_id = [x.strip().strip("\"'") for x in prop.split(":", 1)]
+            if k_id in ("nom", "commune") and v_id:
+                logts[cur][k_id] = v_id
             continue
         if section and ":" in prop:
             k, v = [x.strip().strip("\"'") for x in prop.split(":", 1)]
@@ -264,11 +303,12 @@ def lire_acces(path):
 
 
 class Moteur:
-    def __init__(self, cfg, logts, acces, secrets):
+    def __init__(self, cfg, logts, acces, secrets, branding=None):
         self.cfg = cfg
         self.logts = logts
         self.acces = acces
         self.secrets = secrets
+        self.branding = dict(branding or {})
         self.decision_dir = os.environ.get("LCD_DECISION_LOG_DIR",
                                           cfg.get("decision_log_dir", "./state"))
         os.makedirs(self.decision_dir, exist_ok=True)
@@ -306,6 +346,42 @@ class Moteur:
         return False, f"{p.get('role')}/{p.get('sous_role')} non autorisé {action}", p
 
     # --- traçabilité (schéma §README, 90 j accès) ---
+    def vars_statiques(self, logement_id):
+        """Defaults statiques P6-9-bis : branding (marque/tel_urgence/liens) +
+        identité logement (nom -> logement, commune -> adresse). Rendus dans
+        `data` seulement si la clé est absente/vide — les données fournies
+        (ics-sync/QloApps/KeyMaster/renvoi humain) priment TOUJOURS. Jamais
+        de PIN ici (KeyMaster seul, boîte à clés si vide)."""
+        log = self.logts.get(logement_id, {})
+        contact = self.branding.get("contact", "")
+        brut = self.branding.get("tel_urgence", "")
+        tel = brut if isinstance(brut, str) else ""
+        if not tel:
+            tel = (contact if isinstance(contact, str)
+                   else (contact.get("tel_urgence", "") if isinstance(contact, dict)
+                         else ""))
+        if not tel:
+            tel = self.branding.get("telephone", "") or ""
+        marque = (self.branding.get("marque") or "votre hôte")
+        domaine = (self.branding.get("domaine") or "").strip()
+        if not domaine:
+            # Forme plate lab : site: "https://..." -> hôte seul.
+            site = (self.branding.get("site") or "").strip()
+            domaine = re.sub(r"^https?://", "", site).split("/")[0].strip()
+            if "." not in domaine:
+                domaine = ""
+        base_url = f"https://{domaine}" if domaine else ""
+        return {
+            "marque": marque,
+            "logement": log.get("nom", logement_id) or logement_id,
+            "adresse": log.get("commune", "") or "",
+            "tel_urgence": tel if isinstance(tel, str) else "",
+            "lien_questionnaire": f"{base_url}/q/{logement_id}" if base_url else "",
+            "lien_guide": f"{base_url}/guide/{logement_id}" if base_url else "",
+            "lien_avis": f"{base_url}/avis/{logement_id}" if base_url else "",
+            "lien_pwa": f"{base_url}/sejour/{logement_id}" if base_url else "",
+        }
+
     def log_decision(self, logement_id, ref, qui, quoi, canal=None, montant=None,
                      motif="", llm=None, jev=None):
         tx = self.commissions.get(canal) if canal else None
@@ -464,6 +540,12 @@ class Moteur:
             return 403, {"statut": "bloque",
                          "motif": "copro.verifiee=false : mise en ligne BLOQUÉE"}
         data = dict(data or {})
+        # Defaults statiques P6-9-bis : branding + identité logement complètent
+        # les trous ics-sync/QloApps (marque/adresse/tel/liens). Données
+        # fournies priment TOUJOURS — jamais d'écrasement. Jamais de PIN ici.
+        for k_def, v_def in self.vars_statiques(logement_id).items():
+            if not (data.get(k_def) or "") and (v_def or ""):
+                data[k_def] = v_def
         langue = (data.get("langue") or "fr")
         # log2 LIGHT / smart_lock off -> pin vide + message boîte à clés (jamais généré ici)
         if not l["features"].get("smart_lock", True):
@@ -574,6 +656,8 @@ def main():
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--logements", default="../logements.yaml")
     ap.add_argument("--acces", default="../acces.yaml")
+    ap.add_argument("--branding", default="../branding.yaml",
+                    help="variables statiques marque (PRIVÉ, absent = {})")
     ap.add_argument("--check", action="store_true",
                     help="vérifie copro + pousse sensor.logX_config_ok + affiche état")
     ap.add_argument("--serve", action="store_true", help="démarre l'API HTTP")
@@ -589,7 +673,8 @@ def main():
         print(f"acces introuvable ou vide: {args.acces}", file=sys.stderr)
         return 2
     secrets = charger_yaml_plat(os.environ.get("LCD_SECRETS_YAML", "./secrets.yaml"))
-    eng = Moteur(cfg, logts, acces, secrets)
+    branding = charger_branding(args.branding)  # PRIVÉ, absent = {} (jamais commité)
+    eng = Moteur(cfg, logts, acces, secrets, branding)
     Handler.engine = eng
 
     if args.check or not args.serve:

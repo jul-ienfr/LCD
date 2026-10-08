@@ -1055,6 +1055,36 @@ check("fallback hors socle pt -> EN + badge auto",
       and j2_pt.get("gabarit_trouve") is True,
       f"HTTP {code} {j2_pt}")
 
+# Defaults statiques P6-9-bis : data minimale (langue+pin seuls, comme
+# ics-sync/QloApps sans marque/adresse/liens) -> gabarit quand meme trouve,
+# placeholders_restants == 0 grace a branding + nom/commune logements.
+code, j2_def = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                     {"langue": "fr", "pin": "482913"})
+check("defaults J-2 data minimale : gabarit trouve sans placeholders",
+      code == 202 and isinstance(j2_def, dict)
+      and j2_def.get("gabarit_trouve") is True
+      and j2_def.get("placeholders_restants") == 0
+      and j2_def.get("pin_transmis") is True
+      and "message" not in j2_def and "pin" not in j2_def,
+      f"HTTP {code} {j2_def}")
+
+# Donnees fournies jamais ecrasees : marque/adresse/tel explicites priment
+# sur branding + logements.lab (verifie via gabarit compose sans placeholders).
+code, j2_exp = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                     {"langue": "fr", "pin": "482913",
+                      "marque": "Marque Fournie", "logement": "Fourni Exprès",
+                      "adresse": "Voie fournie, Commune", "tel_urgence": "+33611111111",
+                      "wifi_qr": "WIFI:T:WPA;S:Fourni;P:faux;;",
+                      "heure_arrivee": "16:00", "arrivee": "2026-11-10",
+                      "depart": "2026-11-12", "slot_nom": "Fourni",
+                      "lien_questionnaire": "http://q.fourni",
+                      "lien_guide": "http://g.fourni", "lien_avis": "http://a.fourni"})
+check("donnees fournies jamais ecrasees par defaults",
+      code == 202 and isinstance(j2_exp, dict)
+      and j2_exp.get("gabarit_trouve") is True
+      and j2_exp.get("placeholders_restants") == 0,
+      f"HTTP {code} {j2_exp}")
+
 code, co = event("lcd_checkout", "log1", "personne_01",
                  {**BASE_DATA, "langue": "fr", "pin": "482913"})
 check("checkout forward seul (pas de gabarit) 200/202",
