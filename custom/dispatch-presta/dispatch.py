@@ -151,6 +151,28 @@ def charger_yaml_plat(path):
     return data
 
 
+def charger_branding(path):
+    """Variables statiques marque (fichier PRIVÉ, jamais commité). Plat (lab)
+    ou imbriqué sous `branding:` (exemple prod) : lit toute ligne `k: v`
+    niveau 0, sauf la clé `branding:` elle-même. Absent = {} (repli
+    "votre hôte" au rendu, jamais "LCD" en dur — marque blanche P8-3)."""
+    data = {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            for brute in f:
+                ligne = brute.split("#", 1)[0].rstrip()
+                if not ligne.strip() or ":" not in ligne:
+                    continue
+                k, v = ligne.strip().split(":", 1)
+                k, v = k.strip().strip("\"'"), v.strip().strip("\"'")
+                if not k or k == "branding" or not v:
+                    continue
+                data[k] = v
+    except FileNotFoundError:
+        pass
+    return data
+
+
 def lire_logement(path, logement_id):
     """Zone(s), zone_defaut et flag annuaire_presta d'un logement (scan de bloc).
 
@@ -293,8 +315,10 @@ def statut_rc(presta):
 
 
 class Dispatch:
-    def __init__(self, cfg, logements_yaml, prestataires_dir, zones_yaml):
+    def __init__(self, cfg, logements_yaml, prestataires_dir, zones_yaml,
+                 branding=None):
         self.cfg = cfg
+        self.branding = dict(branding or {})
         self.logements_yaml = logements_yaml
         self.presta_dir = prestataires_dir
         self.state_dir = (os.environ.get("LCD_STATE_DIR")
@@ -2147,7 +2171,8 @@ class Dispatch:
             gabarit = ("# Mission {{ presta }} — {{ logement }}\n- Motif : {{ motif }}\n"
                        "- Fenetre : {{ debut }} -> {{ fin }}\n- Dossier : {{ dossier }}\n")
         return (gabarit.replace("{{ logement }}", logement_id)
-                       .replace("{{ marque }}", "LCD")
+                       .replace("{{ marque }}",
+                                self.branding.get("marque") or "votre hôte")
                        .replace("{{ presta }}", str(presta.get("id", "")))
                        .replace("{{ motif }}", motif)
                        .replace("{{ debut }}", debut or dt.date.today().isoformat())
@@ -2511,6 +2536,8 @@ def main():
     ap.add_argument("--logements", default="../logements.yaml")
     ap.add_argument("--prestataires", default="")
     ap.add_argument("--zones", default="")
+    ap.add_argument("--branding", default="../branding.yaml",
+                    help="branding privé (absent = repli 'votre hôte')")
     ap.add_argument("--serve", action="store_true")
     args = ap.parse_args()
 
@@ -2528,7 +2555,8 @@ def main():
                   or os.path.normpath(os.path.join(base, "..", "prestataires")))
     zones_yaml = (args.zones or os.environ.get("LCD_ZONES_YAML", "")
                   or os.path.normpath(os.path.join(base, "..", "zones.yaml")))
-    eng = Dispatch(cfg, args.logements, presta_dir, zones_yaml)
+    eng = Dispatch(cfg, args.logements, presta_dir, zones_yaml,
+                   charger_branding(args.branding))
     if not args.serve:
         print(json.dumps({"motifs": sorted(eng.carte_motifs),
                           "sla_h": eng.sla,

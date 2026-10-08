@@ -190,6 +190,11 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     (attributs voyageur ignorés) + `PUT /prix` direct seul (422
     hors bornes sans motif) + `GET /reco-ota` 1-tap lecture seule
     (jamais d'écriture auto OTA).
+36. marque blanche P8-3 (§1.5.4) : `GET /phrases` au_revoir FR/EN
+    rendu avec marque lab (0 fuite `LCD`/`Home Assistant`, 0
+    placeholder) + dispatch `--branding` (fiche mission = marque
+    ou repli `votre hôte`, jamais `LCD` en dur) + volume branding
+    monté (navigation PWA + SMS = box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

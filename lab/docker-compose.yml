@@ -237,13 +237,15 @@ services:
       - ics-logs:/opt/lcd/logs
       - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
       - ../custom/zones.yaml:/opt/lcd/zones.yaml:ro
+      - ./branding.lab.yaml:/opt/lcd/branding.yaml:ro
       - ./prestataires.lab/:/opt/lcd/prestataires:ro
     command: >
       sh -c "python3 /opt/lcd/custom/dispatch-presta/dispatch.py
       --config /opt/lcd/config.yaml
       --logements /opt/lcd/logements.yaml
       --prestataires /opt/lcd/prestataires
-      --zones /opt/lcd/zones.yaml --serve"
+      --zones /opt/lcd/zones.yaml
+      --branding /opt/lcd/branding.yaml --serve"
     healthcheck:
       test: ["CMD", "python3", "-c",
         "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8096/health',timeout=5)"]
