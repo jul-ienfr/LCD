@@ -3647,8 +3647,8 @@ llm = sorted(u.get("usage") for u in pg.get("usages", [])
              if u.get("moteur") == "llm") if isinstance(pg, dict) else []
 jev = sorted(u.get("usage") for u in pg.get("usages", [])
              if u.get("moteur") == "jev") if isinstance(pg, dict) else []
-check("GET /prompts : M1-M8 LLM + J1-J9 Jev + pricing/compta",
-      code == 200 and isinstance(pg, dict) and pg.get("total") == 30
+check("GET /prompts : M1-M8 LLM + J1-J9 Jev + pricing/compta + ops",
+      code == 200 and isinstance(pg, dict) and pg.get("total") == 40
       and set(["m1-detection-langue",
                "m2-normalisation-questionnaire",
                "m3-suggestion-extras", "m4-reformulation-menage",
@@ -3659,6 +3659,11 @@ check("GET /prompts : M1-M8 LLM + J1-J9 Jev + pricing/compta",
                "j5-sentiment-avis", "j6-dispatch-conciergerie",
                "j7-tri-nocturne", "j8-routage-sinistre",
                "j9-qualite-menage"]) <= set(jev)
+      and set(["ollm-classif-degat", "ollm-resume-sinistre",
+               "ollm-resume-intervention", "ollm-scoring-presta",
+               "ollm-conflit-ics", "ollm-diagnostic-panne",
+               "ollm-resume-logs", "ollm-fiche-mission",
+               "ollm-dossier-incomplet", "ollm-ecart-compta"]) <= set(llm)
       and all(u.get("alias") and u.get("variables")
               for u in pg.get("usages", [])
               if u.get("moteur") == "llm"),
@@ -3780,7 +3785,62 @@ check("composer pjev-anti-braderie -> 200 blocage",
       f"HTTP {code} {cj2}")
 
 print()
+print("== 28. prompts ops M-LLM1-10 : registre + composeur garde-fous (P7-14 §6.7.5) ==")
+code, co = post("router", "/composer",
+                {"usage": "ollm-resume-sinistre",
+                 "variables": {"quoi": "fuite SDB", "ou": "log1",
+                               "quand": "2026-10-08",
+                               "gravite": "moderee", "canal": "direct"}})
+check("composer ollm-resume-sinistre -> 200 SLA code + jamais promesse",
+      code == 200 and isinstance(co, dict)
+      and co.get("moteur") == "llm"
+      and co.get("alias") == "lcd-chat-fast"
+      and "14 j" in co.get("prompt", "")
+      and "fuite SDB" in co.get("prompt", "")
+      and co.get("placeholders_restants") == 0
+      and "promesse_indemnisation" in co.get("interdits", []),
+      f"HTTP {code} {co}")
+code, obj = post("router", "/composer",
+                 {"usage": "ollm-classif-degat",
+                  "variables": {"dossier": "2026-10-08_menage"}})
+check("composer ollm-classif-degat sans observations -> 422",
+      code == 422 and isinstance(obj, dict)
+      and set(obj.get("manquants", [])) == {"observations",
+                                            "metadonnees"},
+      f"HTTP {code} {obj}")
+code, co2 = post("router", "/composer",
+                 {"usage": "ollm-diagnostic-panne",
+                  "variables": {"symptome": "Hub muet 45 min",
+                                "contexte": "arrivee J-0"}})
+check("composer ollm-diagnostic-panne -> 200 runbook + jamais PIN",
+      code == 200 and isinstance(co2, dict)
+      and "Master Lock" in co2.get("prompt", "")
+      and "Hub muet 45 min" in co2.get("prompt", "")
+      and "pin_clair" in co2.get("interdits", []),
+      f"HTTP {code} {co2}")
+code, co3 = post("router", "/composer",
+                 {"usage": "ollm-ecart-compta",
+                  "variables": {"ecart": "12.50",
+                                "details": "commission OTA"}})
+check("composer ollm-ecart-compta -> 200 lecture seule jamais ecriture",
+      code == 200 and isinstance(co3, dict)
+      and "12.50" in co3.get("prompt", "")
+      and "ecriture_auto" in co3.get("interdits", [])
+      and "jamais d" in co3.get("rappel", ""),
+      f"HTTP {code} {co3}")
+code, co4 = post("router", "/composer",
+                 {"usage": "ollm-conflit-ics",
+                  "variables": {"resa_a": "DIRECT-001",
+                                "resa_b": "BK-002",
+                                "regle": "direct>OTA"}})
+check("composer ollm-conflit-ics -> 200 ordre marge rappele",
+      code == 200 and isinstance(co4, dict)
+      and "DIRECT-001" in co4.get("prompt", "")
+      and "arbitrage_auto" in co4.get("interdits", []),
+      f"HTTP {code} {co4}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14.")

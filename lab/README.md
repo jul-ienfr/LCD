@@ -138,6 +138,12 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     box) + composeur (même contrat trous seuls, backend typesafe).
 26. prompts pricing/compta P7-12/13 (§6.7.3-4) : M-LLM-1→7 + M-JEV-1→6
     (registre étendu, seuils file/blocage/1-tap, exécution box).
+27. prompts ops M-LLM1→10 P7-14 (§6.7.5) : classification dégât sans
+    vision + résumé sinistre SLA + digest intervention + scoring
+    presta + conflit ICS + diagnostic runbook + résumé logs +
+    fiche mission + dossier incomplet + écart compta/onboarding
+    (registre étendu, garde-fous jamais retenue/promesse/
+    montant/hors-zone/PIN/écriture auto, exécution box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

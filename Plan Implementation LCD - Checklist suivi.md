@@ -5,7 +5,7 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `47 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `48 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
@@ -13,7 +13,7 @@
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
 - Phase 6 Exploitation : 22/22 ✔
-- Phase 7 Voix + LLM/Jev : 8/20
+- Phase 7 Voix + LLM/Jev : 9/20
 - Phase 8 Recette / go-live : 0/12
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
@@ -160,7 +160,7 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, proxy LiteLLM `:4000`, 
 - [x] P7-11 Parcours voyageur Jev J1-J9 (§6.7.2) : complétude J-2 J1, confiance trad J2, éligibilité extras J3, cohérence mémoire J4, sentiment avis J5, dispatch zone/assurance J6, tri nocturne fusion dB J7, routage sinistre J8, qualité ménage J9 (jamais sanction auto) — FAIT lab 2026-10-08 (part lab-testable) : registre `prompts.yaml` étendu (9 usages Jev + construits Noul/Choice/Score + seuils, appel direct SystemOne box) + composeur (`moteur: jev`, même contrat trous seuls, backend typesafe) + batterie lab §26 verte (lab = box ; exécution Jev + seuils prod = `POST /gardien` + box)
 - [x] P7-12 Pricing/compta LLM M-LLM-1→7 (§6.7.3) : résumé events Vue Prix, justification prix, micro vs réel, écarts payouts/banque, clamp canal, relevé concurrence (jamais de scraping auto, saisie manuelle), CGV/factures/emails à trous (montants moteur/compta/direct, Factur-X B2B / PDF B2C, 1-tap) — FAIT lab 2026-10-08 (part lab-testable) : registre `prompts.yaml` (7 usages LLM + interdits) + composeur + batterie lab §27 verte (lab = box ; exécution + gel + validation 1-tap = box)
 - [x] P7-13 Pricing/compta Jev M-JEV-1→6 (§6.7.4) : anti-braderie gap-night/last-minute, juge flex/late/early, pertinence mode gestion (jamais de bascule silencieuse), fiabilité relevé, dérive ménage 110 €, priorisation fiscale (jamais micro→réel auto) — FAIT lab 2026-10-08 (part lab-testable) : registre `prompts.yaml` (6 usages Jev + construits + seuils blocage/file/1-tap) + composeur + batterie lab §27 verte (lab = box ; seuils prod = code pricing/compta/dispatch + box)
-- [ ] P7-14 Ops LLM M-LLM1→10 (§6.7.5) : classification photo dégât (via `intervention.json`, sans vision), résumé sinistre SLA, résumé intervention, scoring presta expliqué, conflit ICS expliqué, diagnostic supervision → runbook Phase 8, résumé logs 7 j, fiche mission, dossier incomplet, écart compta + onboarding
+- [x] P7-14 Ops LLM M-LLM1→10 (§6.7.5) : classification photo dégât (via `intervention.json`, sans vision), résumé sinistre SLA, résumé intervention, scoring presta expliqué, conflit ICS expliqué, diagnostic supervision → runbook Phase 8, résumé logs 7 j, fiche mission, dossier incomplet, écart compta + onboarding — FAIT lab 2026-10-08 (part lab-testable) : registre `prompts.yaml` (10 usages LLM `ollm-*` + interdits garde-fous) + composeur + batterie lab §28 verte (lab = box ; exécution + validation 1-tap = box)
 - [ ] P7-15 Ops Jev M-JEV1→9 (§6.7.6) : vrai scoring dispatch Choice, gravité sinistre SLA, complétude photo sans vision, conflit ICS (direct > Airbnb > Booking > Abritel), diagnostic supervision, fusion WiFi-sensing (classe/surnombre/fête, jamais seul), blanchisserie/linge, caution/litige (AirCover 14 j / Booking 48 h / Vrbo ~14 j, jamais retenue sans justificatifs), wizard gating palier
 - [ ] P7-16 Juridique LLM M-LLM-1→7 (§6.7.7) : résumé CGV 1 page/langue (mentions L.111-1/L.112-1/L.221-28/L.612-1 + médiateur + ODR, R.212-1 interdit, verbatim caution, validation humaine datée), check-list conformité (`verifiee: false` → BLOQUÉ), lettre syndic, relances RC/registre/DPE/taxe/syndic (dispatch bloqué si `suspendu_assurance`), réclamation/médiation, digest audit, filtrage RBAC prompt scopé
 - [ ] P7-17 Juridique Jev M-JEV-1→7 (§6.7.8) : garde-fou R.212-1, complétude conformité bloquante, routage réclamation/médiation (jamais clôture auto), éligibilité caution avant forclusion, criticité échéances (digest vs critique), anti-fuite RBAC, anomalie pilotage (jamais d'écriture auto compta, pièces 10 ans chiffrées)

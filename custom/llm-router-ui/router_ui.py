@@ -39,8 +39,10 @@
 #     `select.logX_llm_backend` + `input_text.logX_llm_model_override` +
 #     `sensor.llm_cout_mois` (alerte >5 €) + vérif dépréciation mensuelle =
 #     box HA, jamais ici)
-#   GET  /prompts -> P7-10/11 : catalogue M1-M8 + J1-J9 (usage + moteur +
-#     alias/construits + variables + interdits, lecture seule)
+#   GET  /prompts -> P7-10/11/12/13/14 : catalogue M1-M8 + J1-J9 +
+#     pricing/compta (pllm/pjev) + ops (ollm M-LLM1-10)
+#     (usage + moteur + alias/construits + variables + interdits,
+#     lecture seule)
 #   POST /composer {usage, variables} -> 200 {prompt, alias|backend, ...}
 #     (trous seuls 422 variable_manquante, placeholders injectés APRÈS,
 #     jamais d'appel : proxy :4000 / SystemOne box, sortie = proposition)
@@ -177,7 +179,8 @@ TROU = re.compile(r"\{\{\s*(\w+)\s*\}\}")
 
 
 def lire_prompts(path):
-    """Registre prompts M1-M8 + J1-J9 (prompts.yaml, UNE ligne par champ) :
+    """Registre prompts M1-M8 + J1-J9 + pricing/compta + ops M-LLM1-10
+    (prompts.yaml, UNE ligne par champ) :
     {usage: {moteur (llm|jev), alias, construits[], seuils, variables[],
     interdits[], systeme}}."""
     prompts = {}
@@ -438,7 +441,8 @@ class Routeur:
         return lire_prompts(os.path.join(base, "prompts.yaml")) if base \
             else {}
 
-    # --- GET /prompts : catalogue M1-M8 + J1-J9 (lecture seule) ---
+    # --- GET /prompts : catalogue M1-M8 + J1-J9 + pricing/compta + ops
+    # (lecture seule) ---
     def prompts(self):
         reg = self._prompts()
         if not reg:
@@ -454,7 +458,8 @@ class Routeur:
 
     # --- POST /composer : prompt composé (trous seuls, jamais d'appel) ---
     def composer(self, usage, variables):
-        """Compose le prompt système + variables (M1-M8 LLM, J1-J9 Jev).
+        """Compose le prompt système + variables (M1-M8 / J1-J9 / pricing /
+        ops M-LLM1-10 LLM, Jev).
         Déterministe : usage connu (400 sinon) ; LLM : alias du registre ∈
         proxy (400 sinon) ; Jev : backend typesafe/systemone direct (appel
         SystemOne box, seuils = POST /gardien decision) ; variables requises

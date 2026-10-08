@@ -197,3 +197,53 @@ prompts:
     variables: [ca_cumul, plafonds]
     interdits: [choix_fiscal_auto]
     systeme: "Priorise la fiscalité (Noul plafond imminent + Choice digest groupé, critique immédiate ou RDV comptable). Ne choisit jamais micro vers réel ni classement (humain + comptable). CA cumulé : {{ ca_cumul }} — Plafonds : {{ plafonds }}."
+  - usage: ollm-classif-degat
+    alias: lcd-chat-fast
+    variables: [dossier, observations, metadonnees]
+    interdits: [vision_directe, retenue_auto, photo_externe]
+    systeme: "Qualifie le dossier dégât depuis intervention.json + observations + métadonnées (nb photos/pièce, EXIF/horodatage, avant/après appariés), SANS vision directe. Photos = preuve EXIF (galerie >24 h refusée), jamais de retenue décidée seule, aucune photo en API externe (RGPD), validation humaine. Dossier : {{ dossier }} — Observations : {{ observations }} — Métadonnées : {{ metadonnees }}."
+  - usage: ollm-resume-sinistre
+    alias: lcd-chat-fast
+    variables: [quoi, ou, quand, gravite, canal]
+    interdits: [promesse_indemnisation, delai_invente]
+    systeme: "Résume le sinistre en 5 lignes (quoi/où/quand/gravité présumée/délai + prochaines actions) avec SLA en code (AirCover 14 j avant suivant / Booking 48 h / Vrbo ~14 j). Jamais de promesse d'indemnisation, délais jamais inventés. Quoi : {{ quoi }} — Où : {{ ou }} — Quand : {{ quand }} — Gravité : {{ gravite }} — Canal : {{ canal }}."
+  - usage: ollm-resume-intervention
+    alias: lcd-chat-fast
+    variables: [presence, temps_declare, temps_facture, photos]
+    interdits: [montant_modifie, cloture_forcee]
+    systeme: "Digest de clôture intervention (présence vs travail déclaré vs facturé + photos avant/après OK/KO, écart >20 %). Temps facturé = temps pointé en code, jamais de montant modifié, blocage si preuves manquantes. Présence : {{ presence }} — Déclaré : {{ temps_declare }} — Facturé : {{ temps_facture }} — Photos : {{ photos }}."
+  - usage: ollm-scoring-presta
+    alias: lcd-chat-fast
+    variables: [candidats, zone, sla]
+    interdits: [hors_zone_auto, rc_douteuse]
+    systeme: "Explique le scoring presta (prix/h + note + jours + zone, 2e choix hors zone + surcoût déplacement). Filtre zone+actif+RC avant génération, jamais de dispatch hors zone auto. Candidats : {{ candidats }} — Zone : {{ zone }} — SLA : {{ sla }}."
+  - usage: ollm-conflit-ics
+    alias: lcd-chat-fast
+    variables: [resa_a, resa_b, regle]
+    interdits: [ordre_invente, arbitrage_auto]
+    systeme: "Explique le conflit ICS (2 résas + règle de marge + proposition relogement/annulation + geste) + brouillon voyageur perdant. Ordre directe>Airbnb>Booking>Abritel inviolable en code, humain arbitre, stop-sell auto en code. Résa A : {{ resa_a }} — Résa B : {{ resa_b }} — Règle : {{ regle }}."
+  - usage: ollm-diagnostic-panne
+    alias: lcd-chat-fast
+    variables: [symptome, contexte]
+    interdits: [ouverture_distance, pin_clair]
+    systeme: "Diagnostic panne vers runbook Phase 8 (Hub muet >30 min : reboot prise Nous sinon visite PIN existants OK ; batterie vide : boîte Master Lock + piles tiroir entrée ; WAN down : file locale + digest retour). Phrases offline figées, jamais d'ouverture à distance sans double confirmation, jamais de PIN en clair. Symptôme : {{ symptome }} — Contexte : {{ contexte }}."
+  - usage: ollm-resume-logs
+    alias: lcd-chat-fast
+    variables: [stats, cas_faibles]
+    interdits: [code_pin, secret]
+    systeme: "Résume les logs décision 7 j (nb décisions/backend/fallbacks/conf moyenne/latence + cas confiance basse). Texte seul, jamais de codes ni secrets, local de préférence. Stats : {{ stats }} — Cas faibles : {{ cas_faibles }}."
+  - usage: ollm-fiche-mission
+    alias: lcd-chat-fast
+    variables: [motif, metier, zone, sla]
+    interdits: [sans_rc, hors_zone]
+    systeme: "Génère la fiche mission (motif+métier+zone+SLA+checklist photos avant/après + pointage QR + consignes). RC+zone filtrées avant, validation 1-tap, langue socle. Motif : {{ motif }} — Métier : {{ metier }} — Zone : {{ zone }} — SLA : {{ sla }}."
+  - usage: ollm-dossier-incomplet
+    alias: lcd-chat-fast
+    variables: [dossier, manquants]
+    interdits: [deblocage_auto, facturation_forcee]
+    systeme: "Liste le dossier incomplet (photos pièce X, pointage départ, intervention.json, facture/devis, EXIF) en message intervenant + hôte. Blocage clôture/facturation en code, jamais de déblocage auto. Dossier : {{ dossier }} — Manquants : {{ manquants }}."
+  - usage: ollm-ecart-compta
+    alias: lcd-chat-fast
+    variables: [ecart, details]
+    interdits: [ecriture_auto, cle_bancaire]
+    systeme: "Explique l'écart compta (commission/payout/extra) + aide onboarding (tableau/230 V = électricien obligatoire, copro verifiee bloque mise en ligne). Lecture seule, jamais d'écriture auto, orpheline >7 j = file. Écart : {{ ecart }} — Détails : {{ details }}."
