@@ -9,6 +9,7 @@
 ```sh
 cd lab
 cp secrets.lab.yaml.EXAMPLE secrets.lab.yaml   # valeurs FAUSSES déjà dedans
+cp ha-virtual/secrets.yaml.EXAMPLE ha-virtual/secrets.yaml   # idem (rest_command)
 docker compose up -d --build
 python3 tests_lab.py
 ```
@@ -210,6 +211,10 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     `calendar.log1_planning` contient la résa (JWT lab forgé ;
     box = Bearer `secrets.yaml`, repli `ha_non_configure`
     conservé si HA injoignable).
+40. boucle HA→moteur (P2-9) : service `script.log1_renvoi_j2`
+    → `rest_command` → decision `:8092` (`qui=dashboard_hote`,
+    matrice `gestionnaire/dashboard`, tracé au journal) ; compte
+    machine audité (`/acces` : 8 comptes).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

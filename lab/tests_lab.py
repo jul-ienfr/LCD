@@ -132,6 +132,24 @@ def ha_get(chemin, timeout=15):
             return code, str(e)
 
 
+def ha_post_ha(chemin, payload, timeout=30):
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(HA_URL + chemin, data=data,
+                                 headers={"Authorization": "Bearer "
+                                                            + ha_token(),
+                                          "Content-Type": "application/json"},
+                                 method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, json.loads(r.read().decode("utf-8"))
+    except Exception as e:
+        code = getattr(e, "code", None) or 0
+        try:
+            return code, json.loads(e.read().decode("utf-8"))
+        except Exception:
+            return code, str(e)
+
+
 def check(nom, cond, detail=""):
     _aff(f"[{'OK' if cond else 'KO'}] {nom}" + (f" — {detail}" if detail else ""))
     if not cond:
@@ -2876,8 +2894,10 @@ check("GET /acces comptable -> 403 (reserve super_admin/admin)",
 code, au = get("decision", "/acces?qui=personne_01")
 pers = {p.get("id"): p for p in au.get("personnes", [])} \
     if isinstance(au, dict) else {}
-check("GET /acces super_admin : 7 nominatifs + MFA exigee signalee",
-      code == 200 and isinstance(au, dict) and au.get("total") == 7
+check("GET /acces super_admin : 8 comptes (7 nominatifs + 1 machine) + MFA",
+      code == 200 and isinstance(au, dict) and au.get("total") == 8
+      and pers.get("dashboard_hote", {}).get("mfa_exigee") is False
+      and pers.get("dashboard_hote", {}).get("statut") == "actif"
       and pers.get("personne_01", {}).get("mfa_exigee") is True
       and pers.get("personne_01", {}).get("mfa_active") is False
       and pers.get("personne_05", {}).get("mfa_exigee") is False
@@ -4420,7 +4440,26 @@ check("HA calendar.log1_planning contient la resa (push ics-sync)",
       f"HTTP {code} sejours={len(sejs)}")
 
 print()
+print("== 41. boucle HA->moteur : script -> rest_command -> decision (lab/P2-9) ==")
+code, st = ha_post_ha("/api/states/input_text.log1_ref_sejour",
+                      {"state": "LAB-LOOP41"}) if ha_pret else (0, "HA down")
+check("HA input ref_sejour <- LAB-LOOP41 (dashboard)",
+      code in (200, 201), f"HTTP {code} {st}")
+code, svc = ha_post_ha("/api/services/script/log1_renvoi_j2",
+                       {}) if ha_pret else (0, "HA down")
+check("HA script log1_renvoi_j2 -> 200 (rest_command decision)",
+      code == 200, f"HTTP {code} {svc}")
+code, jl41 = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01"}))
+refs41 = [(e.get("ref"), e.get("qui")) for e in
+          jl41.get("entrees", [])] if isinstance(jl41, dict) else []
+check("decision journal : LAB-LOOP41 trace dashboard_hote (boucle fermee)",
+      code == 200 and any(r == "LAB-LOOP41" and str(q or "").startswith(
+          "dashboard_hote") for r, q in refs41),
+      f"HTTP {code} refs={len(refs41)}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha.")

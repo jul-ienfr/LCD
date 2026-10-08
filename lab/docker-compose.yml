@@ -440,6 +440,7 @@ services:
     volumes:
       - haconfig:/config
       - ./ha-virtual/configuration.yaml:/config/configuration.yaml:ro
+      - ./ha-virtual/secrets.yaml:/config/secrets.yaml:ro
       - ../homeassistant/packages:/config/packages:ro
     depends_on:
       ha-bootstrap:

@@ -73,7 +73,9 @@
 #   GET /journal (qui/quand/quoi 90 j, etat_lecture + périmètre, cap 200,
 #   jamais de PIN) + `--check` alertes MFA/expiry/doublons. Voyageur = pas
 #   de compte nominatif (PWA séjour, `qui inconnu` par défaut) ; presta =
-#   PWA mission seule, jamais HA direct.
+#   PWA mission seule, jamais HA direct. Compte machine `dashboard_hote`
+#   (gestionnaire/dashboard, LAN seul, P2-9 : scripts HA renvoi/forcage
+#   via rest_command, moindre privilège, tracé tel quel au journal).
 # - P6-21 (§12.5-bis) : carnet preuve tranquillité POST /preuve-db (dB seuls
 #   0-120, jamais d'audio, trimestre auto) + POST /preuve-attestation
 #   (intervention/ménage/message_rappel) + GET /carnet (synthèse trimestre :

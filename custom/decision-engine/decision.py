@@ -137,7 +137,13 @@ PERMISSIONS = {
     ("super_admin", "admin"): {"etat_lecture", "event_envoi", "prix_reco", "prix_derogation",
                                "forcage_stop_sell", "menage_cloture", "config_modif"},
     ("gestionnaire", "operateur"): {"etat_lecture", "event_envoi", "prix_reco",
-                                    "menage_cloture", "forcage_stop_sell"},
+                                     "menage_cloture", "forcage_stop_sell"},
+    # Compte machine dashboard hôte (LAN seul, P2-9) : scripts HA
+    # (renvoi J-2/J-1, forçage stop-sell) via rest_command. Moindre
+    # privilège (jamais menage_cloture/prix/config), tracé au journal
+    # (qui=dashboard_hote), jamais de MFA simulée (hors MFA_EXIGEE).
+    ("gestionnaire", "dashboard"): {"etat_lecture", "event_envoi",
+                                    "forcage_stop_sell"},
     ("gestionnaire", "comptable"): {"etat_lecture", "exports_compta"},
     ("gestionnaire", "support"): {"etat_lecture", "event_envoi"},
     ("proprietaire", "proprio_logement"): {"etat_lecture", "prix_reco"},

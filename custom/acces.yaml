@@ -59,3 +59,12 @@ personnes:
     logements: [log1]
     expire_le: null                       # fin mission auto (dispatch §12.4-bis)
     mfa: false                            # PWA mission seule, jamais HA direct
+
+  - id: dashboard_hote
+    role: gestionnaire
+    sous_role: dashboard                 # COMPTE MACHINE dashboard hôte (LAN seul, P2-9 :
+                                          # scripts HA renvoi J-2/J-1 + forçage via rest_command,
+                                          # jamais un humain ; tracé tel quel au journal)
+    logements: [log1, log2]
+    expire_le: null                       # révoquer ici si dashboard compromis (POST /acces-revoquer)
+    mfa: false                            # machine LAN, jamais de MFA simulée (hors MFA_EXIGEE)
