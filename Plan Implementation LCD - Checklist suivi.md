@@ -5,14 +5,14 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `28 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `29 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
 - Phase 3 Accès : 0/8
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
-- Phase 6 Exploitation : 11/22
+- Phase 6 Exploitation : 12/22
 - Phase 7 Voix + LLM/Jev : 0/20
 - Phase 8 Recette / go-live : 0/12
 
@@ -130,7 +130,7 @@ Dépendances : Grocy (add-on + intégration), WallPanel, Telegram/Companion App,
 - [x] P6-9 Office de tourisme (brique voyageur, lecture seule) : moteur :8098 `GET /tourisme?logement_id[&categorie]` (lieux `custom/tourisme/<zone>.yaml` visite/resto/plage/activite/pratique, déclinés par zones du logement zone_defaut incluse, `extra_id` croisé catalogue fusionné `extra_disponible`+`prix_ttc`, categorie hors set → 400, `extras_upsell: off` → 503, ajouts = humain via git) + 18 lieux (santa_severa 8 + nice_ouest 6 + sophia_antipolis 4 prêt futur) + batterie lab §11-quater 14 lieux log1 verte (lab = box)
 - [x] P6-9-bis Guide vivant : WallPanel kiosk + vues socle 5 + QR par pièce/appareil + arrivée guidée J-1 (lien PWA + PIN + WiFi + QR salon) + départ zéro friction (checklist + avis J+1) — FAIT lab 2026-10-07/08 : visibilités par carte WallPanel (flags `guide_vivant/wallpanel/qr_pieces/questionnaire/avis_j1` log1+log2), composition localisée FR/EN/ES/IT/DE + maternelle auto (§5.7-ter, placeholders intouchables, injection APRÈS choix gabarit), defaults statiques `--branding` + `wifi_ssid` log1/log2, `input_text.logX_wifi_ssid` log1+log2, batterie lab §11-quinquies verte (lab = box)
 - [x] P6-10 WiFi invité isolé : SSID guest + QR `WIFI:T:WPA;…` + clé rotative par défaut (`input_text.logX_wifi_key`), returning si même voyageur reconnu (message « Bon retour ! »), jamais en vocal/LLM/logs — FAIT lab 2026-10-08 : `wifi_qr` produit par decision depuis secrets lab FAUSSES (`wifi_logX_ssid/key`, jamais inventé), préfixe « Bon retour ! » localisé socle 5 via `retour_voyageur` humain (jamais auto), excludes `*wifi*` recorder/logbook, batterie lab §11-sexies 4/4 verte (lab = box)
-- [ ] P6-11 Langues (§5.7-ter) : socle FR/EN/ES/IT/DE (`docs/templates/*.{fr,en,es,it,de}.md`) + maternelle auto LLM (placeholders `{{ }}` intouchables, cache phrase+langue, badge auto, fallback EN) + sélecteur PWA + Piper `it_IT`/`de_DE` si satellites + 20 phrases critiques 1-tap + recette 50 requêtes/langue
+- [x] P6-11 Langues (§5.7-ter) — PARTIEL lab 2026-10-08 : phrasebook 20 phrases critiques 1-tap localisées socle 5 (`GET /phrases` decision : catalogue + rendu, fallback EN + badge auto hors socle, placeholders injectés APRÈS choix langue, jamais PIN) + batterie §11-septies 14/14 verte (reste box/terrain : sélecteur PWA + Piper `it_IT`/`de_DE` satellites + validation humaine traductions + recette 50 requêtes/langue)
 - [ ] P6-12 Mémoire voyageur (`memoire_voyageur: on`) : opt-in PWA révocable 1-tap + `custom/memoire/voyageurs.yaml` (hash, jamais prestas, jamais discrimination tarifaire, purge 24 mois) + pré-remplissage séjour suivant (langue, consignes, extras favoris 1-tap, « Bon retour [prénom] ! », WiFi returning)
 - [ ] P6-13 Ménage à date certaine : `menage_frequence_j` + séjour ≥ durée → `todo.logX_menage_intermediaire` (heure pref, pendant absence si PIR+code=vide) + message voyageur + facturation (offert dès 14 j si `remplissage_max`, sinon 60 €) ; défaut J+7 si ≥10 j
 - [ ] P6-14 Questionnaire J-2 (§5.7-quinquies) : 1 lien PWA+PIN, 3 min, pré-rempli, 4 blocs (Arrivée / Préférences / Extras / Contrat+opt-ins), cut-off J-1 18h, rappel J-1 15h, jamais bloquant
