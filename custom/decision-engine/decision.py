@@ -22,6 +22,9 @@
 #   POST /autoriser {qui_id, action, logement_id} -> {autorise, motif, role}
 #   POST /event {type, logement_id, qui, ref?, data?} -> vérifie RBAC + copro, log, forward HA
 #     types : lcd_j2_envoi_acces | lcd_j1_rappel | lcd_checkout | lcd_avis_j1
+#   GET  /phrases?logement_id=log1[&cle=<cle>&langue=<code>&var=...] -> P6-11 :
+#     sans cle = catalogue 20 phrases 1-tap ; avec cle = phrase rendue localisée
+#     (placeholders injectés APRÈS choix langue, jamais de PIN ici)
 #   POST /decision {logement_id, ref, qui, quoi, canal?, montant?, motif?, llm?, jev?}
 #     -> vérifie RBAC + bornes + hors_bornes Jev, log JSONL (bloqué si refusé, loggé aussi)
 #   GET  /health -> {"ok": true}
@@ -101,6 +104,176 @@ BON_RETOUR = {"fr": "Bon retour !",
 def echapper_wifi(val):
     """Échappe une valeur au format WIFI: (spec : \\ ; , : préfixés de \\)."""
     return re.sub(r"([\\;,:\"])", r"\\\1", val or "")
+
+
+# P6-11 §5.7-ter : phrasebook 20 phrases critiques 1-tap, localisées socle 5
+# (FR source validée humain ; EN/ES/IT/DE validées humain — mêmes clés de
+# placeholders {{ }} que les gabarits, injectés APRÈS choix de langue, jamais
+# traduits). Sans PIN ni secret : rendu en mémoire seule, jamais loggé en clair
+# (réponse = métadonnées SÛRES + texte rendu côté appelant humain, comme /event).
+# Hors socle -> fallback EN + traduction_auto True (badge à poser par l'appelant).
+PHRASES_CRITIQUES = {
+    "bienvenue": {
+        "fr": "Bienvenue à {{ logement }} !",
+        "en": "Welcome to {{ logement }}!",
+        "es": "Bienvenido a {{ logement }}.",
+        "it": "Benvenuti a {{ logement }}!",
+        "de": "Willkommen in {{ logement }}!",
+    },
+    "arrivee_16h": {
+        "fr": "Arrivée à partir de {{ heure_arrivee }}.",
+        "en": "Check-in from {{ heure_arrivee }}.",
+        "es": "Llegada a partir de las {{ heure_arrivee }}.",
+        "it": "Check-in dalle {{ heure_arrivee }}.",
+        "de": "Anreise ab {{ heure_arrivee }} Uhr.",
+    },
+    "depart_11h": {
+        "fr": "Départ avant 11h, merci de laisser les clés à l'intérieur.",
+        "en": "Check-out before 11am, please leave the keys inside.",
+        "es": "Salida antes de las 11h, deje las llaves dentro por favor.",
+        "it": "Check-out entro le 11, lasciate le chiavi all'interno.",
+        "de": "Abreise vor 11 Uhr, bitte lassen Sie die Schlüssel drinnen.",
+    },
+    "heures_calmes": {
+        "fr": "Heures calmes : {{ heures_calmes }} — merci de respecter le voisinage.",
+        "en": "Quiet hours: {{ heures_calmes }} — please respect the neighbours.",
+        "es": "Horas de silencio: {{ heures_calmes }} — gracias por respetar a los vecinos.",
+        "it": "Ore di silenzio: {{ heures_calmes }} — rispettate i vicini.",
+        "de": "Ruhezeiten: {{ heures_calmes }} — bitte respektieren Sie die Nachbarn.",
+    },
+    "urgence": {
+        "fr": "Urgence : appelez le {{ tel_urgence }}.",
+        "en": "Emergency: call {{ tel_urgence }}.",
+        "es": "Emergencia: llame al {{ tel_urgence }}.",
+        "it": "Emergenza: chiamate il {{ tel_urgence }}.",
+        "de": "Notfall: Rufen Sie {{ tel_urgence }} an.",
+    },
+    "wifi_aide": {
+        "fr": "WiFi invité : scannez le QR sur la table du salon.",
+        "en": "Guest WiFi: scan the QR on the living-room table.",
+        "es": "WiFi de invitados: escanee el QR de la mesa del salón.",
+        "it": "WiFi ospiti: scansionate il QR sul tavolo del soggiorno.",
+        "de": "Gäste-WLAN: Scannen Sie den QR auf dem Wohnzimmertisch.",
+    },
+    "boite_cles": {
+        "fr": "Boîte à clés : le code vous a été envoyé séparément.",
+        "en": "Lockbox: the code was sent to you separately.",
+        "es": "Caja de llaves: el código se le envió por separado.",
+        "it": "Cassetta delle chiavi: il codice vi è stato inviato separatamente.",
+        "de": "Schlüsselbox: Der Code wurde Ihnen separat zugesendet.",
+    },
+    "code_separe": {
+        "fr": "Votre code d'accès vous a été envoyé séparément.",
+        "en": "Your access code was sent to you separately.",
+        "es": "Su código de acceso se le envió por separado.",
+        "it": "Il vostro codice di accesso vi è stato inviato separatamente.",
+        "de": "Ihr Zugangscode wurde Ihnen separat zugesendet.",
+    },
+    "fumeur_non": {
+        "fr": "Logement non fumeur, merci de fumer à l'extérieur.",
+        "en": "Non-smoking property, please smoke outside.",
+        "es": "Alojamiento para no fumadores, fume fuera por favor.",
+        "it": "Alloggio per non fumatori, fumate fuori per favore.",
+        "de": "Nichtraucher-Unterkunft, bitte rauchen Sie draußen.",
+    },
+    "animaux_non": {
+        "fr": "Les animaux ne sont pas acceptés dans ce logement.",
+        "en": "Pets are not allowed in this property.",
+        "es": "No se admiten mascotas en este alojamiento.",
+        "it": "Gli animali non sono ammessi in questo alloggio.",
+        "de": "Tiere sind in dieser Unterkunft nicht erlaubt.",
+    },
+    "occupants_max": {
+        "fr": "Capacité maximale : {{ occupants_max }} personnes, merci.",
+        "en": "Maximum capacity: {{ occupants_max }} guests, thank you.",
+        "es": "Capacidad máxima: {{ occupants_max }} personas, gracias.",
+        "it": "Capienza massima: {{ occupants_max }} persone, grazie.",
+        "de": "Maximale Belegung: {{ occupants_max }} Personen, danke.",
+    },
+    "menage_depart": {
+        "fr": "Départ : lancez une machine si besoin, laissez la vaisselle rangée.",
+        "en": "Check-out: run the dishwasher if needed, leave dishes put away.",
+        "es": "Salida: ponga el lavavajillas si hace falta, deje la vajilla recogida.",
+        "it": "Check-out: avviate la lavastoviglie se serve, lasciate i piatti a posto.",
+        "de": "Abreise: Spülmaschine bei Bedarf laufen lassen, Geschirr bitte einräumen.",
+    },
+    "poubelles": {
+        "fr": "Tri : containers au rez-de-chaussée, côté parking.",
+        "en": "Sorting: bins on the ground floor, parking side.",
+        "es": "Reciclaje: contenedores en la planta baja, lado parking.",
+        "it": "Differenziata: contenitori al piano terra, lato parcheggio.",
+        "de": "Mülltrennung: Container im Erdgeschoss, Parkplatzseite.",
+    },
+    "clim_consigne": {
+        "fr": "Clim : 26 °C la nuit, éteignez en partant s'il vous plaît.",
+        "en": "AC: 26°C at night, please switch off when leaving.",
+        "es": "Clima: 26 °C por la noche, apáguelo al salir por favor.",
+        "it": "Clima: 26 °C di notte, spegnete uscendo per favore.",
+        "de": "Klima: nachts 26 °C, beim Verlassen bitte ausschalten.",
+    },
+    "eau_chaude": {
+        "fr": "Eau chaude : patientez 2 minutes après ouverture du robinet.",
+        "en": "Hot water: wait 2 minutes after opening the tap.",
+        "es": "Agua caliente: espere 2 minutos tras abrir el grifo.",
+        "it": "Acqua calda: attendete 2 minuti dopo aver aperto il rubinetto.",
+        "de": "Warmwasser: Warten Sie 2 Minuten nach dem Aufdrehen.",
+    },
+    "parking": {
+        "fr": "Parking : place visiteur au sous-sol, portail code séparé envoyé.",
+        "en": "Parking: visitor bay in the basement, gate code sent separately.",
+        "es": "Parking: plaza de visitante en el sótano, código enviado por separado.",
+        "it": "Parcheggio: posto visitatori nel seminterrato, codice inviato separatamente.",
+        "de": "Parkplatz: Besucherplatz im Untergeschoss, Torcode separat gesendet.",
+    },
+    "questionnaire": {
+        "fr": "Questionnaire 3 min : {{ lien_questionnaire }} — merci !",
+        "en": "3-min survey: {{ lien_questionnaire }} — thank you!",
+        "es": "Cuestionario 3 min: {{ lien_questionnaire }} — ¡gracias!",
+        "it": "Questionario 3 min: {{ lien_questionnaire }} — grazie!",
+        "de": "3-Minuten-Fragebogen: {{ lien_questionnaire }} — danke!",
+    },
+    "avis": {
+        "fr": "Votre avis compte : {{ lien_avis }} — merci de votre séjour !",
+        "en": "Your review matters: {{ lien_avis }} — thanks for staying!",
+        "es": "Su opinión cuenta: {{ lien_avis }} — ¡gracias por su estancia!",
+        "it": "La vostra recensione conta: {{ lien_avis }} — grazie del soggiorno!",
+        "de": "Ihre Bewertung zählt: {{ lien_avis }} — danke für Ihren Aufenthalt!",
+    },
+    "bon_retour": {
+        "fr": "Bon retour ! Bon séjour à {{ logement }}.",
+        "en": "Welcome back! Enjoy your stay at {{ logement }}.",
+        "es": "¡Bienvenido de nuevo! Buena estancia en {{ logement }}.",
+        "it": "Bentornato! Buon soggiorno a {{ logement }}.",
+        "de": "Willkommen zurück! Guten Aufenthalt in {{ logement }}.",
+    },
+    "au_revoir": {
+        "fr": "Merci et à bientôt — {{ marque }} ({{ tel_urgence }} en cas d'oubli).",
+        "en": "Thank you and see you soon — {{ marque }} ({{ tel_urgence }} if forgotten).",
+        "es": "Gracias y hasta pronto — {{ marque }} ({{ tel_urgence }} en caso de olvido).",
+        "it": "Grazie e a presto — {{ marque }} ({{ tel_urgence }} in caso di dimenticanza).",
+        "de": "Danke und bis bald — {{ marque }} ({{ tel_urgence }} bei Vergessenem).",
+    },
+}
+
+
+def rendre_phrase(cle, langue, variables):
+    """Rend une phrase 1-tap : choix langue socle (fallback EN + badge) puis
+    injection placeholders APRÈS (jamais traduits). Retourne
+    (texte, langue_utilisee, traduction_auto). Jamais de PIN ici."""
+    entrees = PHRASES_CRITIQUES.get(cle or "")
+    if not entrees:
+        return "", "fr", False
+    code = (langue or "fr").lower()[:2]
+    if code in LANGUES_SOCLE:
+        texte, utilisee, auto = entrees.get(code, ""), code, False
+    else:
+        texte, utilisee, auto = entrees.get("en", ""), "en", True
+    for k, v in (variables or {}).items():
+        texte = texte.replace("{{ " + str(k) + " }}", "" if v is None else str(v))
+    texte = re.sub(r"\{\{\s*\w+\s*\}\}", "", texte)
+    if auto:
+        texte = "[traduction automatique] " + texte
+    return texte.strip(), utilisee, auto
 
 
 def _dossier_gabarits():
@@ -250,6 +423,7 @@ def lire_logements(path):
             logts[cur] = {"nom": cur, "commune": "", "prix_base": 110,
                           "prix_min": 75, "prix_max": 290,
                           "mode_gestion_defaut": "equilibre",
+                          "heures_calmes": "", "occupants_max": "",
                           "copro_verifiee": False, "features": {}}
             section = None
             continue
@@ -280,6 +454,8 @@ def lire_logements(path):
             elif section == "copro":
                 if k == "verifiee":
                     logts[cur]["copro_verifiee"] = (v == "true")
+                elif k in ("heures_calmes", "occupants_max") and v:
+                    logts[cur][k] = v
             elif section == "features":
                 logts[cur]["features"][k] = (v == "true")
     return logts
@@ -621,6 +797,43 @@ class Moteur:
                       "pin_transmis": bool(data.get("pin")),
                       "message_boite_cles": bool(data.get("message_boite_cles"))}
 
+    def rendre_phrases(self, logement_id, cle="", langue="fr", variables=None):
+        """P6-11 §5.7-ter : rend le phrasebook 1-tap pour un logement.
+        Sans cle -> catalogue (20 clés, jamais de texte). Avec cle -> phrase
+        localisée socle 5 (fallback EN + badge hors socle), placeholders
+        logement injectés APRÈS choix langue (jamais traduits) : defaults
+        statiques (marque/logement/heures_calmes/occupants_max/tel_urgence/
+        liens) complètent les trous, données fournies priment. Jamais de PIN
+        ici (ni en entrée ni en sortie) — réponse SÛRE loggable."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not cle:
+            return 200, {"logement_id": logement_id,
+                         "cles": sorted(PHRASES_CRITIQUES),
+                         "nb_phrases": len(PHRASES_CRITIQUES),
+                         "langues": list(LANGUES_SOCLE)}
+        if cle not in PHRASES_CRITIQUES:
+            return 400, {"erreur": f"cle inconnue (attendues {sorted(PHRASES_CRITIQUES)})"}
+        log = self.logts.get(logement_id, {})
+        vars_auto = dict(self.vars_statiques(logement_id))
+        # P6-11 : placeholders specifiques logement (heures_calmes/occupants_max
+        # depuis copro, jamais inventes : absents -> "" efface proprement).
+        vars_auto.setdefault("heures_calmes", log.get("heures_calmes", "") or "")
+        vars_auto.setdefault("occupants_max", log.get("occupants_max", "") or "")
+        # wifi_qr hors phrasebook (QR papier/salon, jamais de cle en phrase).
+        vars_auto.pop("wifi_qr", None)
+        fusion = dict(vars_auto)
+        for k, v in (variables or {}).items():
+            if str(k).lower() in ("pin", "code", "message"):
+                continue  # jamais de PIN/code via phrases (garde-fou §5.2)
+            if (v or "") != "":
+                fusion[k] = v
+        texte, utilisee, auto = rendre_phrase(cle, langue, fusion)
+        return 200, {"logement_id": logement_id, "cle": cle,
+                     "langue": utilisee, "traduction_auto": auto,
+                     "phrase": texte,
+                     "placeholders_restants": texte.count("{{")}
+
 
 class Handler(BaseHTTPRequestHandler):
     engine = None
@@ -656,6 +869,18 @@ class Handler(BaseHTTPRequestHandler):
             if err:
                 return self._json(404, {"erreur": err})
             return self._json(200, res)
+        if url.path == "/phrases":
+            # P6-11 §5.7-ter : phrasebook 1-tap localise socle 5.
+            # Sans cle -> catalogue ; avec cle -> phrase rendue (jamais de PIN).
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            variables = {k: v[0] for k, v in qs.items()
+                         if k not in ("logement_id", "cle", "langue") and v}
+            code, obj = self.engine.rendre_phrases(
+                logement_id, qs.get("cle", [""])[0],
+                qs.get("langue", ["fr"])[0], variables)
+            return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 
     def do_POST(self):

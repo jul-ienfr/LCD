@@ -11,6 +11,15 @@
 # - `lcd_checkout {logement_id, pin, deadline_menage, message}` (checkout ; révocation + todo).
 # - Messages composés ici (langue voyageur socle + auto §5.7-ter), jamais par les blueprints.
 #
+# ## Phrases 1-tap P6-11 (§5.7-ter) — GET /phrases?logement_id=log1[&cle=...&langue=...&var=...]
+# - Sans cle -> catalogue (20 cles critiques, 5 langues socle FR/EN/ES/IT/DE).
+# - Avec cle -> phrase rendue localisee (hors socle -> fallback EN + traduction_auto,
+#   badge "[traduction automatique]" a poser par l'appelant), placeholders logement
+#   injectes APRES choix langue (jamais traduits : heures_calmes/occupants_max du
+#   logement + defaults marque/tel_urgence/liens, donnees fournies priment).
+# - Jamais de PIN ni secret (ni en entree ni en sortie : pin/code/message ignores).
+#   Reponse SURE loggable (phrase + metadonnees, comme /event).
+#
 # ## Règles
 # - Ne génère JAMAIS de PIN (KeyMaster + Nuki Hub seuls, §1.6) ; ne fait JAMAIS de tool-calling
 #   serrure/vanne/portail direct — passe par blueprints + vérif état.

@@ -1155,8 +1155,92 @@ check("non-returning EN : J-2 202 + gabarit + placeholders 0",
       and j2_new.get("langue") == "en",
       f"HTTP {code} {j2_new}")
 
+print("== 11-septies. phrasebook 1-tap (P6-11 §5.7-ter) ==")
+# Catalogue sans cle : 20 phrases critiques, 5 langues socle, jamais de texte.
+code, cat = get("decision", "/phrases?logement_id=log1")
+check("catalogue : 200 + 20 cles + 5 langues socle",
+      code == 200 and isinstance(cat, dict)
+      and cat.get("nb_phrases") == 20 and len(cat.get("cles", [])) == 20
+      and cat.get("langues") == ["fr", "en", "es", "it", "de"]
+      and "bienvenue" in cat.get("cles", [])
+      and "heures_calmes" in cat.get("cles", [])
+      and "urgence" in cat.get("cles", [])
+      and "phrase" not in cat,
+      f"HTTP {code} nb={cat.get('nb_phrases') if isinstance(cat, dict) else cat}")
+
+# FR : heures_calmes log1 (22h-8h depuis logements lab) injecte APRES, 0 residu.
+code, ph = get("decision", "/phrases?logement_id=log1&cle=heures_calmes&langue=fr")
+check("FR heures_calmes : 22h-8h injecte, 0 placeholder",
+      code == 200 and isinstance(ph, dict)
+      and ph.get("langue") == "fr" and ph.get("traduction_auto") is False
+      and "22h-8h" in ph.get("phrase", "")
+      and "{{" not in ph.get("phrase", "")
+      and ph.get("placeholders_restants") == 0,
+      f"HTTP {code} {ph}")
+
+# FR : bienvenue avec nom logement lab (defaults statiques, jamais inventes).
+code, ph = get("decision", "/phrases?logement_id=log1&cle=bienvenue&langue=fr")
+check("FR bienvenue : nom logement lab injecte",
+      code == 200 and isinstance(ph, dict)
+      and "Santa Severa" in ph.get("phrase", "")
+      and ph.get("placeholders_restants") == 0,
+      f"HTTP {code} {ph}")
+
+# Socle 5 : EN/ES/IT/DE rendues sans residu (depart_11h = texte pur).
+for lg in ("en", "es", "it", "de"):
+    code, ph = get("decision", f"/phrases?logement_id=log1&cle=depart_11h&langue={lg}")
+    check(f"{lg.upper()} depart_11h : langue {lg}, 0 placeholder",
+          code == 200 and isinstance(ph, dict)
+          and ph.get("langue") == lg and ph.get("traduction_auto") is False
+          and "{{" not in ph.get("phrase", "")
+          and ph.get("placeholders_restants") == 0,
+          f"HTTP {code} {ph}")
+
+# Donnee fournie prime sur defaults : heure_arrivee=15h.
+code, ph = get("decision", "/phrases?logement_id=log1&cle=arrivee_16h&langue=fr&heure_arrivee=15h")
+check("donnee fournie prime : heure_arrivee=15h rendue",
+      code == 200 and isinstance(ph, dict)
+      and "15h" in ph.get("phrase", "")
+      and ph.get("placeholders_restants") == 0,
+      f"HTTP {code} {ph}")
+
+# Hors socle (pt) : fallback EN + badge auto, jamais de {{ }}.
+code, ph = get("decision", "/phrases?logement_id=log1&cle=urgence&langue=pt")
+check("fallback pt : EN + badge traduction automatique",
+      code == 200 and isinstance(ph, dict)
+      and ph.get("langue") == "en" and ph.get("traduction_auto") is True
+      and str(ph.get("phrase", "")).startswith("[traduction automatique]")
+      and "{{" not in ph.get("phrase", "")
+      and ph.get("placeholders_restants") == 0,
+      f"HTTP {code} {ph}")
+
+# occupants_max log2 (=4, pas log1=5) : donnees logement, jamais inventees.
+code, ph = get("decision", "/phrases?logement_id=log2&cle=occupants_max&langue=fr")
+check("log2 occupants_max : 4 du logement (pas 5 de log1)",
+      code == 200 and isinstance(ph, dict)
+      and "4" in ph.get("phrase", "")
+      and ph.get("placeholders_restants") == 0,
+      f"HTTP {code} {ph}")
+
+# Garde-fou §5.2 : pin/code/message ignores — jamais exposes en reponse.
+code, ph = get("decision", "/phrases?logement_id=log1&cle=code_separe&langue=fr&pin=482913&message=xx&code=yy")
+check("jamais de PIN via phrases : reponse sans pin/message",
+      code == 200 and isinstance(ph, dict)
+      and "pin" not in ph and "message" not in ph
+      and "482913" not in ph.get("phrase", "")
+      and ph.get("placeholders_restants") == 0,
+      f"HTTP {code} {ph}")
+
+# 400 cle inconnue, 404 logement inconnu, 400 sans logement_id.
+code, obj = get("decision", "/phrases?logement_id=log1&cle=inexistante&langue=fr")
+check("cle inconnue -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/phrases?logement_id=logX&cle=bienvenue&langue=fr")
+check("logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = get("decision", "/phrases?cle=bienvenue&langue=fr")
+check("sans logement_id -> 400", code == 400, f"HTTP {code} {obj}")
+
 print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11.")
