@@ -5,14 +5,14 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `30 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `31 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
 - Phase 3 Accès : 0/8
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
-- Phase 6 Exploitation : 13/22
+- Phase 6 Exploitation : 14/22
 - Phase 7 Voix + LLM/Jev : 0/20
 - Phase 8 Recette / go-live : 0/12
 
@@ -132,7 +132,7 @@ Dépendances : Grocy (add-on + intégration), WallPanel, Telegram/Companion App,
 - [x] P6-10 WiFi invité isolé : SSID guest + QR `WIFI:T:WPA;…` + clé rotative par défaut (`input_text.logX_wifi_key`), returning si même voyageur reconnu (message « Bon retour ! »), jamais en vocal/LLM/logs — FAIT lab 2026-10-08 : `wifi_qr` produit par decision depuis secrets lab FAUSSES (`wifi_logX_ssid/key`, jamais inventé), préfixe « Bon retour ! » localisé socle 5 via `retour_voyageur` humain (jamais auto), excludes `*wifi*` recorder/logbook, batterie lab §11-sexies 4/4 verte (lab = box)
 - [x] P6-11 Langues (§5.7-ter) — PARTIEL lab 2026-10-08 : phrasebook 20 phrases critiques 1-tap localisées socle 5 (`GET /phrases` decision : catalogue + rendu, fallback EN + badge auto hors socle, placeholders injectés APRÈS choix langue, jamais PIN) + batterie §11-septies 14/14 verte (reste box/terrain : sélecteur PWA + Piper `it_IT`/`de_DE` satellites + validation humaine traductions + recette 50 requêtes/langue)
 - [x] P6-12 Mémoire voyageur (`memoire_voyageur: on`) — PARTIEL lab 2026-10-08 : opt-in/out/purge 1-tap geste HUMAIN seul (`GET/POST /memoire` decision, hash sha256 seul jamais CSI brut, purge 24 mois, réponses SÛRES loggables, returning hash J-2 langue fiche + « Bon retour » sans écraser données fournies) + registre lab RW `memoire.lab/` (reset git) + batterie §11-octies 17/17 verte (reste box/terrain : PWA opt-in/out 1-tap + validation humaine pré-remplissage)
-- [ ] P6-13 Ménage à date certaine : `menage_frequence_j` + séjour ≥ durée → `todo.logX_menage_intermediaire` (heure pref, pendant absence si PIR+code=vide) + message voyageur + facturation (offert dès 14 j si `remplissage_max`, sinon 60 €) ; défaut J+7 si ≥10 j
+- [x] P6-13 Ménage à date certaine — PARTIEL lab 2026-10-08 : prefs mémoire (`menage_frequence_j` 0-30 / `menage_heure_pref` HH:MM / `menage_pendant_absence` oui-non, opt-in humain + pré-remplissage SÛR) + `POST /menage-intermediaire` dispatch (geste HUMAIN seul, 404 logX, dates certaines arrivée+N×freq < départ, défaut J+7 si séjour ≥10 j sans pref, sinon fin_séjour_seul si <10 j, dossiers via todos() existants, facturation info SÛRE offert dès 14 j si `remplissage_max` sinon 60 €, messages voyageur J-1 SÛRS jamais de PIN) + batterie §11-novies 11/11 verte (reste box/terrain : dispatch presta réel + message voyageur J-1 réel + facturation compta réelle)
 - [ ] P6-14 Questionnaire J-2 (§5.7-quinquies) : 1 lien PWA+PIN, 3 min, pré-rempli, 4 blocs (Arrivée / Préférences / Extras / Contrat+opt-ins), cut-off J-1 18h, rappel J-1 15h, jamais bloquant
 - [ ] P6-15 Contrat + signature tactile → PDF horodaté §12.5-bis + opt-ins (mémoire, géoloc, CRM retour −10 % direct si `crm_retour: on`)
 - [ ] P6-16 État des lieux auto (`etat_lieux_auto: on`) : photos horodatées par pièce + vidéo <60 s + `/config/etat_lieux/logX/<resa>/{entree,sortie}/` + EXIF + refus >24 h + comparatif + purge 90 j + consentement arrivée

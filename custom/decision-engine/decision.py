@@ -359,7 +359,10 @@ def utcnow_iso():
 # Format : liste `- hash: "<hex64>"` + champs scalaires (opt_in, opt_in_le,
 # dernier_sejour AAAA-MM-JJ, langue socle, consignes, extras_favoris CSV).
 MEMOIRE_CHAMPS = ("opt_in", "opt_in_le", "dernier_sejour", "langue",
-                  "consignes", "extras_favoris")
+                  "consignes", "extras_favoris",
+                  # P6-13 : prefs ménage intermédiaire §5.6 (§5.7-quater).
+                  "menage_frequence_j", "menage_heure_pref",
+                  "menage_pendant_absence")
 QUI_AUTO_MEMOIRE = ("auto", "llm", "jev", "moteur-direct",
                     "moteur-dispatch", "moteur-caution", "")
 
@@ -956,7 +959,14 @@ class Moteur:
         return 200, {"statut": "reconnu",
                      "langue": langue,
                      "consignes": str(fiche.get("consignes", "") or ""),
-                     "extras_favoris": extras}
+                     "extras_favoris": extras,
+                     # P6-13 : prefs ménage §5.6 (SÛRES, loggables).
+                     "menage_frequence_j": str(fiche.get(
+                         "menage_frequence_j", "0") or "0"),
+                     "menage_heure_pref": str(fiche.get(
+                         "menage_heure_pref", "11:00") or "11:00"),
+                     "menage_pendant_absence": str(fiche.get(
+                         "menage_pendant_absence", "non") or "non")}
 
     def memoire_optin(self, logement_id, qui_id, hash_voyageur, prefs=None):
         """POST /memoire optin : geste HUMAIN seul (qui != auto/llm/jev/
@@ -973,6 +983,19 @@ class Moteur:
         langue = str(prefs.get("langue", "fr") or "fr").lower()[:2]
         if langue not in LANGUES_SOCLE:
             langue = "fr"
+        # P6-13 : prefs ménage intermédiaire §5.6 (questionnaire J-2,
+        # séjour suivant). frequence 0 = fin de séjour seul ; heure "HH:MM"
+        # validée (défaut 11:00) ; pendant_absence oui/non (défaut non).
+        try:
+            freq = int(str(prefs.get("menage_frequence_j", "0") or "0"))
+        except ValueError:
+            freq = 0
+        freq = max(0, min(30, freq))
+        heure = str(prefs.get("menage_heure_pref", "11:00") or "11:00").strip()
+        if not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", heure):
+            heure = "11:00"
+        absence = str(prefs.get("menage_pendant_absence", "non") or "non"
+                      ).strip().lower() in ("oui", "yes", "true", "1")
         self.memoire[h] = {
             "opt_in": "true",
             "opt_in_le": str(prefs.get("opt_in_le", "") or "") or utcnow_iso()[:10],
@@ -982,6 +1005,9 @@ class Moteur:
             "extras_favoris": ",".join(
                 [x.strip() for x in str(prefs.get("extras_favoris", "") or "")
                  .replace(";", ",").split(",") if x.strip()][:10]),
+            "menage_frequence_j": str(freq),
+            "menage_heure_pref": heure,
+            "menage_pendant_absence": "oui" if absence else "non",
         }
         self._sauver_memoire()
         self.log_decision(logement_id, f"memoire-optin", qui_id, "acces",

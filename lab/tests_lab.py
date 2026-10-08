@@ -1347,7 +1347,123 @@ code, obj = get("decision", "/memoire?hash=" + HASH_LAB)
 check("GET sans logement_id -> 400", code == 400, f"HTTP {code} {obj}")
 
 print()
+print("== 11-novies. menage date certaine (P6-13 §5.6 + §5.7-quater) ==")
+# Prefs memoire P6-13 : opt-in avec frequence/heure/absence (geste HUMAIN).
+code, optin_men = post("decision", "/memoire",
+                       {"action": "optin", "logement_id": "log1",
+                        "qui": "personne_01", "hash": HASH_LAB,
+                        "preferences": {"langue": "fr",
+                                        "menage_frequence_j": "7",
+                                        "menage_heure_pref": "10:30",
+                                        "menage_pendant_absence": "oui"}})
+check("opt-in prefs menage 7j/10h30/absence -> 200",
+      code == 200 and isinstance(optin_men, dict)
+      and optin_men.get("statut") == "optin", f"HTTP {code} {optin_men}")
+code, fiche_men = get("decision", f"/memoire?logement_id=log1&hash={HASH_LAB}")
+check("pre-remplissage expose prefs menage SURES",
+      code == 200 and isinstance(fiche_men, dict)
+      and fiche_men.get("menage_frequence_j") == "7"
+      and fiche_men.get("menage_heure_pref") == "10:30"
+      and fiche_men.get("menage_pendant_absence") == "oui"
+      and "hash" not in fiche_men, f"HTTP {code} {fiche_men}")
+
+# Garde-fous : qui auto refuse, logement inconnu 404, dates requises.
+code, mi_auto = post("dispatch", "/menage-intermediaire",
+                     {"logement_id": "log1", "qui": "auto",
+                      "arrivee": "2026-11-01", "depart": "2026-11-16"})
+check("menage-intermediaire qui=auto refuse 400", code == 400,
+      f"HTTP {code} {mi_auto}")
+code, mi_logx = post("dispatch", "/menage-intermediaire",
+                     {"logement_id": "logX", "qui": "test-lab-humain",
+                      "arrivee": "2026-11-01", "depart": "2026-11-16"})
+check("menage-intermediaire logement inconnu -> 404", code == 404,
+      f"HTTP {code} {mi_logx}")
+code, mi_nodates = post("dispatch", "/menage-intermediaire",
+                        {"logement_id": "log1", "qui": "test-lab-humain"})
+check("menage-intermediaire sans dates -> 400", code == 400,
+      f"HTTP {code} {mi_nodates}")
+
+# Sejour court <10j sans pref : fin de sejour seul (aucune date certaine).
+code, mi_court = post("dispatch", "/menage-intermediaire",
+                      {"logement_id": "log1", "qui": "test-lab-humain",
+                       "ref_resa": f"LAB-P613-{int(time.time())}",
+                       "arrivee": "2026-11-01", "depart": "2026-11-06"})
+check("sejour 5j sans pref -> fin_sejour_seul 0 date",
+      code == 200 and isinstance(mi_court, dict)
+      and mi_court.get("statut") == "fin_sejour_seul"
+      and mi_court.get("dates") == [], f"HTTP {code} {mi_court}")
+
+# Defaut J+7 : sejour >=10j sans pref -> 1 date certaine (arrivee+7).
+code, mi_j7 = post("dispatch", "/menage-intermediaire",
+                   {"logement_id": "log1", "qui": "test-lab-humain",
+                    "ref_resa": f"LAB-P613-{int(time.time())}",
+                    "arrivee": "2026-11-01", "depart": "2026-11-13"})
+dos_j7 = ((mi_j7.get("dossiers", []) or [{}])[0].get("dossier", "")
+          if isinstance(mi_j7, dict) else "")
+check("sejour 12j sans pref -> defaut J+7 (2026-11-08)",
+      code == 201 and isinstance(mi_j7, dict)
+      and mi_j7.get("mode") == "defaut_j7"
+      and mi_j7.get("dates") == ["2026-11-08"]
+      and mi_j7.get("heure") == "11:00" and dos_j7 != ""
+      and mi_j7.get("facturation", {}).get("montant_eur") == 60,
+      f"HTTP {code} {mi_j7}")
+
+# Frequence pref 7j, sejour 15j log1 (equilibre) : 2 dates, 60 EUR/passage,
+# heure pref, absence, message J-1 SURE (jamais de PIN).
+code, mi_pref = post("dispatch", "/menage-intermediaire",
+                     {"logement_id": "log1", "qui": "test-lab-humain",
+                      "ref_resa": f"LAB-P613-{int(time.time())}",
+                      "arrivee": "2026-11-01", "depart": "2026-11-16",
+                      "frequence_j": 7, "heure_pref": "10:30",
+                      "pendant_absence": "oui"})
+msgs = (mi_pref.get("messages_voyageur_j1", [])
+        if isinstance(mi_pref, dict) else [])
+check("pref 7j 15j log1 -> 2 dates + 60EUR + absence + J-1 SURE",
+      code == 201 and isinstance(mi_pref, dict)
+      and mi_pref.get("mode") == "preference"
+      and mi_pref.get("dates") == ["2026-11-08", "2026-11-15"]
+      and mi_pref.get("heure") == "10:30"
+      and mi_pref.get("pendant_absence") == "oui"
+      and mi_pref.get("facturation", {}).get("mode") == "a_facturer"
+      and mi_pref.get("facturation", {}).get("montant_eur") == 60
+      and len(msgs) == 2 and all("absence" in m.get("message", "")
+                                 for m in msgs)
+      and all("pin" not in m.get("message", "").lower() for m in msgs),
+      f"HTTP {code} {mi_pref}")
+
+# Offert : sejour >=14j log2 (remplissage_max) -> 2 dates offertes.
+code, mi_off = post("dispatch", "/menage-intermediaire",
+                    {"logement_id": "log2", "qui": "test-lab-humain",
+                     "ref_resa": f"LAB-P613-{int(time.time())}",
+                     "arrivee": "2026-11-01", "depart": "2026-11-22",
+                     "frequence_j": 7, "heure_pref": "11:00",
+                     "pendant_absence": "non"})
+check("21j log2 remplissage_max -> offert 2 dates",
+      code == 201 and isinstance(mi_off, dict)
+      and mi_off.get("dates") == ["2026-11-08", "2026-11-15"]
+      and mi_off.get("facturation", {}).get("mode") == "offert",
+      f"HTTP {code} {mi_off}")
+
+# Dossiers visibles via GET /todos (meme socle P6-1, preuves exigibles).
+code, tl_mi = get("dispatch", "/todos?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+check("GET /todos liste dossiers intermediaires",
+      code == 200 and isinstance(tl_mi, dict)
+      and any("mi1" in (d.get("dossier", "") or "")
+              for d in tl_mi.get("dossiers", [])),
+      f"HTTP {code} total={tl_mi.get('total') if isinstance(tl_mi, dict) else tl_mi}")
+
+# Oubli memoire (opt-out) : prefs menage effacees avec la fiche.
+code, out_men = post("decision", "/memoire",
+                     {"action": "optout", "logement_id": "log1",
+                      "qui": "personne_01", "hash": HASH_LAB})
+check("opt-out apres P6-13 -> 200 oublie", code == 200
+      and isinstance(out_men, dict)
+      and out_men.get("fiche_supprimee") is True,
+      f"HTTP {code} {out_men}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13.")

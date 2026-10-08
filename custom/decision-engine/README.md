@@ -32,6 +32,10 @@
 # - Returning J-2 : data.hash reconnu (fiche opt-in valide) -> langue fiche si
 #   absente + « Bon retour ! » localisé socle 5 ; hash jamais transmis ni loggé.
 #   Jamais de PIN ni secret ici (ni entrée ni sortie).
+# - P6-13 (§5.6) : prefs ménage intermédiaire (menage_frequence_j 0-30,
+#   menage_heure_pref HH:MM, menage_pendant_absence oui/non) posées à
+#   l'opt-in, exposées SÛRES au pré-remplissage ; dispatchées par
+#   POST /menage-intermediaire côté dispatch-presta (dates certaines).
 #
 # ## Règles
 # - Ne génère JAMAIS de PIN (KeyMaster + Nuki Hub seuls, §1.6) ; ne fait JAMAIS de tool-calling

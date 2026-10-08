@@ -41,6 +41,13 @@
 #     (7 items socle + deadline check-in -2h + assigne interne/presta +
 #     extras fusionnes si extras_upsell on + notifs multi-destinataires)
 #   GET  /todos?logement_id=log1[&dossier=...] -> liste ou detail + statut
+#   POST /menage-intermediaire {logement_id, qui, ref_resa?, arrivee,
+#                depart, frequence_j?, heure_pref?, pendant_absence?,
+#                presta_dispo?} -> 201 dates certaines (arrivee+N x freq <
+#     depart, defaut J+7 si sejour >=10j sans pref, sinon fin_sejour_seul) +
+#     dossiers menage/logX via todos() (creation HUMAINE, 400 si auto) +
+#     facturation info SURE (offert >=14j si remplissage_max, sinon 60 EUR) +
+#     messages voyageur J-1 SURS (jamais de PIN)
 #   POST /menage-pointage {logement_id, dossier, evenement, qui}
 #   POST /menage-photo {logement_id, dossier, phase: entree|sortie, piece,
 #                nom, donnees_base64, qui}
@@ -107,7 +114,7 @@ def lire_logement(path, logement_id):
     """
     info = {"zones": [], "zone_defaut": None, "annuaire_presta": True,
             "traca_intervenants": False, "etat_lieux_auto": False,
-            "extras_upsell": False}
+            "extras_upsell": False, "mode_gestion": "equilibre"}
     try:
         with open(path, encoding="utf-8") as f:
             lignes = f.readlines()
@@ -139,7 +146,27 @@ def lire_logement(path, logement_id):
                        "extras_upsell"):
                 # Sous features: (indent 6) — P6-1 todos/photos/notifs.
                 info[k] = _scalaire(v) is True
+            elif k == "mode_gestion_defaut":
+                # Sous pricing: (indent 6) — P6-13 facturation menage offert/60.
+                info["mode_gestion"] = (str(_scalaire(v) or "equilibre")
+                                        .strip().lower() or "equilibre")
     return info
+
+
+def logement_existe(path, logement_id):
+    """Bloc `  <id>:` présent dans logements.yaml (P6-13 : 404 logX)."""
+    if not logement_id:
+        return False
+    try:
+        with open(path, encoding="utf-8") as f:
+            for brute in f:
+                ligne = brute.split("#", 1)[0].rstrip("\n")
+                if re.match(r"^  \w[\w-]*:\s*$", ligne):
+                    if ligne.strip().rstrip(":") == logement_id:
+                        return True
+    except FileNotFoundError:
+        return False
+    return False
 
 
 def lire_annuaire(path):
@@ -734,6 +761,115 @@ class Dispatch:
                      "comparatif_etat_lieux": log["etat_lieux_auto"],
                      "traca_intervenant_requise": log["traca_intervenants"]}
 
+    # --- POST /menage-intermediaire (P6-13 §5.6 + §5.7-quater) ---
+    # Menage a date certaine : pref memoire (menage_frequence_j /
+    # menage_heure_pref / menage_pendant_absence) OU defaut J+7 si sejour >=10j
+    # sans pref. Dossiers menage/logX/<date>_menage_intermediaire via todos()
+    # existant (creation HUMAINE, deadline arrivee+N heure pref, pendant
+    # absence si oui). Facturation info SURE : offert des 14j si
+    # mode_gestion remplissage_max, sinon 60 EUR (extras
+    # menage_intermediaire_7j). Message voyageur J-1 SURE (jamais de PIN).
+    def menage_intermediaire(self, logement_id, qui="", ref_resa="",
+                             arrivee="", depart="", frequence_j=0,
+                             heure_pref="11:00", pendant_absence="non",
+                             presta_dispo=False):
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "menage intermediaire = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        if not logement_id:
+            return 400, {"erreur": "logement_id requis"}
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not arrivee or not depart:
+            return 400, {"erreur": "arrivee + depart (AAAA-MM-JJ) requis"}
+        try:
+            j_arr = dt.date.fromisoformat(str(arrivee).strip()[:10])
+            j_dep = dt.date.fromisoformat(str(depart).strip()[:10])
+        except ValueError:
+            return 400, {"erreur": "arrivee/depart AAAA-MM-JJ invalides"}
+        duree = (j_dep - j_arr).days
+        if duree < 0:
+            return 400, {"erreur": "depart avant arrivee"}
+        try:
+            freq = int(str(frequence_j or "0"))
+        except ValueError:
+            freq = 0
+        freq = max(0, min(30, freq))
+        if freq <= 0:
+            # Defaut J+7 : sejour >=10j sans pref (§5.6) ; sinon fin de
+            # sejour seul (aucune date certaine).
+            if duree < 10:
+                return 200, {"logement_id": logement_id,
+                             "statut": "fin_sejour_seul",
+                             "dates": [],
+                             "detail": "sejour <10j sans pref : menage fin "
+                                       "de sejour seul"}
+            freq = 7
+            mode = "defaut_j7"
+        else:
+            mode = "preference"
+        heure = str(heure_pref or "11:00").strip()
+        if not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", heure):
+            heure = "11:00"
+        absence = (str(pendant_absence or "non").strip().lower()
+                   in ("oui", "yes", "true", "1"))
+        log = self._log(logement_id)
+        mode_gestion = str(log.get("mode_gestion", "equilibre") or
+                           "equilibre").strip().lower()
+        # Dates certaines : arrivee+N x frequence, strictement avant depart.
+        dates = []
+        n = freq
+        while n < duree:
+            dates.append((j_arr + dt.timedelta(days=n)).isoformat())
+            n += freq
+        # Facturation info SURE : offert des 14j si remplissage_max, sinon 60.
+        if duree >= 14 and mode_gestion == "remplissage_max":
+            facturation = {"mode": "offert",
+                           "detail": "sejour >=14j + remplissage_max"}
+        else:
+            facturation = {"mode": "a_facturer", "montant_eur": 60,
+                           "ligne": "menage_intermediaire_7j",
+                           "detail": "60 EUR par passage (cout presta 45)"}
+        # Dossiers via todos() existant : deadline = date certaine heure pref
+        # (checkout/checkin fictifs du passage, ref suffixee _miNj).
+        dossiers = []
+        ref = (ref_resa or "sans-ref").strip() or "sans-ref"
+        for i, d in enumerate(dates, 1):
+            code, todo = self.todos(
+                logement_id, qui, f"{ref}_mi{i}",
+                checkout=f"{d}T{heure}:00",
+                checkin_suivant=f"{d}T{heure}:00",
+                arrivee=str(arrivee), presta_dispo=bool(presta_dispo),
+                sejours_rapproches=False,
+                extras_payes=["menage_intermediaire_7j"])
+            if code != 201:
+                return code, todo
+            dossiers.append({"date": d, "heure": heure,
+                             "dossier": todo["dossier"],
+                             "assigne": todo["assigne"]})
+        # Message voyageur J-1 SURE (jamais de PIN ni secret).
+        msgs = [{"destinataire": "voyageur", "canal": "pwa",
+                 "quand": f"{d} J-1",
+                 "message": (f"menage intermediaire {d} {heure}"
+                             + (" pendant votre absence"
+                                if absence else "")
+                             + f" ({facturation['mode']})")}
+                for d in dates]
+        self.log_decision(logement_id, ref, qui, "menage_intermediaire",
+                          f"{len(dates)} date(s) {mode} freq={freq}j "
+                          f"{heure}{' absence' if absence else ''} "
+                          f"{facturation['mode']}")
+        return 201, {"logement_id": logement_id,
+                     "statut": "planifie",
+                     "mode": mode, "frequence_j": freq,
+                     "heure": heure,
+                     "pendant_absence": "oui" if absence else "non",
+                     "dates": dates, "dossiers": dossiers,
+                     "facturation": facturation,
+                     "messages_voyageur_j1": msgs,
+                     "comparatif_etat_lieux": log["etat_lieux_auto"],
+                     "traca_intervenant_requise": log["traca_intervenants"]}
+
     # --- GET /todos ---
     def todos_lecture(self, logement_id, dossier=""):
         if dossier:
@@ -1100,6 +1236,15 @@ class Handler(BaseHTTPRequestHandler):
                 bool(p.get("presta_dispo", False)),
                 bool(p.get("sejours_rapproches", False)),
                 p.get("extras_payes", []))
+            return self._json(code, obj)
+        if url.path == "/menage-intermediaire":
+            code, obj = eng.menage_intermediaire(
+                p.get("logement_id", ""), p.get("qui", ""),
+                p.get("ref_resa", ""), p.get("arrivee", ""),
+                p.get("depart", ""), p.get("frequence_j", 0),
+                p.get("heure_pref", "11:00"),
+                p.get("pendant_absence", "non"),
+                bool(p.get("presta_dispo", False)))
             return self._json(code, obj)
         if url.path == "/menage-pointage":
             code, obj = eng.menage_pointage(p.get("logement_id", ""),

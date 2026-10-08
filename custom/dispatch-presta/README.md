@@ -38,6 +38,13 @@ Moteur stdlib `:8096`. Proposition seule, jamais d'envoi auto ; mission = 1-tap 
   `extras_upsell: on` + notifs multi-destinataires (hôte + intervenant +
   voyageur si `etat_lieux_auto: on`). `qui=auto/llm/jev` → 400.
 - `GET /todos?logement_id=log1[&dossier=...]` → liste ou détail + statut.
+- `POST /menage-intermediaire {logement_id, qui, ref_resa?, arrivee, depart,
+  frequence_j?, heure_pref?, pendant_absence?, presta_dispo?}` → 201, dates
+  certaines arrivée+N × fréquence < départ (défaut J+7 si séjour ≥10j sans
+  pref, sinon `fin_sejour_seul` si <10j) + dossiers `menage/logX` via `/todos`
+  (création HUMAINE, `qui=auto` → 400) + facturation info SÛRE (`offert` dès
+  14j si `mode_gestion_defaut: remplissage_max`, sinon 60 EUR par passage) +
+  messages voyageur J-1 SÛRS (jamais de PIN). P6-13 (§5.6 + §5.7-quater).
 - `POST /menage-pointage {logement_id, dossier, evenement: arrivee|depart, qui}`
   → 200 (départ sans arrivée → 409 ; `qui=auto` → 400).
 - `POST /menage-photo {logement_id, dossier, phase: entree|sortie, piece, nom,
