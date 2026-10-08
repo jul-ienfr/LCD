@@ -48,6 +48,9 @@
 #     {zones, zone_defaut, lieux: [{id, nom, categorie, zone, commune, acces,
 #     prix_indicatif, lien, mode, extra_id, extra_disponible, prix_ttc}]}
 #     (lecture seule ; categorie hors set = 400 categorie_inconnue)
+#   GET  /livret?logement_id=log1 -> P6-17 : livret vidéo 30 s/équipement
+#     (socle LV/LL/clim/portail/tri + qr PWA + video_url locale, lecture
+#     seule voyageur, guide de base : dispo même si extras_upsell off)
 #   POST /commande {logement_id, ref_resa, extras[{id, qte?, pers?}], qui}
 #     -> 201 {commande_id, total_ttc, statut: a_payer, todo} (cut-off vérifié)
 #   POST /payer {logement_id, commande_id, preuve, qui}
@@ -218,6 +221,18 @@ def lire_catalogue_cfg(path):
 
 
 CATEGORIES_TOURISME = ("visite", "resto", "plage", "activite", "pratique")
+
+# P6-17 §5.7-bis : livret vidéo 30 s/équipement (1 QR par équipement ->
+# vidéo tournée smartphone, hébergée locale/PWA -> -50 % questions
+# répétées). Socle fixe (guide de base, dispo même si extras_upsell off) :
+# videos runtime box `/local/livret/<id>.mp4` (jamais commitées).
+LIVRET_SOCLE = (
+    {"id": "lv", "titre": "Lave-vaisselle", "duree_s": 30},
+    {"id": "ll", "titre": "Lave-linge", "duree_s": 30},
+    {"id": "clim", "titre": "Climatisation (bornes)", "duree_s": 30},
+    {"id": "portail", "titre": "Portail / accès", "duree_s": 30},
+    {"id": "tri", "titre": "Tri des déchets", "duree_s": 30},
+)
 
 
 def lire_zones_logement(path, logement_id):
@@ -722,6 +737,27 @@ class Extras:
                 "zone_defaut": zone_defaut, "lieux": lieux,
                 "total": len(lieux)}, 200
 
+    # --- GET /livret : livret vidéo 30 s/équipement (lecture seule) ---
+    def get_livret(self, logement_id):
+        """Fiches QR par équipement (socle fixe, guide de base).
+
+        Lecture seule voyageur : aucun qui, aucun state, aucune écriture.
+        Dispo même si `extras_upsell: off` (guide, pas upsell) — seul
+        l'existence du logement est vérifiée (404 sinon, 400 si invalide).
+        Vidéos runtime box `/local/livret/<id>.mp4` (tournées smartphone,
+        jamais commitées).
+        """
+        if not ID_RE.fullmatch(logement_id or ""):
+            return {"ok": False, "erreur": "logement_id invalide"}, 400
+        if logement_id not in lire_features(self.logements_yaml):
+            return {"ok": False,
+                    "erreur": f"logement inconnu: {logement_id}"}, 404
+        fiches = [{**e, "qr": f"/livret/{e['id']}",
+                   "video_url": f"/local/livret/{e['id']}.mp4"}
+                  for e in LIVRET_SOCLE]
+        return {"ok": True, "logement_id": logement_id, "fiches": fiches,
+                "total": len(fiches)}, 200
+
     # --- POST /commande ---
     def commander(self, p):
         logement_id = p.get("logement_id", "")
@@ -955,6 +991,9 @@ class Handler(BaseHTTPRequestHandler):
             qs = self._qs()
             obj, code = m.get_tourisme(qs.get("logement_id", ""),
                                        qs.get("categorie") or None)
+            return _reponse(self, code, obj)
+        if chemin == "/livret":
+            obj, code = m.get_livret(self._qs().get("logement_id", ""))
             return _reponse(self, code, obj)
         if chemin == "/commandes":
             obj, code = m.commandes(self._qs().get("logement_id", ""))

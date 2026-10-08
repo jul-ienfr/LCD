@@ -24,10 +24,10 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 > de tests y ajoutent des biens `TEST-INV-*` (assertions en `>=`, jamais `==`) —
 > reset via `git checkout -- inventaire.lab/` si besoin.
 
-## Batterie (P2-14 : résa <60 s + conflit ICS ; P6-8 : dispatch prestataires ; P6-4 : inventaire ; P6-5 : extras)
+## Batterie (P2-14 : résa <60 s + conflit ICS ; P6-8 : dispatch prestataires ; P6-4 : inventaire ; P6-5 : extras ; P6-18 : compta ; P7-3 : routage)
 
 `tests_lab.py` vérifie, dans l'ordre :
-1. `/health` des 9 moteurs (8090→8098) ;
+1. `/health` des 12 moteurs (8050 + 8090→8100) ;
 2. bornes prix 75/290 inviolables (pivot août ∈ [75,290]) ;
 3. garde-fou copro P2-16 (`copro_verifiee=true` dans le lab, `false` dans le réel) ;
 4. tunnel direct <60 s : `POST /devis` → `POST /resa` (brouillon) →
@@ -57,9 +57,91 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     rubrique `accueil` pour le kit offert), kit seul = `validee` 0 €,
     livrer avant paiement 402, payer sans preuve 402, payer 200 `payee`,
     livrer 200 `livree`, `GET /commandes`, id `..` bloqué.
+12. contrat PWA P6-15 (§12.5-bis) : `GET /contrat` non_signe + `POST /contrat`
+    1-tap humain (CGV 422, tactile 422, slug 400, `qui=auto` 400), 201 signé
+    + 200 re-signé (sha256 seul, jamais raw), opt-ins mémoire/géoloc/CRM
+    (log1 `crm_retour/geoloc on` = code `DIRECT-10-<REF>` + suivi séjour ;
+    log2 off = en_attente sans code), liaison questionnaire, J-2 direct
+    non signé = `pin_autorise` False indicatif (jamais bloquant).
+13. état des lieux auto P6-16 (§5.6) : `GET /edl` non_commence + `POST
+    /edl-consentement` 1-tap voyageur (refus = manuel ménage, 403 sans
+    consentement) + `POST /edl-photo` 5 pièces E/S (socle salon/cuisine/
+    chambre/sdb/entree, EXIF/horodatage, galerie >24 h 422) + `POST
+    /edl-video` optionnelle 30 s (61 s 422) + comparatif présent/partiel/
+    complet + clôture ménage liée (EDL commencé incomplet = 409, complet =
+    201) + `POST /edl-purge` 90 j.
+14. boucle avis P6-17 (§5.7-bis) : `GET/POST /avis` J+1 (note 1-5, 201/200,
+    >=4★ lien_public / 3★ late_gratuite auto / <=2★ geste à valider + todo
+    correctif mots-clés) + `POST /avis-geste` 1-tap humain (alerte si >20 €,
+    jamais de débit auto) + `POST /avis-reponse` brouillon (422 si promesse)
+    puis validation (publication manuelle) + `GET/POST /scene` 3 scènes
+    1-tap + objets trouvés dispatch (`/objet-trouve` 201 forfait 15 +
+    message J+0, `/objets`, `/objet-reclamer`, `/objet-envoyer` 402 sans
+    preuve,     `/objet-cloturer` don/stock après 30 j) + `GET /livret` 5
+    fiches QR 30 s (guide de base, dispo même si upsell off).
+15. compta auto P6-18 (§12.6) : `POST /facture` 1-tap humain (montant 422
+    si absent, catégorisation mots-clés + confiance, <0.7 = file
+    validation) + `POST /facture-valider` (+ correction rubrique) +
+    `POST /payout` (net = brut − commission) + `POST /releve` (matching
+    ±2 %/±7 j : rapproché vs écart vs orpheline, jamais d'écriture auto) +
+    `GET /finances` (CA/charges/net + jauges 15 k€/77,7 k€ + 120 j,
+    alertes 80/100 %) + `GET /simulateur` (micro vs réel + levier
+    classement, jamais d'option auto) + `POST /cloture` (le 5 suivant,
+    409 avant, idempotente).
+16. supplément ménage P6-19 (§12.2-ter) : `GET /menage-tarif` (110 €
+    log1 / 90 € log2, 10 postes prorata total == montant, surcharge +20 €
+    juin-sept info, alerte inclus_nuit) + `POST /menage-cout` (coût réel
+    rotation → OPEX) + `GET /menage-couts` (moyenne + dérive >10 % +
+    payload `sensor.menage_cout_rotation`) + `POST /menage-note` (score
+    1-5 + alerte temps vs ~3h) + `GET /menage-score` (moyenne + alerte
+    <3,5 + durées pointées).
+17. RBAC 5 rôles P6-20 (§1.6) : `GET /acces` (audit nominatif MFA/expiry/
+    révocations/doublons, réservé super_admin/admin) + `POST
+    /acces-revoquer` (jamais soi-même ni super_admin, idempotent) +
+    `POST /acces-reactiver` + `GET /journal` (90 j, périmètre, cap 200,
+    PIN lab jamais en clair ; voyageur = pas de compte nominatif).
+18. carnet preuve + lettre + RGPD + mentions P6-21 (§12.5-bis) : `POST
+    /preuve-db` (dB seuls 0-120, jamais d'audio, trimestre auto) + `POST
+    /preuve-attestation` (intervention/ménage/message) + `GET /carnet`
+    (synthèse trimestre jour/nuit + attestations, hôte seul, 1 an) +
+    `POST /lettre-tranquillite` (brouillon chiffré) + `POST
+    /lettre-envoyer` (1-tap, messagerie tracée) + `GET /registre-rgpd`
+    (7 traitements + durées, filtré features) + `GET /mentions-annonce`
+    (9 obligatoires, renseigné/manquant + actions, jamais inventé).
+19. formation ménage P6-22 (§14) : `GET /formation` (programme 30 min,
+    5 modules + drill trimestriel) + `POST /formation-session` (rotation
+    blanche) + `POST /formation-module` (1-tap, idempotent, 409 si
+    validée) + `POST /formation-valider` (5 modules + dossier
+    `remise_en_dispo`, 409 sinon, attestée hôte).
+20. seuils LLM/Jev P7-6 (§6.7) : `GET /seuils` (doc vivante) + `POST
+    /gardien` (RBAC -> outil interdit serrure/vanne/portail/PIN toujours
+    BLOQUÉ -> hors_bornes>0,5 BLOQUÉ -> confidence<0,7 dashboard jamais
+    d'auto -> noul>0,8+conf>0,75 auto borné + trace P7-7, sinon
+    dashboard ; scores absents = 0).
+21. traçabilité P7-7 (§6.7) : langue voyageur en log JSONL + `GET
+    /journal?backend=&alias=&langue=` (filtres dashboard combinables,
+    vides = sans filtre).
+22. UI routage P7-3 (§6.5) : `GET /routes` (primaire + fallbacks + 4
+    aliases + validation garde-fous, clés API jamais exposées) + `POST
+    /route` 1-tap humain (alias connus, anti-redondance, retry 0-3,
+    cooldown 0-300, clés garde-fou 400, backup 5 max + audit) + `POST
+    /tester` (TCP court local / statut cloud clé box, santé mémorisée,
+    lab sans backends = KO documenté) + `POST /reload`.
+23. aliases P7-4 (§6.5) : `POST /resoudre` (lecture seule : `eu_only` →
+    override Mistral UE, alias direct fast/strong/eu/local, sinon
+    primaire ; selects/sensors/couts/dépréciation = box HA).
+24. prompts voyageur M1-M8 P7-10 (§6.7.1) : `GET /prompts` (8 usages +
+    alias + variables + interdits) + `POST /composer` (trous seuls 422,
+    placeholders injectés APRÈS, jamais d'appel LLM — proxy `:4000` box).
+25. prompts voyageur Jev J1-J9 P7-11 (§6.7.2) : registre étendu (moteur
+    jev + construits Noul/Choice/Score + seuils, appel direct SystemOne
+    box) + composeur (même contrat trous seuls, backend typesafe).
+26. prompts pricing/compta P7-12/13 (§6.7.3-4) : M-LLM-1→7 + M-JEV-1→6
+    (registre étendu, seuils file/blocage/1-tap, exécution box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
-> (jamais commité, comme `inventaire.lab/` pour le registre).
+> (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`
+> (decision-state) est un runtime gitignoré (comme `questionnaire-<logX>.json`).
 
 ## Fichiers
 

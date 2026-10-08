@@ -53,7 +53,64 @@ Moteur stdlib `:8096`. Proposition seule, jamais d'envoi auto ; mission = 1-tap 
   dossier_intervention?, qui}` → 409 `preuves_manquantes` (pointage, photos
   E/S par pièce, photos voyageur si `etat_lieux_auto`, dossier intervention
   clôturé si `traca_intervenants`) / `cases_manquantes` (checklist 7 cases) ;
-  201 `remise_en_dispo`. Traversée `..` bloquée comme P6-2.
+  201 `remise_en_dispo`. Traversée `..` bloquée comme P6-2. P6-16 : si le
+  voyageur a COMMENCÉ son EDL PWA (dossier `etat_lieux/logX/<ref>` pour la
+  `ref_resa` du todo), l'EDL complet est exigé (attestation humaine seule
+  insuffisante) ; sans dossier EDL : legacy (attestation humaine).
+- `GET /edl?logement_id=log1&ref_resa=<slug>` → P6-16 (§5.6) : statut EDL
+  voyageur (`non_commence` / `consenti` / `partiel` / `complet` + comparatif
+  entrée/sortie par pièce + purge 90 j). Jamais bloquant.
+- `POST /edl-consentement {logement_id, ref_resa, qui, consentement: true,
+  nom_voyageur?}` → 201 `consenti` (préalable obligatoire : photos du
+  logement seul, jamais de personnes exigées, purge 90 j) ; `false` → 200
+  `refuse` (EDL manuel ménage seul). Geste voyageur/humain seul.
+- `POST /edl-photo {logement_id, ref_resa, phase: entree|sortie,
+  piece: salon|cuisine|chambre|sdb|entree, nom, donnees_base64, prise_le?,
+  qui}` → 201 (jpg/png/webp ≤8 Mo, EXIF/horodatage conservés, galerie >24 h
+  → 422 `galerie_refusee`, sans consentement → 403).
+- `POST /edl-video {logement_id, ref_resa, phase, nom, donnees_base64,
+  duree_s, qui}` → 201 optionnelle (<60 s, mp4/mov/webm ≤50 Mo, 422
+  `video_trop_longue` sinon).
+- `POST /edl-purge {logement_id, qui}` → 200 dossiers >90 j supprimés
+  (juste après délai AirCover 14 j, geste humain seul).
+- `POST /objet-trouve {logement_id, qui, description, piece?, ref_resa?,
+  photo_base64?}` → P6-17 (§5.7-bis) : 201 fiche `objets/logX/<id>.json` +
+  photo (message voyageur J+0 si `ref_resa`, geste intervenant seul,
+  forfait 15 € rappelé).
+- `GET /objets?logement_id=log1[&statut=trouve]` → P6-17 : liste fiches
+  (trouve/reclame/envoye/don/stock, filtre 400 si statut inconnu).
+- `POST /objet-reclamer {logement_id, objet_id, qui, ref_resa}` → P6-17 :
+  200 `reclame` (voyageur/humain, jamais auto ; déjà traité → 409).
+- `POST /objet-envoyer {logement_id, objet_id, qui, preuve_paiement}` →
+  P6-17 : forfait 15 € inviolable, sans preuve → 402 `paiement_requis` ;
+  200 `envoye` (Colissimo, traçé).
+- `POST /objet-cloturer {logement_id, objet_id, qui, sort: don|stock}` →
+  P6-17 : non réclamé 30 j (sinon 409 `trop_tot`) → 200 `don`/`stock`.
+- `GET /menage-tarif?logement_id=log1` → P6-19 (§12.2-ter) : supplément +
+  10 postes (prorata socle log1 110 €, total == montant, MO en solde) +
+  surcharge saison +20 € juin-sept (info, humain jamais auto) + alerte si
+  `inclus_nuit` (durée min ≥4 requise).
+- `POST /menage-cout {logement_id, qui, montant, ref_resa?, dossier?,
+  facture?}` → P6-19 : 201 coût réel rotation (saisie HUMAINE → OPEX
+  §12.6, dérive rotation affichée).
+- `GET /menage-couts?logement_id=log1` → P6-19 : rotations + moyenne +
+  dérive vs affiché (alerte >10 %, ≥2 rotations) + payload
+  `sensor.menage_cout_rotation`.
+- `POST /menage-note {logement_id, qui, note 1-5, ref_resa?, dossier?,
+  commentaire?}` → P6-19 : 201 score qualité (+ alerte temps si pointage
+  dossier écart >20 % vs ~3h).
+- `GET /menage-score?logement_id=log1` → P6-19 : moyenne + alerte <3,5
+  (≥3 notes) + durées pointées vs ~3h + écarts.
+- `GET /formation?logement_id=log1[&session=<id>]` → P6-22 (§14) :
+  programme 30 min (5 modules) ou statut session (modules + test départ).
+- `POST /formation-session {logement_id, qui, presta}` → P6-22 : 201
+  session rotation blanche (drill 1×/trimestre + papier daté).
+- `POST /formation-module {logement_id, qui, session, module}` → P6-22 :
+  200 module coché 1-tap (pointage/photos/checklist/edl_comparatif/
+  cloture ; idempotent ; 409 si session validée).
+- `POST /formation-valider {logement_id, qui, session, dossier_menage}` →
+  P6-22 : 200 `formation_validee` (5 modules + dossier `remise_en_dispo`,
+  sinon 409 `formation_incomplete`) — attestée par l'hôte.
 
 ## Règles verrouillées
 

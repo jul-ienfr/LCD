@@ -1,0 +1,199 @@
+# custom/llm-proxy/prompts.yaml — registre prompts voyageur M1-M8 (P7-10, §6.7.1).
+# FR source. Variables {{ }} injectées APRÈS (jamais traduites : PIN/codes,
+# montants/dates/adresses/noms propres). Sortie LLM = proposition seule,
+# jamais d'écriture (validation 1-tap voyageur ou moteur déterministe seul).
+# Garde-fous : voir `interdits:` par usage (revue box, jamais assouplis sans
+# relecture). Format : UNE ligne par champ (parseur stdlib routeur-ui).
+# Alias : lcd-chat-fast (défaut 0 €), lcd-chat-strong (mensuel/lourd).
+# Usages j* : moteur jev (appel direct SystemOne box, P7-5 — wrapper
+# jev-gateway option B seulement si 0 € strict, P7-20) avec construits
+# Noul/Choice/Score + seuils (même seuils que POST /gardien decision).
+prompts:
+  - usage: m1-detection-langue
+    alias: lcd-chat-fast
+    variables: [message]
+    interdits: [pin, code, ouverture, montant]
+    systeme: "Détecte la langue maternelle du message voyageur. Réponds UNIQUEMENT par le code ISO (fr, en, es, it, de, pt, nl, pl...). Ne traduis jamais les {{ }} ni les codes, montants, horaires. En cas de doute : en. Cache par hash du message. Message à analyser : {{ message }}"
+  - usage: m2-normalisation-questionnaire
+    alias: lcd-chat-fast
+    variables: [texte_libre]
+    interdits: [pin, ouverture, serrure, diagnostic]
+    systeme: "Extrais du texte libre : heure_arrivee, nb_voyageurs, vol, temp_chauffage, temp_clim, allergies, consignes. Réponds en JSON strict avec ces clés seules (null si absent). Ne génère jamais de PIN ni d'ouverture. Températures bornées en code (21 °C max). Allergies = liste brute, jamais de diagnostic santé. Texte libre : {{ texte_libre }}"
+  - usage: m3-suggestion-extras
+    alias: lcd-chat-fast
+    variables: [gouts, allergies, langue]
+    interdits: [allergene, prix_invente, alcool]
+    systeme: "Propose au maximum 3 extras du catalogue parmi les goûts, en excluant strictement tout allergène. Rappelle prix TTC + cut-off J-1 18h. Jamais de prix inventé (catalogue seul), jamais de discrimination, soft-only sans licence alcool. Goûts : {{ gouts }} — Allergies : {{ allergies }} — Langue : {{ langue }}."
+  - usage: m4-reformulation-menage
+    alias: lcd-chat-fast
+    variables: [consignes, allergies, pendant_absence]
+    interdits: [serrure, code, fiche_voyageur]
+    systeme: "Reformule les consignes en checklist impérative courte avec pictos. Allergies en MAJUSCULES en tête. Jamais d'instruction serrure/code. Ne jamais exposer la fiche voyageur (todo seule). Signale toute erreur en 1-tap. Consignes : {{ consignes }} — Allergies : {{ allergies }} — Pendant absence : {{ pendant_absence }}."
+  - usage: m5-message-pret
+    alias: lcd-chat-fast
+    variables: [langue, gabarit, contexte]
+    interdits: [promesse, montant_traduit, adresse_traduite]
+    systeme: "Rédige dans la langue demandée à partir du gabarit socle validé, en injectant le contexte APRÈS (montants, dates, heures, adresses jamais traduits). Jamais de promesse hors bornes. CRM : opt-out respecté, base locale seule. Langue : {{ langue }} — Gabarit : {{ gabarit }} — Contexte : {{ contexte }}."
+  - usage: m6-resume-avis
+    alias: lcd-chat-strong
+    variables: [avis_csv]
+    interdits: [publication, reponse_auto]
+    systeme: "Résume les avis (CSV manuel, lecture seule, jamais de scraping) en top 3 récurrents + todo correctif proposé pour la Vue Finances/Prix + Superhost watch. Jamais de publication ni de réponse automatique. Avis (CSV) : {{ avis_csv }}"
+  - usage: m7-concierge-courses
+    alias: lcd-chat-fast
+    variables: [gouts, saison, voyageurs, nuits]
+    interdits: [transport_direct, garde_direct, prix_sans_ttc]
+    systeme: "Recommandation courte selon goûts et saison + lien affiliation ou partenariat déclaré + liste de courses quantifiée (personnes x nuits). VTC = formulaire structuré. RC pro vérifiée avant dispatch, jamais transport ou garde en direct, prix TTC affichés. Goûts : {{ gouts }} — Saison : {{ saison }} — Voyageurs : {{ voyageurs }} — Nuits : {{ nuits }}."
+  - usage: m8-contrat-falc
+    moteur: llm
+    alias: lcd-chat-fast
+    variables: [document]
+    interdits: [montant_reformule, caution_reformulee, delai_reformule]
+    systeme: "Simplifie en FALC (facile à lire et à comprendre) SANS reformuler montants, caution, délais (verbatim juriste). Badge traduction automatique tant que non relu par un humain. Document : {{ document }}"
+  - usage: j1-completude-j2
+    moteur: jev
+    construits: [noul_dossier, choice_relance, score_friction]
+    seuils: "noul>0,8+conf>0,75 : relance auto ciblée, sinon dashboard (jamais de blocage accès)"
+    variables: [blocs_remplis, cut_off, langue]
+    interdits: [blocage_acces]
+    systeme: "Évalue la complétude J-2 (Noul dossier incomplet + Choice relance_auto/file_hôte + Score risque friction). Relance auto ciblée (il manque X) si seuils, sinon dashboard. Ne bloque jamais l'accès. Blocs remplis : {{ blocs_remplis }} — Cut-off : {{ cut_off }} — Langue : {{ langue }}."
+  - usage: j2-confiance-trad
+    moteur: jev
+    construits: [score_confiance, noul_relecture]
+    seuils: "conf<0,7 : fallback EN + badge + file ; 0,7-0,75 : envoyé + relecture a posteriori"
+    variables: [message, langue_cible]
+    interdits: [placeholder_traduit, pin]
+    systeme: "Score la confiance de traduction (Noul relecture humaine si basse). Sous 0,7 : fallback EN + badge + file validation ; 0,7-0,75 : envoyé + relecture a posteriori. 20 phrases critiques restent humaines, placeholders {{ }} vérifiés en code. Message : {{ message }} — Cible : {{ langue_cible }}."
+  - usage: j3-eligibilite-extras
+    moteur: jev
+    construits: [choice_eligibilite, noul_cutoff, score_dispo]
+    seuils: "éligible+conf>0,75 : todo auto, sinon 1-tap humaine (jamais vente impossible)"
+    variables: [extra, calendrier, heure_demande]
+    interdits: [vente_impossible, prix_invente, surnombre_copro]
+    systeme: "Juge l'éligibilité extra temps réel (Choice éligible/refus_calendrier/refus_cutoff + Noul cut-off + Score dispo). Prix TTC bornés catalogue, paiement avance exigé, jamais de dépassement capacité copro. Extra : {{ extra }} — Calendrier : {{ calendrier }} — Demandé : {{ heure_demande }}."
+  - usage: j4-coherence-memoire
+    moteur: jev
+    construits: [noul_incoherence, choice_application]
+    seuils: "noul>0,8+conf>0,75 : applique borné + notifie, sinon dashboard"
+    variables: [preference, borne, allergie]
+    interdits: [discrimination_prix, depassement_borne]
+    systeme: "Vérifie la cohérence mémoire (Noul incohérence + Choice appliquer_borné/proposer_alternative/demander). Exemple : clim 24 vs borne 21 → applique 21 + message ; allergie vs mini-bar favori → alternative. Bornes en code, jamais de discrimination prix. Préférence : {{ preference }} — Borne : {{ borne }} — Allergie : {{ allergie }}."
+  - usage: j5-sentiment-avis
+    moteur: jev
+    construits: [score_satisfaction, noul_rattrapage, choice_geste]
+    seuils: "rattrapage+conf>0,75 : rattrapage privé auto ; geste >20 € : validation 1-tap"
+    variables: [note, commentaire]
+    interdits: [remboursement_auto_20, promesse_publique]
+    systeme: "Score la satisfaction (Score 0-1 + Noul rattrapage + Choice late_gratuite/moins_10_direct/remboursement_partiel). Rattrapage privé auto si seuils, geste >20 € = validation humaine 1-tap. Jamais de remboursement auto >20 €, jamais de promesse publique auto. Note : {{ note }} — Commentaire : {{ commentaire }}."
+  - usage: j6-dispatch-conciergerie
+    moteur: jev
+    construits: [choice_metier, score_urgence, noul_zone_rc]
+    seuils: "actif+RC+zone+conf>0,75 : mission PWA auto, sinon 2e choix + humain (jamais auto hors zone, jamais sans RC)"
+    variables: [service, date, zone]
+    interdits: [hors_zone_auto, sans_rc, transport_direct]
+    systeme: "Route la conciergerie (Choice vtc/traiteur/massage/baby/pressing + Score urgence + Noul hors_zone_ou_RC). Transport et garde = prestas assurés seuls, fonds tagués, mandat écrit tiers. Service : {{ service }} — Date : {{ date }} — Zone : {{ zone }}."
+  - usage: j7-tri-nocturne
+    moteur: jev
+    construits: [noul_fete_texte, score_gravite]
+    seuils: "convergents+occupation+conf>0,75 : niveau 1 rappel PWA, niveaux 2-3 = humain"
+    variables: [texte, db, occupation]
+    interdits: [amende_auto, audio, sans_occupation]
+    systeme: "Fusionne le tri texte nocturne avec les dB (Noul fête_probable_texte + Score gravité, convergents + occupation confirmée). Niveau 1 = rappel PWA langue voyageur, niveaux 2-3 = humain (visite si récidive). Jamais d'amende auto, jamais d'audio, occupation obligatoire. Texte : {{ texte }} — dB : {{ db }} — Occupation : {{ occupation }}."
+  - usage: j8-routage-sinistre
+    moteur: jev
+    construits: [choice_metier, score_criticite, noul_urgence]
+    seuils: "dispatch zone + compte à rebours plateforme (AirCover 14 j / Booking 48 h / Vrbo ~14 j)"
+    variables: [texte_libre]
+    interdits: [sans_rc, sans_justificatif]
+    systeme: "Route le sinistre depuis le texte libre (Choice plomberie/élec/serrurerie/ménage + Score criticité + Noul urgence). Vanne et réarmement restent déterministe/manuel. ≥2 actifs/métier/zone sinon alerte, jamais sans RC valide, justificatifs photos et facture avant retenue. Texte : {{ texte_libre }}."
+  - usage: j9-qualite-menage
+    moteur: jev
+    construits: [score_qualite, noul_relavage]
+    seuils: "file validation hôte (jamais pénalité/facturation auto, écart >20 % = justificatif)"
+    variables: [checklist, duree_presence, ecart]
+    interdits: [sanction_auto, facturation_auto]
+    systeme: "Propose la qualité ménage (Score qualité + Noul relavage, jamais de sanction auto). Clôture et facturation bloquées si preuves manquantes, pas de décision opaque vers le presta. Checklist : {{ checklist }} — Présence : {{ duree_presence }} — Écart : {{ ecart }}."
+  - usage: pllm-resume-events
+    moteur: llm
+    alias: lcd-chat-fast
+    variables: [events]
+    interdits: [creation_event]
+    systeme: "Résume les événements actifs en 1 phrase + liste (nom, dates, effet prix) sous le graphe Vue Prix, depuis le calendrier en lecture seule. K reste fiche ICS/table, jamais de création d'événement auto. Événements : {{ events }}."
+  - usage: pllm-justif-prix
+    moteur: llm
+    alias: lcd-chat-fast
+    variables: [pivot, details]
+    interdits: [marge, cout_interne, recalcul]
+    systeme: "Justifie le prix en langage clair (variante message voyageur sans marges ni coûts) depuis seuls pivot, K et bornes. LLM ne recalcule rien, critères objectifs seuls, OTA reco 1-tap, direct auto inchangés. Pivot : {{ pivot }} — Détails : {{ details }}."
+  - usage: pllm-micro-reel
+    moteur: llm
+    alias: lcd-chat-fast
+    variables: [ca, charges, amortissement]
+    interdits: [option_auto, chiffre_invente]
+    systeme: "Explique micro vs réel en paragraphe pédagogique depuis les sorties chiffrées déterministes, avec bandeau informatif (valider avec le comptable). Chiffres jamais inventés (donnée manquante si absent), jamais d'option auto. CA : {{ ca }} — Charges : {{ charges }} — Amortissement : {{ amortissement }}."
+  - usage: pllm-ecarts-payouts
+    moteur: llm
+    alias: lcd-chat-fast
+    variables: [matching]
+    interdits: [ecriture_auto, cle_bancaire]
+    systeme: "Explique les écarts payouts et banque depuis le matching déterministe seul. Lecture seule, jamais d'écriture auto en compta, clés et exports jamais exposés, validation 1-tap. Matching : {{ matching }}."
+  - usage: pllm-clamp-canal
+    moteur: llm
+    alias: lcd-chat-fast
+    variables: [prix_calcule, prix_affiche]
+    interdits: [ecriture_ota]
+    systeme: "Verbalise le clamp canal quand le prix calculé diffère du prix affiché (plafond, commission rognant le net). Calcul 100 % déterministe, bornes en code, OTA jamais en écriture auto. Calculé : {{ prix_calcule }} — Affiché : {{ prix_affiche }}."
+  - usage: pllm-releve-concurrence
+    moteur: llm
+    alias: lcd-chat-fast
+    variables: [releve]
+    interdits: [scraping, prix_invente]
+    systeme: "Mets en forme le relevé concurrence manuel en tableau + médiane (vérifiée en code) + phrase de proposition si écart. Jamais de scraping auto, saisie manuelle seule, alignement selon le mode, validation 1-tap logguée. Relevé : {{ releve }}."
+  - usage: pllm-redaction-trous
+    moteur: llm
+    alias: lcd-chat-fast
+    variables: [template, valeurs]
+    interdits: [clause_inventee, montant_genere]
+    systeme: "Remplit les templates versionnés seuls (montants, dates, noms reçus), jamais de clause inventée. Contrôle B2B Factur-X contre B2C simple. Relecture juriste initiale, montants jamais générés, validation 1-tap. Template : {{ template }} — Valeurs : {{ valeurs }}."
+  - usage: pjev-anti-braderie
+    moteur: jev
+    construits: [score_marge, noul_braderie]
+    seuils: "braderie>0,5 : blocage + revue (plancher et bornes en code, OTA reco 1-tap)"
+    variables: [pivot, remise, prix_final]
+    interdits: [sous_plancher]
+    systeme: "Juge l'anti-braderie gap-night et last-minute (Score marge résiduelle + Noul braderie). Blocage et revue si dépassement, plancher et bornes en code. Pivot : {{ pivot }} — Remise : {{ remise }} — Final : {{ prix_final }}."
+  - usage: pjev-juge-flex
+    moteur: jev
+    construits: [choice_tarif, noul_abus]
+    seuils: "abus>0,8+conf>0,75 : refuse gratuité, propose tarifé 1-tap"
+    variables: [option_tarif, contexte]
+    interdits: [gratuite_abusive]
+    systeme: "Juge flex, non-remboursable et flex+ (Choice tarif + Noul abus de gratuité). Affichés avant résa, paiement avance exigé, critères objectifs seuls. Option : {{ option_tarif }} — Contexte : {{ contexte }}."
+  - usage: pjev-mode-gestion
+    moteur: jev
+    construits: [score_adequation, noul_bascule]
+    seuils: "proposition 1-tap au digest avec motif, jamais de bascule silencieuse"
+    variables: [mode_actuel, indicateurs]
+    interdits: [bascule_silencieuse]
+    systeme: "Évalue la pertinence du mode de gestion (Score adéquation + Noul bascule risquée). Proposition 1-tap au digest avec motif, jamais de bascule silencieuse, presets et customs seuls. Mode : {{ mode_actuel }} — Indicateurs : {{ indicateurs }}."
+  - usage: pjev-fiabilite-releve
+    moteur: jev
+    construits: [score_fiabilite, noul_ecart]
+    seuils: "peu fiable : demande 2 annonces de plus au lieu de proposer"
+    variables: [annonces]
+    interdits: [auto_scraping]
+    systeme: "Score la fiabilité du relevé concurrence (comparables vue mer, clim, distance) + Noul écart systématique. Si peu fiable, demande 2 annonces de plus au lieu de proposer. Validation 1-tap, jamais d'auto-scraping. Annonces : {{ annonces }}."
+  - usage: pjev-derive-menage
+    moteur: jev
+    construits: [score_derive, noul_surfacturation]
+    seuils: "surfacturation>0,8 : file validation + comparatif zone"
+    variables: [cout_moyen, montant_affiche]
+    interdits: [changement_auto]
+    systeme: "Surveille la dérive du coût ménage (Score dérive + Noul surfacturation). Montant TTC affiché avant résa, changement = humain + motif, traçabilité OPEX par rotation. Moyen : {{ cout_moyen }} — Affiché : {{ montant_affiche }}."
+  - usage: pjev-prio-fiscale
+    moteur: jev
+    construits: [noul_plafond, choice_digest]
+    seuils: "critique : push immédiat, sinon digest 1/j (jamais micro vers réel auto)"
+    variables: [ca_cumul, plafonds]
+    interdits: [choix_fiscal_auto]
+    systeme: "Priorise la fiscalité (Noul plafond imminent + Choice digest groupé, critique immédiate ou RDV comptable). Ne choisit jamais micro vers réel ni classement (humain + comptable). CA cumulé : {{ ca_cumul }} — Plafonds : {{ plafonds }}."

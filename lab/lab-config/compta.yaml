@@ -1,0 +1,12 @@
+# lab/lab-config/compta.yaml — config LAB compta :8100 (P6-18 §12.6).
+http_port: 8100
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+seuil_confiance: 0.7
+seuil_ecart: 0.02
+delai_orpheline_j: 7
+plafond_micro_non_classe: 15000
+plafond_micro_classe: 77700
+alerte_jauge: 0.8
+plafond_nuits_principale: 120
+jour_cloture: 5

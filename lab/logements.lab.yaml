@@ -59,6 +59,8 @@ logements:
       qr_pieces: true                   # fiches docs/templates/qr_*.svg
       questionnaire: true               # lien J-2 pré-arrivée 3 min
       avis_j1: true                     # enquête J+1 §5.7-bis
+      crm_retour: true                 # P6-15 LAB SEUL : code −10 % direct testé ici (réel reste false)
+      geoloc_voyageur: true            # P6-15 LAB SEUL : opt-in géoloc séjour testé ici (réel reste false)
     menage:
       montant: 110
       facturation: supplement
@@ -108,6 +110,8 @@ logements:
       qr_pieces: true                   # fiches docs/templates/qr_*.svg
       questionnaire: true               # lien J-2 pré-arrivée 3 min
       avis_j1: true                     # enquête J+1 §5.7-bis
+      crm_retour: false                # P6-15 LAB : log2 off = optin sans code (branche en_attente)
+      geoloc_voyageur: false           # P6-15 LAB : log2 off = optin sans effet suivi
     menage:
       montant: 90
       facturation: supplement

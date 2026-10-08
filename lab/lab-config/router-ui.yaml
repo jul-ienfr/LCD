@@ -1,0 +1,4 @@
+# lab/lab-config/router-ui.yaml — config LAB UI routage :8050 (P7-3 §6.5).
+# LAN seule, jamais WAN (panel_iframe /systeme via WireGuard sur box).
+http_port: 8050
+state_dir: "/opt/lcd/state"

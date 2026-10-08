@@ -48,6 +48,65 @@
 #     allergènes, opt-in requis sinon génériques) + opt-in mémoire -> fiche
 #     §5.7-quater (si `memoire_voyageur: off` : séjour seul, non persisté).
 #     201 créé / 200 mis à jour (même ref = correction 1-tap).
+#   GET  /contrat?logement_id=log1&ref_resa=<slug>
+#     -> P6-15 : statut contrat PWA 30 s (§12.5-bis) : non_signe (signature
+#     manquante, questionnaire_accepte indicatif) ou signe (horodatage +
+#     opt-ins + code_retour si `crm_retour: on`). 404 logement inconnu,
+#     400 sans ref_resa. Jamais de signature/hash en sortie.
+#   POST /contrat {logement_id, qui, ref_resa, nom_voyageur, signature,
+#     accepte_cgv, optins{optin_memoire, optin_geoloc, optin_crm_retour}, hash?}
+#     -> P6-15 : signature tactile 1-tap HUMAIN (qui auto -> 400), ref_resa
+#     slug seule (traversée -> 400), accepte_cgv true exigé (sinon 422
+#     cgv_requise), signature tactile >=8 exigée (sinon 422
+#     signature_requise, sha256 + longueur seuls stockés, raw jamais persisté
+#     ni loggé). 201 créé / 200 re-signé (même ref = mise à jour horodatée).
+#     PDF horodaté runtime `contrats/logX/<ref>_contrat.pdf` (box
+#     /config/contrats/, gitignoré) référencé, preuve opposable = horodatage
+#     + hash signature. Opt-ins : mémoire -> fiche §5.7-quater (si
+#     `memoire_voyageur: off` : séjour seul) ; géoloc -> séjour seul,
+#     révocation checkout (box) ; CRM -> code -10 % direct seul si
+#     `crm_retour: on` (sinon stocké sans code, jamais d'effet prix auto
+#     art. 225-1). J-2 direct sans contrat = pin_autorise False indicatif
+#     (jamais bloquant, comme questionnaire).
+#   GET  /avis?logement_id=log1&ref_resa=<slug>
+#     -> P6-17 : statut enquête J+1 (§5.7-bis) : non_repondue (échelle 1-5)
+#     ou repondue/rattrapage (note + routage lien_public/rattrapage_prive +
+#     geste + todo correctif). 404 logement inconnu, 400 sans ref_resa.
+#     Jamais bloquant.
+#   POST /avis {logement_id, qui, ref_resa, note 1-5, commentaire?, langue?}
+#     -> P6-17 : dépôt 1-tap HUMAIN (qui auto -> 400), ref_resa slug seule
+#     (traversée -> 400), note entière 1-5 (sinon 400). 201 créé / 200
+#     corrigé. Routage : note>=4 -> lien_public (timing optimal) ;
+#     note==3 -> rattrapage_prive + geste auto late_gratuite (<=20 €) ;
+#     note<=2 -> rattrapage_prive + geste à valider humain (422 non, 200
+#     rattrapage_validation_requise + geste_propose). Todo correctif
+#     ménage/technique par mots-clés (jamais de sanction auto).
+#   POST /avis-geste {logement_id, qui, ref_resa, geste, montant_eur?}
+#     -> P6-17 : validation 1-tap HUMAINE du geste (qui auto -> 400),
+#     geste in {late_gratuite, moins_10_direct, remboursement_partiel} ;
+#     montant>20 € -> alerte loggée (la validation humaine elle-même fait
+#     foi). 404 si enquête absente.
+#   POST /avis-reponse {logement_id, qui, ref_resa, action: brouillon|valider,
+#     texte?} -> P6-17 : pré-réponse IA 1-tap (brouillon déterministe ton
+#     hôte depuis gabarit + note/langue, ou texte humain scanné : promesse
+#     détectée -> 422, jamais forcée) puis validation humaine (publication
+#     manuelle box, jamais auto).
+#   GET  /scenes?logement_id=log1 -> P6-17 : 3 scènes 1-tap PWA
+#     (arrivee/depart/nuit_calme + actions, lecture seule).
+#   POST /scene {logement_id, qui, ref_resa?, scene} -> P6-17 : activation
+#     1-tap HUMAIN (log décision + actions indicatives, box exécute via HA ;
+#     jamais bloquant, scene inconnue -> 400).
+#   GET  /acces?qui=<id> -> P6-20 : audit 5 rôles (comptes nominatifs,
+#     MFA exigée/active, expiry, révocations, doublons ; réservé
+#     super_admin/admin). Jamais de secrets.
+#   POST /acces-revoquer {qui, personne_id, motif?} -> P6-20 : révocation
+#     1-tap super_admin/admin (jamais soi-même, jamais super_admin,
+#     idempotent ; runtime acces-revocations.json, gitignoré).
+#   POST /acces-reactiver {qui, personne_id} -> P6-20 : levée de
+#     révocation (expire_le passé = reste expiré, éditer acces.yaml).
+#   GET  /journal?logement_id=log1&qui=<id>[&quoi=acces][&jours=90] ->
+#     P6-20 : qui/quand/quoi 90 j (etat_lecture + périmètre, cap 200,
+#     anti-chronologique, jamais de PIN).
 #   POST /decision {logement_id, ref, qui, quoi, canal?, montant?, motif?, llm?, jev?}
 #     -> vérifie RBAC + bornes + hors_bornes Jev, log JSONL (bloqué si refusé, loggé aussi)
 #   GET  /health -> {"ok": true}
@@ -426,6 +485,51 @@ QUESTIONNAIRE_CUTOFF_HEURE = 18
 QUESTIONNAIRE_SUGGESTIONS_GENERIQUES = ("kit_bienvenue_offert", "petit_dej",
                                         "transfert_aeroport")
 
+# P6-15 §12.5-bis : contrat voyageur PWA 30 s + signature tactile + opt-ins
+# (mémoire, géoloc, CRM retour −10 % direct si `crm_retour: on`).
+# Lien J-2 + QR accueil -> CGV 1 page (contrat_pwa.md) + case + tactile ->
+# PDF horodaté `/config/contrats/logX/<ref>.pdf` (RUNTIME box, gitignoré,
+# généré par facturation :8093 sur box ; ici preuve horodatée + référence).
+# Direct : contrat signé EXIGÉ avant envoi PIN (signalé pin_autorise False,
+# jamais bloquant comme questionnaire — le durcissement KeyMaster est box
+# Phase 8). OTA : règlement via messagerie plateforme déjà traçé (indicatif).
+# Stockage : `contrat-<logX>.json` dans decision_log_dir (volume
+# decision-state, runtime gitignoré comme questionnaire-<logX>.json).
+# Réponses SÛRES : jamais signature raw ni hash en sortie (sha256 + longueur
+# seuls stockés, jamais loggés en clair).
+QUI_AUTO_CONTRAT = QUI_AUTO_MEMOIRE
+CONTRAT_SIGNATURE_MIN = 8  # tactile base64 PNG >> 8 ; "signe" PWA >= 8 évite vide
+CONTRAT_OPTINS = ("optin_memoire", "optin_geoloc", "optin_crm_retour")
+
+# P6-17 §5.7-bis : boucle avis (enquête J+1 + pré-réponse 1-tap + scènes).
+# J+1 checkout -> note 1-5 privée + commentaire -> >=4★ lien public (timing
+# optimal, note protégée) ; <4★ rattrapage privé (excuse + geste calibré,
+# validation humaine 1-tap si >20 €) + todo correctif ménage/technique par
+# mots-clés (jamais de sanction auto). Pré-réponse : brouillon déterministe
+# ton hôte (LLM :4000 hors moteur sur box ; ici gabarit + note/langue) +
+# validation 1-tap, publication manuelle box jamais auto. Scènes PWA :
+# Arrivée (Confort+ECS+WiFi), Départ (checklist+Eco+révocation annoncée),
+# Nuit calme (Eco+rappel 22h-8h) — box exécute via HA, ici log indicatif.
+# Stockage : `avis-<logX>.json` dans decision_log_dir (volume
+# decision-state, runtime gitignoré comme questionnaire/contrat).
+QUI_AUTO_AVIS = QUI_AUTO_MEMOIRE
+AVIS_SEUIL_PUBLIC = 4  # >=4★ lien public, <4★ rattrapage privé
+AVIS_MONTANT_VALIDATION = 20  # geste >20 € -> alerte (validation humaine fait foi)
+AVIS_GESTES = ("late_gratuite", "moins_10_direct", "remboursement_partiel")
+AVIS_MOTS_MENAGE = ("menage", "ménage", "propre", "sale", "draps", "poussiere",
+                    "poussière")
+AVIS_MOTS_TECHNIQUE = ("panne", "casse", "cassé", "clim", "chauffage", "bruit",
+                        "eau", "fuite", "wifi", "chaudiere", "chaudière")
+# Promesses interdites en pré-réponse auto (garde-fou Jev, jamais forcées ;
+# texte humain les contenant -> 422, reformulation exigée).
+AVIS_PROMESSES = ("remboursement", "rembourse", "gratuit", "dedommagement",
+                  "dédommagement", "indemnit", "compens")
+SCENES = {
+    "arrivee": ("confort_19", "ecs_relance", "wifi_affiche"),
+    "depart": ("checklist_zero_friction", "eco_16", "revocation_annoncee"),
+    "nuit_calme": ("eco_16", "rappel_22h_8h"),
+}
+
 
 def lire_memoire(path):
     """Lit le registre mémoire : {hash: {champs}}. Parseur minimal stdlib
@@ -547,7 +651,7 @@ def lire_logements(path):
         return {}
     logts = {}
     cur = None
-    section = None  # pricing | copro | features | None
+    section = None  # pricing | copro | features | menage | None
     for brute in lignes:
         ligne = brute.split("#", 1)[0].rstrip("\n")
         if not ligne.strip():
@@ -560,21 +664,27 @@ def lire_logements(path):
                           "prix_min": 75, "prix_max": 290,
                           "mode_gestion_defaut": "equilibre",
                           "heures_calmes": "", "occupants_max": "",
+                          "surface_m2": "", "capacite": "",
+                          "fetes_interdites": True,
+                          "menage_montant": "", "menage_facturation": "",
                           "copro_verifiee": False, "features": {}}
             section = None
             continue
         if cur is None:
             continue
-        if indent == 4 and prop in ("pricing:", "copro:", "features:"):
+        if indent == 4 and prop in ("pricing:", "copro:", "features:",
+                                    "menage:"):
             section = prop[:-1]
             continue
         if indent == 4 and prop.endswith(":"):
             section = None  # menage:, autres blocs
             continue
         if indent == 4 and not section and ":" in prop:
-            # Identité statique logement (nom, commune) — sert les defaults J-2/J-1/J+1.
+            # Identité statique logement (nom, commune, surface, capacité —
+            # sert les defaults J-2/J-1/J+1 + mentions annonce P6-21).
             k_id, v_id = [x.strip().strip("\"'") for x in prop.split(":", 1)]
-            if k_id in ("nom", "commune") and v_id:
+            if k_id in ("nom", "commune", "surface_m2",
+                        "capacite") and v_id:
                 logts[cur][k_id] = v_id
             continue
         if section and ":" in prop:
@@ -592,19 +702,34 @@ def lire_logements(path):
                     logts[cur]["copro_verifiee"] = (v == "true")
                 elif k in ("heures_calmes", "occupants_max") and v:
                     logts[cur][k] = v
+                elif k == "fetes":
+                    # fetes: false (plan) = fêtes interdites = true.
+                    logts[cur]["fetes_interdites"] = (v != "true")
+            elif section == "menage":
+                # P6-21 : supplément voyageur (§12.2-ter).
+                if k == "montant" and v:
+                    logts[cur]["menage_montant"] = v
+                elif k == "facturation" and v:
+                    logts[cur]["menage_facturation"] = v
             elif section == "features":
                 logts[cur]["features"][k] = (v == "true")
     return logts
 
 
 def lire_acces(path):
-    """Extrait personnes : id, role, sous_role, logements, expire_le (parseur minimal)."""
+    """Extrait personnes : id, role, sous_role, logements, expire_le, mfa.
+
+    Parseur minimal. Retourne (personnes, doublons) : les `- id:` répétés
+    sont signalés (1 compte nominatif/personne, jamais de partage sauf
+    `guest` kiosk). `mfa: true` = 2FA active vérifiée sur la box HA
+    (exigée super_admin/admin/gestionnaire, P6-20)."""
     try:
         with open(path, encoding="utf-8") as f:
             lignes = f.readlines()
     except FileNotFoundError:
-        return {}
+        return {}, []
     pers = {}
+    doublons = []
     cur = None
     for brute in lignes:
         ligne = brute.split("#", 1)[0].rstrip("\n")
@@ -614,7 +739,10 @@ def lire_acces(path):
         prop = ligne.strip()
         if indent == 2 and prop.startswith("- id:"):
             cur = prop.split(":", 1)[1].strip().strip("\"'")
-            pers[cur] = {"role": "", "sous_role": "", "logements": [], "expire_le": None}
+            if cur in pers:
+                doublons.append(cur)
+            pers[cur] = {"role": "", "sous_role": "", "logements": [],
+                         "expire_le": None, "mfa": False}
             continue
         if cur and indent >= 4 and ":" in prop and not prop.startswith("- "):
             k, v = [x.strip().strip("\"'") for x in prop.split(":", 1)]
@@ -625,15 +753,59 @@ def lire_acces(path):
                 pers[cur][k] = [x.strip().strip("\"'") for x in v.split(",") if x.strip()]
             elif k == "expire_le":
                 pers[cur][k] = None if v in ("", "null", "None") else v
-    return pers
+            elif k == "mfa":
+                pers[cur][k] = v in ("true", "1", "oui", "yes", True)
+    return pers, sorted(set(doublons))
+
+
+# P6-20 §1.6 : 2FA obligatoire super_admin/admin/gestionnaire (tous
+# sous-rôles). Vérifiée sur la box HA ; `mfa: true` dans acces.yaml une
+# fois activée (re-check vert). Voyageur/presta/proprio : session PWA
+# durée séjour/mission, jamais d'accès HA direct.
+MFA_EXIGEE = {("super_admin", "super_admin"), ("super_admin", "admin"),
+              ("gestionnaire", "operateur"), ("gestionnaire", "comptable"),
+              ("gestionnaire", "support")}
+QUI_AUTO_ACCES = QUI_AUTO_MEMOIRE
+JOURNAL_MAX_J = 90
+JOURNAL_MAX_LIGNES = 200
+
+# P6-21 §12.5-bis : carnet preuve tranquillité + lettre syndic + registre
+# RGPD + mentions annonce. Dossier `/config/preuves/logX/<trimestre>/`
+# (box ; ici `preuves-<logX>.json` runtime gitignoré) : dB seuls (jamais
+# d'audio, jamais chambres/SDB), messages 22h-8h, interventions Alarmo,
+# attestations ménage -> courrier chiffré (humain envoie via messagerie
+# tracée). Conservation 1 an, accès hôte seul (super_admin + gestionnaire
+# opérationnel/support — jamais voyageur/presta/proprio/comptable).
+SEUIL_BRUIT_JOUR = 75  # dB, 8h-22h (§5.9 : 75 dB jour / 10 min)
+SEUIL_BRUIT_NUIT = 60  # dB, 22h-8h (§5.9 : 60 dB nuit / 5 min)
+HEURES_CALMES_DEBUT = 22
+HEURES_CALMES_FIN = 8
+ATTESTATION_TYPES = ("intervention", "menage", "message_rappel")
+TRIMESTRE_RE = re.compile(r"^\d{4}-T[1-4]$")
+PREUVE_CONSERVATION_J = 365
+
+# P7-6 §6.7 : seuils transverses LLM/Jev en code (consultatifs seuls).
+# noul>0,8 + confidence>0,75 -> auto borné (sinon dashboard) ;
+# confidence<0,7 -> jamais d'auto ; hors_bornes>0,5 -> blocage.
+# Garde-fou inviolable : jamais de tool-calling serrure/vanne/portail,
+# jamais de génération PIN/ouverture (KeyMaster + Nuki Hub seuls) — même
+# avec des scores parfaits, ces actions sont BLOQUÉES ici (403).
+SEUIL_NOUL_AUTO = 0.8
+SEUIL_CONFIDENCE_AUTO = 0.75
+SEUIL_CONFIDENCE_MIN = 0.7
+SEUIL_HORS_BORNES_BLOCAGE = 0.5
+# Actions physiques interdites au pipeline LLM/Jev (consultatif seul).
+OUTILS_INTERDITS = ("serrure", "vanne", "portail", "ouverture", "pin",
+                    "alarme_off")
 
 
 class Moteur:
     def __init__(self, cfg, logts, acces, secrets, branding=None,
-                 memoire_path=""):
+                 memoire_path="", acces_doublons=None):
         self.cfg = cfg
         self.logts = logts
         self.acces = acces
+        self.acces_doublons = list(acces_doublons or [])
         self.secrets = secrets
         self.branding = dict(branding or {})
         # P6-12 §5.7-quater : registre opt-in (hash seul, jamais CSI brut).
@@ -658,10 +830,32 @@ class Moteur:
         }
 
     # --- RBAC ---
+    def _lire_revocations(self):
+        try:
+            with open(os.path.join(self.decision_dir,
+                                   "acces-revocations.json"),
+                      encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}
+        except (FileNotFoundError, ValueError):
+            return {}
+
+    def _sauver_revocations(self, revoc):
+        with open(os.path.join(self.decision_dir,
+                               "acces-revocations.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(revoc, f, ensure_ascii=False, indent=1, sort_keys=True)
+
     def autoriser(self, qui_id, action, logement_id):
         p = self.acces.get(qui_id)
         if not p:
             return False, f"qui inconnu: {qui_id}", None
+        # P6-20 : révocation (runtime acces-revocations.json, gitignoré —
+        # box : acces.yaml éditable, lab : montée ro) puis expiry.
+        rev = self._lire_revocations().get(qui_id)
+        if rev:
+            return False, (f"compte révoqué le {rev.get('revoque_le')} "
+                            f"({rev.get('motif', 'motif non précisé')})"), p
         if p.get("expire_le"):
             try:
                 if dt.date.fromisoformat(p["expire_le"]) < dt.date.today():
@@ -675,6 +869,544 @@ class Moteur:
         if "*" in droits or action in droits:
             return True, f"{p.get('role')}/{p.get('sous_role')} autorisé {action}", p
         return False, f"{p.get('role')}/{p.get('sous_role')} non autorisé {action}", p
+
+    # --- P6-20 §1.6 : audit comptes + révocation + journal 90 j ---
+    @staticmethod
+    def _statut_compte(pid, p, revoc):
+        if pid in revoc:
+            return "revoque"
+        if p.get("expire_le"):
+            try:
+                if dt.date.fromisoformat(p["expire_le"]) < dt.date.today():
+                    return "expire"
+            except ValueError:
+                pass
+        return "actif"
+
+    def acces_audit(self, qui_id):
+        """GET /acces : audit 5 rôles (1 compte nominatif/personne, MFA,
+        expiry, révocations, doublons). Réservé super_admin/admin
+        (action config_modif). Jamais de secrets (aucun ici)."""
+        ok, msg, _ = self.autoriser(qui_id, "config_modif", "")
+        if not ok:
+            return 403, {"statut": "bloque", "motif": msg}
+        revoc = self._lire_revocations()
+        personnes, sans_mfa, expires, revoques = [], [], [], []
+        for pid in sorted(self.acces):
+            p = self.acces[pid]
+            statut = self._statut_compte(pid, p, revoc)
+            mfa_exigee = (p.get("role"), p.get("sous_role")) in MFA_EXIGEE
+            personnes.append({"id": pid, "role": p.get("role"),
+                              "sous_role": p.get("sous_role"),
+                              "logements": p.get("logements", []),
+                              "expire_le": p.get("expire_le"),
+                              "mfa_exigee": mfa_exigee,
+                              "mfa_active": bool(p.get("mfa")),
+                              "statut": statut})
+            if mfa_exigee and not p.get("mfa"):
+                sans_mfa.append(pid)
+            if statut == "expire":
+                expires.append(pid)
+            if statut == "revoque":
+                revoques.append(pid)
+        return 200, {"personnes": personnes,
+                     "total": len(personnes),
+                     "alertes": {"sans_mfa": sans_mfa, "expires": expires,
+                                 "revoques": revoques,
+                                 "doublons": list(self.acces_doublons)}}
+
+    def acces_revoquer(self, qui_id, personne_id, motif=""):
+        """POST /acces-revoquer : 1-tap super_admin/admin (config_modif).
+        Jamais soi-même, jamais super_admin (compte protégé). Idempotent.
+        Voyageur = pas de compte nominatif (PWA séjour) : rien à révoquer."""
+        ok, msg, _ = self.autoriser(qui_id, "config_modif", "")
+        if not ok:
+            return 403, {"statut": "bloque", "motif": msg}
+        pid = str(personne_id or "").strip()
+        if pid == qui_id:
+            return 403, {"statut": "bloque",
+                         "motif": "auto-révocation interdite"}
+        p = self.acces.get(pid)
+        if not p:
+            return 404, {"erreur": f"personne inconnue: {pid}"}
+        if (p.get("role"), p.get("sous_role")) == ("super_admin",
+                                                   "super_admin"):
+            return 403, {"statut": "bloque",
+                         "motif": "compte super_admin protégé"}
+        revoc = self._lire_revocations()
+        if pid in revoc:
+            return 200, {"statut": "deja_revoque", "personne_id": pid}
+        revoc[pid] = {"revoque_le": dt.date.today().isoformat(),
+                      "par": qui_id,
+                      "motif": str(motif or "").strip()[:200]}
+        self._sauver_revocations(revoc)
+        scope = (p.get("logements") or [""])[0]
+        if scope:
+            self.log_decision(scope, f"acces-{pid}", qui_id, "acces", None,
+                              None,
+                              f"compte révoqué ({p.get('role')}/"
+                              f"{p.get('sous_role')})")
+        return 200, {"statut": "revoque", "personne_id": pid}
+
+    def acces_reactiver(self, qui_id, personne_id):
+        """POST /acces-reactiver : lève la révocation (1-tap
+        super_admin/admin). Si expire_le passé : reste expiré (éditer
+        acces.yaml sur box)."""
+        ok, msg, _ = self.autoriser(qui_id, "config_modif", "")
+        if not ok:
+            return 403, {"statut": "bloque", "motif": msg}
+        pid = str(personne_id or "").strip()
+        p = self.acces.get(pid)
+        if not p:
+            return 404, {"erreur": f"personne inconnue: {pid}"}
+        revoc = self._lire_revocations()
+        if pid not in revoc:
+            return 200, {"statut": "deja_actif", "personne_id": pid}
+        del revoc[pid]
+        self._sauver_revocations(revoc)
+        expire = False
+        if p.get("expire_le"):
+            try:
+                expire = dt.date.fromisoformat(p["expire_le"]) \
+                    < dt.date.today()
+            except ValueError:
+                pass
+        scope = (p.get("logements") or [""])[0]
+        if scope:
+            self.log_decision(scope, f"acces-{pid}", qui_id, "acces", None,
+                              None,
+                              "compte réactivé"
+                              + (" (reste expiré : éditer acces.yaml)"
+                                 if expire else ""))
+        return 200, {"statut": "reactive", "personne_id": pid,
+                     "compte_expire": expire}
+
+    def journal(self, logement_id, qui_id, quoi="", jours=90,
+                  backend="", alias="", langue=""):
+        """GET /journal : qui/quand/quoi 90 j (decision.logX.jsonl, tagué
+        rôle). Lecture filtrée etat_lecture + périmètre. Filtres dashboard
+        P7-7 : backend Jev (jev.backend), alias LLM (llm.alias), langue
+        voyageur. Cap 200 lignes, ordre anti-chronologique. Jamais de PIN
+        (jamais loggé en clair)."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        ok, msg, _ = self.autoriser(qui_id, "etat_lecture", logement_id)
+        if not ok:
+            return 403, {"statut": "bloque", "motif": msg}
+        try:
+            jours_i = int(float(str(jours)))
+        except (TypeError, ValueError):
+            return 400, {"erreur": "jours entier 1-90"}
+        if jours_i < 1 or jours_i > JOURNAL_MAX_J:
+            return 400, {"erreur": "jours entier 1-90"}
+        cutoff = (dt.datetime.now(dt.timezone.utc)
+                  - dt.timedelta(days=jours_i))
+        # Filtres dashboard P7-7 (vides = sans filtre).
+        f_backend = str(backend or "").strip().lower()
+        f_alias = str(alias or "").strip().lower()
+        f_langue = str(langue or "").lower()[:2]
+        entrees = []
+        try:
+            with open(os.path.join(self.decision_dir,
+                                   f"decision.{logement_id}.jsonl"),
+                      encoding="utf-8") as f:
+                for ligne in f:
+                    ligne = ligne.strip()
+                    if not ligne:
+                        continue
+                    try:
+                        e = json.loads(ligne)
+                    except ValueError:
+                        continue
+                    try:
+                        ts = dt.datetime.fromisoformat(
+                            str(e.get("ts", "")).replace("Z", "+00:00"))
+                        if ts.tzinfo is None:
+                            ts = ts.replace(tzinfo=dt.timezone.utc)
+                    except ValueError:
+                        continue
+                    if ts < cutoff:
+                        continue
+                    if quoi and e.get("quoi") != quoi:
+                        continue
+                    if f_backend and str(
+                            (e.get("jev") or {}).get(
+                                "backend", "")).lower() != f_backend:
+                        continue
+                    if f_alias and str(
+                            (e.get("llm") or {}).get(
+                                "alias", "")).lower() != f_alias:
+                        continue
+                    if f_langue and str(
+                            e.get("langue", "")).lower() != f_langue:
+                        continue
+                    entrees.append(e)
+        except FileNotFoundError:
+            pass
+        entrees.sort(key=lambda e: str(e.get("ts", "")), reverse=True)
+        return 200, {"logement_id": logement_id, "jours": jours_i,
+                     "entrees": entrees[:JOURNAL_MAX_LIGNES],
+                     "total": len(entrees)}
+
+    # --- P6-21 §12.5-bis : carnet preuve tranquillité + lettre syndic ---
+    def _hote_seul(self, qui_id, logement_id):
+        """Accès hôte seul (preuves litige, 1 an) : super_admin + gestionnaire
+        opérationnel/support. Jamais voyageur/presta/proprio/comptable."""
+        p = self.acces.get(qui_id)
+        if not p:
+            return False, "qui inconnu"
+        if (p.get("role"), p.get("sous_role")) not in (
+                ("super_admin", "super_admin"), ("super_admin", "admin"),
+                ("gestionnaire", "operateur"), ("gestionnaire", "support")):
+            return False, "accès hôte seul (preuves litige, jamais diffusées)"
+        if logement_id and logement_id not in p.get("logements", []):
+            return False, f"hors périmètre : {qui_id}"
+        return True, f"{p.get('role')}/{p.get('sous_role')}"
+
+    @staticmethod
+    def _trimestre_courant():
+        auj = dt.date.today()
+        return f"{auj.year}-T{(auj.month - 1) // 3 + 1}"
+
+    def _lire_preuves(self, logement_id):
+        try:
+            with open(os.path.join(self.decision_dir,
+                                   f"preuves-{logement_id}.json"),
+                      encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                data.setdefault("releves", [])
+                data.setdefault("attestations", [])
+                return data
+        except (FileNotFoundError, ValueError):
+            pass
+        return {"releves": [], "attestations": []}
+
+    def _sauver_preuves(self, logement_id, carnet):
+        with open(os.path.join(self.decision_dir,
+                               f"preuves-{logement_id}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(carnet, f, ensure_ascii=False, indent=1, sort_keys=True)
+
+    @staticmethod
+    def _est_nuit(heure_iso):
+        """Heures calmes 22h-8h (§12.1 log1)."""
+        try:
+            h = dt.datetime.fromisoformat(
+                str(heure_iso).replace("Z", "+00:00")).hour
+        except ValueError:
+            return False
+        return h >= HEURES_CALMES_DEBUT or h < HEURES_CALMES_FIN
+
+    def _synthese_trimestre(self, carnet, trimestre):
+        rel = [r for r in carnet.get("releves", [])
+               if str(r.get("trimestre", "")) == trimestre]
+        att = [a for a in carnet.get("attestations", [])
+               if str(a.get("trimestre", "")) == trimestre]
+        dep_jour = sorted((r for r in rel
+                           if not r.get("nuit")
+                           and r.get("db", 0) > SEUIL_BRUIT_JOUR),
+                          key=lambda r: r.get("db", 0), reverse=True)
+        dep_nuit = sorted((r for r in rel
+                           if r.get("nuit")
+                           and r.get("db", 0) > SEUIL_BRUIT_NUIT),
+                          key=lambda r: r.get("db", 0), reverse=True)
+        max_db = max([r.get("db", 0) for r in rel] + [0])
+        par_type = {}
+        for a in att:
+            par_type[a.get("type", "?")] = par_type.get(
+                a.get("type", "?"), 0) + 1
+        return {"trimestre": trimestre, "releves": len(rel),
+                "max_db": max_db,
+                "depassements_jour": [{"db": r["db"], "heure": r["heure"]}
+                                      for r in dep_jour],
+                "depassements_nuit": [{"db": r["db"], "heure": r["heure"]}
+                                      for r in dep_nuit],
+                "aucun_depassement": not (dep_jour or dep_nuit),
+                "attestations": len(att),
+                "attestations_par_type": par_type}
+
+    # --- POST /preuve-db : relevé dB seul (jamais d'audio) ---
+    def preuve_db(self, logement_id, qui, db, heure="", occupation=""):
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui or str(qui).strip().lower() in QUI_AUTO_ACCES:
+            return 400, {"erreur": "relevé = capteur/humain "
+                                   "(qui != auto/llm/jev)"}
+        try:
+            db_f = float(str(db))
+        except (TypeError, ValueError):
+            return 400, {"erreur": "db (dB seuls, jamais d'audio) requis"}
+        if not (0 <= db_f <= 120):
+            return 400, {"erreur": "db entre 0 et 120 (dB seuls)"}
+        try:
+            mom = dt.datetime.fromisoformat(
+                str(heure or "").strip().replace("Z", "+00:00")) \
+                if str(heure or "").strip() else \
+                dt.datetime.now(dt.timezone.utc)
+            if mom.tzinfo is None:
+                mom = mom.replace(tzinfo=dt.timezone.utc)
+        except ValueError:
+            return 400, {"erreur": "heure ISO AAAA-MM-JJTHH:MM"}
+        heure_iso = mom.isoformat(timespec="seconds")
+        trimestre = f"{mom.year}-T{(mom.month - 1) // 3 + 1}"
+        nuit = self._est_nuit(heure_iso)
+        seuil = SEUIL_BRUIT_NUIT if nuit else SEUIL_BRUIT_JOUR
+        carnet = self._lire_preuves(logement_id)
+        carnet["releves"].append({"db": round(db_f, 1), "heure": heure_iso,
+                                  "trimestre": trimestre, "nuit": nuit,
+                                  "occupation": str(occupation or "")[:40],
+                                  "par": qui})
+        self._sauver_preuves(logement_id, carnet)
+        self.log_decision(logement_id, f"preuve-{trimestre}", qui, "acces",
+                          None, None,
+                          f"relevé dB {db_f} ({'nuit' if nuit else 'jour'})")
+        return 201, {"logement_id": logement_id, "db": round(db_f, 1),
+                     "heure": heure_iso, "trimestre": trimestre,
+                     "nuit": nuit, "depasse": db_f > seuil,
+                     "seuil": seuil}
+
+    # --- POST /preuve-attestation : intervention/ménage/message ---
+    def preuve_attestation(self, logement_id, qui, type_attestation,
+                           ref="", detail=""):
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui or str(qui).strip().lower() in QUI_AUTO_ACCES:
+            return 400, {"erreur": "attestation = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        typ = str(type_attestation or "").strip().lower()
+        if typ not in ATTESTATION_TYPES:
+            return 400, {"erreur": "type parmi : "
+                                   + ", ".join(ATTESTATION_TYPES)}
+        ref = str(ref or "").strip()
+        if ref and (not REF_RE.fullmatch(ref) or ".." in ref):
+            return 400, {"erreur": "ref slug seule (traversée bloquée)"}
+        carnet = self._lire_preuves(logement_id)
+        carnet["attestations"].append(
+            {"type": typ, "ref": ref,
+             "detail": str(detail or "")[:500],
+             "trimestre": self._trimestre_courant(),
+             "par": qui, "le": utcnow_iso()})
+        self._sauver_preuves(logement_id, carnet)
+        self.log_decision(logement_id, ref or f"preuve-{typ}", qui, "acces",
+                          None, None, f"attestation {typ} versée au carnet")
+        return 201, {"logement_id": logement_id, "type": typ,
+                     "trimestre": self._trimestre_courant()}
+
+    # --- GET /carnet : synthèse trimestre (hôte seul) ---
+    def carnet(self, logement_id, qui, trimestre=""):
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        ok, msg = self._hote_seul(qui, logement_id)
+        if not ok:
+            return 403, {"statut": "bloque", "motif": msg}
+        trim = str(trimestre or "").strip() or self._trimestre_courant()
+        if not TRIMESTRE_RE.fullmatch(trim):
+            return 400, {"erreur": "trimestre AAAA-Tn (n = 1-4)"}
+        synth = self._synthese_trimestre(self._lire_preuves(logement_id),
+                                         trim)
+        return 200, {"logement_id": logement_id, **synth,
+                     "conservation_j": PREUVE_CONSERVATION_J,
+                     "jamais_audio": True}
+
+    # --- POST /lettre-tranquillite : brouillon chiffré (humain envoie) ---
+    def lettre_tranquillite(self, logement_id, qui, trimestre="",
+                            destinataire="syndic"):
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        ok, msg = self._hote_seul(qui, logement_id)
+        if not ok:
+            return 403, {"statut": "bloque", "motif": msg}
+        trim = str(trimestre or "").strip() or self._trimestre_courant()
+        if not TRIMESTRE_RE.fullmatch(trim):
+            return 400, {"erreur": "trimestre AAAA-Tn (n = 1-4)"}
+        dest = str(destinataire or "syndic").strip().lower()[:20] or "syndic"
+        synth = self._synthese_trimestre(self._lire_preuves(logement_id),
+                                         trim)
+        log = self.logts.get(logement_id, {})
+        if synth["aucun_depassement"]:
+            corps = (f"Trimestre {trim} — {log.get('nom', logement_id)} : "
+                     f"aucun dépassement ({synth['releves']} relevés dB, "
+                     f"max {synth['max_db']} dB) ; "
+                     f"{synth['attestations']} attestation(s) au dossier.")
+        else:
+            tot_dep = (len(synth["depassements_jour"])
+                       + len(synth["depassements_nuit"]))
+            corps = (f"Trimestre {trim} — {log.get('nom', logement_id)} : "
+                     f"{tot_dep} dépassement(s) (max {synth['max_db']} dB), "
+                     f"rappels + interventions tracés, "
+                     f"{synth['attestations']} attestation(s) au dossier.")
+        try:
+            with open(os.path.join(self.decision_dir,
+                                   f"lettres-{logement_id}.json"),
+                      encoding="utf-8") as f:
+                lettres = json.load(f)
+            lettres = lettres if isinstance(lettres, dict) else {}
+        except (FileNotFoundError, ValueError):
+            lettres = {}
+        lettres[trim] = {"statut": "brouillon", "destinataire": dest,
+                         "texte": corps,
+                         "chiffres": {"releves": synth["releves"],
+                                      "max_db": synth["max_db"],
+                                      "depassements": len(
+                                          synth["depassements_jour"])
+                                      + len(synth["depassements_nuit"]),
+                                      "attestations": synth[
+                                          "attestations"]},
+                         "redige_le": utcnow_iso(), "redige_par": qui}
+        with open(os.path.join(self.decision_dir,
+                               f"lettres-{logement_id}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(lettres, f, ensure_ascii=False, indent=1, sort_keys=True)
+        self.log_decision(logement_id, f"lettre-{trim}", qui, "acces",
+                          None, None,
+                          f"lettre tranquillité brouillon ({dest})")
+        return 201, {"statut": "brouillon", "logement_id": logement_id,
+                     "trimestre": trim, "destinataire": dest,
+                     "longueur": len(corps),
+                     "rappel": "humain envoie via messagerie tracée "
+                               "(POST /lettre-envoyer)"}
+
+    # --- POST /lettre-envoyer : 1-tap humain (messagerie tracée) ---
+    def lettre_envoyer(self, logement_id, qui, trimestre="", canal=""):
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        ok, msg = self._hote_seul(qui, logement_id)
+        if not ok:
+            return 403, {"statut": "bloque", "motif": msg}
+        trim = str(trimestre or "").strip() or self._trimestre_courant()
+        if not TRIMESTRE_RE.fullmatch(trim):
+            return 400, {"erreur": "trimestre AAAA-Tn (n = 1-4)"}
+        canal = re.sub(r"[^a-z0-9_-]+", "_",
+                       str(canal or "").lower()).strip("_")
+        if not canal:
+            return 400, {"erreur": "canal messagerie tracée requis "
+                                   "(ex : email)"}
+        try:
+            with open(os.path.join(self.decision_dir,
+                                   f"lettres-{logement_id}.json"),
+                      encoding="utf-8") as f:
+                lettres = json.load(f)
+            lettres = lettres if isinstance(lettres, dict) else {}
+        except (FileNotFoundError, ValueError):
+            lettres = {}
+        lettre = lettres.get(trim)
+        if not lettre or lettre.get("statut") != "brouillon":
+            return 409, {"erreur": "brouillon requis avant envoi "
+                                   "(POST /lettre-tranquillite)",
+                         "code": "brouillon_requis"}
+        lettre["statut"] = "envoyee"
+        lettre["canal"] = canal
+        lettre["envoyee_le"] = utcnow_iso()
+        lettre["envoyee_par"] = qui
+        lettres[trim] = lettre
+        with open(os.path.join(self.decision_dir,
+                               f"lettres-{logement_id}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(lettres, f, ensure_ascii=False, indent=1, sort_keys=True)
+        self.log_decision(logement_id, f"lettre-{trim}", qui, "acces",
+                          None, None,
+                          f"lettre tranquillité envoyée ({canal})")
+        return 200, {"statut": "envoyee", "logement_id": logement_id,
+                     "trimestre": trim, "canal": canal}
+
+    # --- GET /registre-rgpd : traitements + durées (lecture seule) ---
+    def registre_rgpd(self, logement_id, qui):
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        ok, msg, _ = self.autoriser(qui, "etat_lecture", logement_id)
+        if not ok:
+            return 403, {"statut": "bloque", "motif": msg}
+        feats = self.logts.get(logement_id, {}).get("features", {})
+        lignes = [
+            {"donnees": "bruit dB seuls (jamais d'audio)",
+             "finalite": "tranquillité copro + carnet preuve",
+             "base": "contrat (règlement intérieur)", "duree_j": 365,
+             "actif": True},
+            {"donnees": "voix : texte transcrit seul (BYOD, 0 j audio)",
+             "finalite": "assistance séjour", "base": "consentement par échange",
+             "duree_j": 90, "actif": bool(feats.get("voix", False))},
+            {"donnees": "géoloc séjour (zones home/away)",
+             "finalite": "pré-chauffe/accueil",
+             "base": "opt-in par séjour",
+             "duree_j": 90,
+             "actif": bool(feats.get("geoloc_voyageur", False))},
+            {"donnees": "photos EDL (logement seul, EXIF)",
+             "finalite": "preuves AirCover/Booking/Vrbo",
+             "base": "consentement arrivée",
+             "duree_j": 90,
+             "actif": bool(feats.get("etat_lieux_auto", False))},
+            {"donnees": "photos interventions + pointages (logement seul)",
+             "finalite": "preuve travail (temps facturé = pointé)",
+             "base": "contrat prestation",
+             "duree_j": 365,
+             "actif": bool(feats.get("traca_intervenants", False))},
+            {"donnees": "fiche mémoire (hash seul, jamais CSI brut)",
+             "finalite": "confort retour (pré-remplissage)",
+             "base": "opt-in 1-tap révocable",
+             "duree_j": 730,
+             "actif": bool(feats.get("memoire_voyageur", False))},
+            {"donnees": "journal qui/quand/quoi (texte seul, jamais PIN)",
+             "finalite": "traçabilité accès 90 j",
+             "base": "intérêt légitime (sécurité)",
+             "duree_j": 90, "actif": True},
+        ]
+        return 200, {"logement_id": logement_id, "traitements": lignes,
+                     "total": len(lignes)}
+
+    # --- GET /mentions-annonce : obligatoires + statut renseigné/manquant ---
+    def mentions_annonce(self, logement_id):
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        log = self.logts.get(logement_id, {})
+        mentions = [
+            {"id": "numero_declaration",
+             "label": "N° déclaration mairie (toutes annonces)",
+             "renseigne": False,
+             "action": "Cerfa 14004*04 en mairie, saisir le n° reçu"},
+            {"id": "dpe",
+             "label": "DPE < 10 ans (classe + dépenses)",
+             "renseigne": False,
+             "action": "diagnostiqueur, afficher classe A-G"},
+            {"id": "classement",
+             "label": "Classement Atout France (défaut : non classé)",
+             "renseigne": False,
+             "action": "visite Office de Tourisme ou rester non classé"},
+            {"id": "capacite",
+             "label": f"Capacité max ({log.get('occupants_max', '?')} pers.)",
+             "renseigne": bool(str(log.get("occupants_max", "") or "")
+                               .strip()),
+             "action": ""},
+            {"id": "surface",
+             "label": f"Surface ({log.get('surface_m2', '?')} m²)",
+             "renseigne": bool(str(log.get("surface_m2", "") or "")
+                               .strip()),
+             "action": ""},
+            {"id": "heures_calmes",
+             "label": f"Heures calmes ({log.get('heures_calmes', '?')})",
+             "renseigne": bool(str(log.get("heures_calmes", "") or "")
+                               .strip()),
+             "action": ""},
+            {"id": "fetes",
+             "label": "Fêtes interdites (copro)",
+             "renseigne": bool(log.get("fetes_interdites", False)),
+             "action": ""},
+            {"id": "menage",
+             "label": (f"Ménage {log.get('menage_montant', '?')} € "
+                       f"({log.get('menage_facturation', '?')})"),
+             "renseigne": bool(str(log.get("menage_montant", "") or "")
+                               .strip()),
+             "action": ""},
+            {"id": "taxe_sejour",
+             "label": "Taxe de séjour Métropole NCA (affichée, OTA "
+                      "collectent / direct = vous collectez)",
+             "renseigne": True,
+             "action": "compte portail taxe + tarifs dans le logement"},
+        ]
+        manquantes = [m["id"] for m in mentions if not m["renseigne"]]
+        return 200, {"logement_id": logement_id, "mentions": mentions,
+                     "manquantes": manquantes,
+                     "mise_en_ligne_ok": not manquantes}
 
     # --- traçabilité (schéma §README, 90 j accès) ---
     def vars_statiques(self, logement_id):
@@ -726,14 +1458,17 @@ class Moteur:
         }
 
     def log_decision(self, logement_id, ref, qui, quoi, canal=None, montant=None,
-                     motif="", llm=None, jev=None):
+                     motif="", llm=None, jev=None, langue=""):
         tx = self.commissions.get(canal) if canal else None
         ligne = {"ts": utcnow_iso(), "logement_id": logement_id, "ref": ref,
                  "qui": qui, "quoi": quoi, "canal": canal, "commission": tx,
                  "net_hote": (None if (tx is None or montant is None or
                                        not isinstance(montant, (int, float)))
                               else round(float(montant) * (1.0 - tx), 2)),
-                 "llm": llm or {}, "jev": jev or {}, "motif": motif}
+                 "llm": llm or {}, "jev": jev or {}, "motif": motif,
+                 # P7-7 : langue voyageur (filtre dashboard, vide = non
+                 # renseignée — champ additif, schéma P1-10/P2-8 inchangé).
+                 "langue": str(langue or "").lower()[:2]}
         path = os.path.join(self.decision_dir, f"decision.{logement_id}.jsonl")
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(ligne, ensure_ascii=False) + "\n")
@@ -934,8 +1669,28 @@ class Moteur:
             data["traduction_auto"] = traduction_auto
         ok_ha, info = self.ha_post(f"/api/events/{type_event}",
                                    {"logement_id": logement_id, **data})
+        # P6-15 §12.5-bis : statut contrat indicatif (jamais bloquant, comme
+        # questionnaire). Direct sans contrat signé = pin_autorise False
+        # (consigne KeyMaster/box Phase 8, pas de blocage event ici pour
+        # rétro-compatibilité batterie). OTA / sans canal / sans ref = True.
+        contrat_signe = False
+        try:
+            if str(ref or "").strip():
+                contrat_signe = str(ref).strip() in self._lire_contrats(
+                    logement_id)
+        except (ValueError, OSError):
+            contrat_signe = False
+        canal = str(data.get("canal", "") or "").strip().lower()
+        pin_autorise = True
+        if (type_event == "lcd_j2_envoi_acces" and canal == "direct"
+                and not contrat_signe):
+            pin_autorise = False
         self.log_decision(logement_id, ref or type_event, qui, "acces", None, None,
-                          f"event {type_event} -> HA {'OK' if ok_ha else info}")
+                          f"event {type_event} -> HA {'OK' if ok_ha else info}"
+                          + ("" if contrat_signe
+                             else " (contrat non signe : pin_autorise "
+                             f"{str(pin_autorise).lower()})"),
+                          langue=langue_utilisee)
         code = 200 if ok_ha else 202
         # Réponse : métadonnées SÛRES uniquement — jamais le message (contient le
         # PIN J-2) ni le PIN lui-même (jamais en clair logs/recorder/logbook).
@@ -950,6 +1705,8 @@ class Moteur:
                       "message_longueur": len(msg),
                       "placeholders_restants": msg.count("{{"),
                       "pin_transmis": bool(data.get("pin")),
+                      "contrat_signe": contrat_signe,
+                      "pin_autorise": pin_autorise,
                       "message_boite_cles": bool(data.get("message_boite_cles"))}
 
     def rendre_phrases(self, logement_id, cle="", langue="fr", variables=None):
@@ -1438,6 +2195,590 @@ class Moteur:
                       "optin_memoire_sejour_seul": sejour_seul,
                       "jamais_bloquant": True}
 
+    # --- P6-15 §12.5-bis : contrat PWA 30 s + signature tactile + opt-ins ---
+    def _chemin_contrat(self, logement_id):
+        """État runtime (volume decision-state, gitignoré comme les JSONL,
+        jamais commité) : un JSON par logement {ref_resa: dossier signé}."""
+        return os.path.join(self.decision_dir,
+                            f"contrat-{logement_id}.json")
+
+    def _lire_contrats(self, logement_id):
+        try:
+            with open(self._chemin_contrat(logement_id),
+                      encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def _sauver_contrats(self, logement_id, dossiers):
+        with open(self._chemin_contrat(logement_id), "w",
+                  encoding="utf-8") as f:
+            json.dump(dossiers, f, ensure_ascii=False, indent=1, sort_keys=True)
+
+    @staticmethod
+    def _code_retour(ref_resa):
+        """Code CRM retour −10 % direct seul (déterministe, sans effet prix
+        ici — applicable direct seul, validation humaine box, art. 225-1 :
+        remise affichée critère objectif retour, jamais discriminatoire)."""
+        propre = re.sub(r"[^A-Za-z0-9-]", "", str(ref_resa or "").upper())[:24]
+        return f"DIRECT-10-{propre}" if propre else ""
+
+    def contrat_statut(self, logement_id, ref_resa):
+        """GET /contrat : statut PWA 30 s (non_signe / signe + horodatage +
+        opt-ins + code_retour si `crm_retour: on`). 404 logement inconnu,
+        400 sans ref_resa. Jamais de signature/hash en sortie."""
+        l = self.logts.get(logement_id)
+        if not l:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        ref = str(ref_resa or "").strip()
+        if not ref:
+            return 400, {"erreur": "ref_resa requise (slug)"}
+        if not REF_RE.fullmatch(ref) or ".." in ref:
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        dossiers = self._lire_contrats(logement_id)
+        dossier = dossiers.get(ref)
+        if not dossier:
+            # Indicatif questionnaire : CGV déjà acceptées là-bas mais tactile
+            # manquante ici -> invite signature (jamais bloquant).
+            questionnaires = self._lire_questionnaires(logement_id)
+            qd = questionnaires.get(ref, {})
+            q_contrat = (qd.get("contrat", {}) if isinstance(qd, dict)
+                         else {})
+            q_accepte = bool(q_contrat.get("accepte_cgv", False))
+            return 200, {"statut": "non_signe", "logement_id": logement_id,
+                         "ref_resa": ref,
+                         "questionnaire_accepte": q_accepte,
+                         "signature_manquante": True,
+                         "pin_autorise": True,
+                         "pdf_reference": f"contrats/{logement_id}/{ref}_contrat.pdf",
+                         "jamais_bloquant": True}
+        optins = dossier.get("optins", {})
+        crm_on = bool(l["features"].get("crm_retour", False))
+        code = dossier.get("code_retour", "") if (
+            optins.get("optin_crm_retour") and crm_on) else ""
+        return 200, {"statut": "signe", "logement_id": logement_id,
+                     "ref_resa": ref,
+                     "nom_voyageur": dossier.get("nom_voyageur", ""),
+                     "horodatage": dossier.get("horodatage", ""),
+                     "optins": optins,
+                     "geoloc_statut": dossier.get("geoloc_statut", ""),
+                     "code_retour": code,
+                     "crm_en_attente": bool(optins.get("optin_crm_retour")
+                                            and not crm_on),
+                     "pin_autorise": True,
+                     "pdf_reference": dossier.get(
+                         "pdf_reference",
+                         f"contrats/{logement_id}/{ref}_contrat.pdf"),
+                     "signature_sha256": "",
+                     "jamais_bloquant": True}
+
+    def contrat_signer(self, logement_id, qui_id, ref_resa, nom_voyageur="",
+                       signature="", accepte_cgv=False, optins=None,
+                       hash_voyageur=""):
+        """POST /contrat : signature tactile 1-tap HUMAIN (qui auto -> 400),
+        ref_resa slug seule (traversée -> 400), accepte_cgv true exigé (sinon
+        422 cgv_requise), signature >=8 exigée (sinon 422 signature_requise,
+        sha256 + longueur seuls stockés). 201 créé / 200 re-signé (même ref =
+        mise à jour horodatée). Lie questionnaire (contrat.accepte_cgv=true
+        sans écraser autres blocs) + opt-in mémoire (-> fiche §5.7-quater).
+        Jamais de signature/hash en sortie, jamais en clair en log."""
+        l = self.logts.get(logement_id)
+        if not l:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_CONTRAT:
+            return 400, {"erreur": "geste humain exigé (qui != auto/llm/jev)"}
+        ref = str(ref_resa or "").strip()
+        if not ref or not REF_RE.fullmatch(ref) or ".." in ref:
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        nom = str(nom_voyageur or "").strip()[:100]
+        if len(nom) < 2:
+            return 400, {"erreur": "nom_voyageur requis (>= 2 caractères)"}
+        acc = (str(accepte_cgv).strip().lower() in ("true", "1", "oui", "yes")
+               if not isinstance(accepte_cgv, bool) else bool(accepte_cgv))
+        if not acc:
+            return 422, {"erreur": "CGV non acceptées (case obligatoire)",
+                         "code": "cgv_requise"}
+        sig = str(signature or "")
+        if len(sig.strip()) < CONTRAT_SIGNATURE_MIN:
+            return 422, {"erreur": "signature tactile requise (>= 8 caractères)",
+                         "code": "signature_requise"}
+        import hashlib
+        sig_hash = hashlib.sha256(sig.encode("utf-8")).hexdigest()
+        optins = dict(optins or {})
+        bloc_optins = {k: str(optins.get(k, "") or "").strip().lower()
+                       in ("true", "1", "oui", "yes")
+                       for k in CONTRAT_OPTINS}
+        # Opt-in mémoire -> fiche §5.7-quater (geste humain déjà vérifié) ;
+        # si `memoire_voyageur: off` : séjour seul, non persisté.
+        mem_persiste, sejour_seul = False, False
+        h = str(hash_voyageur or "").lower().strip()
+        if bloc_optins["optin_memoire"] and h and re.fullmatch(
+                r"[0-9a-f]{64}", h):
+            if l["features"].get("memoire_voyageur", False):
+                maj = dict(self.memoire.get(h, {}))
+                maj.update({
+                    "opt_in": "true",
+                    "opt_in_le": maj.get("opt_in_le", "") or utcnow_iso()[:10],
+                    "dernier_sejour": dt.date.today().isoformat(),
+                })
+                self.memoire[h] = maj
+                self._sauver_memoire()
+                mem_persiste = True
+            else:
+                sejour_seul = True
+        elif bloc_optins["optin_memoire"]:
+            sejour_seul = True
+        # Géoloc séjour seul : révocation checkout + purge = box terrain ;
+        # ici statut indicatif (jamais de tracking, jamais de fond permanent).
+        geoloc_on = bool(l["features"].get("geoloc_voyageur", False))
+        geoloc_statut = ("geoloc_active_sejour" if (
+            bloc_optins["optin_geoloc"] and geoloc_on)
+            else ("geoloc_stockee_sans_suivi" if bloc_optins["optin_geoloc"]
+                  else "geoloc_refusee"))
+        # CRM retour : code −10 % direct seul si `crm_retour: on`, sinon
+        # optin stocké sans code (jamais d'effet prix auto, art. 225-1).
+        crm_on = bool(l["features"].get("crm_retour", False))
+        code_retour = (self._code_retour(ref) if (
+            bloc_optins["optin_crm_retour"] and crm_on) else "")
+        horodatage = utcnow_iso()
+        pdf_ref = f"contrats/{logement_id}/{ref}_contrat.pdf"
+        dossier = {"nom_voyageur": nom,
+                   "horodatage": horodatage,
+                   "signature_sha256": sig_hash,
+                   "signature_len": len(sig),
+                   "accepte_cgv": True,
+                   "optins": bloc_optins,
+                   "geoloc_statut": geoloc_statut,
+                   "code_retour": code_retour,
+                   "optin_memoire_persiste": mem_persiste,
+                   "optin_memoire_sejour_seul": sejour_seul,
+                   "pdf_reference": pdf_ref}
+        dossiers = self._lire_contrats(logement_id)
+        statut, code_http = (("re_signe", 200) if ref in dossiers
+                             else ("signe", 201))
+        dossiers[ref] = dossier
+        self._sauver_contrats(logement_id, dossiers)
+        # Lie questionnaire : contrat.accepte_cgv=true sans écraser le reste.
+        try:
+            questionnaires = self._lire_questionnaires(logement_id)
+            qd = questionnaires.get(ref)
+            if isinstance(qd, dict):
+                qc = dict(qd.get("contrat", {}))
+                qc["accepte_cgv"] = True
+                for k in CONTRAT_OPTINS:
+                    if bloc_optins.get(k):
+                        qc[k] = True
+                qd["contrat"] = qc
+                qd["maj_le"] = horodatage
+                questionnaires[ref] = qd
+                self._sauver_questionnaires(logement_id, questionnaires)
+        except (ValueError, OSError):
+            pass
+        self.log_decision(logement_id, f"contrat-{ref}", qui_id, "acces",
+                          None, None,
+                          f"contrat PWA {statut} ({nom}, optins "
+                          f"memoire={bloc_optins['optin_memoire']} "
+                          f"geoloc={bloc_optins['optin_geoloc']} "
+                          f"crm={bloc_optins['optin_crm_retour']})")
+        return code_http, {"statut": statut, "ref_resa": ref,
+                           "logement_id": logement_id,
+                           "horodatage": horodatage,
+                           "optins": bloc_optins,
+                           "geoloc_statut": geoloc_statut,
+                           "code_retour": code_retour,
+                           "crm_en_attente": bool(
+                               bloc_optins["optin_crm_retour"] and not crm_on),
+                           "optin_memoire_persiste": mem_persiste,
+                           "optin_memoire_sejour_seul": sejour_seul,
+                           "pin_autorise": True,
+                           "pdf_reference": pdf_ref,
+                           "jamais_bloquant": True}
+
+    # --- P6-17 §5.7-bis : boucle avis (enquête J+1 + pré-réponse + scènes) ---
+    def _chemin_avis(self, logement_id):
+        """État runtime (volume decision-state, gitignoré comme les JSONL,
+        jamais commité) : un JSON par logement {ref_resa: dossier enquête}."""
+        return os.path.join(self.decision_dir,
+                            f"avis-{logement_id}.json")
+
+    def _lire_avis(self, logement_id):
+        try:
+            with open(self._chemin_avis(logement_id),
+                      encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def _sauver_avis(self, logement_id, dossiers):
+        with open(self._chemin_avis(logement_id), "w",
+                  encoding="utf-8") as f:
+            json.dump(dossiers, f, ensure_ascii=False, indent=1, sort_keys=True)
+
+    @staticmethod
+    def _todo_correctif(commentaire):
+        """Todo correctif par mots-clés (ménage/technique/générique).
+        Indicatif dashboard, jamais de sanction auto."""
+        bas = str(commentaire or "").lower()
+        if any(m in bas for m in AVIS_MOTS_MENAGE):
+            return "correctif_menage"
+        if any(m in bas for m in AVIS_MOTS_TECHNIQUE):
+            return "correctif_technique"
+        return "relecture_hote"
+
+    def avis_statut(self, logement_id, ref_resa):
+        """GET /avis : statut enquête J+1 (non_repondue + échelle 1-5, ou
+        dossier note + routage + geste). 404 logement inconnu, 400 sans
+        ref_resa. Jamais bloquant."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        ref = str(ref_resa or "").strip()
+        if not ref:
+            return 400, {"erreur": "ref_resa requise (slug)"}
+        if not REF_RE.fullmatch(ref) or ".." in ref:
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        dossier = self._lire_avis(logement_id).get(ref)
+        if not dossier:
+            return 200, {"statut": "non_repondue",
+                         "logement_id": logement_id, "ref_resa": ref,
+                         "echelle": [1, 2, 3, 4, 5],
+                         "jamais_bloquant": True}
+        return 200, {"statut": dossier.get("statut", "repondue"),
+                     "logement_id": logement_id, "ref_resa": ref,
+                     "note": dossier.get("note"),
+                     "routage": dossier.get("routage"),
+                     "geste": dossier.get("geste"),
+                     "geste_valide": dossier.get("geste_valide", False),
+                     "todo_correctif": dossier.get("todo_correctif"),
+                     "reponse": dossier.get("reponse", {}).get("statut",
+                                                               "absente"),
+                     "jamais_bloquant": True}
+
+    def avis_depot(self, logement_id, qui_id, ref_resa, note,
+                   commentaire="", langue="fr"):
+        """POST /avis : dépôt 1-tap HUMAIN (qui auto -> 400), ref_resa slug
+        seule (traversée -> 400), note entière 1-5 (sinon 400), commentaire
+        <=2000. 201 créé / 200 corrigé (même ref = correction 1-tap).
+        Routage : >=4★ lien_public ; 3★ rattrapage + late_gratuite auto ;
+        <=2★ rattrapage + geste à valider humain. Jamais bloquant."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_AVIS:
+            return 400, {"erreur": "geste humain exigé (qui != auto/llm/jev)"}
+        ref = str(ref_resa or "").strip()
+        if not ref or not REF_RE.fullmatch(ref) or ".." in ref:
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        try:
+            note_i = int(float(str(note)))
+        except (TypeError, ValueError):
+            return 400, {"erreur": "note entière 1-5 requise"}
+        if note_i < 1 or note_i > 5:
+            return 400, {"erreur": "note entière 1-5 requise"}
+        comm = str(commentaire or "")[:2000]
+        code_langue = str(langue or "fr").lower()[:2]
+        if code_langue not in LANGUES_SOCLE:
+            code_langue = "fr"
+        todo = self._todo_correctif(comm) if note_i < AVIS_SEUIL_PUBLIC else ""
+        if note_i >= AVIS_SEUIL_PUBLIC:
+            routage, statut = "lien_public", "repondue"
+            geste = {"type": "", "montant_eur": 0, "validation_requise": False}
+            geste_valide = False
+        elif note_i == 3:
+            routage, statut = "rattrapage_prive", "rattrapage"
+            geste = {"type": "late_gratuite", "montant_eur": 0,
+                     "validation_requise": False}
+            geste_valide = True  # <=20 € : auto, sans validation
+        else:
+            routage, statut = "rattrapage_prive", \
+                "rattrapage_validation_requise"
+            geste = {"type": "moins_10_direct", "montant_eur": 0,
+                     "validation_requise": True}
+            geste_valide = False
+        dossiers = self._lire_avis(logement_id)
+        ancien = dossiers.get(ref, {})
+        dossier = {"note": note_i, "commentaire": comm,
+                   "langue": code_langue, "routage": routage,
+                   "statut": statut, "geste": geste,
+                   "geste_valide": geste_valide or bool(
+                       ancien.get("geste_valide") and ancien.get("note")
+                       == note_i),
+                   "todo_correctif": todo, "maj_le": utcnow_iso(),
+                   "reponse": ancien.get("reponse", {"statut": "absente"})}
+        statut_http, code = (("corrige", 200) if ref in dossiers
+                             else ("cree", 201))
+        dossiers[ref] = dossier
+        self._sauver_avis(logement_id, dossiers)
+        self.log_decision(logement_id, f"avis-{ref}", qui_id, "acces",
+                          None, None,
+                          f"enquete J+1 {statut_http} (note {note_i} -> "
+                          f"{routage}"
+                          + (f" + {todo}" if todo else "") + ")")
+        return code, {"statut": statut_http, "ref_resa": ref,
+                      "logement_id": logement_id, "note": note_i,
+                      "routage": routage, "geste": dossier["geste"],
+                      "geste_valide": dossier["geste_valide"],
+                      "todo_correctif": todo,
+                      "jamais_bloquant": True}
+
+    def avis_geste(self, logement_id, qui_id, ref_resa, geste,
+                   montant_eur=0):
+        """POST /avis-geste : validation 1-tap HUMAINE du geste (qui auto ->
+        400), geste in AVIS_GESTES (sinon 400), montant >=0. Montant >20 € ->
+        alerte loggée (la validation humaine elle-même fait foi, jamais de
+        débit auto). 404 si enquête absente."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_AVIS:
+            return 400, {"erreur": "validation 1-tap HUMAINE exigée "
+                                   "(qui != auto/llm/jev)"}
+        ref = str(ref_resa or "").strip()
+        if not ref or not REF_RE.fullmatch(ref) or ".." in ref:
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        geste = str(geste or "").strip().lower()
+        if geste not in AVIS_GESTES:
+            return 400, {"erreur": "geste parmi : "
+                                   + ", ".join(AVIS_GESTES)}
+        try:
+            montant = float(str(montant_eur or 0))
+        except (TypeError, ValueError):
+            return 400, {"erreur": "montant_eur >= 0 requis"}
+        if montant < 0:
+            return 400, {"erreur": "montant_eur >= 0 requis"}
+        dossiers = self._lire_avis(logement_id)
+        dossier = dossiers.get(ref)
+        if not dossier:
+            return 404, {"erreur": "enquete absente (POST /avis d'abord)"}
+        dossier["geste"] = {"type": geste, "montant_eur": montant,
+                            "validation_requise": False}
+        dossier["geste_valide"] = True
+        if dossier.get("statut") == "rattrapage_validation_requise":
+            dossier["statut"] = "rattrapage"
+        dossier["geste_valide_par"] = qui_id
+        dossier["geste_valide_le"] = utcnow_iso()
+        dossiers[ref] = dossier
+        self._sauver_avis(logement_id, dossiers)
+        alerte = montant > AVIS_MONTANT_VALIDATION
+        self.log_decision(logement_id, f"avis-{ref}", qui_id, "acces",
+                          None, montant,
+                          f"geste 1-tap {geste} ({montant} EUR)"
+                          + (" — ALERTE >20 €" if alerte else ""))
+        return 200, {"statut": "geste_valide", "ref_resa": ref,
+                     "logement_id": logement_id, "geste": dossier["geste"],
+                     "alerte_montant": alerte,
+                     "jamais_bloquant": True}
+
+    def avis_reponse(self, logement_id, qui_id, ref_resa, action,
+                     texte=""):
+        """POST /avis-reponse : pré-réponse 1-tap (brouillon déterministe ton
+        hôte depuis gabarit + note/langue, ou texte humain scanné : promesse
+        détectée -> 422 jamais forcée ; action valider : brouillon ->
+        validee, publication manuelle box jamais auto). Geste HUMAIN seul,
+        404 si enquête absente."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_AVIS:
+            return 400, {"erreur": "geste humain exigé (qui != auto/llm/jev)"}
+        ref = str(ref_resa or "").strip()
+        if not ref or not REF_RE.fullmatch(ref) or ".." in ref:
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        action = str(action or "").strip().lower()
+        if action not in ("brouillon", "valider"):
+            return 400, {"erreur": "action = brouillon|valider"}
+        dossiers = self._lire_avis(logement_id)
+        dossier = dossiers.get(ref)
+        if not dossier:
+            return 404, {"erreur": "enquete absente (POST /avis d'abord)"}
+        rep = dossier.get("reponse", {"statut": "absente"})
+        if action == "brouillon":
+            brut = str(texte or "").strip()[:2000]
+            if brut:
+                bas = brut.lower()
+                trouvees = sorted({p for p in AVIS_PROMESSES if p in bas})
+                if trouvees:
+                    return 422, {"erreur": "promesse détectée (jamais auto)",
+                                 "code": "promesse_detectee",
+                                 "promesses": trouvees}
+                corps = brut
+                source = "humain"
+            else:
+                marque = self.branding.get("marque") or "votre hôte"
+                log_nom = (self.logts.get(logement_id, {}).get("nom")
+                           or logement_id)
+                if dossier.get("note", 0) >= AVIS_SEUIL_PUBLIC:
+                    corps = (f"Merci pour votre séjour à {log_nom} ! "
+                             f"Toute l'équipe {marque} vous remercie et "
+                             f"espère vous revoir bientôt.")
+                else:
+                    corps = (f"Merci pour votre retour sur {log_nom}. "
+                             f"L'équipe {marque} vous a répondu en privé "
+                             f"et reste à votre écoute.")
+                source = "gabarit"
+            rep = {"statut": "brouillon", "texte": corps, "source": source,
+                   "redige_le": utcnow_iso(), "redige_par": qui_id}
+            dossier["reponse"] = rep
+            dossiers[ref] = dossier
+            self._sauver_avis(logement_id, dossiers)
+            self.log_decision(logement_id, f"avis-{ref}", qui_id, "acces",
+                              None, None,
+                              f"pre-reponse {source} (validation 1-tap requise)")
+            return 201, {"statut": "brouillon", "ref_resa": ref,
+                         "logement_id": logement_id, "source": source,
+                         "longueur": len(corps),
+                         "jamais_bloquant": True}
+        if rep.get("statut") != "brouillon":
+            return 409, {"erreur": "brouillon requis avant validation "
+                                   "(action brouillon d'abord)",
+                         "code": "brouillon_requis"}
+        rep["statut"] = "validee"
+        rep["validee_le"] = utcnow_iso()
+        rep["validee_par"] = qui_id
+        dossier["reponse"] = rep
+        dossiers[ref] = dossier
+        self._sauver_avis(logement_id, dossiers)
+        self.log_decision(logement_id, f"avis-{ref}", qui_id, "acces",
+                          None, None,
+                          "pre-reponse validee 1-tap (publication manuelle box)")
+        return 200, {"statut": "validee", "ref_resa": ref,
+                     "logement_id": logement_id,
+                     "rappel": "publication manuelle (jamais auto)",
+                     "jamais_bloquant": True}
+
+    def scenes(self, logement_id):
+        """GET /scenes : 3 scènes 1-tap PWA (lecture seule, jamais bloquant)."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        return 200, {"logement_id": logement_id,
+                     "scenes": [{"id": sid, "actions": list(act)}
+                                for sid, act in SCENES.items()]}
+
+    def scene_activer(self, logement_id, qui_id, scene, ref_resa=""):
+        """POST /scene : activation 1-tap HUMAIN (log décision + actions
+        indicatives, box exécute via HA ; jamais bloquant)."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_AVIS:
+            return 400, {"erreur": "geste humain exigé (qui != auto/llm/jev)"}
+        scene = str(scene or "").strip().lower()
+        if scene not in SCENES:
+            return 400, {"erreur": "scene parmi : "
+                                   + ", ".join(sorted(SCENES))}
+        ref = str(ref_resa or "").strip()
+        if ref and (not REF_RE.fullmatch(ref) or ".." in ref):
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        self.log_decision(logement_id, ref or f"scene-{scene}", qui_id,
+                          "acces", None, None,
+                          f"scene 1-tap {scene} "
+                          f"({', '.join(SCENES[scene])})")
+        return 200, {"statut": "scene_activee", "scene": scene,
+                     "logement_id": logement_id,
+                     "actions": list(SCENES[scene]),
+                     "jamais_bloquant": True}
+
+    # --- P7-6 §6.7 : seuils transverses LLM/Jev + garde-fou outils ---
+    @staticmethod
+    def _score_jev(jev):
+        """Extrait (noul, confidence, hors_bornes) flottants >= 0.
+        Absents/invalides -> 0.0 (défaut sûr : jamais d'auto sans scores)."""
+        def _f(cle):
+            try:
+                v = float((jev or {}).get(cle, 0) or 0)
+            except (TypeError, ValueError):
+                return 0.0
+            return v if v == v and v >= 0 else 0.0  # NaN/négatif -> 0
+        j = _f("noul"), _f("confidence"), _f("hors_bornes")
+        return j
+
+    def seuils(self):
+        """GET /seuils : seuils transverses (lecture seule, doc vivante)."""
+        return 200, {"noul_auto": SEUIL_NOUL_AUTO,
+                     "confidence_auto": SEUIL_CONFIDENCE_AUTO,
+                     "confidence_min": SEUIL_CONFIDENCE_MIN,
+                     "hors_bornes_blocage": SEUIL_HORS_BORNES_BLOCAGE,
+                     "outils_interdits": list(OUTILS_INTERDITS),
+                     "regle": ("noul>0,8 + confidence>0,75 -> auto borné "
+                               "sinon dashboard ; confidence<0,7 -> jamais "
+                               "d'auto ; hors_bornes>0,5 -> blocage ; "
+                               "serrure/vanne/portail/PIN -> BLOQUÉ "
+                               "toujours (consultatifs seuls)")}
+
+    def gardien(self, logement_id, qui_id, quoi, llm=None, jev=None,
+                ref="", langue=""):
+        """POST /gardien : porte LLM/Jev (RBAC + outils interdits + seuils,
+        puis log JSONL avec trace P7-7). Ordre : RBAC (403) -> outil
+        interdit (403, même scores parfaits) -> hors_bornes>0,5 (403) ->
+        confidence<0,7 (dashboard, jamais d'auto) -> noul>0,8+conf>0,75
+        (auto borné) -> sinon dashboard. Références sans scores = dashboard.
+        LLM/Jev consultatifs seuls : l'auto borné n'autorise que des actions
+        réversibles/lisibles (jamais d'ouverture, jamais de PIN)."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        action = QUOI_VERS_ACTION.get(quoi, "etat_lecture")
+        ok, msg_rbac, p = self.autoriser(qui_id, action, logement_id)
+        qui = f"{qui_id}:{p.get('role')}/{p.get('sous_role')}" if p else qui_id
+        llm = dict(llm or {})
+        jev = dict(jev or {})
+        noul, confidence, hors_bornes = self._score_jev(jev)
+        trace = {"llm": {k: llm.get(k) for k in
+                         ("alias", "fournisseur", "modele", "endpoint")
+                         if llm.get(k) is not None},
+                 "jev": {k: jev.get(k) for k in
+                         ("backend", "endpoint", "modele", "confidence")
+                         if jev.get(k) is not None}}
+        lang = str(langue or "").lower()[:2]
+        if lang not in LANGUES_SOCLE:
+            lang = ""
+        if not ok:
+            self.log_decision(logement_id, ref or quoi, qui, quoi, None,
+                              None, f"BLOQUÉ RBAC gardien : {msg_rbac}",
+                              llm or None, jev or None, langue=lang)
+            return 403, {"statut": "bloque", "motif": msg_rbac,
+                         "trace": trace}
+        if str(quoi or "").strip().lower() in OUTILS_INTERDITS:
+            self.log_decision(logement_id, ref or quoi, qui, quoi, None,
+                              None,
+                              f"BLOQUÉ outil interdit ({quoi}) : LLM/Jev "
+                              f"consultatifs seuls (KeyMaster+Nuki Hub)",
+                              llm or None, jev or None, langue=lang)
+            return 403, {"statut": "bloque",
+                         "motif": f"outil interdit ({quoi}) : consultatifs "
+                                  f"seuls, jamais d'ouverture/PIN",
+                         "code": "outil_interdit", "trace": trace}
+        if hors_bornes > SEUIL_HORS_BORNES_BLOCAGE:
+            self.log_decision(logement_id, ref or quoi, qui, quoi, None,
+                              None,
+                              f"BLOQUÉ Jev hors_bornes={hors_bornes}",
+                              llm or None, jev or None, langue=lang)
+            return 403, {"statut": "bloque",
+                         "motif": "jev_hors_bornes>0,5 : humain requis",
+                         "trace": trace}
+        if confidence < SEUIL_CONFIDENCE_MIN:
+            self.log_decision(logement_id, ref or quoi, qui, quoi, None,
+                              None,
+                              f"dashboard (confidence {confidence} < 0,7 : "
+                              f"jamais d'auto)", llm or None, jev or None, langue=lang)
+            return 200, {"statut": "dashboard",
+                         "motif": "confiance basse : jamais d'auto",
+                         "confidence": confidence, "trace": trace,
+                         "jamais_bloquant": True}
+        if (noul > SEUIL_NOUL_AUTO
+                and confidence > SEUIL_CONFIDENCE_AUTO):
+            self.log_decision(logement_id, ref or quoi, qui, quoi, None,
+                              None,
+                              f"auto borné (noul {noul}, conf {confidence})",
+                              llm or None, jev or None, langue=lang)
+            return 200, {"statut": "auto_borne",
+                         "motif": "seuils OK : auto borné, réversible seul",
+                         "noul": noul, "confidence": confidence,
+                         "trace": trace}
+        self.log_decision(logement_id, ref or quoi, qui, quoi, None, None,
+                          f"dashboard (noul {noul}, conf {confidence})",
+                          llm or None, jev or None, langue=lang)
+        return 200, {"statut": "dashboard",
+                     "motif": "sous seuils auto : validation dashboard",
+                     "noul": noul, "confidence": confidence,
+                     "trace": trace, "jamais_bloquant": True}
+
 
 class Handler(BaseHTTPRequestHandler):
     engine = None
@@ -1503,6 +2844,79 @@ class Handler(BaseHTTPRequestHandler):
                 logement_id, qs.get("ref_resa", [""])[0],
                 qs.get("hash", [""])[0], qs.get("langue", ["fr"])[0])
             return self._json(code, obj)
+        if url.path == "/contrat":
+            # P6-15 §12.5-bis : statut contrat PWA (non_signe / signe).
+            # Jamais de signature ni hash en sortie.
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = self.engine.contrat_statut(
+                logement_id, qs.get("ref_resa", [""])[0])
+            return self._json(code, obj)
+        if url.path == "/avis":
+            # P6-17 §5.7-bis : statut enquête J+1 (non_repondue / dossier).
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = self.engine.avis_statut(
+                logement_id, qs.get("ref_resa", [""])[0])
+            return self._json(code, obj)
+        if url.path == "/scenes":
+            # P6-17 §5.7-bis : 3 scènes 1-tap PWA (lecture seule).
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = self.engine.scenes(logement_id)
+            return self._json(code, obj)
+        if url.path == "/acces":
+            # P6-20 §1.6 : audit 5 rôles (réservé super_admin/admin).
+            qui = qs.get("qui", [""])[0]
+            if not qui:
+                return self._json(400, {"erreur": "qui requis"})
+            code, obj = self.engine.acces_audit(qui)
+            return self._json(code, obj)
+        if url.path == "/journal":
+            # P6-20 §1.6 + P7-7 : qui/quand/quoi 90 j + filtres dashboard
+            # (backend Jev, alias LLM, langue).
+            logement_id = qs.get("logement_id", [""])[0]
+            qui = qs.get("qui", [""])[0]
+            if not (logement_id and qui):
+                return self._json(400, {"erreur": "logement_id, qui requis"})
+            code, obj = self.engine.journal(
+                logement_id, qui, qs.get("quoi", [""])[0],
+                qs.get("jours", ["90"])[0],
+                qs.get("backend", [""])[0],
+                qs.get("alias", [""])[0],
+                qs.get("langue", [""])[0])
+            return self._json(code, obj)
+        if url.path == "/carnet":
+            # P6-21 §12.5-bis : synthèse trimestre (hôte seul, jamais audio).
+            logement_id = qs.get("logement_id", [""])[0]
+            qui = qs.get("qui", [""])[0]
+            if not (logement_id and qui):
+                return self._json(400, {"erreur": "logement_id, qui requis"})
+            code, obj = self.engine.carnet(
+                logement_id, qui, qs.get("trimestre", [""])[0])
+            return self._json(code, obj)
+        if url.path == "/registre-rgpd":
+            # P6-21 : traitements + durées (lecture seule).
+            logement_id = qs.get("logement_id", [""])[0]
+            qui = qs.get("qui", [""])[0]
+            if not (logement_id and qui):
+                return self._json(400, {"erreur": "logement_id, qui requis"})
+            code, obj = self.engine.registre_rgpd(logement_id, qui)
+            return self._json(code, obj)
+        if url.path == "/mentions-annonce":
+            # P6-21 : obligatoires + renseigné/manquant (jamais inventé).
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = self.engine.mentions_annonce(logement_id)
+            return self._json(code, obj)
+        if url.path == "/seuils":
+            # P7-6 §6.7 : seuils transverses (lecture seule).
+            code, obj = self.engine.seuils()
+            return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 
     def do_POST(self):
@@ -1558,6 +2972,128 @@ class Handler(BaseHTTPRequestHandler):
                 p["logement_id"], p["qui"], p["ref_resa"], p.get("arrivee"),
                 p.get("reponses"), p.get("optins"), p.get("hash", ""))
             return self._json(code, obj)
+        if url.path == "/contrat":
+            # P6-15 §12.5-bis : signature tactile 1-tap humain (201/200).
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("ref_resa")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, ref_resa requis"})
+            code, obj = self.engine.contrat_signer(
+                p["logement_id"], p["qui"], p["ref_resa"],
+                p.get("nom_voyageur", ""), p.get("signature", ""),
+                p.get("accepte_cgv", False), p.get("optins"),
+                p.get("hash", ""))
+            return self._json(code, obj)
+        if url.path == "/avis":
+            # P6-17 §5.7-bis : dépôt enquête J+1 1-tap humain (201/200).
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("ref_resa") is not None):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, ref_resa requis"})
+            if "note" not in p:
+                return self._json(400, {"erreur": "note 1-5 requise"})
+            code, obj = self.engine.avis_depot(
+                p["logement_id"], p["qui"], p["ref_resa"], p["note"],
+                p.get("commentaire", ""), p.get("langue", "fr"))
+            return self._json(code, obj)
+        if url.path == "/avis-geste":
+            # P6-17 §5.7-bis : validation 1-tap HUMAINE du geste.
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("ref_resa") and p.get("geste")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, ref_resa, geste requis"})
+            code, obj = self.engine.avis_geste(
+                p["logement_id"], p["qui"], p["ref_resa"], p["geste"],
+                p.get("montant_eur", 0))
+            return self._json(code, obj)
+        if url.path == "/avis-reponse":
+            # P6-17 §5.7-bis : pré-réponse (brouillon puis validation 1-tap).
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("ref_resa") and p.get("action")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, ref_resa, action requis"})
+            code, obj = self.engine.avis_reponse(
+                p["logement_id"], p["qui"], p["ref_resa"], p["action"],
+                p.get("texte", ""))
+            return self._json(code, obj)
+        if url.path == "/scene":
+            # P6-17 §5.7-bis : activation scène 1-tap HUMAIN.
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("scene")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, scene requis"})
+            code, obj = self.engine.scene_activer(
+                p["logement_id"], p["qui"], p["scene"],
+                p.get("ref_resa", ""))
+            return self._json(code, obj)
+        if url.path == "/acces-revoquer":
+            # P6-20 §1.6 : révocation 1-tap super_admin/admin (jamais
+            # soi-même, jamais super_admin).
+            if not (p.get("qui") and p.get("personne_id")):
+                return self._json(
+                    400, {"erreur": "qui, personne_id requis"})
+            code, obj = self.engine.acces_revoquer(
+                p["qui"], p["personne_id"], p.get("motif", ""))
+            return self._json(code, obj)
+        if url.path == "/acces-reactiver":
+            # P6-20 §1.6 : levée de révocation (expire_le passé = reste
+            # expiré, éditer acces.yaml sur box).
+            if not (p.get("qui") and p.get("personne_id")):
+                return self._json(
+                    400, {"erreur": "qui, personne_id requis"})
+            code, obj = self.engine.acces_reactiver(
+                p["qui"], p["personne_id"])
+            return self._json(code, obj)
+        if url.path == "/preuve-db":
+            # P6-21 §12.5-bis : relevé dB seul (capteur/humain, jamais audio).
+            if not (p.get("logement_id") and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui requis"})
+            if p.get("db") is None:
+                return self._json(400, {"erreur": "db requis (dB seuls)"})
+            code, obj = self.engine.preuve_db(
+                p["logement_id"], p["qui"], p["db"],
+                p.get("heure", ""), p.get("occupation", ""))
+            return self._json(code, obj)
+        if url.path == "/preuve-attestation":
+            # P6-21 : intervention/ménage/message versés au carnet.
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("type")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, type requis"})
+            code, obj = self.engine.preuve_attestation(
+                p["logement_id"], p["qui"], p["type"],
+                p.get("ref", ""), p.get("detail", ""))
+            return self._json(code, obj)
+        if url.path == "/lettre-tranquillite":
+            # P6-21 : brouillon chiffré (hôte seul, humain envoie ensuite).
+            if not (p.get("logement_id") and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui requis"})
+            code, obj = self.engine.lettre_tranquillite(
+                p["logement_id"], p["qui"],
+                p.get("trimestre", ""), p.get("destinataire", "syndic"))
+            return self._json(code, obj)
+        if url.path == "/lettre-envoyer":
+            # P6-21 : envoi 1-tap humain via messagerie tracée.
+            if not (p.get("logement_id") and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui requis"})
+            code, obj = self.engine.lettre_envoyer(
+                p["logement_id"], p["qui"],
+                p.get("trimestre", ""), p.get("canal", ""))
+            return self._json(code, obj)
+        if url.path == "/gardien":
+            # P7-6 §6.7 : porte LLM/Jev (RBAC + outils + seuils + trace).
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("quoi")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, quoi requis"})
+            code, obj = self.engine.gardien(
+                p["logement_id"], p["qui"], p["quoi"],
+                p.get("llm"), p.get("jev"), p.get("ref", ""),
+                p.get("langue", ""))
+            return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 
 
@@ -1580,13 +3116,14 @@ def main():
     if not logts:
         print(f"logements introuvables ou vides: {args.logements}", file=sys.stderr)
         return 2
-    acces = lire_acces(args.acces)
+    acces, doublons = lire_acces(args.acces)
     if not acces:
         print(f"acces introuvable ou vide: {args.acces}", file=sys.stderr)
         return 2
     secrets = charger_yaml_plat(os.environ.get("LCD_SECRETS_YAML", "./secrets.yaml"))
     branding = charger_branding(args.branding)  # PRIVÉ, absent = {} (jamais commité)
-    eng = Moteur(cfg, logts, acces, secrets, branding, args.memoire)
+    eng = Moteur(cfg, logts, acces, secrets, branding, args.memoire,
+                 doublons)
     Handler.engine = eng
 
     if args.check or not args.serve:
@@ -1594,6 +3131,15 @@ def main():
             res, err = eng.etat(log)
             print(json.dumps(res or {"erreur": err}, ensure_ascii=False)[:400] + "...")
         print("config_ok:", eng.pousser_config_ok())
+        # P6-20 §1.6 : audit comptes (MFA exigée, expiry, doublons).
+        sans_mfa = sorted(pid for pid, p in acces.items()
+                          if (p.get("role"), p.get("sous_role")) in MFA_EXIGEE
+                          and not p.get("mfa"))
+        expires = sorted(pid for pid, p in acces.items()
+                         if p.get("expire_le"))
+        print(f"acces_mfa: {len(sans_mfa)} sans 2FA {sans_mfa} "
+              f"(activer sur box HA puis mfa:true)")
+        print(f"acces_expires: {expires} ; acces_doublons: {doublons}")
         if not args.serve:
             return 0
     port = int(os.environ.get("LCD_HTTP_PORT", cfg.get("http_port", 8092)))

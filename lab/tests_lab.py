@@ -21,6 +21,8 @@ BASE = {
     "inventaire": "http://127.0.0.1:8097",
     "extras": "http://127.0.0.1:8098",
     "stocks": "http://127.0.0.1:8099",
+    "compta": "http://127.0.0.1:8100",
+    "router": "http://127.0.0.1:8050",
 }
 ECHECS = []
 
@@ -75,7 +77,7 @@ def check(nom, cond, detail=""):
         ECHECS.append(nom)
 
 
-print("== 1. health des 10 moteurs ==")
+print("== 1. health des 12 moteurs ==")
 for m in BASE:
     code, obj = get(m, "/health")
     check(f"health {m}", code == 200, f"HTTP {code} {obj}")
@@ -1630,7 +1632,2155 @@ check("opt-out final P6-14 -> 200 oublie", code == 200
       f"HTTP {code} {out_q}")
 
 print()
+print("== 11-undecies. contrat PWA + signature tactile + opt-ins (P6-15 §12.5-bis) ==")
+# GET statut : 400 sans ref, 404 logement inconnu, 400 ref traversée.
+code, obj = get("decision", "/contrat?logement_id=log1")
+check("GET sans ref_resa -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/contrat?logement_id=logX&ref_resa=LAB-P615-X")
+check("GET logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = get("decision", "/contrat?logement_id=log1&ref_resa=..%2Fevil")
+check("GET ref traversee bloquee 400", code == 400, f"HTTP {code} {obj}")
+
+REF_C = f"LAB-P615-{int(time.time())}"
+code, st0 = get("decision", "/contrat?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_C}))
+check("GET non_signe initial + pdf_reference + jamais bloquant",
+      code == 200 and isinstance(st0, dict)
+      and st0.get("statut") == "non_signe"
+      and st0.get("signature_manquante") is True
+      and st0.get("pin_autorise") is True
+      and st0.get("pdf_reference") == f"contrats/log1/{REF_C}_contrat.pdf"
+      and st0.get("jamais_bloquant") is True,
+      f"HTTP {code} {st0}")
+
+# Garde-fous POST : qui auto, ref traversée, nom court, CGV, signature.
+code, obj = post("decision", "/contrat",
+                 {"logement_id": "log1", "qui": "auto",
+                  "ref_resa": REF_C, "nom_voyageur": "Test Voyageur",
+                  "signature": "tactile-base64-signe-lab",
+                  "accepte_cgv": True})
+check("contrat qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/contrat",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": "../evil", "nom_voyageur": "Test Voyageur",
+                  "signature": "tactile-base64-signe-lab",
+                  "accepte_cgv": True})
+check("contrat ref traversee bloquee 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/contrat",
+                 {"logement_id": "logX", "qui": "personne_01",
+                  "ref_resa": REF_C, "nom_voyageur": "Test Voyageur",
+                  "signature": "tactile-base64-signe-lab",
+                  "accepte_cgv": True})
+check("contrat logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = post("decision", "/contrat",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_C, "nom_voyageur": "T",
+                  "signature": "tactile-base64-signe-lab",
+                  "accepte_cgv": True})
+check("contrat nom trop court -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/contrat",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_C, "nom_voyageur": "Test Voyageur",
+                  "signature": "tactile-base64-signe-lab",
+                  "accepte_cgv": False})
+check("contrat sans CGV -> 422 cgv_requise",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("code") == "cgv_requise",
+      f"HTTP {code} {obj}")
+code, obj = post("decision", "/contrat",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_C, "nom_voyageur": "Test Voyageur",
+                  "signature": "court",
+                  "accepte_cgv": True})
+check("contrat signature courte -> 422 signature_requise",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("code") == "signature_requise",
+      f"HTTP {code} {obj}")
+
+# Signature log1 (crm_retour on + geoloc on en lab) : 201 + code −10 % direct.
+code, sg = post("decision", "/contrat",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "ref_resa": REF_C, "nom_voyageur": "Test Voyageur",
+                 "signature": "tactile-base64-signe-lab-preuve",
+                 "accepte_cgv": True,
+                 "optins": {"optin_memoire": False, "optin_geoloc": True,
+                            "optin_crm_retour": True}})
+check("signature log1 201 + geoloc sejour + code -10 % direct",
+      code == 201 and isinstance(sg, dict)
+      and sg.get("statut") == "signe"
+      and sg.get("geoloc_statut") == "geoloc_active_sejour"
+      and sg.get("code_retour") == f"DIRECT-10-{REF_C}"
+      and sg.get("crm_en_attente") is False
+      and sg.get("pin_autorise") is True
+      and sg.get("pdf_reference") == f"contrats/log1/{REF_C}_contrat.pdf"
+      and "signature" not in json.dumps(sg)
+      and "hash" not in json.dumps(sg),
+      f"HTTP {code} {sg}")
+
+code, st1 = get("decision", "/contrat?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_C}))
+check("GET signe log1 : horodatage + optins + sans raw",
+      code == 200 and isinstance(st1, dict)
+      and st1.get("statut") == "signe"
+      and st1.get("horodatage") != ""
+      and st1.get("optins", {}).get("optin_crm_retour") is True
+      and st1.get("code_retour") == f"DIRECT-10-{REF_C}"
+      and "tactile-base64" not in json.dumps(st1)
+      and "hash" not in json.dumps(st1).lower()
+      and st1.get("signature_sha256") == "",
+      f"HTTP {code} {st1}")
+
+# Re-signature même ref -> 200 re_signe (mise à jour horodatée).
+code, sg2 = post("decision", "/contrat",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_C, "nom_voyageur": "Test Voyageur",
+                  "signature": "tactile-base64-signe-lab-v2-correction",
+                  "accepte_cgv": True,
+                  "optins": {"optin_crm_retour": True}})
+check("re-signature meme ref -> 200 re_signe",
+      code == 200 and isinstance(sg2, dict)
+      and sg2.get("statut") == "re_signe",
+      f"HTTP {code} {sg2}")
+
+# Log2 (crm off + geoloc off en lab) : optins stockés sans code ni suivi.
+REF_C2 = f"{REF_C}-L2"
+code, sg_l2 = post("decision", "/contrat",
+                   {"logement_id": "log2", "qui": "personne_01",
+                    "ref_resa": REF_C2, "nom_voyageur": "Test Voyageur",
+                    "signature": "tactile-base64-signe-lab-log2",
+                    "accepte_cgv": True,
+                    "optins": {"optin_geoloc": True,
+                               "optin_crm_retour": True}})
+check("signature log2 off : stockee sans code (crm_en_attente)",
+      code == 201 and isinstance(sg_l2, dict)
+      and sg_l2.get("geoloc_statut") == "geoloc_stockee_sans_suivi"
+      and sg_l2.get("code_retour") == ""
+      and sg_l2.get("crm_en_attente") is True,
+      f"HTTP {code} {sg_l2}")
+
+# Opt-in mémoire via contrat : fiche persistée + GET /memoire reconnu.
+REF_CM = f"{REF_C}-MEM"
+code, sg_m = post("decision", "/contrat",
+                  {"logement_id": "log1", "qui": "personne_01",
+                   "ref_resa": REF_CM, "nom_voyageur": "Test Voyageur",
+                   "signature": "tactile-base64-signe-lab-memoire",
+                   "accepte_cgv": True,
+                   "optins": {"optin_memoire": True},
+                   "hash": HASH_LAB})
+check("contrat optin_memoire -> persiste fiche",
+      code == 201 and isinstance(sg_m, dict)
+      and sg_m.get("optin_memoire_persiste") is True,
+      f"HTTP {code} {sg_m}")
+code, fiche_cm = get("decision", f"/memoire?logement_id=log1&hash={HASH_LAB}")
+check("fiche memoire via contrat reconnue",
+      code == 200 and isinstance(fiche_cm, dict)
+      and fiche_cm.get("statut") == "reconnu",
+      f"HTTP {code} {fiche_cm}")
+code, out_cm = post("decision", "/memoire",
+                    {"action": "optout", "logement_id": "log1",
+                     "qui": "personne_01", "hash": HASH_LAB})
+check("opt-out apres contrat -> 200 oublie", code == 200
+      and isinstance(out_cm, dict)
+      and out_cm.get("fiche_supprimee") is True,
+      f"HTTP {code} {out_cm}")
+
+# Liaison questionnaire : dépôt puis signature maj contrat.accepte_cgv.
+REF_QC = f"{REF_C}-Q"
+code, dep_qc = post("decision", "/questionnaire",
+                    {"logement_id": "log1", "qui": "personne_01",
+                     "ref_resa": REF_QC,
+                     "arrivee": {"date_arrivee": "2099-06-01"},
+                     "reponses": {}})
+check("questionnaire pre-contrat 201", code == 201,
+      f"HTTP {code} {dep_qc}")
+code, sg_qc = post("decision", "/contrat",
+                   {"logement_id": "log1", "qui": "personne_01",
+                    "ref_resa": REF_QC, "nom_voyageur": "Test Voyageur",
+                    "signature": "tactile-base64-signe-lab-liaison",
+                    "accepte_cgv": True})
+check("signature liee questionnaire 201", code == 201,
+      f"HTTP {code} {sg_qc}")
+code, j1_qc = get("decision", "/questionnaire?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_QC}))
+check("questionnaire maj : contrat accepte sans ecraser",
+      code == 200 and isinstance(j1_qc, dict)
+      and (j1_qc.get("pre_rempli") is not None
+           or j1_qc.get("completude", {}).get("etat") in (
+               "incomplet", "repondu_complet")),
+      f"HTTP {code} {j1_qc}")
+
+# J-2 enrichi : direct sans contrat = pin_autorise False indicatif ;
+# direct signé = True ; legacy sans canal = True (rétro-compat).
+REF_J2 = f"{REF_C}-J2"
+
+
+def event_ref(type_evt, logement, qui, ref, data):
+    return post("decision", "/event", {"type": type_evt,
+                                       "logement_id": logement,
+                                       "qui": qui, "ref": ref,
+                                       "data": data})
+
+
+code, j2_nosign = event_ref("lcd_j2_envoi_acces", "log1", "personne_01",
+                            REF_J2,
+                            {**BASE_DATA, "langue": "fr", "pin": "482913",
+                             "canal": "direct"})
+check("J-2 direct non signe : contrat False + pin False (jamais bloquant)",
+      code == 202 and isinstance(j2_nosign, dict)
+      and j2_nosign.get("contrat_signe") is False
+      and j2_nosign.get("pin_autorise") is False
+      and j2_nosign.get("gabarit_trouve") is True,
+      f"HTTP {code} {j2_nosign}")
+code, sg_j2 = post("decision", "/contrat",
+                   {"logement_id": "log1", "qui": "personne_01",
+                    "ref_resa": REF_J2, "nom_voyageur": "Test Voyageur",
+                    "signature": "tactile-base64-signe-lab-j2",
+                    "accepte_cgv": True})
+check("signature J-2 201", code == 201, f"HTTP {code} {sg_j2}")
+code, j2_sign = event_ref("lcd_j2_envoi_acces", "log1", "personne_01",
+                          REF_J2,
+                          {**BASE_DATA, "langue": "fr", "pin": "482913",
+                           "canal": "direct"})
+check("J-2 direct signe : contrat True + pin True",
+      code == 202 and isinstance(j2_sign, dict)
+      and j2_sign.get("contrat_signe") is True
+      and j2_sign.get("pin_autorise") is True,
+      f"HTTP {code} {j2_sign}")
+
+print()
+print("== 14. etat des lieux auto voyageur : consentement + photos E/S + video + comparatif + cloture liee (P6-16 §5.6) ==")
+# GET statut : 400 sans ref, 404 logement inconnu, 400 ref traversée.
+code, obj = get("dispatch", "/edl?logement_id=log1")
+check("GET /edl sans ref_resa -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("dispatch", "/edl?logement_id=logX&ref_resa=LAB-P616-X")
+check("GET /edl logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = get("dispatch", "/edl?logement_id=log1&ref_resa=..%2Fevil")
+check("GET /edl ref traversee bloquee 400", code == 400, f"HTTP {code} {obj}")
+
+REF_E = f"LAB-P616-{int(time.time())}"
+code, st0 = get("dispatch", "/edl?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_E}))
+check("GET /edl non_commence + 5 pieces attendues + jamais bloquant",
+      code == 200 and isinstance(st0, dict)
+      and st0.get("statut") == "non_commence"
+      and st0.get("pieces_attendues") == ["salon", "cuisine", "chambre",
+                                          "sdb", "entree"]
+      and st0.get("consentement") is False
+      and st0.get("jamais_bloquant") is True,
+      f"HTTP {code} {st0}")
+
+# Garde-fous consentement : qui auto, ref traversée, logement inconnu.
+code, obj = post("dispatch", "/edl-consentement",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "qui": "auto", "consentement": True})
+check("edl-consentement qui=auto refuse 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/edl-consentement",
+                 {"logement_id": "log1", "ref_resa": "../evil",
+                  "qui": "lab_voyageur_01", "consentement": True})
+check("edl-consentement ref traversee bloquee 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/edl-consentement",
+                 {"logement_id": "logX", "ref_resa": REF_E,
+                  "qui": "lab_voyageur_01", "consentement": True})
+check("edl-consentement logement inconnu -> 404", code == 404,
+      f"HTTP {code} {obj}")
+
+# Photo sans consentement -> 403 (préalable obligatoire).
+code, obj = post("dispatch", "/edl-photo",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "phase": "entree", "piece": "salon", "nom": "test.png",
+                  "donnees_base64": PETITE_PHOTO,
+                  "qui": "lab_voyageur_01"})
+check("edl-photo sans consentement -> 403 consentement_requis",
+      code == 403 and isinstance(obj, dict)
+      and obj.get("code") == "consentement_requis",
+      f"HTTP {code} {obj}")
+
+# Refus -> 200 refuse (EDL manuel ménage seul), photo toujours 403.
+REF_ER = f"{REF_E}-REFUS"
+code, rf = post("dispatch", "/edl-consentement",
+                {"logement_id": "log1", "ref_resa": REF_ER,
+                 "qui": "lab_voyageur_01", "consentement": False})
+check("edl-consentement false -> 200 refuse (manuel menage)",
+      code == 200 and isinstance(rf, dict)
+      and rf.get("statut") == "refuse",
+      f"HTTP {code} {rf}")
+code, obj = post("dispatch", "/edl-photo",
+                 {"logement_id": "log1", "ref_resa": REF_ER,
+                  "phase": "entree", "piece": "salon", "nom": "test.png",
+                  "donnees_base64": PETITE_PHOTO,
+                  "qui": "lab_voyageur_01"})
+check("edl-photo apres refus -> 403", code == 403,
+      f"HTTP {code} {obj}")
+
+# Consentement true -> 201 consenti (purge 90 j, 5 pièces).
+code, cs = post("dispatch", "/edl-consentement",
+                {"logement_id": "log1", "ref_resa": REF_E,
+                 "qui": "lab_voyageur_01", "consentement": True,
+                 "nom_voyageur": "Voyageur Lab"})
+check("edl-consentement true -> 201 consenti",
+      code == 201 and isinstance(cs, dict)
+      and cs.get("statut") == "consenti"
+      and cs.get("purge_j") == 90
+      and cs.get("pieces_attendues") == ["salon", "cuisine", "chambre",
+                                         "sdb", "entree"],
+      f"HTTP {code} {cs}")
+
+# Garde-fous dépôt : pièce/phase/format/base64/galerie.
+code, obj = post("dispatch", "/edl-photo",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "phase": "entree", "piece": "piscine", "nom": "test.png",
+                  "donnees_base64": PETITE_PHOTO,
+                  "qui": "lab_voyageur_01"})
+check("edl-photo piece hors socle -> 400 piece_inconnue",
+      code == 400 and isinstance(obj, dict)
+      and obj.get("code") == "piece_inconnue",
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/edl-photo",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "phase": "milieu", "piece": "salon", "nom": "test.png",
+                  "donnees_base64": PETITE_PHOTO,
+                  "qui": "lab_voyageur_01"})
+check("edl-photo phase inconnue -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/edl-photo",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "phase": "entree", "piece": "salon", "nom": "test.txt",
+                  "donnees_base64": PETITE_PHOTO,
+                  "qui": "lab_voyageur_01"})
+check("edl-photo format refuse -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/edl-photo",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "phase": "entree", "piece": "salon", "nom": "test.png",
+                  "donnees_base64": "!!!pas-base64!!!",
+                  "qui": "lab_voyageur_01"})
+check("edl-photo base64 invalide -> 400", code == 400,
+      f"HTTP {code} {obj}")
+vieux = (date.today() - timedelta(days=2)).isoformat() + "T10:00:00"
+code, obj = post("dispatch", "/edl-photo",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "phase": "entree", "piece": "salon", "nom": "test.png",
+                  "donnees_base64": PETITE_PHOTO, "prise_le": vieux,
+                  "qui": "lab_voyageur_01"})
+check("edl-photo galerie >24 h -> 422 galerie_refusee",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("code") == "galerie_refusee",
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/edl-photo",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "phase": "entree", "piece": "salon", "nom": "test.png",
+                  "donnees_base64": PETITE_PHOTO,
+                  "qui": "auto"})
+check("edl-photo qui=auto refuse 400", code == 400,
+      f"HTTP {code} {obj}")
+
+# 5 photos entrée (grand angle + points sensibles par pièce).
+edl_entree_ok = True
+for piece in ("salon", "cuisine", "chambre", "sdb", "entree"):
+    code, ph = post("dispatch", "/edl-photo",
+                    {"logement_id": "log1", "ref_resa": REF_E,
+                     "phase": "entree", "piece": piece, "nom": "test.png",
+                     "donnees_base64": PETITE_PHOTO,
+                     "qui": "lab_voyageur_01"})
+    ok = code == 201 and ph.get("piece") == piece
+    edl_entree_ok = edl_entree_ok and ok
+    print(f"[{'OK' if ok else 'KO'}] edl photo entree/{piece} — HTTP {code} {ph}")
+    if not ok:
+        ECHECS.append(f"edl photo entree/{piece}")
+check("5 photos entree deposees (EXIF/horodatage)", edl_entree_ok, "")
+
+code, st1 = get("dispatch", "/edl?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_E}))
+check("GET /edl partiel : entree complete, sortie 5 manquantes",
+      code == 200 and isinstance(st1, dict)
+      and st1.get("statut") == "partiel"
+      and st1.get("photos_entree") == 5
+      and st1.get("pieces_manquantes_sortie") == ["salon", "cuisine",
+                                                  "chambre", "sdb",
+                                                  "entree"],
+      f"HTTP {code} {st1}")
+
+# Vidéo : 61 s refusée, 30 s acceptée (tour complet optionnel).
+code, obj = post("dispatch", "/edl-video",
+                 {"logement_id": "log1", "ref_resa": REF_E,
+                  "phase": "entree", "nom": "tour.mp4",
+                  "donnees_base64": PETITE_PHOTO, "duree_s": 61,
+                  "qui": "lab_voyageur_01"})
+check("edl-video 61 s -> 422 video_trop_longue",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("code") == "video_trop_longue",
+      f"HTTP {code} {obj}")
+code, vd = post("dispatch", "/edl-video",
+                {"logement_id": "log1", "ref_resa": REF_E,
+                 "phase": "entree", "nom": "tour.mp4",
+                 "donnees_base64": PETITE_PHOTO, "duree_s": 30,
+                 "qui": "lab_voyageur_01"})
+check("edl-video 30 s -> 201", code == 201
+      and isinstance(vd, dict) and vd.get("duree_s") == 30,
+      f"HTTP {code} {vd}")
+
+# 5 photos sortie -> complet + comparatif présente partout.
+edl_sortie_ok = True
+for piece in ("salon", "cuisine", "chambre", "sdb", "entree"):
+    code, ph = post("dispatch", "/edl-photo",
+                    {"logement_id": "log1", "ref_resa": REF_E,
+                     "phase": "sortie", "piece": piece, "nom": "test.png",
+                     "donnees_base64": PETITE_PHOTO,
+                     "qui": "lab_voyageur_01"})
+    ok = code == 201 and ph.get("piece") == piece
+    edl_sortie_ok = edl_sortie_ok and ok
+    print(f"[{'OK' if ok else 'KO'}] edl photo sortie/{piece} — HTTP {code} {ph}")
+    if not ok:
+        ECHECS.append(f"edl photo sortie/{piece}")
+check("5 photos sortie deposees", edl_sortie_ok, "")
+
+code, st2 = get("dispatch", "/edl?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_E}))
+comp = {list(c)[0]: list(c.values())[0]
+        for c in (st2.get("comparatif", []) if isinstance(st2, dict) else [])}
+check("GET /edl complet : 5+5 + comparatif presente + videos 1",
+      code == 200 and isinstance(st2, dict)
+      and st2.get("statut") == "complet"
+      and st2.get("photos_entree") == 5 and st2.get("photos_sortie") == 5
+      and st2.get("videos") == 1
+      and all(v == "presente" for v in comp.values()),
+      f"HTTP {code} {st2}")
+
+# Liaison clôture ménage : EDL commencé mais sortie manquante -> 409,
+# puis complet -> 201 remise_en_dispo (même socle P6-1 + traça P6-2).
+REF_EC = f"{REF_E}-CLOT"
+code, td_ec = post("dispatch", "/todos", {"logement_id": "log1",
+                                          "ref_resa": REF_EC,
+                                          "checkout": "2026-12-20",
+                                          "checkin_suivant": "2026-12-21",
+                                          "qui": "test-lab-humain"})
+dos_ec = (td_ec.get("dossier", "") if isinstance(td_ec, dict) else "")
+check("todos EDL-cloture 201", code == 201 and bool(dos_ec),
+      f"HTTP {code} {td_ec}")
+code, cs_ec = post("dispatch", "/edl-consentement",
+                   {"logement_id": "log1", "ref_resa": REF_EC,
+                    "qui": "lab_voyageur_01", "consentement": True})
+check("consentement EDL-cloture 201", code == 201,
+      f"HTTP {code} {cs_ec}")
+for piece in ("salon", "cuisine", "chambre", "sdb", "entree"):
+    post("dispatch", "/edl-photo",
+         {"logement_id": "log1", "ref_resa": REF_EC,
+          "phase": "entree", "piece": piece, "nom": "test.png",
+          "donnees_base64": PETITE_PHOTO,
+          "qui": "lab_voyageur_01"})
+post("dispatch", "/menage-pointage",
+     {"logement_id": "log1", "dossier": dos_ec,
+      "evenement": "arrivee", "qui": "lab_menage_01"})
+post("dispatch", "/menage-pointage",
+     {"logement_id": "log1", "dossier": dos_ec,
+      "evenement": "depart", "qui": "lab_menage_01"})
+for phase in ("entree", "sortie"):
+    post("dispatch", "/menage-photo",
+         {"logement_id": "log1", "dossier": dos_ec,
+          "phase": phase, "piece": "salon", "nom": "test.png",
+          "donnees_base64": PETITE_PHOTO,
+          "qui": "lab_menage_01"})
+code, mi_ec = post("dispatch", "/mission", {"logement_id": "log1",
+                                            "presta_id": "lab_plomb_01",
+                                            "motif": f"edl_p616_{REF_EC}",
+                                            "qui": "test-lab-humain"})
+nom_ec = (mi_ec.get("dossier", "") if isinstance(mi_ec, dict)
+          else "").rsplit("/", 1)[-1]
+for ev in ("arrivee", "depart"):
+    post("dispatch", "/pointage", {"logement_id": "log1", "dossier": nom_ec,
+                                   "evenement": ev, "qui": "lab_plomb_01"})
+for phase in ("avant", "apres"):
+    post("dispatch", "/photo", {"logement_id": "log1", "dossier": nom_ec,
+                                "phase": phase, "piece": "cuisine",
+                                "nom": "test.png",
+                                "donnees_base64": PETITE_PHOTO,
+                                "qui": "lab_plomb_01"})
+post("dispatch", "/cloture", {"logement_id": "log1", "dossier": nom_ec,
+                              "qui": "test-lab-humain"})
+code, cl_prem = post("dispatch", "/menage-cloture",
+                     {"logement_id": "log1", "dossier": dos_ec,
+                      "checklist": {}, "photos_voyageur_ok": True,
+                      "dossier_intervention": nom_ec,
+                      "qui": "test-lab-humain"})
+cochees_ec = {c: True for c in
+              (cl_prem.get("cases_manquantes", [])
+               if isinstance(cl_prem, dict) else [])}
+code, cl_ec = post("dispatch", "/menage-cloture",
+                   {"logement_id": "log1", "dossier": dos_ec,
+                    "checklist": cochees_ec, "photos_voyageur_ok": True,
+                    "dossier_intervention": nom_ec,
+                    "qui": "test-lab-humain"})
+check("cloture avec EDL sortie manquante -> 409 edl incomplet",
+      code == 409 and isinstance(cl_ec, dict)
+      and any("etat des lieux voyageur incomplet" in m
+              for m in cl_ec.get("manquants", [])),
+      f"HTTP {code} {cl_ec}")
+for piece in ("salon", "cuisine", "chambre", "sdb", "entree"):
+    post("dispatch", "/edl-photo",
+         {"logement_id": "log1", "ref_resa": REF_EC,
+          "phase": "sortie", "piece": piece, "nom": "test.png",
+          "donnees_base64": PETITE_PHOTO,
+          "qui": "lab_voyageur_01"})
+code, cl_ok = post("dispatch", "/menage-cloture",
+                   {"logement_id": "log1", "dossier": dos_ec,
+                    "checklist": cochees_ec, "photos_voyageur_ok": True,
+                    "dossier_intervention": nom_ec,
+                    "qui": "test-lab-humain"})
+check("cloture apres EDL complet -> 201 remise_en_dispo",
+      code == 201 and isinstance(cl_ok, dict)
+      and cl_ok.get("statut") == "remise_en_dispo",
+      f"HTTP {code} {cl_ok}")
+
+# Purge 90 j : qui auto refusé, humaine -> compteurs SÛRS.
+code, obj = post("dispatch", "/edl-purge", {"logement_id": "log1",
+                                            "qui": "auto"})
+check("edl-purge qui=auto refuse 400", code == 400,
+      f"HTTP {code} {obj}")
+code, pg = post("dispatch", "/edl-purge", {"logement_id": "log1",
+                                           "qui": "test-lab-humain"})
+check("edl-purge humaine -> 200 purgees 0 + restantes >= 2",
+      code == 200 and isinstance(pg, dict)
+      and pg.get("statut") == "purge" and pg.get("purgees") == 0
+      and pg.get("restantes", 0) >= 2,
+      f"HTTP {code} {pg}")
+
+print()
+print("== 15. boucle avis J+1 : enquete + rattrapage + geste + pre-reponse + scenes + objets + livret (P6-17 §5.7-bis) ==")
+# GET statut : 400 sans ref, 404 logement inconnu, 400 ref traversée.
+code, obj = get("decision", "/avis?logement_id=log1")
+check("GET /avis sans ref_resa -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/avis?logement_id=logX&ref_resa=LAB-P617-X")
+check("GET /avis logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = get("decision", "/avis?logement_id=log1&ref_resa=..%2Fevil")
+check("GET /avis ref traversee bloquee 400", code == 400, f"HTTP {code} {obj}")
+
+REF_A = f"LAB-P617-{int(time.time())}"
+code, st0 = get("decision", "/avis?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_A}))
+check("GET /avis non_repondue + echelle 1-5 + jamais bloquant",
+      code == 200 and isinstance(st0, dict)
+      and st0.get("statut") == "non_repondue"
+      and st0.get("echelle") == [1, 2, 3, 4, 5]
+      and st0.get("jamais_bloquant") is True,
+      f"HTTP {code} {st0}")
+
+# Garde-fous dépôt : qui auto, ref traversée, logement inconnu, note.
+code, obj = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "auto",
+                  "ref_resa": REF_A, "note": 5})
+check("avis qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": "../evil", "note": 5})
+check("avis ref traversee bloquee 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/avis",
+                 {"logement_id": "logX", "qui": "personne_01",
+                  "ref_resa": REF_A, "note": 5})
+check("avis logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A})
+check("avis sans note -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A, "note": 6})
+check("avis note 6 -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A, "note": 0})
+check("avis note 0 -> 400", code == 400, f"HTTP {code} {obj}")
+
+# Note 5 -> lien public (timing optimal, note protégée).
+code, av5 = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A, "note": 5,
+                  "commentaire": "Parfait séjour, merci !"})
+check("avis 5 -> 201 cree + lien_public",
+      code == 201 and isinstance(av5, dict)
+      and av5.get("statut") == "cree"
+      and av5.get("routage") == "lien_public"
+      and av5.get("jamais_bloquant") is True,
+      f"HTTP {code} {av5}")
+code, st5 = get("decision", "/avis?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_A}))
+check("GET /avis repondue note 5",
+      code == 200 and isinstance(st5, dict)
+      and st5.get("note") == 5 and st5.get("routage") == "lien_public",
+      f"HTTP {code} {st5}")
+
+# Correction même ref -> 200 corrige.
+code, av4 = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A, "note": 4})
+check("avis correction meme ref -> 200 corrige",
+      code == 200 and isinstance(av4, dict)
+      and av4.get("statut") == "corrige" and av4.get("note") == 4,
+      f"HTTP {code} {av4}")
+
+# Note 3 -> rattrapage + late_gratuite auto (<=20 €, sans validation).
+REF_A3 = f"{REF_A}-N3"
+code, av3 = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A3, "note": 3,
+                  "commentaire": "Correct sans plus."})
+check("avis 3 -> rattrapage + late_gratuite auto validee",
+      code == 201 and isinstance(av3, dict)
+      and av3.get("routage") == "rattrapage_prive"
+      and av3.get("geste", {}).get("type") == "late_gratuite"
+      and av3.get("geste_valide") is True,
+      f"HTTP {code} {av3}")
+
+# Note 2 + commentaire ménage -> rattrapage + geste à valider + todo.
+REF_A2 = f"{REF_A}-N2"
+code, av2 = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A2, "note": 2,
+                  "commentaire": "Ménage sale à l'arrivée, déçu."})
+check("avis 2 -> validation requise + geste propose + todo menage",
+      code == 201 and isinstance(av2, dict)
+      and av2.get("routage") == "rattrapage_prive"
+      and av2.get("geste", {}).get("validation_requise") is True
+      and av2.get("geste_valide") is False
+      and av2.get("todo_correctif") == "correctif_menage",
+      f"HTTP {code} {av2}")
+
+# Geste : qui auto, geste inconnu, sans enquête -> 400/400/404.
+code, obj = post("decision", "/avis-geste",
+                 {"logement_id": "log1", "qui": "auto",
+                  "ref_resa": REF_A2, "geste": "moins_10_direct"})
+check("avis-geste qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/avis-geste",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A2, "geste": "champagne"})
+check("avis-geste inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/avis-geste",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": f"{REF_A}-VIDE", "geste": "moins_10_direct"})
+check("avis-geste sans enquete -> 404", code == 404, f"HTTP {code} {obj}")
+
+# Validation 1-tap humaine 30 € -> alerte montant (jamais de débit auto).
+code, gs = post("decision", "/avis-geste",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "ref_resa": REF_A2, "geste": "remboursement_partiel",
+                 "montant_eur": 30})
+check("avis-geste 30 EUR -> 200 + alerte_montant",
+      code == 200 and isinstance(gs, dict)
+      and gs.get("statut") == "geste_valide"
+      and gs.get("alerte_montant") is True,
+      f"HTTP {code} {gs}")
+code, st2 = get("decision", "/avis?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_A2}))
+check("GET /avis geste valide + rattrapage",
+      code == 200 and isinstance(st2, dict)
+      and st2.get("geste_valide") is True
+      and st2.get("statut") == "rattrapage",
+      f"HTTP {code} {st2}")
+
+# Pré-réponse : valider sans brouillon -> 409 ; texte à promesse -> 422.
+code, obj = post("decision", "/avis-reponse",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A2, "action": "valider"})
+check("avis-reponse sans brouillon -> 409 brouillon_requis",
+      code == 409 and isinstance(obj, dict)
+      and obj.get("code") == "brouillon_requis",
+      f"HTTP {code} {obj}")
+code, obj = post("decision", "/avis-reponse",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_A2, "action": "brouillon",
+                  "texte": "Nous vous offrons un remboursement total."})
+check("avis-reponse promesse -> 422 promesse_detectee",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("code") == "promesse_detectee",
+      f"HTTP {code} {obj}")
+code, br = post("decision", "/avis-reponse",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "ref_resa": REF_A2, "action": "brouillon"})
+check("avis-reponse brouillon gabarit -> 201",
+      code == 201 and isinstance(br, dict)
+      and br.get("statut") == "brouillon"
+      and br.get("source") == "gabarit",
+      f"HTTP {code} {br}")
+code, vr = post("decision", "/avis-reponse",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "ref_resa": REF_A2, "action": "valider"})
+check("avis-reponse valider -> 200 validee (publication manuelle)",
+      code == 200 and isinstance(vr, dict)
+      and vr.get("statut") == "validee",
+      f"HTTP {code} {vr}")
+
+# Scènes 1-tap : catalogue + activation.
+code, obj = get("decision", "/scenes")
+check("GET /scenes sans logement -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/scenes?logement_id=logX")
+check("GET /scenes logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, sc = get("decision", "/scenes?logement_id=log1")
+ids_sc = sorted(s.get("id") for s in sc.get("scenes", [])) \
+    if isinstance(sc, dict) else []
+check("GET /scenes log1 : 3 scenes",
+      code == 200 and ids_sc == ["arrivee", "depart", "nuit_calme"],
+      f"HTTP {code} {sc}")
+code, obj = post("decision", "/scene",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "scene": "sieste"})
+check("scene inconnue -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/scene",
+                 {"logement_id": "log1", "qui": "auto",
+                  "scene": "arrivee"})
+check("scene qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, sn = post("decision", "/scene",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "ref_resa": REF_A, "scene": "nuit_calme"})
+check("scene nuit_calme -> 200 + actions",
+      code == 200 and isinstance(sn, dict)
+      and sn.get("statut") == "scene_activee"
+      and "rappel_22h_8h" in sn.get("actions", []),
+      f"HTTP {code} {sn}")
+
+print("== 15-bis. objets trouves : fiche + photo + J+0 + forfait 15 EUR + don/stock (P6-17 §5.7-bis) ==")
+# Garde-fous création : qui auto, sans description, logement inconnu.
+code, obj = post("dispatch", "/objet-trouve",
+                 {"logement_id": "log1", "qui": "auto",
+                  "description": "Chargeur USB-C noir"})
+check("objet-trouve qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/objet-trouve",
+                 {"logement_id": "log1", "qui": "lab_menage_01"})
+check("objet-trouve sans description -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/objet-trouve",
+                 {"logement_id": "logX", "qui": "lab_menage_01",
+                  "description": "Chargeur USB-C noir"})
+check("objet-trouve logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+
+code, ot = post("dispatch", "/objet-trouve",
+                {"logement_id": "log1", "qui": "lab_menage_01",
+                 "description": "Chargeur USB-C noir", "piece": "salon",
+                 "ref_resa": REF_A, "photo_base64": PETITE_PHOTO})
+oid = ot.get("objet_id", "") if isinstance(ot, dict) else ""
+check("objet-trouve 201 + forfait 15 + message J+0",
+      code == 201 and isinstance(ot, dict) and bool(oid)
+      and ot.get("forfait_eur") == 15
+      and "J+0" in ot.get("message_j0", ""),
+      f"HTTP {code} {ot}")
+
+code, obj = get("dispatch", "/objets")
+check("GET /objets sans logement -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("dispatch", "/objets?logement_id=log1&statut=perdu")
+check("GET /objets statut inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, li = get("dispatch", "/objets?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "statut": "trouve"}))
+trouves = [o.get("objet_id") for o in li.get("objets", [])] \
+    if isinstance(li, dict) else []
+check("GET /objets trouve liste l'objet",
+      code == 200 and oid in trouves,
+      f"HTTP {code} total={li.get('total') if isinstance(li, dict) else li}")
+
+# Réclamation : sans ref -> 400 ; OK -> 200 ; envoi sans preuve -> 402.
+code, obj = post("dispatch", "/objet-reclamer",
+                 {"logement_id": "log1", "objet_id": oid,
+                  "qui": "personne_01"})
+check("objet-reclamer sans ref -> 400", code == 400, f"HTTP {code} {obj}")
+code, rc = post("dispatch", "/objet-reclamer",
+                {"logement_id": "log1", "objet_id": oid,
+                 "qui": "personne_01", "ref_resa": REF_A})
+check("objet-reclamer -> 200 reclame + forfait 15",
+      code == 200 and isinstance(rc, dict)
+      and rc.get("statut") == "reclame"
+      and rc.get("forfait_eur") == 15,
+      f"HTTP {code} {rc}")
+code, obj = post("dispatch", "/objet-envoyer",
+                 {"logement_id": "log1", "objet_id": oid,
+                  "qui": "personne_01"})
+check("objet-envoyer sans preuve -> 402 paiement_requis",
+      code == 402 and isinstance(obj, dict)
+      and obj.get("code") == "paiement_requis",
+      f"HTTP {code} {obj}")
+code, ev = post("dispatch", "/objet-envoyer",
+                {"logement_id": "log1", "objet_id": oid,
+                 "qui": "personne_01",
+                 "preuve_paiement": "pi_test_lab_15"})
+check("objet-envoyer preuve -> 200 envoye",
+      code == 200 and isinstance(ev, dict)
+      and ev.get("statut") == "envoye",
+      f"HTTP {code} {ev}")
+code, obj = post("dispatch", "/objet-reclamer",
+                 {"logement_id": "log1", "objet_id": oid,
+                  "qui": "personne_01", "ref_resa": REF_A})
+check("objet-reclamer deja traite -> 409", code == 409,
+      f"HTTP {code} {obj}")
+
+# Clôture : sort inconnu -> 400 ; trouvé récent -> 409 trop_tot.
+REF_O2 = f"{REF_A}-OBJ2"
+code, ot2 = post("dispatch", "/objet-trouve",
+                 {"logement_id": "log1", "qui": "lab_menage_01",
+                  "description": "Casquette bleue"})
+oid2 = ot2.get("objet_id", "") if isinstance(ot2, dict) else ""
+code, obj = post("dispatch", "/objet-cloturer",
+                 {"logement_id": "log1", "objet_id": oid2,
+                  "qui": "personne_01", "sort": "poubelle"})
+check("objet-cloturer sort inconnu -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/objet-cloturer",
+                 {"logement_id": "log1", "objet_id": oid2,
+                  "qui": "personne_01", "sort": "don"})
+check("objet-cloturer recent -> 409 trop_tot (30 j)",
+      code == 409 and isinstance(obj, dict)
+      and obj.get("code") == "trop_tot",
+      f"HTTP {code} {obj}")
+
+print("== 15-ter. livret video 30 s/equipement : QR + video locale, lecture seule (P6-17 §5.7-bis) ==")
+code, obj = get("extras", "/livret")
+check("GET /livret sans logement -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("extras", "/livret?logement_id=logX")
+check("GET /livret logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, lv = get("extras", "/livret?logement_id=log1")
+ids_lv = sorted(f.get("id") for f in lv.get("fiches", [])) \
+    if isinstance(lv, dict) else []
+check("GET /livret log1 : 5 fiches + QR + video locale 30 s",
+      code == 200 and isinstance(lv, dict) and lv.get("total") == 5
+      and ids_lv == ["clim", "ll", "lv", "portail", "tri"]
+      and all(f.get("qr") == f"/livret/{f.get('id')}"
+              and f.get("video_url") == f"/local/livret/{f.get('id')}.mp4"
+              and f.get("duree_s") == 30
+              for f in lv.get("fiches", [])),
+      f"HTTP {code} {lv}")
+code, lv2 = get("extras", "/livret?logement_id=log2")
+check("GET /livret log2 upsell off : guide de base dispo",
+      code == 200 and isinstance(lv2, dict) and lv2.get("total") == 5,
+      f"HTTP {code} {lv2}")
+
+print()
+print("== 16. compta auto : ingestion + confiance + payouts + rapprochement + jauges + simulateur + cloture (P6-18 §12.6) ==")
+AN = str(date.today().year)
+# Garde-fous facture : qui auto, sans montant, montant 0, logement inconnu.
+code, obj = post("compta", "/facture",
+                 {"logement_id": "log1", "qui": "auto",
+                  "montant_ttc": 240})
+check("facture qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("compta", "/facture",
+                 {"logement_id": "log1", "qui": "test-lab-humain"})
+check("facture sans montant -> 422 montant_requis",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("code") == "montant_requis",
+      f"HTTP {code} {obj}")
+code, obj = post("compta", "/facture",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "montant_ttc": 0})
+check("facture montant 0 -> 422", code == 422, f"HTTP {code} {obj}")
+code, obj = post("compta", "/facture",
+                 {"logement_id": "logX", "qui": "test-lab-humain",
+                  "montant_ttc": 240})
+check("facture logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = post("compta", "/facture",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "montant_ttc": 240, "rubrique": "yacht"})
+check("facture rubrique inconnue -> 400", code == 400, f"HTTP {code} {obj}")
+
+# Facture complète (NodOn, texte OCR, date) -> hardware, confiance haute.
+code, fc = post("compta", "/facture",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "montant_ttc": 240, "tva": 40,
+                 "fournisseur": "NodOn",
+                 "texte_ocr": "Module fil pilote SIN-4-FP-21 Zigbee chauffage",
+                 "date": date.today().isoformat()})
+fid_hw = fc.get("facture_id", "") if isinstance(fc, dict) else ""
+check("facture NodOn 201 + hardware + ht 200 + confiance >= 0.7",
+      code == 201 and isinstance(fc, dict)
+      and fc.get("rubrique") == "hardware" and fc.get("ht") == 200
+      and fc.get("confiance", 0) >= 0.7
+      and fc.get("statut") == "brouillon"
+      and fc.get("file_validation") is False,
+      f"HTTP {code} {fc}")
+
+# Facture vague (montant seul) -> divers, basse confiance, file validation.
+code, fv = post("compta", "/facture",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "montant_ttc": 50})
+fid_vague = fv.get("facture_id", "") if isinstance(fv, dict) else ""
+check("facture vague 201 + divers + file validation",
+      code == 201 and isinstance(fv, dict)
+      and fv.get("rubrique") == "divers"
+      and fv.get("confiance", 1) < 0.7
+      and fv.get("statut") == "brouillon_a_valider"
+      and fv.get("file_validation") is True,
+      f"HTTP {code} {fv}")
+
+code, lf = get("compta", "/factures?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "annee": AN}))
+check("GET /factures liste 2 + file >= 1",
+      code == 200 and isinstance(lf, dict) and lf.get("total", 0) >= 2
+      and lf.get("file_validation", 0) >= 1,
+      f"HTTP {code} total={lf.get('total') if isinstance(lf, dict) else lf}")
+
+# Validation 1-tap : qui auto, inconnue, OK (+ correction rubrique).
+code, obj = post("compta", "/facture-valider",
+                 {"logement_id": "log1", "facture_id": fid_vague,
+                  "qui": "auto"})
+check("facture-valider qui=auto refuse 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("compta", "/facture-valider",
+                 {"logement_id": "log1", "facture_id": "FAC-20990101-999",
+                  "qui": "test-lab-humain"})
+check("facture-valider inconnue -> 404", code == 404, f"HTTP {code} {obj}")
+code, vv = post("compta", "/facture-valider",
+                {"logement_id": "log1", "facture_id": fid_vague,
+                 "qui": "test-lab-humain", "rubrique": "menage"})
+check("facture-valider 200 menage",
+      code == 200 and isinstance(vv, dict)
+      and vv.get("statut") == "validee"
+      and vv.get("rubrique") == "menage",
+      f"HTTP {code} {vv}")
+code, vv2 = post("compta", "/facture-valider",
+                 {"logement_id": "log1", "facture_id": fid_hw,
+                  "qui": "test-lab-humain"})
+check("facture-valider hardware 200", code == 200, f"HTTP {code} {vv2}")
+
+# Payouts : garde-fous puis 3 imports (airbnb net 425, direct 300, booking).
+code, obj = post("compta", "/payout",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "canal": "mars", "montant": 500,
+                  "date": date.today().isoformat()})
+check("payout canal inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("compta", "/payout",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "canal": "airbnb", "montant": 0,
+                  "date": date.today().isoformat()})
+check("payout montant 0 -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("compta", "/payout",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "canal": "airbnb", "montant": 500, "date": "pas-une-date"})
+check("payout date illisible -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("compta", "/payout",
+                 {"logement_id": "logX", "qui": "test-lab-humain",
+                  "canal": "airbnb", "montant": 500,
+                  "date": date.today().isoformat()})
+check("payout logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+
+J_MOINS_10 = (date.today() - timedelta(days=10)).isoformat()
+J_MOINS_20 = (date.today() - timedelta(days=20)).isoformat()
+J_MOINS_9 = (date.today() - timedelta(days=9)).isoformat()
+code, pa = post("compta", "/payout",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "canal": "airbnb", "montant": 500, "commission": 75,
+                 "date": J_MOINS_10, "ref_resa": f"LAB-P618-{int(time.time())}",
+                 "nuits": 5})
+pid_airbnb = pa.get("payout_id", "") if isinstance(pa, dict) else ""
+check("payout airbnb 201 net 425",
+      code == 201 and isinstance(pa, dict) and pa.get("net") == 425,
+      f"HTTP {code} {pa}")
+code, pd = post("compta", "/payout",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "canal": "direct", "montant": 300,
+                 "date": date.today().isoformat(), "nuits": 2})
+pid_direct = pd.get("payout_id", "") if isinstance(pd, dict) else ""
+check("payout direct 201 net 300", code == 201, f"HTTP {code} {pd}")
+code, pb = post("compta", "/payout",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "canal": "booking", "montant": 200, "commission": 34,
+                 "date": J_MOINS_20, "nuits": 3})
+check("payout booking 201 net 166", code == 201
+      and isinstance(pb, dict) and pb.get("net") == 166,
+      f"HTTP {code} {pb}")
+
+# Relevé : airbnb rapproché (425 à J-9, écart 0), direct en écart (999 vs
+# 300), booking orphelin (20 j sans ligne). Jamais d'écriture auto.
+code, obj = post("compta", "/releve",
+                 {"logement_id": "log1", "qui": "auto",
+                  "lignes": [{"date": J_MOINS_9, "libelle": "x",
+                              "montant": 1}]})
+check("releve qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("compta", "/releve",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "lignes": []})
+check("releve lignes vides -> 400", code == 400, f"HTTP {code} {obj}")
+code, rl = post("compta", "/releve",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "annee": AN,
+                 "lignes": [{"date": J_MOINS_9,
+                             "libelle": "AIRBNB PAYOUT",
+                             "montant": 425},
+                            {"date": date.today().isoformat(),
+                             "libelle": "VIREMENT INCONNU",
+                             "montant": 999}]})
+types_file = sorted(e.get("type") for e in rl.get("file", [])) \
+    if isinstance(rl, dict) else []
+check("releve : airbnb rapproche + ecart + orphelin (jamais auto)",
+      code == 200 and isinstance(rl, dict)
+      and pid_airbnb in rl.get("rapproches", [])
+      and "ecart_montant" in types_file
+      and "payout_orphelin" in types_file
+      and rl.get("jamais_ecriture_auto") is True,
+      f"HTTP {code} {rl}")
+
+code, rp = get("compta", "/rapprochement?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "annee": AN}))
+check("GET /rapprochement : 3 payouts, 1 rapproche, file >= 2",
+      code == 200 and isinstance(rp, dict)
+      and rp.get("payouts_total", 0) >= 3
+      and rp.get("rapproches", 0) >= 1
+      and len(rp.get("file", [])) >= 2,
+      f"HTTP {code} {rp}")
+
+# Finances : CA 425+300+166=891, charges 240+50=290, net 601, nuits 10.
+code, obj = get("compta", "/finances?logement_id=log1&annee=" + AN
+                + "&classement=yacht")
+check("finances classement inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, fin = get("compta", "/finances?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "annee": AN}))
+check("finances : CA 891 + charges 290 + net 601 + jauge ok",
+      code == 200 and isinstance(fin, dict)
+      and fin.get("ca") == 891 and fin.get("charges") == 290
+      and fin.get("net") == 601
+      and fin.get("jauge_ca", {}).get("plafond") == 15000
+      and fin.get("jauge_ca", {}).get("alerte") == "ok"
+      and fin.get("jauge_nuits", {}).get("valeur") == 10,
+      f"HTTP {code} {fin}")
+
+# Simulateur : micro 891*0.7=623.7 vs réel 891-290=601 -> réel avantagé.
+code, obj = get("compta", "/simulateur?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "annee": AN, "amortissement": -5}))
+check("simulateur amortissement negatif -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, sim = get("compta", "/simulateur?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "annee": AN}))
+check("simulateur : micro 623.7 vs reel 601 + reco + levier + jamais auto",
+      code == 200 and isinstance(sim, dict)
+      and sim.get("micro", {}).get("base_imposable") == 623.7
+      and sim.get("reel", {}).get("base_imposable") == 601
+      and "comptable" in sim.get("recommandation", "")
+      and sim.get("levier_classement", {}).get("gain_vs_non_classe", 0) > 0
+      and sim.get("jamais_option_auto") is True,
+      f"HTTP {code} {sim}")
+
+# Clôture : mois courant trop tôt, mois précédent OK, re-clôture idempotente.
+code, obj = post("compta", "/cloture",
+                 {"logement_id": "log1", "qui": "auto",
+                  "annee": int(AN), "mois": 1})
+check("cloture qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+MOIS_PREC = date.today().month - 1 or 12
+AN_PREC = int(AN) if date.today().month > 1 else int(AN) - 1
+code, obj = post("compta", "/cloture",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "annee": int(AN), "mois": date.today().month})
+check("cloture mois courant -> 409 trop_tot",
+      code == 409 and isinstance(obj, dict)
+      and obj.get("code") == "trop_tot",
+      f"HTTP {code} {obj}")
+code, cl = post("compta", "/cloture",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "annee": AN_PREC, "mois": MOIS_PREC})
+check("cloture mois precedent -> 201 cloturee",
+      code == 201 and isinstance(cl, dict)
+      and cl.get("statut") == "cloturee"
+      and isinstance(cl.get("recap"), dict),
+      f"HTTP {code} {cl}")
+code, cl2 = post("compta", "/cloture",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "annee": AN_PREC, "mois": MOIS_PREC})
+check("re-cloture -> 200 deja_cloturee",
+      code == 200 and isinstance(cl2, dict)
+      and cl2.get("statut") == "deja_cloturee",
+      f"HTTP {code} {cl2}")
+
+print()
+print("== 17. supplement menage 110 EUR : 10 postes + cout reel + derive + score qualite (P6-19 §12.2-ter) ==")
+# Tarif : 400 sans logement, 404 logement inconnu.
+code, obj = get("dispatch", "/menage-tarif")
+check("GET /menage-tarif sans logement -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = get("dispatch", "/menage-tarif?logement_id=logX")
+check("GET /menage-tarif logement inconnu -> 404", code == 404,
+      f"HTTP {code} {obj}")
+code, tf = get("dispatch", "/menage-tarif?logement_id=log1")
+postes = tf.get("postes", []) if isinstance(tf, dict) else []
+ids_postes = [p.get("id") for p in postes]
+check("GET /menage-tarif log1 : 110 supplement + 10 postes + total 110",
+      code == 200 and isinstance(tf, dict)
+      and tf.get("montant") == 110
+      and tf.get("facturation") == "supplement"
+      and len(postes) == 10
+      and ids_postes[-1] == "main_oeuvre"
+      and tf.get("total_verifie") == 110
+      and tf.get("surcharge_saison", {}).get("montant_eur") == 20
+      and tf.get("surcharge_saison", {}).get("mois") == [6, 7, 8, 9]
+      and tf.get("alerte_inclus") is False,
+      f"HTTP {code} {tf}")
+code, tf2 = get("dispatch", "/menage-tarif?logement_id=log2")
+check("GET /menage-tarif log2 : 90 prorata + total 90",
+      code == 200 and isinstance(tf2, dict)
+      and tf2.get("montant") == 90
+      and tf2.get("total_verifie") == 90
+      and len(tf2.get("postes", [])) == 10,
+      f"HTTP {code} {tf2}")
+
+# Coûts : garde-fous puis 2 saisies (115 + 140 -> moyenne 127.5, dérive).
+code, obj = post("dispatch", "/menage-cout",
+                 {"logement_id": "log1", "qui": "auto", "montant": 115})
+check("menage-cout qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/menage-cout",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "montant": 0})
+check("menage-cout montant 0 -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/menage-cout",
+                 {"logement_id": "logX", "qui": "test-lab-humain",
+                  "montant": 115})
+check("menage-cout logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, ct1 = post("dispatch", "/menage-cout",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "montant": 115, "ref_resa": f"LAB-P619-{int(time.time())}",
+                  "facture": "presta + ticket pressing"})
+check("menage-cout 115 -> 201 + derive rotation",
+      code == 201 and isinstance(ct1, dict)
+      and ct1.get("montant") == 115
+      and ct1.get("rotations_suivies", 0) >= 1,
+      f"HTTP {code} {ct1}")
+code, ct2 = post("dispatch", "/menage-cout",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "montant": 140})
+check("menage-cout 140 -> 201", code == 201, f"HTTP {code} {ct2}")
+code, cs = get("dispatch", "/menage-couts?logement_id=log1")
+check("GET /menage-couts : 2 rotations + moyenne 127.5 + alerte derive",
+      code == 200 and isinstance(cs, dict)
+      and cs.get("rotations", 0) >= 2
+      and cs.get("cout_moyen_rotation") == 127.5
+      and cs.get("derive_pct") == round((127.5 - 110) / 110, 4)
+      and cs.get("alerte_derive") is True
+      and cs.get("sensor", {}).get("montant_affiche") == 110,
+      f"HTTP {code} {cs}")
+
+# Notes : garde-fous + 3 notes (4/4/2 -> moyenne 3.33, alerte qualité).
+code, obj = post("dispatch", "/menage-note",
+                 {"logement_id": "log1", "qui": "auto", "note": 4})
+check("menage-note qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/menage-note",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "note": 6})
+check("menage-note 6 -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/menage-note",
+                 {"logement_id": "logX", "qui": "test-lab-humain",
+                  "note": 4})
+check("menage-note logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+for n in (4, 4, 2):
+    code, nt = post("dispatch", "/menage-note",
+                    {"logement_id": "log1", "qui": "test-lab-humain",
+                     "note": n, "commentaire": "rotation lab"})
+    check(f"menage-note {n} -> 201",
+          code == 201 and isinstance(nt, dict) and nt.get("note") == n,
+          f"HTTP {code} {nt}")
+code, sc = get("dispatch", "/menage-score?logement_id=log1")
+check("GET /menage-score : 3 notes + moyenne 3.33 + alerte qualite",
+      code == 200 and isinstance(sc, dict)
+      and sc.get("notes_total", 0) >= 3
+      and sc.get("score_moyen") == round((4 + 4 + 2) / 3, 2)
+      and sc.get("alerte_qualite") is True
+      and sc.get("duree_attendue_min") == 180,
+      f"HTTP {code} {sc}")
+
+# Lien temps : dossier pointé (durée ~0 vs 180 -> écart >20 %) + note.
+code, td_t = post("dispatch", "/todos", {"logement_id": "log1",
+                                          "ref_resa": f"LAB-P619-{int(time.time())}",
+                                          "checkout": "2026-12-20",
+                                          "checkin_suivant": "2026-12-21",
+                                          "qui": "test-lab-humain"})
+dos_t = (td_t.get("dossier", "") if isinstance(td_t, dict) else "")
+post("dispatch", "/menage-pointage",
+     {"logement_id": "log1", "dossier": dos_t,
+      "evenement": "arrivee", "qui": "lab_menage_01"})
+post("dispatch", "/menage-pointage",
+     {"logement_id": "log1", "dossier": dos_t,
+      "evenement": "depart", "qui": "lab_menage_01"})
+code, nt_t = post("dispatch", "/menage-note",
+                  {"logement_id": "log1", "qui": "test-lab-humain",
+                   "note": 5, "dossier": dos_t})
+check("menage-note dossier pointe -> alerte_temps (0 vs 180)",
+      code == 201 and isinstance(nt_t, dict)
+      and nt_t.get("alerte_temps") is True
+      and nt_t.get("duree_presence_min") == 0,
+      f"HTTP {code} {nt_t}")
+code, obj = post("dispatch", "/menage-note",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "note": 5, "dossier": "dossier_inexistant_xyz"})
+check("menage-note dossier inconnu -> 404", code == 404,
+      f"HTTP {code} {obj}")
+
+print()
+print("== 18. RBAC 5 roles : audit MFA + revocation + journal 90 j (P6-20 §1.6) ==")
+# Audit : 400 sans qui, 403 comptable (pas config_modif), 200 super_admin.
+code, obj = get("decision", "/acces")
+check("GET /acces sans qui -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/acces?qui=personne_04")
+check("GET /acces comptable -> 403 (reserve super_admin/admin)",
+      code == 403, f"HTTP {code} {obj}")
+code, au = get("decision", "/acces?qui=personne_01")
+pers = {p.get("id"): p for p in au.get("personnes", [])} \
+    if isinstance(au, dict) else {}
+check("GET /acces super_admin : 7 nominatifs + MFA exigee signalee",
+      code == 200 and isinstance(au, dict) and au.get("total") == 7
+      and pers.get("personne_01", {}).get("mfa_exigee") is True
+      and pers.get("personne_01", {}).get("mfa_active") is False
+      and pers.get("personne_05", {}).get("mfa_exigee") is False
+      and "personne_01" in au.get("alertes", {}).get("sans_mfa", [])
+      and au.get("alertes", {}).get("doublons") == []
+      and all(p.get("statut") == "actif" for p in pers.values()),
+      f"HTTP {code} {au}")
+
+# Révocation : 403 opérateur, 404 inconnu, 403 soi-même, 403 super_admin.
+code, obj = post("decision", "/acces-revoquer",
+                 {"qui": "personne_03", "personne_id": "personne_07"})
+check("acces-revoquer operateur -> 403 (pas config_modif)",
+      code == 403, f"HTTP {code} {obj}")
+code, obj = post("decision", "/acces-revoquer",
+                 {"qui": "personne_01", "personne_id": "fantome"})
+check("acces-revoquer inconnue -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = post("decision", "/acces-revoquer",
+                 {"qui": "personne_01", "personne_id": "personne_01"})
+check("auto-revocation interdite -> 403", code == 403, f"HTTP {code} {obj}")
+code, obj = post("decision", "/acces-revoquer",
+                 {"qui": "personne_02", "personne_id": "personne_01"})
+check("revocation super_admin protegee -> 403", code == 403,
+      f"HTTP {code} {obj}")
+
+# Révocation presta externe : 200, effet RBAC immédiat, idempotence.
+code, rv = post("decision", "/acces-revoquer",
+                {"qui": "personne_01", "personne_id": "personne_07",
+                 "motif": "fin mission lab"})
+check("acces-revoquer presta -> 200 revoque",
+      code == 200 and isinstance(rv, dict)
+      and rv.get("statut") == "revoque",
+      f"HTTP {code} {rv}")
+code, at = post("decision", "/autoriser",
+                {"qui_id": "personne_07", "action": "event_envoi",
+                 "logement_id": "log1"})
+check("revoque : event_envoi bloque",
+      code == 200 and isinstance(at, dict)
+      and at.get("autorise") is False
+      and "révoqué" in at.get("motif", ""),
+      f"HTTP {code} {at}")
+code, au2 = get("decision", "/acces?qui=personne_01")
+pers2 = {p.get("id"): p for p in au2.get("personnes", [])} \
+    if isinstance(au2, dict) else {}
+check("audit : personne_07 revoque",
+      code == 200 and pers2.get("personne_07", {}).get("statut")
+      == "revoque"
+      and "personne_07" in au2.get("alertes", {}).get("revoques", []),
+      f"HTTP {code} {au2}")
+code, obj = post("decision", "/acces-revoquer",
+                 {"qui": "personne_01", "personne_id": "personne_07"})
+check("re-revocation idempotente -> 200 deja_revoque",
+      code == 200 and isinstance(obj, dict)
+      and obj.get("statut") == "deja_revoque",
+      f"HTTP {code} {obj}")
+
+# Réactivation : 403 comptable, 200 super_admin, effet RBAC restauré.
+code, obj = post("decision", "/acces-reactiver",
+                 {"qui": "personne_04", "personne_id": "personne_07"})
+check("acces-reactiver comptable -> 403", code == 403, f"HTTP {code} {obj}")
+code, ra = post("decision", "/acces-reactiver",
+                {"qui": "personne_01", "personne_id": "personne_07"})
+check("acces-reactiver -> 200 reactive (pas expiree)",
+      code == 200 and isinstance(ra, dict)
+      and ra.get("statut") == "reactive"
+      and ra.get("compte_expire") is False,
+      f"HTTP {code} {ra}")
+code, at2 = post("decision", "/autoriser",
+                 {"qui_id": "personne_07", "action": "menage_cloture",
+                  "logement_id": "log1"})
+check("reactive : menage_cloture autorise a nouveau",
+      code == 200 and isinstance(at2, dict)
+      and at2.get("autorise") is True,
+      f"HTTP {code} {at2}")
+code, obj = post("decision", "/acces-reactiver",
+                 {"qui": "personne_01", "personne_id": "personne_07"})
+check("re-reactivation -> 200 deja_actif",
+      code == 200 and isinstance(obj, dict)
+      and obj.get("statut") == "deja_actif",
+      f"HTTP {code} {obj}")
+
+# Journal 90 j : 400 sans logement, 400 jours>90, 403 inconnu/hors périmètre.
+code, obj = get("decision", "/journal?qui=personne_01")
+check("GET /journal sans logement -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/journal?logement_id=log1&qui=personne_01&jours=200")
+check("GET /journal jours>90 -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/journal?logement_id=logX&qui=personne_01")
+check("GET /journal logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = get("decision", "/journal?logement_id=log1&qui=voyageur_x")
+check("GET /journal qui inconnu -> 403", code == 403, f"HTTP {code} {obj}")
+code, obj = get("decision", "/journal?logement_id=log2&qui=personne_03")
+check("GET /journal hors perimetre -> 403", code == 403, f"HTTP {code} {obj}")
+code, jo = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01"}))
+check("GET /journal log1 : entrees non vides, PIN lab jamais en clair",
+      code == 200 and isinstance(jo, dict)
+      and jo.get("total", 0) > 0
+      and "482913" not in json.dumps(jo.get("entrees", [])),
+      f"HTTP {code} total={jo.get('total') if isinstance(jo, dict) else jo}")
+code, jf = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01", "quoi": "acces"}))
+check("GET /journal filtre quoi=acces",
+      code == 200 and isinstance(jf, dict)
+      and all(e.get("quoi") == "acces" for e in jf.get("entrees", [])),
+      f"HTTP {code} {jf}")
+
+# Voyageur = pas de compte nominatif (PWA séjour, jamais HA direct).
+code, vg = post("decision", "/autoriser",
+                {"qui_id": "voyageur_sejour_01", "action": "etat_lecture",
+                 "logement_id": "log1"})
+check("voyageur sans compte -> qui inconnu (PWA sejour seule)",
+      code == 200 and isinstance(vg, dict)
+      and vg.get("autorise") is False
+      and "inconnu" in vg.get("motif", ""),
+      f"HTTP {code} {vg}")
+
+print()
+print("== 19. carnet preuve tranquillite + lettre syndic + registre RGPD + mentions annonce (P6-21 §12.5-bis) ==")
+TRIM_T2 = "2026-T2"
+# Relevés dB : garde-fous (qui auto, sans db, hors bornes, heure, logement).
+code, obj = post("decision", "/preuve-db",
+                 {"logement_id": "log1", "qui": "auto", "db": 65})
+check("preuve-db qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/preuve-db",
+                 {"logement_id": "log1", "qui": "capteur-bruit-salon"})
+check("preuve-db sans db -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/preuve-db",
+                 {"logement_id": "log1", "qui": "capteur-bruit-salon",
+                  "db": 200})
+check("preuve-db 200 dB -> 400 (dB seuls 0-120)", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("decision", "/preuve-db",
+                 {"logement_id": "log1", "qui": "capteur-bruit-salon",
+                  "db": 65, "heure": "pas-une-heure"})
+check("preuve-db heure illisible -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/preuve-db",
+                 {"logement_id": "logX", "qui": "capteur-bruit-salon",
+                  "db": 65})
+check("preuve-db logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+
+# 65 dB jour (14h, <75) + 70 dB nuit (23h30, >60) -> T2.
+code, rj = post("decision", "/preuve-db",
+                {"logement_id": "log1", "qui": "capteur-bruit-salon",
+                 "db": 65, "heure": "2026-06-15T14:00:00",
+                 "occupation": "occupe"})
+check("releve jour 65 dB -> 201 sans depassement",
+      code == 201 and isinstance(rj, dict)
+      and rj.get("trimestre") == TRIM_T2
+      and rj.get("nuit") is False
+      and rj.get("depasse") is False,
+      f"HTTP {code} {rj}")
+code, rn = post("decision", "/preuve-db",
+                {"logement_id": "log1", "qui": "capteur-bruit-salon",
+                 "db": 70, "heure": "2026-06-15T23:30:00",
+                 "occupation": "occupe"})
+check("releve nuit 70 dB -> 201 depassement (seuil 60)",
+      code == 201 and isinstance(rn, dict)
+      and rn.get("nuit") is True
+      and rn.get("depasse") is True
+      and rn.get("seuil") == 60,
+      f"HTTP {code} {rn}")
+
+# Carnet : 400 sans qui, 403 presta (hôte seul), 400 trimestre, 404 logX.
+code, obj = get("decision", "/carnet?logement_id=log1")
+check("GET /carnet sans qui -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/carnet?logement_id=log1&qui=personne_07")
+check("GET /carnet presta -> 403 hote seul", code == 403, f"HTTP {code} {obj}")
+code, obj = get("decision", "/carnet?logement_id=logX&qui=personne_01")
+check("GET /carnet logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+code, obj = get("decision", "/carnet?logement_id=log1&qui=personne_01&trimestre=2026")
+check("GET /carnet trimestre invalide -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, ca = get("decision", "/carnet?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01", "trimestre": TRIM_T2}))
+check("GET /carnet T2 : 2 releves + 1 depassement nuit + jamais audio",
+      code == 200 and isinstance(ca, dict)
+      and ca.get("releves") == 2
+      and ca.get("max_db") == 70
+      and len(ca.get("depassements_nuit", [])) == 1
+      and ca.get("depassements_jour") == []
+      and ca.get("aucun_depassement") is False
+      and ca.get("jamais_audio") is True,
+      f"HTTP {code} {ca}")
+
+# Attestations : type inconnu, ref traversée, puis ménage + rappel.
+code, obj = post("decision", "/preuve-attestation",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "type": "diplome"})
+check("attestation type inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/preuve-attestation",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "type": "menage", "ref": "../evil"})
+check("attestation ref traversee bloquee 400", code == 400,
+      f"HTTP {code} {obj}")
+code, a1 = post("decision", "/preuve-attestation",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "type": "menage", "ref": f"LAB-P621-{int(time.time())}",
+                 "detail": "rotation OK, photos E/S versees"})
+check("attestation menage -> 201", code == 201, f"HTTP {code} {a1}")
+code, a2 = post("decision", "/preuve-attestation",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "type": "message_rappel",
+                 "detail": "rappel 22h-8h envoye PWA"})
+check("attestation rappel -> 201", code == 201, f"HTTP {code} {a2}")
+code, ca2 = get("decision", "/carnet?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_03"}))
+check("GET /carnet trimestre courant operateur -> 200",
+      code == 200 and isinstance(ca2, dict)
+      and ca2.get("trimestre") != "",
+      f"HTTP {code} {ca2}")
+
+# Lettre : 403 presta, brouillon chiffré, envoi sans canal/brouillon, envoi.
+code, obj = post("decision", "/lettre-tranquillite",
+                 {"logement_id": "log1", "qui": "personne_07",
+                  "trimestre": TRIM_T2})
+check("lettre presta -> 403 hote seul", code == 403, f"HTTP {code} {obj}")
+code, lt = post("decision", "/lettre-tranquillite",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "trimestre": TRIM_T2, "destinataire": "syndic"})
+check("lettre brouillon T2 -> 201 (1 depassement chiffre)",
+      code == 201 and isinstance(lt, dict)
+      and lt.get("statut") == "brouillon"
+      and lt.get("trimestre") == TRIM_T2,
+      f"HTTP {code} {lt}")
+code, obj = post("decision", "/lettre-envoyer",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "trimestre": TRIM_T2})
+check("lettre-envoyer sans canal -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/lettre-envoyer",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "trimestre": "2026-T3", "canal": "email"})
+check("lettre-envoyer sans brouillon -> 409", code == 409,
+      f"HTTP {code} {obj}")
+code, le = post("decision", "/lettre-envoyer",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "trimestre": TRIM_T2, "canal": "email"})
+check("lettre-envoyer -> 200 envoyee (messagerie tracee)",
+      code == 200 and isinstance(le, dict)
+      and le.get("statut") == "envoyee"
+      and le.get("canal") == "email",
+      f"HTTP {code} {le}")
+
+# Registre RGPD : 403 inconnu, 7 traitements, flags lab.
+code, obj = get("decision", "/registre-rgpd?logement_id=log1&qui=fantome")
+check("registre qui inconnu -> 403", code == 403, f"HTTP {code} {obj}")
+code, rg = get("decision",
+               "/registre-rgpd?logement_id=log1&qui=personne_01")
+traitements = {t.get("donnees"): t for t in rg.get("traitements", [])} \
+    if isinstance(rg, dict) else {}
+check("registre log1 : 7 traitements + geoloc active (lab)",
+      code == 200 and isinstance(rg, dict) and rg.get("total") == 7
+      and any("hash seul" in d for d in traitements)
+      and any(t.get("actif") for t in traitements.values()),
+      f"HTTP {code} {rg}")
+code, rg2 = get("decision",
+                "/registre-rgpd?logement_id=log2&qui=personne_01")
+traitements2 = {t.get("donnees"): t for t in rg2.get("traitements", [])} \
+    if isinstance(rg2, dict) else {}
+geoloc_l2 = next((t for d, t in traitements2.items() if "loc" in d), {})
+check("registre log2 : geoloc inactive (flag off)",
+      code == 200 and geoloc_l2.get("actif") is False,
+      f"HTTP {code} {rg2}")
+
+# Mentions annonce : 400/404, 9 mentions, 3 manquantes (Cerfa/DPE/classement).
+code, obj = get("decision", "/mentions-annonce")
+check("GET /mentions sans logement -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/mentions-annonce?logement_id=logX")
+check("GET /mentions logement inconnu -> 404", code == 404,
+      f"HTTP {code} {obj}")
+code, mn = get("decision", "/mentions-annonce?logement_id=log1")
+ids_mn = [m.get("id") for m in mn.get("mentions", [])] \
+    if isinstance(mn, dict) else []
+check("mentions log1 : 9 + Cerfa/DPE/classement manquants + capacite OK",
+      code == 200 and isinstance(mn, dict)
+      and len(ids_mn) == 9
+      and mn.get("manquantes") == ["numero_declaration", "dpe",
+                                   "classement"]
+      and mn.get("mise_en_ligne_ok") is False
+      and any("5" in m.get("label", "")
+              for m in mn.get("mentions", [])
+              if m.get("id") == "capacite"),
+      f"HTTP {code} {mn}")
+
+print()
+print("== 20. formation menage 30 min + test depart complet (P6-22 §14) ==")
+# Programme : 400 sans logement, 404 logement inconnu.
+code, obj = get("dispatch", "/formation")
+check("GET /formation sans logement -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = get("dispatch", "/formation?logement_id=logX")
+check("GET /formation logement inconnu -> 404", code == 404,
+      f"HTTP {code} {obj}")
+code, pg = get("dispatch", "/formation?logement_id=log1")
+mods = [m.get("id") for m in pg.get("programme_30min", [])] \
+    if isinstance(pg, dict) else []
+check("GET /formation log1 : 5 modules + 30 min + drill",
+      code == 200 and isinstance(pg, dict)
+      and mods == ["pointage", "photos", "checklist",
+                   "edl_comparatif", "cloture"]
+      and pg.get("duree_totale_min") == 30,
+      f"HTTP {code} {pg}")
+
+# Session : qui auto, sans presta, logement inconnu, puis 201.
+code, obj = post("dispatch", "/formation-session",
+                 {"logement_id": "log1", "qui": "auto",
+                  "presta": "lab_menage_01"})
+check("formation-session qui=auto refuse 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/formation-session",
+                 {"logement_id": "log1", "qui": "test-lab-humain"})
+check("formation-session sans presta -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/formation-session",
+                 {"logement_id": "logX", "qui": "test-lab-humain",
+                  "presta": "lab_menage_01"})
+check("formation-session logement inconnu -> 404", code == 404,
+      f"HTTP {code} {obj}")
+code, se = post("dispatch", "/formation-session",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "presta": "lab_menage_01"})
+sid = se.get("session", "") if isinstance(se, dict) else ""
+check("formation-session 201 rotation blanche",
+      code == 201 and isinstance(se, dict) and bool(sid)
+      and se.get("statut") == "en_cours",
+      f"HTTP {code} {se}")
+code, obj = get("dispatch", "/formation?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "session": "SES-2099-01-01-99"}))
+check("GET session inconnue -> 404", code == 404, f"HTTP {code} {obj}")
+code, st0 = get("dispatch", "/formation?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "session": sid}))
+check("GET session : en_cours + 5 modules manquants",
+      code == 200 and isinstance(st0, dict)
+      and st0.get("statut") == "en_cours"
+      and len(st0.get("modules_manquants", [])) == 5,
+      f"HTTP {code} {st0}")
+
+# Modules : inconnu, session inconnue, qui auto, coche + doublon.
+code, obj = post("dispatch", "/formation-module",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "session": sid, "module": "sieste"})
+check("formation-module inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/formation-module",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "session": "SES-2099-01-01-99", "module": "pointage"})
+check("formation-module session inconnue -> 404", code == 404,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/formation-module",
+                 {"logement_id": "log1", "qui": "auto",
+                  "session": sid, "module": "pointage"})
+check("formation-module qui=auto refuse 400", code == 400,
+      f"HTTP {code} {obj}")
+code, m1 = post("dispatch", "/formation-module",
+                {"logement_id": "log1", "qui": "lab_menage_01",
+                 "session": sid, "module": "pointage"})
+check("formation-module pointage -> 200 coche",
+      code == 200 and isinstance(m1, dict)
+      and m1.get("statut") == "coche",
+      f"HTTP {code} {m1}")
+code, m1b = post("dispatch", "/formation-module",
+                 {"logement_id": "log1", "qui": "lab_menage_01",
+                  "session": sid, "module": "pointage"})
+check("formation-module doublon -> 200 deja_coche",
+      code == 200 and isinstance(m1b, dict)
+      and m1b.get("statut") == "deja_coche",
+      f"HTTP {code} {m1b}")
+
+# Validation prématurée : sans dossier, session inconnue, dossier KO.
+code, obj = post("dispatch", "/formation-valider",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "session": sid})
+check("formation-valider sans dossier -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = post("dispatch", "/formation-valider",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "session": "SES-2099-01-01-99",
+                  "dossier_menage": "x"})
+check("formation-valider session inconnue -> 404", code == 404,
+      f"HTTP {code} {obj}")
+code, vi = post("dispatch", "/formation-valider",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "session": sid, "dossier_menage": "dossier_inexistant_xyz"})
+check("formation-valider incomplete -> 409 (modules + dossier)",
+      code == 409 and isinstance(vi, dict)
+      and vi.get("code") == "formation_incomplete"
+      and len(vi.get("modules_manquants", [])) == 4
+      and vi.get("dossier_menage_ok") is False,
+      f"HTTP {code} {vi}")
+
+# Test départ complet : rotation blanche réelle (socle P6-1 + traça P6-2).
+REF_F = f"LAB-P622-{int(time.time())}"
+code, td_f = post("dispatch", "/todos", {"logement_id": "log1",
+                                          "ref_resa": REF_F,
+                                          "checkout": "2026-12-20",
+                                          "checkin_suivant": "2026-12-21",
+                                          "qui": "test-lab-humain"})
+dos_f = (td_f.get("dossier", "") if isinstance(td_f, dict) else "")
+post("dispatch", "/menage-pointage",
+     {"logement_id": "log1", "dossier": dos_f,
+      "evenement": "arrivee", "qui": "lab_menage_01"})
+post("dispatch", "/menage-pointage",
+     {"logement_id": "log1", "dossier": dos_f,
+      "evenement": "depart", "qui": "lab_menage_01"})
+for phase in ("entree", "sortie"):
+    post("dispatch", "/menage-photo",
+         {"logement_id": "log1", "dossier": dos_f,
+          "phase": phase, "piece": "salon", "nom": "test.png",
+          "donnees_base64": PETITE_PHOTO,
+          "qui": "lab_menage_01"})
+code, mi_f = post("dispatch", "/mission", {"logement_id": "log1",
+                                           "presta_id": "lab_plomb_01",
+                                           "motif": f"formation_{REF_F}",
+                                           "qui": "test-lab-humain"})
+nom_f = (mi_f.get("dossier", "") if isinstance(mi_f, dict)
+         else "").rsplit("/", 1)[-1]
+for ev in ("arrivee", "depart"):
+    post("dispatch", "/pointage", {"logement_id": "log1", "dossier": nom_f,
+                                   "evenement": ev, "qui": "lab_plomb_01"})
+for phase in ("avant", "apres"):
+    post("dispatch", "/photo", {"logement_id": "log1", "dossier": nom_f,
+                                "phase": phase, "piece": "cuisine",
+                                "nom": "test.png",
+                                "donnees_base64": PETITE_PHOTO,
+                                "qui": "lab_plomb_01"})
+post("dispatch", "/cloture", {"logement_id": "log1", "dossier": nom_f,
+                              "qui": "test-lab-humain"})
+code, cl_tmp = post("dispatch", "/menage-cloture",
+                    {"logement_id": "log1", "dossier": dos_f,
+                     "checklist": {}, "photos_voyageur_ok": True,
+                     "dossier_intervention": nom_f,
+                     "qui": "test-lab-humain"})
+cochees_f = {c: True for c in
+             (cl_tmp.get("cases_manquantes", [])
+              if isinstance(cl_tmp, dict) else [])}
+code, cl_f = post("dispatch", "/menage-cloture",
+                  {"logement_id": "log1", "dossier": dos_f,
+                   "checklist": cochees_f, "photos_voyageur_ok": True,
+                   "dossier_intervention": nom_f,
+                   "qui": "test-lab-humain"})
+check("rotation blanche : cloture 201 remise_en_dispo",
+      code == 201 and isinstance(cl_f, dict)
+      and cl_f.get("statut") == "remise_en_dispo",
+      f"HTTP {code} {cl_f}")
+
+# 4 modules restants + validation hôte -> formation_validee.
+for mod in ("photos", "checklist", "edl_comparatif", "cloture"):
+    code, mx = post("dispatch", "/formation-module",
+                    {"logement_id": "log1", "qui": "lab_menage_01",
+                     "session": sid, "module": mod})
+    check(f"formation-module {mod} -> 200",
+          code == 200 and isinstance(mx, dict)
+          and mx.get("statut") == "coche",
+          f"HTTP {code} {mx}")
+code, vf = post("dispatch", "/formation-valider",
+                {"logement_id": "log1", "qui": "test-lab-humain",
+                 "session": sid, "dossier_menage": dos_f})
+check("formation-valider -> 200 formation_validee",
+      code == 200 and isinstance(vf, dict)
+      and vf.get("statut") == "formation_validee"
+      and vf.get("dossier_menage") == dos_f,
+      f"HTTP {code} {vf}")
+code, vf2 = post("dispatch", "/formation-valider",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "session": sid, "dossier_menage": dos_f})
+check("re-validation -> 200 deja_validee",
+      code == 200 and isinstance(vf2, dict)
+      and vf2.get("statut") == "deja_validee",
+      f"HTTP {code} {vf2}")
+code, obj = post("dispatch", "/formation-module",
+                 {"logement_id": "log1", "qui": "lab_menage_01",
+                  "session": sid, "module": "photos"})
+check("module apres validation -> 409 session_cloturee",
+      code == 409 and isinstance(obj, dict)
+      and obj.get("code") == "session_cloturee",
+      f"HTTP {code} {obj}")
+code, stf = get("dispatch", "/formation?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "session": sid}))
+check("GET session validee + dossier",
+      code == 200 and isinstance(stf, dict)
+      and stf.get("statut") == "formation_validee"
+      and stf.get("dossier_menage") == dos_f,
+      f"HTTP {code} {stf}")
+
+print()
+print("== 21. seuils transverses LLM/Jev : RBAC + outils interdits + seuils + trace (P7-6 §6.7) ==")
+code, sl = get("decision", "/seuils")
+check("GET /seuils : 0.8/0.75/0.7/0.5 + outils",
+      code == 200 and isinstance(sl, dict)
+      and sl.get("noul_auto") == 0.8
+      and sl.get("confidence_auto") == 0.75
+      and sl.get("confidence_min") == 0.7
+      and sl.get("hors_bornes_blocage") == 0.5
+      and "serrure" in sl.get("outils_interdits", [])
+      and "pin" in sl.get("outils_interdits", []),
+      f"HTTP {code} {sl}")
+
+# Garde-fous requête : champs requis + logement inconnu.
+code, obj = post("decision", "/gardien",
+                 {"qui": "personne_01", "quoi": "menage"})
+check("gardien sans logement -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/gardien",
+                 {"logement_id": "log1", "quoi": "menage"})
+check("gardien sans qui -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "personne_01"})
+check("gardien sans quoi -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/gardien",
+                 {"logement_id": "logX", "qui": "personne_01",
+                  "quoi": "menage"})
+check("gardien logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+
+# RBAC d'abord : inconnu + comptable hors droit prix.
+code, obj = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "fantome",
+                  "quoi": "menage"})
+check("gardien qui inconnu -> 403", code == 403, f"HTTP {code} {obj}")
+code, obj = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "personne_04",
+                  "quoi": "prix"})
+check("gardien comptable hors droit -> 403", code == 403,
+      f"HTTP {code} {obj}")
+
+# Outil interdit : BLOQUÉ même avec des scores parfaits.
+code, obj = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "quoi": "serrure",
+                  "jev": {"noul": 0.95, "confidence": 0.9,
+                          "hors_bornes": 0.0}})
+check("gardien serrure scores parfaits -> 403 outil_interdit",
+      code == 403 and isinstance(obj, dict)
+      and obj.get("code") == "outil_interdit",
+      f"HTTP {code} {obj}")
+code, obj = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "quoi": "pin",
+                  "jev": {"noul": 0.95, "confidence": 0.9}})
+check("gardien PIN -> 403 outil_interdit", code == 403
+      and isinstance(obj, dict)
+      and obj.get("code") == "outil_interdit",
+      f"HTTP {code} {obj}")
+
+# hors_bornes>0,5 -> blocage (humain requis).
+code, obj = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "quoi": "menage",
+                  "jev": {"noul": 0.95, "confidence": 0.9,
+                          "hors_bornes": 0.7}})
+check("gardien hors_bornes 0.7 -> 403", code == 403
+      and isinstance(obj, dict)
+      and obj.get("statut") == "bloque",
+      f"HTTP {code} {obj}")
+
+# confidence<0,7 -> dashboard, jamais d'auto (même noul haut).
+code, gd = post("decision", "/gardien",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "quoi": "menage",
+                 "jev": {"noul": 0.9, "confidence": 0.5,
+                         "hors_bornes": 0.0}})
+check("gardien conf 0.5 -> dashboard jamais d'auto",
+      code == 200 and isinstance(gd, dict)
+      and gd.get("statut") == "dashboard",
+      f"HTTP {code} {gd}")
+
+# noul>0,8 + conf>0,75 -> auto borné + trace P7-7 écho.
+LLM_LAB = {"alias": "lcd-chat-fast", "fournisseur": "groq",
+           "modele": "llama-3.1-8b"}
+JEV_LAB = {"backend": "typesafe", "endpoint": "systemone",
+           "modele": "jev-1.13.0", "noul": 0.9, "confidence": 0.8,
+           "hors_bornes": 0.1}
+code, ga = post("decision", "/gardien",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "quoi": "menage", "ref": "LAB-P7G",
+                 "llm": LLM_LAB, "jev": JEV_LAB})
+check("gardien seuils OK -> 200 auto_borne + trace",
+      code == 200 and isinstance(ga, dict)
+      and ga.get("statut") == "auto_borne"
+      and ga.get("trace", {}).get("llm", {}).get("alias")
+      == "lcd-chat-fast"
+      and ga.get("trace", {}).get("jev", {}).get("backend")
+      == "typesafe"
+      and ga.get("trace", {}).get("jev", {}).get("confidence") == 0.8,
+      f"HTTP {code} {ga}")
+
+# Sous seuils auto (0.5/0.72) + bornes exactes (0.8/0.8) -> dashboard.
+code, gd2 = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "quoi": "menage",
+                  "jev": {"noul": 0.5, "confidence": 0.72}})
+check("gardien sous seuils -> dashboard",
+      code == 200 and isinstance(gd2, dict)
+      and gd2.get("statut") == "dashboard",
+      f"HTTP {code} {gd2}")
+code, gd3 = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "quoi": "menage",
+                  "jev": {"noul": 0.8, "confidence": 0.8}})
+check("gardien bornes exactes (>) -> dashboard (strict)",
+      code == 200 and isinstance(gd3, dict)
+      and gd3.get("statut") == "dashboard",
+      f"HTTP {code} {gd3}")
+
+# Sans scores -> confidence 0 -> dashboard (jamais d'auto aveugle).
+code, gd4 = post("decision", "/gardien",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "quoi": "menage"})
+check("gardien sans scores -> dashboard",
+      code == 200 and isinstance(gd4, dict)
+      and gd4.get("statut") == "dashboard",
+      f"HTTP {code} {gd4}")
+
+print()
+print("== 22. tracabilite P7-7 : langue en log + filtres dashboard backend/alias/langue (§6.7) ==")
+# Entrée tracée : gardien auto_borne (typesafe + lcd-chat-fast + es).
+code, gt = post("decision", "/gardien",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "quoi": "menage", "ref": "LAB-P77", "langue": "es",
+                 "llm": {"alias": "lcd-chat-fast", "fournisseur": "groq",
+                         "modele": "llama-3.1-8b"},
+                 "jev": {"backend": "typesafe", "endpoint": "systemone",
+                         "modele": "jev-1.13.0", "noul": 0.9,
+                         "confidence": 0.8, "hors_bornes": 0.1}})
+check("gardien trace LAB-P77 -> 200 auto_borne",
+      code == 200 and isinstance(gt, dict)
+      and gt.get("statut") == "auto_borne",
+      f"HTTP {code} {gt}")
+
+# Événement en langue : J-2 ES (langue loggée, sans trace LLM/Jev).
+code, ev_es = post("decision", "/event",
+                   {"type": "lcd_j2_envoi_acces", "logement_id": "log1",
+                    "qui": "personne_01", "ref": "LAB-P77-EVT",
+                    "data": {**BASE_DATA, "langue": "es",
+                             "pin": "482913"}})
+check("event J-2 ES -> 202", code == 202, f"HTTP {code} {ev_es}")
+
+code, jb = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01",
+     "backend": "typesafe"}))
+refs_b = {e.get("ref") for e in jb.get("entrees", [])} \
+    if isinstance(jb, dict) else set()
+check("journal backend=typesafe contient LAB-P77",
+      code == 200 and "LAB-P77" in refs_b,
+      f"HTTP {code} total={jb.get('total') if isinstance(jb, dict) else jb}")
+
+code, ja = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01",
+     "alias": "lcd-chat-fast"}))
+refs_a = {e.get("ref") for e in ja.get("entrees", [])} \
+    if isinstance(ja, dict) else set()
+check("journal alias=lcd-chat-fast contient LAB-P77",
+      code == 200 and "LAB-P77" in refs_a,
+      f"HTTP {code} total={ja.get('total') if isinstance(ja, dict) else ja}")
+
+code, jl = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01", "langue": "es"}))
+refs_l = {e.get("ref") for e in jl.get("entrees", [])} \
+    if isinstance(jl, dict) else set()
+check("journal langue=es contient LAB-P77 + event ES",
+      code == 200 and "LAB-P77" in refs_l
+      and "LAB-P77-EVT" in refs_l
+      and all(e.get("langue") == "es"
+              for e in jl.get("entrees", [])),
+      f"HTTP {code} total={jl.get('total') if isinstance(jl, dict) else jl}")
+
+code, jc = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01",
+     "backend": "typesafe", "alias": "lcd-chat-fast", "langue": "es"}))
+check("journal combine backend+alias+langue isole LAB-P77",
+      code == 200 and isinstance(jc, dict)
+      and "LAB-P77" in {e.get("ref") for e in jc.get("entrees", [])},
+      f"HTTP {code} total={jc.get('total') if isinstance(jc, dict) else jc}")
+
+code, jo = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01",
+     "backend": "openai"}))
+check("journal backend inconnu -> total 0",
+      code == 200 and isinstance(jo, dict) and jo.get("total") == 0,
+      f"HTTP {code} {jo}")
+code, jo2 = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01",
+     "alias": "lcd-inconnu"}))
+check("journal alias inconnu -> total 0",
+      code == 200 and isinstance(jo2, dict) and jo2.get("total") == 0,
+      f"HTTP {code} {jo2}")
+code, jo3 = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01", "langue": "zh"}))
+check("journal langue sans entree -> total 0",
+      code == 200 and isinstance(jo3, dict) and jo3.get("total") == 0,
+      f"HTTP {code} {jo3}")
+
+print()
+print("== 23. UI routage proxy LLM : routes + backup/audit + tester + reload (P7-3 §6.5) ==")
+code, rt = get("router", "/routes")
+noms = sorted(a.get("alias") for a in rt.get("aliases", [])) \
+    if isinstance(rt, dict) else []
+check("GET /routes : fast + fallbacks + 4 aliases + validation ok",
+      code == 200 and isinstance(rt, dict)
+      and rt.get("primaire") == "lcd-chat-fast"
+      and rt.get("fallbacks") == ["lcd-chat-eu", "lcd-chat-local"]
+      and noms == ["lcd-chat-eu", "lcd-chat-fast", "lcd-chat-local",
+                   "lcd-chat-strong"]
+      and rt.get("validation", {}).get("ok") is True
+      and rt.get("alerte_cout_mois_eur") == 5,
+      f"HTTP {code} {rt}")
+
+# Garde-fous écriture : qui auto, alias inconnu, redondance, bornes, clés.
+code, obj = post("router", "/route",
+                 {"qui": "auto", "primaire": "lcd-chat-eu"})
+check("route qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/route",
+                 {"qui": "test-lab-humain", "primaire": "lcd-fusee"})
+check("route primaire inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/route",
+                 {"qui": "test-lab-humain", "primaire": "lcd-chat-fast",
+                  "fallbacks": ["lcd-chat-fast"]})
+check("route primaire redondant -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/route",
+                 {"qui": "test-lab-humain", "retry": 99})
+check("route retry 99 -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/route",
+                 {"qui": "test-lab-humain", "cooldown_seconds": 999})
+check("route cooldown 999 -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/route",
+                 {"qui": "test-lab-humain", "temperature": 0.9})
+check("route cle garde-fou -> 400 cle_inconnue",
+      code == 400 and isinstance(obj, dict)
+      and obj.get("code") == "cle_inconnue",
+      f"HTTP {code} {obj}")
+code, obj = post("router", "/route",
+                 {"qui": "test-lab-humain",
+                  "fallbacks": ["lcd-chat-nope"]})
+check("route fallback inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+
+# Bascule eu (+ backup/audit) puis restauration fast.
+code, ch = post("router", "/route",
+                {"qui": "test-lab-humain", "primaire": "lcd-chat-eu",
+                 "fallbacks": ["lcd-chat-fast", "lcd-chat-local"]})
+check("route bascule eu -> 200 avant/apres",
+      code == 200 and isinstance(ch, dict)
+      and ch.get("avant", {}).get("primaire") == "lcd-chat-fast"
+      and ch.get("apres", {}).get("primaire") == "lcd-chat-eu",
+      f"HTTP {code} {ch}")
+code, rt2 = get("router", "/routes")
+check("GET confirme primaire eu",
+      code == 200 and isinstance(rt2, dict)
+      and rt2.get("primaire") == "lcd-chat-eu",
+      f"HTTP {code} {rt2}")
+code, rs = post("router", "/route",
+                {"qui": "test-lab-humain", "primaire": "lcd-chat-fast",
+                 "fallbacks": ["lcd-chat-eu", "lcd-chat-local"]})
+check("route restauration fast -> 200",
+      code == 200 and isinstance(rs, dict)
+      and rs.get("apres", {}).get("primaire") == "lcd-chat-fast",
+      f"HTTP {code} {rs}")
+
+# Tester par ligne : 400 inconnus, KO documentés (lab sans backends).
+code, obj = post("router", "/tester",
+                 {"qui": "test-lab-humain"})
+check("tester sans alias -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/tester",
+                 {"qui": "test-lab-humain", "alias": "lcd-fusee"})
+check("tester alias inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/tester",
+                 {"qui": "auto", "alias": "lcd-chat-local"})
+check("tester qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, tl = post("router", "/tester",
+                {"qui": "test-lab-humain", "alias": "lcd-chat-local"})
+check("tester local -> KO documente (pas d'Ollama en lab)",
+      code == 200 and isinstance(tl, dict)
+      and tl.get("alias") == "lcd-chat-local"
+      and tl.get("ok") is False,
+      f"HTTP {code} {tl}")
+code, tf = post("router", "/tester",
+                {"qui": "test-lab-humain", "alias": "lcd-chat-fast"})
+check("tester cloud -> KO cle box requise",
+      code == 200 and isinstance(tf, dict)
+      and tf.get("ok") is False
+      and "box" in tf.get("detail", ""),
+      f"HTTP {code} {tf}")
+code, rt3 = get("router", "/routes")
+check("sante memorisee local KO",
+      code == 200 and isinstance(rt3, dict)
+      and rt3.get("sante", {}).get("lcd-chat-local", {}).get("ok")
+      is False,
+      f"HTTP {code} {rt3}")
+
+# Reload chaud : relecture + validation.
+code, rl = post("router", "/reload", {})
+check("reload -> 200 reloaded + validation ok",
+      code == 200 and isinstance(rl, dict)
+      and rl.get("reloaded") is True
+      and rl.get("validation", {}).get("ok") is True,
+      f"HTTP {code} {rl}")
+
+print()
+print("== 24. aliases LLM : resolution backend effectif (P7-4 §6.5) ==")
+code, rs = post("router", "/resoudre", {})
+check("resoudre defaut -> primaire fast",
+      code == 200 and isinstance(rs, dict)
+      and rs.get("alias_effectif") == "lcd-chat-fast"
+      and rs.get("fournisseur") == "groq"
+      and rs.get("via") == "primaire",
+      f"HTTP {code} {rs}")
+code, reu = post("router", "/resoudre", {"eu_only": True})
+check("resoudre eu_only -> override Mistral UE",
+      code == 200 and isinstance(reu, dict)
+      and reu.get("alias_effectif") == "lcd-chat-eu"
+      and reu.get("fournisseur") == "mistral"
+      and reu.get("via") == "eu_only_override",
+      f"HTTP {code} {reu}")
+code, rd = post("router", "/resoudre", {"alias": "lcd-chat-strong"})
+check("resoudre alias direct strong (70b)",
+      code == 200 and isinstance(rd, dict)
+      and rd.get("alias_effectif") == "lcd-chat-strong"
+      and rd.get("via") == "demande"
+      and rd.get("timeout") == 8,
+      f"HTTP {code} {rd}")
+code, rl = post("router", "/resoudre", {"alias": "lcd-chat-local"})
+check("resoudre local Ollama",
+      code == 200 and isinstance(rl, dict)
+      and rl.get("fournisseur") == "ollama",
+      f"HTTP {code} {rl}")
+code, obj = post("router", "/resoudre", {"alias": "lcd-fusee"})
+check("resoudre alias inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+
+print()
+print("== 25. prompts voyageur M1-M8 : registre + composeur deterministe (P7-10 §6.7.1) ==")
+code, pg = get("router", "/prompts")
+usages = sorted(u.get("usage") for u in pg.get("usages", [])) \
+    if isinstance(pg, dict) else []
+llm = sorted(u.get("usage") for u in pg.get("usages", [])
+             if u.get("moteur") == "llm") if isinstance(pg, dict) else []
+jev = sorted(u.get("usage") for u in pg.get("usages", [])
+             if u.get("moteur") == "jev") if isinstance(pg, dict) else []
+check("GET /prompts : M1-M8 LLM + J1-J9 Jev + pricing/compta",
+      code == 200 and isinstance(pg, dict) and pg.get("total") == 30
+      and set(["m1-detection-langue",
+               "m2-normalisation-questionnaire",
+               "m3-suggestion-extras", "m4-reformulation-menage",
+               "m5-message-pret", "m6-resume-avis",
+               "m7-concierge-courses", "m8-contrat-falc"]) <= set(llm)
+      and set(["j1-completude-j2", "j2-confiance-trad",
+               "j3-eligibilite-extras", "j4-coherence-memoire",
+               "j5-sentiment-avis", "j6-dispatch-conciergerie",
+               "j7-tri-nocturne", "j8-routage-sinistre",
+               "j9-qualite-menage"]) <= set(jev)
+      and all(u.get("alias") and u.get("variables")
+              for u in pg.get("usages", [])
+              if u.get("moteur") == "llm"),
+      f"HTTP {code} total={pg.get('total') if isinstance(pg, dict) else pg}")
+
+code, obj = post("router", "/composer", {"variables": {"message": "x"}})
+check("composer sans usage -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/composer",
+                 {"usage": "m9-inconnu", "variables": {}})
+check("composer usage inconnu -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/composer",
+                 {"usage": "m1-detection-langue"})
+check("composer sans variables -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("router", "/composer",
+                 {"usage": "m1-detection-langue", "variables": {}})
+check("composer variable manquante -> 422",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("code") == "variable_manquante"
+      and obj.get("manquants") == ["message"],
+      f"HTTP {code} {obj}")
+
+code, c1 = post("router", "/composer",
+                {"usage": "m1-detection-langue",
+                 "variables": {"message": "Onde está a praia?"}})
+check("composer m1 -> 200 + message injecte + 0 residu",
+      code == 200 and isinstance(c1, dict)
+      and c1.get("alias") == "lcd-chat-fast"
+      and "Onde está a praia?" in c1.get("prompt", "")
+      and c1.get("placeholders_restants") == 0,
+      f"HTTP {code} {c1}")
+code, c3 = post("router", "/composer",
+                {"usage": "m3-suggestion-extras",
+                 "variables": {"gouts": "plage, velo", "allergies": "arachide",
+                               "langue": "fr"}})
+check("composer m3 -> 200 + interdits rappeles",
+      code == 200 and isinstance(c3, dict)
+      and "velo" in c3.get("prompt", "")
+      and isinstance(c3.get("interdits"), list),
+      f"HTTP {code} {c3}")
+code, c8 = post("router", "/composer",
+                {"usage": "m8-contrat-falc",
+                 "variables": {"document": "CGV sejour 110 EUR"}})
+check("composer m8 -> 200 proposition seule (jamais d'ecriture)",
+      code == 200 and isinstance(c8, dict)
+      and "110 EUR" in c8.get("prompt", "")
+      and "jamais d" in c8.get("rappel", ""),
+      f"HTTP {code} {c8}")
+
+print()
+print("== 26. prompts voyageur Jev J1-J9 : registre + composeur seuils (P7-11 §6.7.2) ==")
+code, cj = post("router", "/composer",
+                {"usage": "j5-sentiment-avis",
+                 "variables": {"note": "2",
+                               "commentaire": "Menage sale"}})
+check("composer j5 -> 200 moteur jev + seuils + construits",
+      code == 200 and isinstance(cj, dict)
+      and cj.get("moteur") == "jev"
+      and cj.get("backend") == "typesafe"
+      and "2" in cj.get("prompt", "")
+      and "Menage sale" in cj.get("prompt", "")
+      and cj.get("placeholders_restants") == 0
+      and "choice_geste" in cj.get("construits", [])
+      and "20" in cj.get("seuils", ""),
+      f"HTTP {code} {cj}")
+code, obj = post("router", "/composer",
+                 {"usage": "j5-sentiment-avis",
+                  "variables": {"note": "2"}})
+check("composer j5 sans commentaire -> 422",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("manquants") == ["commentaire"],
+      f"HTTP {code} {obj}")
+code, cj7 = post("router", "/composer",
+                 {"usage": "j7-tri-nocturne",
+                  "variables": {"texte": "fete", "db": "72",
+                                "occupation": "confirmee"}})
+check("composer j7 -> 200 jamais audio/amende",
+      code == 200 and isinstance(cj7, dict)
+      and cj7.get("moteur") == "jev"
+      and "72" in cj7.get("prompt", ""),
+      f"HTTP {code} {cj7}")
+
+print()
+print("== 27. prompts pricing/compta M-LLM-1-7 + M-JEV-1-6 (P7-12/13 §6.7.3-4) ==")
+code, cp = post("router", "/composer",
+                {"usage": "pllm-justif-prix",
+                 "variables": {"pivot": "190",
+                               "details": "aout 1.7 x WE 1.1"}})
+check("composer pllm-justif-prix -> 200 alias fast + sans recalcul",
+      code == 200 and isinstance(cp, dict)
+      and cp.get("moteur") == "llm"
+      and cp.get("alias") == "lcd-chat-fast"
+      and "190" in cp.get("prompt", "")
+      and cp.get("placeholders_restants") == 0,
+      f"HTTP {code} {cp}")
+code, obj = post("router", "/composer",
+                 {"usage": "pllm-micro-reel",
+                  "variables": {"ca": "12000"}})
+check("composer pllm-micro-reel sans charges -> 422",
+      code == 422 and isinstance(obj, dict)
+      and set(obj.get("manquants", [])) == {"charges", "amortissement"},
+      f"HTTP {code} {obj}")
+code, cj = post("router", "/composer",
+                {"usage": "pjev-derive-menage",
+                 "variables": {"cout_moyen": "127.5",
+                               "montant_affiche": "110"}})
+check("composer pjev-derive-menage -> 200 seuils file",
+      code == 200 and isinstance(cj, dict)
+      and cj.get("moteur") == "jev"
+      and "file validation" in cj.get("seuils", "")
+      and "127.5" in cj.get("prompt", ""),
+      f"HTTP {code} {cj}")
+code, cj2 = post("router", "/composer",
+                 {"usage": "pjev-anti-braderie",
+                  "variables": {"pivot": "110", "remise": "0.2",
+                                "prix_final": "88"}})
+check("composer pjev-anti-braderie -> 200 blocage",
+      code == 200 and isinstance(cj2, dict)
+      and "blocage" in cj2.get("seuils", ""),
+      f"HTTP {code} {cj2}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13.")

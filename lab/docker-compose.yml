@@ -355,6 +355,59 @@ services:
       timeout: 5s
       retries: 5
 
+  compta:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/compta/compta.py
+        CONFIG: lab/lab-config/compta.yaml
+    ports: ["8100:8100"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8100"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+    volumes:
+      - compta-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+    command: >
+      sh -c "python3 /opt/lcd/custom/compta/compta.py
+      --config /opt/lcd/config.yaml
+      --logements /opt/lcd/logements.yaml --serve"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8100/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  llm-router-ui:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/llm-router-ui/router_ui.py
+        CONFIG: lab/lab-config/router-ui.yaml
+    ports: ["8050:8050"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8050"
+      LCD_STATE_DIR: /opt/lcd/state
+    volumes:
+      - router-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+    command: >
+      sh -c "python3 /opt/lcd/custom/llm-router-ui/router_ui.py
+      --config /opt/lcd/config.yaml --serve"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8050/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
 volumes:
   ics-state:
   pricing-state:
@@ -366,4 +419,6 @@ volumes:
   inventaire-state:
   extras-state:
   stocks-state:
+  compta-state:
+  router-state:
   ics-logs:

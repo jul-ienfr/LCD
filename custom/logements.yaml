@@ -62,6 +62,8 @@ logements:
       qr_pieces: true                   # fiches docs/templates/qr_*.svg
       questionnaire: true               # lien J-2 pré-arrivée 3 min
       avis_j1: true                     # enquête J+1 §5.7-bis
+      crm_retour: false                # P6-15 §12.5-bis : opt-in CRM retour −10 % direct (off = optin stocké sans code, défaut sûr)
+      geoloc_voyageur: false           # P6-15 §5.7-quater : opt-in géoloc séjour seul (off par défaut, révocation checkout + purge)
     menage:
       montant: 110
       facturation: supplement            # supplement | inclus_nuit
@@ -111,6 +113,8 @@ logements:
       qr_pieces: true                   # fiches docs/templates/qr_*.svg
       questionnaire: true               # lien J-2 pré-arrivée 3 min
       avis_j1: true                     # enquête J+1 §5.7-bis
+      crm_retour: false                # P6-15 §12.5-bis : idem log1 (off défaut sûr)
+      geoloc_voyageur: false           # P6-15 §5.7-quater : idem log1 (off par défaut)
     menage:
       montant: 90
       facturation: supplement

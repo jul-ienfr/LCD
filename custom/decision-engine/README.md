@@ -45,6 +45,54 @@
 #   relance_auto ciblée). Garde-fous : qui HUMAIN seul, ref_resa slug seule,
 #   nb_voyageurs <= occupants_max copro, chauffage clampé 21 °C, jamais PIN
 #   ni hash en sortie. Stockage runtime `questionnaire-<logX>.json` (gitignoré).
+# - P6-15 (§12.5-bis) : contrat PWA 30 s GET/POST /contrat — CGV 1 page +
+#   signature tactile + opt-ins (mémoire, géoloc, CRM retour −10 % direct si
+#   `crm_retour: on`). Geste HUMAIN seul, ref_resa slug seule, accepte_cgv
+#   true exigé (422 cgv_requise), tactile >= 8 exigée (422 signature_requise,
+#   sha256 + longueur seuls stockés, raw jamais persisté ni loggé). 201 créé /
+#   200 re-signé. PDF horodaté runtime `contrats/logX/<ref>_contrat.pdf`
+#   (box /config/contrats/, gitignoré, généré facturation :8093 sur box ;
+#   ici preuve horodatée + référence). Lie questionnaire (accepte_cgv=true
+#   sans écraser). J-2 direct sans contrat = pin_autorise False indicatif
+#   (jamais bloquant). Stockage runtime `contrat-<logX>.json` (gitignoré).
+# - P6-17 (§5.7-bis) : boucle avis GET/POST /avis (enquête J+1 1-5, 201/200,
+#   routage >=4★ lien_public / 3★ rattrapage + late_gratuite auto / <=2★
+#   rattrapage + geste à valider, todo correctif mots-clés, jamais bloquant),
+#   POST /avis-geste (validation 1-tap HUMAINE, alerte si >20 €, jamais de
+#   débit auto), POST /avis-reponse (pré-réponse brouillon déterministe ton
+#   hôte ou texte humain scanné 422 si promesse, puis validation 1-tap,
+#   publication manuelle box jamais auto), GET /scenes + POST /scene (3
+#   scènes 1-tap Arrivée/Départ/Nuit calme, log indicatif). Stockage runtime
+#   `avis-<logX>.json` (gitignoré).
+# - P6-20 (§1.6) : RBAC 5 rôles GET /acces (audit nominatif : MFA
+#   exigée/active, expiry, révocations, doublons ; réservé super_admin/admin,
+#   jamais de secrets) + POST /acces-revoquer (1-tap super_admin/admin,
+#   jamais soi-même ni super_admin, idempotent, runtime
+#   `acces-revocations.json` gitignoré — box : acces.yaml éditable, lab :
+#   monté ro) + POST /acces-reactiver (expire_le passé = reste expiré) +
+#   GET /journal (qui/quand/quoi 90 j, etat_lecture + périmètre, cap 200,
+#   jamais de PIN) + `--check` alertes MFA/expiry/doublons. Voyageur = pas
+#   de compte nominatif (PWA séjour, `qui inconnu` par défaut) ; presta =
+#   PWA mission seule, jamais HA direct.
+# - P6-21 (§12.5-bis) : carnet preuve tranquillité POST /preuve-db (dB seuls
+#   0-120, jamais d'audio, trimestre auto) + POST /preuve-attestation
+#   (intervention/ménage/message_rappel) + GET /carnet (synthèse trimestre :
+#   dépassements jour/nuit + attestations, hôte seul, conservation 1 an) +
+#   POST /lettre-tranquillite (brouillon chiffré) + POST /lettre-envoyer
+#   (1-tap humain, messagerie tracée) + GET /registre-rgpd (7 traitements +
+#   durées, filtré features) + GET /mentions-annonce (9 obligatoires,
+#   renseigné/manquant + actions, jamais inventé). Stockage runtime
+#   `preuves-<logX>.json` + `lettres-<logX>.json` (gitignorés).
+# - P7-6 (§6.7) : seuils transverses GET /seuils (doc vivante) + POST
+#   /gardien (porte LLM/Jev : RBAC -> outil interdit serrure/vanne/portail/
+#   PIN toujours BLOQUÉ -> hors_bornes>0,5 BLOQUÉ -> confidence<0,7
+#   dashboard jamais d'auto -> noul>0,8+conf>0,75 auto borné réversible seul
+#   -> sinon dashboard ; log JSONL avec trace P7-7 alias/fournisseur/modèle
+#   + backend/endpoint/confidence). Scores absents = 0 (jamais d'auto).
+# - P7-7 (§6.7) : traçabilité `decision.logX.jsonl` (alias+fournisseur+modèle
+#   +endpoint+tokens+latence, Jev backend+endpoint+modèle+confidence, langue
+#   voyageur) + filtres dashboard GET /journal?backend=&alias=&langue=
+#   (backend Jev, alias LLM, langue ; vides = sans filtre).
 #
 # ## Règles
 # - Ne génère JAMAIS de PIN (KeyMaster + Nuki Hub seuls, §1.6) ; ne fait JAMAIS de tool-calling

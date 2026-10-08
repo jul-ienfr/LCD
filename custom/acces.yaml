@@ -1,5 +1,9 @@
-# custom/acces.yaml — 5 rôles, périmètre par logement, révocable (§1.6).
-# Champs : role, sous_role, logements (ou parc_client), expire_le (AAAA-MM-JJ).
+# custom/acces.yaml — 5 rôles, périmètre par logement, révocable (§1.6, P6-20).
+# Champs : role, sous_role, logements (ou parc_client), expire_le (AAAA-MM-JJ),
+# mfa (2FA box HA activée : true une fois vérifiée, P6-20).
+# 2FA obligatoire super_admin/admin/gestionnaire (tous sous-rôles) : `--check`
+# et `GET /acces` alertent tant que `mfa: false` (activer sur la box HA puis
+# passer à true — jamais de MFA simulée ici).
 # 2FA obligatoire super_admin/admin/gestionnaire. 1 compte nominatif/personne
 # (sauf `guest` kiosk). Révocation auto checkout/fin mission.
 # Noms anonymisés — remplacer à l'onboarding réel (/systeme wizard §1.6.4-2).
@@ -10,36 +14,42 @@ personnes:
     sous_role: super_admin
     logements: [log1, log2]
     expire_le: null                       # permanent, rotation secrets seule super_admin
+    mfa: false                            # P6-20 : activer 2FA box HA puis true
 
   - id: personne_02
     role: super_admin
     sous_role: admin                      # bras droit : tout sauf secrets + exports multi-clients
     logements: [log1, log2]
     expire_le: null
+    mfa: false                            # P6-20 : activer 2FA box HA puis true
 
   - id: personne_03
     role: gestionnaire
     sous_role: operateur                  # conciergerie / co-hôte quotidien
     logements: [log1]
     expire_le: null
+    mfa: false                            # P6-20 : activer 2FA box HA puis true
 
   - id: personne_04
     role: gestionnaire
     sous_role: comptable                  # lecture seule Finances + exports
     logements: [log1, log2]
     expire_le: null
+    mfa: false                            # P6-20 : activer 2FA box HA puis true
 
   - id: personne_05
     role: proprietaire
     sous_role: proprio_logement           # client tiers : SES logements seuls
     logements: [log1]
     expire_le: null
+    mfa: false                            # optionnel (PWA/hote, jamais /systeme)
 
   - id: personne_06
     role: prestataires
     sous_role: menage_interne
     logements: [log1]
     expire_le: null                       # mission courante ; rotation slot à chaque mission
+    mfa: false                            # PWA mission seule, jamais HA direct
 
   - id: personne_07
     role: prestataires
@@ -48,3 +58,4 @@ personnes:
     zone: santa_severa
     logements: [log1]
     expire_le: null                       # fin mission auto (dispatch §12.4-bis)
+    mfa: false                            # PWA mission seule, jamais HA direct

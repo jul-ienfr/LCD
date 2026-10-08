@@ -55,6 +55,51 @@
 #                dossier_intervention?, qui} -> 409 preuves_manquantes /
 #     cases_manquantes ; 201 remise_en_dispo
 #   POST /sinistre {logement_id, motif, declarant, description, canal?, resa?}
+#   GET  /edl?logement_id=log1&ref_resa=<slug> -> P6-16 : statut EDL voyageur
+#     (non_commence / partiel / complet + comparatif entree/sortie par piece)
+#   POST /edl-consentement {logement_id, ref_resa, qui, consentement: true,
+#                nom_voyageur?} -> 201 consenti (prealable obligatoire, photos
+#     du logement seul, jamais de personnes exigees, purge 90 j)
+#   POST /edl-photo {logement_id, ref_resa, phase: entree|sortie,
+#                piece: salon|cuisine|chambre|sdb|entree, nom, donnees_base64,
+#                prise_le?, qui} -> 201 (jpg/png/webp <=8 Mo, horodatage +
+#     EXIF conserves, galerie >24 h refusee 422, consentement exige 403)
+#   POST /edl-video {logement_id, ref_resa, phase, nom, donnees_base64,
+#                duree_s, qui} -> 201 optionnelle (<60 s, mp4/mov/webm <=50 Mo)
+#   POST /edl-purge {logement_id, qui} -> 200 dossiers >90 j supprimes
+#     (juste apres delai AirCover 14 j, geste HUMAIN seul)
+#   POST /objet-trouve {logement_id, qui, description, piece?, ref_resa?,
+#                photo_base64?} -> P6-17 : 201 fiche objets/logX/<id> +
+#     photo (message voyageur J+0 si ref_resa, geste INTERVENANT seul)
+#   GET  /objets?logement_id=log1[&statut=trouve] -> P6-17 : liste fiches
+#     (trouve/reclame/envoye/don/stock)
+#   POST /objet-reclamer {logement_id, objet_id, qui, ref_resa} -> P6-17 :
+#     200 reclame (voyageur/humain, jamais auto)
+#   POST /objet-envoyer {logement_id, objet_id, qui, preuve_paiement} ->
+#     P6-17 : forfait 15 EUR inviolable, sans preuve -> 402 paiement_requis ;
+#     200 envoye (Colissimo, traçé)
+#   POST /objet-cloturer {logement_id, objet_id, qui, sort: don|stock} ->
+#     P6-17 : non réclamé 30 j (sinon 409 trop_tot) -> 200 don/stock
+#   GET  /menage-tarif?logement_id=log1 -> P6-19 : supplément + 10 postes
+#     (prorata socle, total == montant) + surcharge saison + alerte inclus
+#   POST /menage-cout {logement_id, qui, montant, ref_resa?, dossier?,
+#                facture?} -> P6-19 : 201 coût réel rotation (OPEX §12.6)
+#   GET  /menage-couts?logement_id=log1 -> P6-19 : moyenne + dérive vs
+#     affiché (alerte >10 %) + payload sensor.menage_cout_rotation
+#   POST /menage-note {logement_id, qui, note 1-5, ref_resa?, dossier?,
+#                commentaire?} -> P6-19 : 201 score qualité (+ alerte temps
+#     si pointage dossier écart >20 % vs ~3h)
+#   GET  /menage-score?logement_id=log1 -> P6-19 : moyenne + alerte <3,5 +
+#     durées pointées vs ~3h
+#   GET  /formation?logement_id=log1[&session=<id>] -> P6-22 : programme
+#     30 min (5 modules) ou statut session (modules + test départ complet)
+#   POST /formation-session {logement_id, qui, presta} -> P6-22 : 201
+#     session rotation blanche (drill 1x/trimestre §14)
+#   POST /formation-module {logement_id, qui, session, module} -> P6-22 :
+#     200 module coché 1-tap (idempotent)
+#   POST /formation-valider {logement_id, qui, session, dossier_menage} ->
+#     P6-22 : 200 formation_validee (5 modules + dossier remise_en_dispo,
+#     sinon 409 manquants) — attestée par l'hôte, drill trimestriel
 #
 # Usage : python3 dispatch.py --config config.yaml --logements ../logements.yaml
 #   [--prestataires ../prestataires] [--zones ../zones.yaml] [--serve]
@@ -114,7 +159,8 @@ def lire_logement(path, logement_id):
     """
     info = {"zones": [], "zone_defaut": None, "annuaire_presta": True,
             "traca_intervenants": False, "etat_lieux_auto": False,
-            "extras_upsell": False, "mode_gestion": "equilibre"}
+            "extras_upsell": False, "mode_gestion": "equilibre",
+            "menage_montant": 110, "menage_facturation": "supplement"}
     try:
         with open(path, encoding="utf-8") as f:
             lignes = f.readlines()
@@ -150,6 +196,18 @@ def lire_logement(path, logement_id):
                 # Sous pricing: (indent 6) — P6-13 facturation menage offert/60.
                 info["mode_gestion"] = (str(_scalaire(v) or "equilibre")
                                         .strip().lower() or "equilibre")
+            elif k == "montant":
+                # Sous menage: (indent 6) — P6-19 supplément voyageur.
+                try:
+                    info["menage_montant"] = int(float(
+                        str(_scalaire(v) or 110)))
+                except ValueError:
+                    pass
+            elif k == "facturation":
+                # Sous menage: supplement | inclus_nuit (P6-19 §12.2-ter).
+                val = str(_scalaire(v) or "supplement").strip().lower()
+                if val in ("supplement", "inclus_nuit"):
+                    info["menage_facturation"] = val
     return info
 
 
@@ -417,6 +475,81 @@ class Dispatch:
     # manquantes. Temps facture = temps pointe. Ecart >20 % presence vs
     # declare -> justificatif + alerte (JAMAIS sanction auto).
     EXT_PHOTOS = (".jpg", ".jpeg", ".png", ".webp")
+
+    # --- P6-16 §5.6 : état des lieux auto voyageur (parcours PWA entrée+sortie) ---
+    # Lien J-1/J-arrivée + QR accueil -> consentement explicite à l'arrivée
+    # (photos du logement seul, jamais de personnes exigées, mention annonce +
+    # règlement + QR) -> photos horodatées obligatoires par pièce (grand angle
+    # + points sensibles : plans de travail, sols, sanitaires, écrans/TV) +
+    # vidéo <60 s optionnelle -> `/config/etat_lieux/logX/<resa>/{entree,sortie}/`
+    # (box ; ici state/etat_lieux/, runtime gitignoré) + EXIF/horodatage
+    # conservés (anti-fraude : refus galerie >24 h, rappel si manquantes) +
+    # comparatif avant/après dashboard + clôture ménage BLOQUÉE si EDL
+    # commencé mais incomplet + purge auto 90 j (juste après AirCover 14 j).
+    EDL_PIECES = ("salon", "cuisine", "chambre", "sdb", "entree")
+    EXT_VIDEOS = (".mp4", ".mov", ".webm")
+    EDL_PHOTO_MAX_O = 8_000_000
+    EDL_VIDEO_MAX_O = 50_000_000
+    EDL_VIDEO_MAX_S = 60
+    EDL_GALERIE_H = 24
+    EDL_PURGE_J = 90
+    REF_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+
+    # --- P6-17 §5.7-bis : objets trouvés (photo + fiche + 15 € forfait) ---
+    # Ménage/presta trouve -> photo + fiche `objets/logX/<id>.json` (box :
+    # state/objets/, runtime gitignoré) -> message voyageur J+0 (si ref_resa
+    # connue) + envoi Colissimo forfait 15 € (preuve Stripe exigée, jamais
+    # d'envoi sans paiement) ; non réclamé 30 j -> don/stock (traçé).
+    OBJET_FORFAIT_EUR = 15
+    OBJET_DELAI_J = 30
+    OBJET_SORTS = ("don", "stock")
+
+    # --- P6-19 §12.2-ter : supplément ménage + suivi coût + score qualité ---
+    # Supplément = ligne séparée fixe/rotation (coût FIXE : mêmes draps/SDB/
+    # sols quelle que soit la durée — jamais lissé sauf inclus_nuit + alerte
+    # durée min <4). Socle log1 65 m² : 110 € en 10 postes (prix Côte d'Azur
+    # 2025-2026) ; autres montants = prorata socle arrondi, MO en solde
+    # (défaut sûr : total == montant, à calibrer au wizard §1.6.4).
+    # Suivi : sensor.menage_cout_rotation (coût réel saisi -> OPEX §12.6,
+    # dérive >10 % -> file), sensor.menage_duree (pointage vs ~3h, écart
+    # >20 % -> justificatif), score 1-5 (<3,5 -> alerte). Surcharge saison
+    # +20 € juin-sept : info contrat presta, absorbée OU répercutée (humain,
+    # jamais auto).
+    MENAGE_POSTES_SOCLE = (
+        ("deplacement", "Déplacement + logistique", 5),
+        ("sortie_sale", "Sortie sale — vidage et aération", 1),
+        ("sdb_wc", "SDB + WC — désinfection complète", 2),
+        ("cuisine", "Cuisine — remise à neuf", 2),
+        ("chambres_sejour", "Chambres + séjour — dépoussiérage et lits", 1),
+        ("sols", "Sols — aspiration + serpillière", 1),
+        ("linge", "Linge + blanchisserie (pressing)", 25),
+        ("consommables", "Consommables voyageur — recharge", 8),
+        ("controle", "Contrôle qualité + photos + signalement", 0),
+    )
+    MENAGE_MO_LABEL = "Main-d'œuvre ~3h (solde)"
+    MENAGE_SOCLE_TOTAL = 110
+    MENAGE_DUREE_ATTENDUE_MIN = 180  # ~3h rotation (§12.2-ter postes 2-6,9)
+    MENAGE_ECART_TEMPS = 0.20
+    MENAGE_ALERTE_DERIVE = 0.10
+    MENAGE_SCORE_SEUIL = 3.5
+    SURCHARGE_SAISON_MOIS = (6, 7, 8, 9)
+    SURCHARGE_SAISON_EUR = 20
+
+    # --- P6-22 §14 : formation ménage 30 min + test départ complet ---
+    # N'importe quel remplaçant tient une rotation sans appeler l'hôte :
+    # programme 30 min en 5 modules 1-tap (pointage, photos E/S, checklist,
+    # comparatif EDL, clôture) + rotation blanche = test départ complet
+    # (todo + photos + comparatif + clôture OK) attesté par l'hôte.
+    # Drill 1x/trimestre + version papier datée. Stockage runtime
+    # state/formation/logX.json (gitignoré, comme menage-couts/notes).
+    FORMATION_MODULES = (
+        ("pointage", "Pointage arrivée/départ PWA (QR + bouton)", 5),
+        ("photos", "Photos entrée/sortie par pièce (même cadrage)", 10),
+        ("checklist", "Checklist 7 cases + consommables/kit", 5),
+        ("edl_comparatif", "Comparatif état des lieux voyageur", 5),
+        ("cloture", "Clôture + remise en dispo (preuves exigées)", 5),
+    )
+    FORMATION_DUREE_MIN = 30
 
     def _dossier(self, logement_id, dossier):
         # Accepte nom seul OU chemin complet renvoye par /mission (on ne garde
@@ -1040,6 +1173,26 @@ class Dispatch:
         log = self._log(logement_id)
         if log["etat_lieux_auto"] and not photos_voyageur_ok:
             manquants.append("photos voyageur E/S (comparatif etat des lieux)")
+        # P6-16 : si le voyageur a COMMENCÉ son EDL PWA (dossier etat_lieux
+        # pour la ref du todo), la clôture exige l'EDL complet — l'attestation
+        # humaine seule ne suffit plus (comparatif dashboard). Sans dossier
+        # EDL : comportement legacy (attestation humaine, comparatif ménage).
+        if log["etat_lieux_auto"] and photos_voyageur_ok:
+            ref_todo = str(todo.get("ref_resa", "") or "").strip()
+            if ref_todo and self.REF_RE.fullmatch(ref_todo):
+                ch_edl = os.path.join(self.state_dir, "etat_lieux",
+                                      logement_id, ref_todo)
+                if os.path.isdir(ch_edl):
+                    edl_v, _ = self._lire_edl(ch_edl)
+                    comp_v = self._edl_completude(edl_v)
+                    if not comp_v["complet"]:
+                        manque = sorted(set(
+                            comp_v["pieces_manquantes_entree"])
+                            | set(comp_v["pieces_manquantes_sortie"]))
+                        manquants.append("etat des lieux voyageur incomplet "
+                                         "(EDL : "
+                                         + (", ".join(manque) or "sortie")
+                                         + ")")
         # Traça intervenant si on : dossier intervention clôturé exigé.
         if log["traca_intervenants"]:
             if not dossier_intervention:
@@ -1075,6 +1228,897 @@ class Dispatch:
         return 201, {"logement_id": logement_id, "dossier": nom,
                      "statut": "remise_en_dispo",
                      "duree_presence_min": todo.get("duree_presence_min")}
+
+    # --- P6-16 §5.6 : état des lieux auto voyageur (PWA entrée+sortie) ---
+    def _dossier_edl(self, logement_id, ref_resa, mkdir=False):
+        """Chemin `state/etat_lieux/logX/<ref>/` (box : /config/etat_lieux/,
+        runtime gitignoré). Ref slug seule (traversée bloquée)."""
+        ref = str(ref_resa or "").strip()
+        if not ref or not self.REF_RE.fullmatch(ref) or ".." in ref:
+            return None, "ref_resa slug seule (traversée bloquée)"
+        chemin = os.path.join(self.state_dir, "etat_lieux", logement_id, ref)
+        if mkdir:
+            os.makedirs(os.path.join(chemin, "entree"), exist_ok=True)
+            os.makedirs(os.path.join(chemin, "sortie"), exist_ok=True)
+            return chemin, None
+        if not os.path.isdir(chemin):
+            return None, (f"etat des lieux inconnu : etat_lieux/{logement_id}/{ref} "
+                           "(POST /edl-consentement d'abord)")
+        return chemin, None
+
+    def _lire_edl(self, chemin):
+        try:
+            with open(os.path.join(chemin, "edl.json"), encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}, None
+        except (FileNotFoundError, ValueError):
+            return {"consentement": False, "consenti_par": "",
+                    "consenti_le": "", "nom_voyageur": "",
+                    "photos_entree": [], "photos_sortie": [],
+                    "videos": []}, None
+
+    def _sauver_edl(self, chemin, obj):
+        obj["maj_le"] = utcnow_iso()
+        with open(os.path.join(chemin, "edl.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(obj, f, ensure_ascii=False, indent=2)
+
+    @staticmethod
+    def _pieces_couvertes(photos):
+        return sorted({p.get("piece") for p in (photos or [])
+                       if p.get("piece")})
+
+    def _edl_completude(self, edl):
+        ent = set(self._pieces_couvertes(edl.get("photos_entree")))
+        sor = set(self._pieces_couvertes(edl.get("photos_sortie")))
+        # Ordre socle EDL_PIECES (checklist PWA), jamais alphabétique.
+        manq_ent = [p for p in self.EDL_PIECES if p not in ent]
+        manq_sor = [p for p in self.EDL_PIECES if p not in sor]
+        comparatif = [{p: ("presente" if (p in ent and p in sor)
+                           else ("sortie_manquante" if p in ent
+                                 else ("entree_manquante" if p in sor
+                                       else "manquante")))}
+                      for p in self.EDL_PIECES]
+        complet = not manq_ent and not manq_sor
+        return {"entree_complete": not manq_ent, "sortie_complete": not manq_sor,
+                "complet": complet, "pieces_manquantes_entree": manq_ent,
+                "pieces_manquantes_sortie": manq_sor,
+                "comparatif": comparatif}
+
+    # --- POST /edl-consentement ---
+    def edl_consentement(self, logement_id, ref_resa, qui, consentement,
+                         nom_voyageur=""):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "consentement EDL = geste VOYAGEUR/HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        chemin, err = self._dossier_edl(logement_id, ref_resa, mkdir=True)
+        if err:
+            return 400, {"erreur": err}
+        acc = (str(consentement).strip().lower() in ("true", "1", "oui", "yes")
+               if not isinstance(consentement, bool) else bool(consentement))
+        edl, _ = self._lire_edl(chemin)
+        edl["consentement"] = acc
+        edl["consenti_par"] = qui
+        edl["consenti_le"] = utcnow_iso()
+        if str(nom_voyageur or "").strip():
+            edl["nom_voyageur"] = str(nom_voyageur).strip()[:100]
+        self._sauver_edl(chemin, edl)
+        self.log_decision(logement_id, str(ref_resa).strip(), qui,
+                          "edl_consentement",
+                          "consenti (photos logement seul, purge 90 j)" if acc
+                          else "refuse (EDL manuel menage seul)")
+        if not acc:
+            return 200, {"logement_id": logement_id,
+                         "ref_resa": str(ref_resa).strip(),
+                         "statut": "refuse",
+                         "detail": "EDL manuel menage seul (Companion App)"}
+        return 201, {"logement_id": logement_id,
+                     "ref_resa": str(ref_resa).strip(), "statut": "consenti",
+                     "purge_j": self.EDL_PURGE_J,
+                     "pieces_attendues": list(self.EDL_PIECES)}
+
+    def _edl_verifier_depot(self, logement_id, ref_resa, qui, phase, piece,
+                            nom, donnees_base64, prise_le, exts, max_o):
+        """Garde-fous communs photo/vidéo EDL (consentement, slug, phase,
+        pièce socle, format, taille, galerie 24 h). Retourne
+        (chemin, edl, brut, prise_iso, nom_fichier) ou (None, (code, obj))."""
+        if not logement_existe(self.logements_yaml, logement_id):
+            return None, (404, {"erreur": f"logement inconnu: {logement_id}"})
+        if not self._qui_humain(qui):
+            return None, (400, {"erreur": "depot EDL = geste VOYAGEUR "
+                                           "(qui != auto/llm/jev)"})
+        log = self._log(logement_id)
+        if not log["etat_lieux_auto"]:
+            return None, (503, {"erreur": "etat_lieux_auto: off "
+                                          "(EDL manuel menage seul)",
+                                "code": "edl_off"})
+        chemin, err = self._dossier_edl(logement_id, ref_resa)
+        if err:
+            # Jamais consenti (pas de dossier) -> 403 préalable, pas 404 :
+            # le voyageur doit passer par /edl-consentement d'abord.
+            if "inconnu" in err:
+                return None, (403, {"erreur": "consentement EDL requis "
+                                               "(POST /edl-consentement)",
+                                    "code": "consentement_requis"})
+            return None, (400, {"erreur": err})
+        edl, _ = self._lire_edl(chemin)
+        if not edl.get("consentement"):
+            return None, (403, {"erreur": "consentement EDL requis "
+                                           "(POST /edl-consentement)",
+                                "code": "consentement_requis"})
+        if phase not in ("entree", "sortie"):
+            return None, (400, {"erreur": "phase = entree|sortie"})
+        if piece is not None:
+            piece = re.sub(r"[^a-z0-9_-]+", "_",
+                           str(piece or "").lower()).strip("_")
+            if piece not in self.EDL_PIECES:
+                return None, (400, {"erreur": "piece parmi : "
+                                              + ", ".join(self.EDL_PIECES),
+                                    "code": "piece_inconnue"})
+        nom_f = os.path.basename(str(nom or ""))
+        ext = os.path.splitext(nom_f)[1].lower()
+        if ext not in exts:
+            return None, (400, {"erreur": "format refuse "
+                                           f"({','.join(exts)} seuls)"})
+        try:
+            brut = base64.b64decode(donnees_base64 or "", validate=True)
+        except Exception:
+            return None, (400, {"erreur": "donnees_base64 invalide"})
+        if not brut:
+            return None, (400, {"erreur": "fichier vide"})
+        if len(brut) > max_o:
+            return None, (413, {"erreur": f"fichier trop lourd (>{max_o} o)"})
+        # Anti-fraude galerie : prise_le >24 h -> refusé (EXIF box sur box,
+        # ici champ PWA horodaté ; absent = photo directe à l'instant).
+        prise_iso = ""
+        if str(prise_le or "").strip():
+            try:
+                prise = dt.datetime.fromisoformat(
+                    str(prise_le).strip().replace("Z", "+00:00"))
+                if prise.tzinfo is None:
+                    prise = prise.replace(tzinfo=dt.timezone.utc)
+                ecart_h = ((dt.datetime.now(dt.timezone.utc) - prise)
+                           .total_seconds() / 3600.0)
+                if ecart_h < -1:
+                    return None, (400, {"erreur": "prise_le future "
+                                                  "(horloge PWA ?)"})
+                if ecart_h > self.EDL_GALERIE_H:
+                    return None, (422, {"erreur": "galerie >24 h refusee "
+                                                  "(reprendre la photo)",
+                                        "code": "galerie_refusee"})
+                prise_iso = prise.isoformat(timespec="seconds")
+            except ValueError:
+                return None, (400, {"erreur": "prise_le ISO AAAA-MM-JJTHH:MM"})
+        else:
+            prise_iso = utcnow_iso()
+        return (chemin, edl, brut, prise_iso, piece, nom_f, ext), None
+
+    # --- POST /edl-photo ---
+    def edl_photo(self, logement_id, ref_resa, phase, piece, nom,
+                  donnees_base64, qui, prise_le=""):
+        res, err = self._edl_verifier_depot(
+            logement_id, ref_resa, qui, phase, piece, nom, donnees_base64,
+            prise_le, self.EXT_PHOTOS, self.EDL_PHOTO_MAX_O)
+        if err:
+            return err
+        chemin, edl, brut, prise_iso, piece, nom_f, ext = res
+        horodat = utcnow_iso().replace(":", "").replace("+", "")
+        cible = re.sub(r"[^a-z0-9_.-]+", "_",
+                       f"{piece}_{horodat}_{nom_f}").strip("._") or f"{piece}{ext}"
+        if not cible.lower().endswith(ext):
+            cible += ext
+        with open(os.path.join(chemin, phase, cible), "wb") as f:
+            f.write(brut)
+        cle = "photos_entree" if phase == "entree" else "photos_sortie"
+        edl.setdefault(cle, []).append({"fichier": cible, "piece": piece,
+                                        "prise_le": prise_iso,
+                                        "recu_le": utcnow_iso(),
+                                        "octets": len(brut), "par": qui})
+        self._sauver_edl(chemin, edl)
+        comp = self._edl_completude(edl)
+        self.log_decision(logement_id, str(ref_resa).strip(), qui,
+                          f"edl_photo_{phase}",
+                          f"{piece}/{cible} ({len(brut)} o, prise {prise_iso})")
+        return 201, {"logement_id": logement_id,
+                     "ref_resa": str(ref_resa).strip(),
+                     "phase": phase, "piece": piece, "fichier": cible,
+                     "octets": len(brut), "prise_le": prise_iso,
+                     "completude": comp}
+
+    # --- POST /edl-video ---
+    def edl_video(self, logement_id, ref_resa, phase, nom, donnees_base64,
+                  duree_s, qui, prise_le=""):
+        try:
+            duree = int(float(str(duree_s or "")))
+        except ValueError:
+            return 400, {"erreur": "duree_s (secondes, <= 60) requise"}
+        if duree < 1 or duree > self.EDL_VIDEO_MAX_S:
+            return 422, {"erreur": "video <60 s seule (tour complet)",
+                         "code": "video_trop_longue"}
+        res, err = self._edl_verifier_depot(
+            logement_id, ref_resa, qui, phase, None, nom, donnees_base64,
+            prise_le, self.EXT_VIDEOS, self.EDL_VIDEO_MAX_O)
+        if err:
+            return err
+        chemin, edl, brut, prise_iso, _, nom_f, ext = res
+        horodat = utcnow_iso().replace(":", "").replace("+", "")
+        cible = re.sub(r"[^a-z0-9_.-]+", "_",
+                       f"video_{phase}_{horodat}_{nom_f}").strip("._")
+        if not cible.lower().endswith(ext):
+            cible += ext
+        with open(os.path.join(chemin, phase, cible), "wb") as f:
+            f.write(brut)
+        edl.setdefault("videos", []).append({"fichier": cible, "phase": phase,
+                                              "duree_s": duree,
+                                              "prise_le": prise_iso,
+                                              "recu_le": utcnow_iso(),
+                                              "octets": len(brut),
+                                              "par": qui})
+        self._sauver_edl(chemin, edl)
+        self.log_decision(logement_id, str(ref_resa).strip(), qui,
+                          f"edl_video_{phase}",
+                          f"{cible} ({duree} s, {len(brut)} o)")
+        return 201, {"logement_id": logement_id,
+                     "ref_resa": str(ref_resa).strip(),
+                     "phase": phase, "fichier": cible, "duree_s": duree,
+                     "octets": len(brut)}
+
+    # --- GET /edl ---
+    def edl_statut(self, logement_id, ref_resa):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        ref = str(ref_resa or "").strip()
+        if not ref:
+            return 400, {"erreur": "ref_resa requise (slug)"}
+        chemin, err = self._dossier_edl(logement_id, ref)
+        if err:
+            if "inconnu" in err:
+                return 200, {"statut": "non_commence",
+                             "logement_id": logement_id, "ref_resa": ref,
+                             "pieces_attendues": list(self.EDL_PIECES),
+                             "consentement": False,
+                             "jamais_bloquant": True}
+            return 400, {"erreur": err}
+        edl, _ = self._lire_edl(chemin)
+        comp = self._edl_completude(edl)
+        statut = ("complet" if comp["complet"]
+                  else ("partiel" if (edl.get("photos_entree")
+                                      or edl.get("photos_sortie"))
+                        else "consenti"))
+        return 200, {"statut": statut, "logement_id": logement_id,
+                     "ref_resa": ref, "consentement": bool(
+                         edl.get("consentement")),
+                     "nom_voyageur": edl.get("nom_voyageur", ""),
+                     "photos_entree": len(edl.get("photos_entree") or []),
+                     "photos_sortie": len(edl.get("photos_sortie") or []),
+                     "videos": len(edl.get("videos") or []),
+                     "pieces_entree": self._pieces_couvertes(
+                         edl.get("photos_entree")),
+                     "pieces_sortie": self._pieces_couvertes(
+                         edl.get("photos_sortie")),
+                     "pieces_manquantes_entree": comp[
+                         "pieces_manquantes_entree"],
+                     "pieces_manquantes_sortie": comp[
+                         "pieces_manquantes_sortie"],
+                     "comparatif": comp["comparatif"],
+                     "purge_j": self.EDL_PURGE_J,
+                     "jamais_bloquant": True}
+
+    # --- POST /edl-purge ---
+    def edl_purge(self, logement_id, qui):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "purge EDL = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        base = os.path.join(self.state_dir, "etat_lieux", logement_id)
+        purgees, restantes = 0, 0
+        try:
+            refs = os.listdir(base)
+        except FileNotFoundError:
+            refs = []
+        limite = (dt.datetime.now(dt.timezone.utc)
+                  - dt.timedelta(days=self.EDL_PURGE_J))
+        for ref in refs:
+            chemin = os.path.join(base, ref)
+            if not os.path.isdir(chemin):
+                continue
+            edl, _ = self._lire_edl(chemin)
+            dates = [p.get("recu_le", "") for p in
+                     ((edl.get("photos_entree") or [])
+                      + (edl.get("photos_sortie") or []))]
+            try:
+                recent = max(dt.datetime.fromisoformat(
+                    d.replace("Z", "+00:00")) for d in dates if d)
+            except ValueError:
+                try:
+                    recent = dt.datetime.fromtimestamp(
+                        os.path.getmtime(
+                            os.path.join(chemin, "edl.json")),
+                        tz=dt.timezone.utc)
+                except OSError:
+                    continue
+            if recent < limite:
+                import shutil
+                shutil.rmtree(chemin, ignore_errors=True)
+                purgees += 1
+            else:
+                restantes += 1
+        self.log_decision(logement_id, "edl-purge", qui, "edl_purge",
+                          f"purge 90 j : {purgees} purgees, {restantes} restantes")
+        return 200, {"statut": "purge", "purgees": purgees,
+                     "restantes": restantes}
+
+    # --- P6-17 §5.7-bis : objets trouvés ---
+    def _dossier_objets(self, logement_id):
+        return os.path.join(self.state_dir, "objets", logement_id)
+
+    def _objet_id_valide(self, objet_id):
+        brut = str(objet_id or "").strip()
+        if not brut or not self.REF_RE.fullmatch(brut) or ".." in brut:
+            return ""
+        return brut
+
+    def _lire_objet(self, logement_id, objet_id):
+        oid = self._objet_id_valide(objet_id)
+        if not oid:
+            return None, "objet_id slug seul (traversée bloquée)"
+        try:
+            with open(os.path.join(self._dossier_objets(logement_id),
+                                   f"{oid}.json"), encoding="utf-8") as f:
+                data = json.load(f)
+            return (data if isinstance(data, dict) else {}), None
+        except (FileNotFoundError, ValueError):
+            return None, (f"objet inconnu : objets/{logement_id}/{oid} "
+                           "(POST /objet-trouve d'abord)")
+
+    def _sauver_objet(self, logement_id, objet_id, fiche):
+        os.makedirs(self._dossier_objets(logement_id), exist_ok=True)
+        with open(os.path.join(self._dossier_objets(logement_id),
+                               f"{objet_id}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(fiche, f, ensure_ascii=False, indent=2)
+
+    # --- POST /objet-trouve ---
+    def objet_trouve(self, logement_id, qui, description, piece="",
+                     ref_resa="", photo_base64=""):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "objet trouve = geste INTERVENANT "
+                                   "(qui != auto/llm/jev)"}
+        desc = str(description or "").strip()[:500]
+        if len(desc) < 3:
+            return 400, {"erreur": "description requise (>= 3 caractères)"}
+        ref = str(ref_resa or "").strip()
+        if ref and (not self.REF_RE.fullmatch(ref) or ".." in ref):
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        oid = ("OBJ-" + dt.date.today().isoformat() + "-"
+               + utcnow_iso().replace(":", "").replace("+", "")[-6:])
+        os.makedirs(os.path.join(self._dossier_objets(logement_id), oid),
+                    exist_ok=True)
+        photo_f = ""
+        if str(photo_base64 or "").strip():
+            try:
+                brut = base64.b64decode(photo_base64, validate=True)
+            except Exception:
+                return 400, {"erreur": "photo_base64 invalide"}
+            if not brut:
+                return 400, {"erreur": "photo vide"}
+            if len(brut) > self.EDL_PHOTO_MAX_O:
+                return 413, {"erreur": "photo trop lourde (>8 Mo)"}
+            photo_f = "objet.jpg"
+            with open(os.path.join(self._dossier_objets(logement_id), oid,
+                                   photo_f), "wb") as f:
+                f.write(brut)
+        fiche = {"objet_id": oid, "logement_id": logement_id,
+                 "description": desc,
+                 "piece": re.sub(r"[^a-z0-9_-]+", "_",
+                                 str(piece or "").lower()).strip("_")[:30],
+                 "ref_resa": ref, "trouve_par": qui,
+                 "trouve_le": utcnow_iso(), "photo": photo_f,
+                 "statut": "trouve",
+                 "forfait_eur": self.OBJET_FORFAIT_EUR,
+                 "message_j0": ("voyageur prevenu J+0 (ref connue)" if ref
+                                else "sans ref : attente reclamation")}
+        self._sauver_objet(logement_id, oid, fiche)
+        self.log_decision(logement_id, oid, qui, "objet_trouve",
+                          f"{desc[:60]} (forfait {self.OBJET_FORFAIT_EUR} EUR)")
+        return 201, {"objet_id": oid, "logement_id": logement_id,
+                     "statut": "trouve",
+                     "forfait_eur": self.OBJET_FORFAIT_EUR,
+                     "message_j0": fiche["message_j0"]}
+
+    # --- GET /objets ---
+    def objets(self, logement_id, statut=""):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        base = self._dossier_objets(logement_id)
+        try:
+            noms = os.listdir(base)
+        except FileNotFoundError:
+            noms = []
+        fiches = []
+        for nom in sorted(noms):
+            if not nom.endswith(".json"):
+                continue
+            fiche, err = self._lire_objet(
+                logement_id, nom[:-len(".json")])
+            if err or not isinstance(fiche, dict):
+                continue
+            if statut and fiche.get("statut") != statut:
+                continue
+            fiches.append({"objet_id": fiche.get("objet_id"),
+                           "description": fiche.get("description"),
+                           "statut": fiche.get("statut"),
+                           "trouve_le": fiche.get("trouve_le"),
+                           "forfait_eur": fiche.get("forfait_eur")})
+        if statut and statut not in ("trouve", "reclame", "envoye", "don",
+                                     "stock"):
+            return 400, {"erreur": "statut parmi : trouve/reclame/envoye/"
+                                   "don/stock"}
+        return 200, {"logement_id": logement_id, "objets": fiches,
+                     "total": len(fiches)}
+
+    # --- POST /objet-reclamer ---
+    def objet_reclamer(self, logement_id, objet_id, qui, ref_resa):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "reclamation = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        fiche, err = self._lire_objet(logement_id, objet_id)
+        if err:
+            return 404, {"erreur": err}
+        if fiche.get("statut") != "trouve":
+            return 409, {"erreur": "objet déjà traité "
+                                   f"({fiche.get('statut')})",
+                         "code": "objet_indisponible"}
+        ref = str(ref_resa or "").strip()
+        if not ref or not self.REF_RE.fullmatch(ref) or ".." in ref:
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        fiche["statut"] = "reclame"
+        fiche["reclame_par"] = qui
+        fiche["reclame_ref"] = ref
+        fiche["reclame_le"] = utcnow_iso()
+        self._sauver_objet(logement_id, fiche["objet_id"], fiche)
+        self.log_decision(logement_id, fiche["objet_id"], qui,
+                          "objet_reclame", f"ref {ref} (envoi 15 EUR à régler)")
+        return 200, {"objet_id": fiche["objet_id"], "statut": "reclame",
+                     "forfait_eur": self.OBJET_FORFAIT_EUR,
+                     "action": "POST /objet-envoyer (preuve 15 EUR) pour expédier"}
+
+    # --- POST /objet-envoyer ---
+    def objet_envoyer(self, logement_id, objet_id, qui, preuve_paiement=""):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "envoi = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        fiche, err = self._lire_objet(logement_id, objet_id)
+        if err:
+            return 404, {"erreur": err}
+        if fiche.get("statut") != "reclame":
+            return 409, {"erreur": "envoi exige statut reclame "
+                                   f"(actuel : {fiche.get('statut')})",
+                         "code": "reclamation_requise"}
+        if not str(preuve_paiement or "").strip():
+            return 402, {"erreur": "preuve 15 EUR requise (Stripe)",
+                         "code": "paiement_requis",
+                         "forfait_eur": self.OBJET_FORFAIT_EUR}
+        fiche["statut"] = "envoye"
+        fiche["envoye_par"] = qui
+        fiche["envoye_le"] = utcnow_iso()
+        fiche["forfait_eur"] = self.OBJET_FORFAIT_EUR
+        self._sauver_objet(logement_id, fiche["objet_id"], fiche)
+        self.log_decision(logement_id, fiche["objet_id"], qui,
+                          "objet_envoye",
+                          f"Colissimo forfait {self.OBJET_FORFAIT_EUR} EUR")
+        return 200, {"objet_id": fiche["objet_id"], "statut": "envoye",
+                     "forfait_eur": self.OBJET_FORFAIT_EUR}
+
+    # --- POST /objet-cloturer ---
+    def objet_cloturer(self, logement_id, objet_id, qui, sort=""):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "cloture = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        fiche, err = self._lire_objet(logement_id, objet_id)
+        if err:
+            return 404, {"erreur": err}
+        if fiche.get("statut") != "trouve":
+            return 409, {"erreur": "cloture don/stock exige statut trouve "
+                                   f"(actuel : {fiche.get('statut')})",
+                         "code": "objet_indisponible"}
+        sort = str(sort or "").strip().lower()
+        if sort not in self.OBJET_SORTS:
+            return 400, {"erreur": "sort = don|stock"}
+        try:
+            trouve = dt.datetime.fromisoformat(
+                str(fiche.get("trouve_le", "")).replace("Z", "+00:00"))
+        except ValueError:
+            return 409, {"erreur": "date trouve illisible (jamais de "
+                                   "cloture aveugle)",
+                         "code": "trop_tot"}
+        if trouve.tzinfo is None:
+            trouve = trouve.replace(tzinfo=dt.timezone.utc)
+        age_j = (dt.datetime.now(dt.timezone.utc) - trouve).days
+        if age_j < self.OBJET_DELAI_J:
+            return 409, {"erreur": "non réclamé 30 j requis "
+                                   f"({age_j} j écoulés)",
+                         "code": "trop_tot", "age_j": age_j}
+        fiche["statut"] = sort
+        fiche["cloture_par"] = qui
+        fiche["cloture_le"] = utcnow_iso()
+        self._sauver_objet(logement_id, fiche["objet_id"], fiche)
+        self.log_decision(logement_id, fiche["objet_id"], qui,
+                          f"objet_{sort}", f"non réclamé 30 j ({age_j} j)")
+        return 200, {"objet_id": fiche["objet_id"], "statut": sort,
+                     "age_j": age_j}
+
+    # --- P6-19 §12.2-ter : supplément ménage + suivi + score ---
+    def _postes_menage(self, montant):
+        """10 postes prorata socle (MO en solde, total == montant)."""
+        facteur = float(montant) / float(self.MENAGE_SOCLE_TOTAL)
+        postes = [{"id": pid, "label": label,
+                   "eur": round(eur * facteur, 2)}
+                  for pid, label, eur in self.MENAGE_POSTES_SOCLE]
+        solde = round(float(montant) - sum(p["eur"] for p in postes), 2)
+        postes.append({"id": "main_oeuvre", "label": self.MENAGE_MO_LABEL,
+                       "eur": solde})
+        return postes
+
+    # --- GET /menage-tarif ---
+    def menage_tarif(self, logement_id):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        log = self._log(logement_id)
+        montant = int(log.get("menage_montant", 110) or 110)
+        facturation = log.get("menage_facturation", "supplement")
+        postes = self._postes_menage(montant)
+        return 200, {"logement_id": logement_id, "montant": montant,
+                     "facturation": facturation,
+                     "affichage": ("ligne separee /rotation (recommande)"
+                                   if facturation == "supplement"
+                                   else f"lisse +{round(montant / 4)} EUR/nuit"
+                                        " (duree min >=4 requise)"),
+                     "postes": postes,
+                     "total_verifie": round(sum(p["eur"] for p in postes),
+                                            2),
+                     "surcharge_saison": {
+                         "mois": list(self.SURCHARGE_SAISON_MOIS),
+                         "montant_eur": self.SURCHARGE_SAISON_EUR,
+                         "regle": "absorbee OU repercutee (humain, "
+                                  "jamais auto)"},
+                     "alerte_inclus": (facturation == "inclus_nuit")}
+
+    def _lire_couts(self, logement_id):
+        return self._lire_json_obj(
+            os.path.join(self.state_dir, "menage-couts", logement_id,
+                         "couts.json"), [])
+
+    def _sauver_couts(self, logement_id, lignes):
+        base = os.path.join(self.state_dir, "menage-couts", logement_id)
+        os.makedirs(base, exist_ok=True)
+        with open(os.path.join(base, "couts.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(lignes, f, ensure_ascii=False, indent=2)
+
+    def _lire_json_obj(self, chemin, defaut):
+        try:
+            with open(chemin, encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, defaut.__class__) else defaut
+        except (FileNotFoundError, ValueError):
+            return defaut
+
+    # --- POST /menage-cout : coût réel rotation (montant saisi -> OPEX) ---
+    def menage_cout(self, logement_id, qui, montant, ref_resa="",
+                    dossier="", facture=""):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "cout rotation = saisie HUMAINE "
+                                   "(qui != auto/llm/jev)"}
+        try:
+            cout = float(str(montant))
+        except (TypeError, ValueError):
+            return 400, {"erreur": "montant > 0 requis"}
+        if not (cout > 0):
+            return 400, {"erreur": "montant > 0 requis"}
+        ref = str(ref_resa or dossier or "").strip()[:80]
+        lignes = self._lire_couts(logement_id)
+        lignes.append({"ref": ref, "montant": round(cout, 2),
+                       "facture": str(facture or "")[:120],
+                       "date": dt.date.today().isoformat(),
+                       "saisi_par": qui, "saisi_le": utcnow_iso()})
+        self._sauver_couts(logement_id, lignes)
+        affiche = int(self._log(logement_id).get("menage_montant", 110)
+                      or 110)
+        derive = round((cout - affiche) / affiche, 4) if affiche else 0.0
+        self.log_decision(logement_id, ref or "cout-rotation", qui,
+                          "menage_cout_saisi",
+                          f"{cout} EUR (affiche {affiche}, derive {derive})")
+        return 201, {"logement_id": logement_id, "montant": round(cout, 2),
+                     "rotations_suivies": len(lignes),
+                     "derive_rotation": derive}
+
+    # --- GET /menage-couts : moyenne + dérive + payload sensor ---
+    def menage_couts(self, logement_id):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        affiche = int(self._log(logement_id).get("menage_montant", 110)
+                      or 110)
+        lignes = self._lire_couts(logement_id)
+        montants = [float(l.get("montant", 0) or 0) for l in lignes]
+        moyen = round(sum(montants) / len(montants), 2) if montants else 0.0
+        derive = (round((moyen - affiche) / affiche, 4)
+                  if (montants and affiche) else 0.0)
+        alerte = (len(montants) >= 2
+                  and derive > self.MENAGE_ALERTE_DERIVE)
+        return 200, {"logement_id": logement_id, "rotations": len(lignes),
+                     "cout_moyen_rotation": moyen,
+                     "montant_affiche": affiche, "derive_pct": derive,
+                     "alerte_derive": alerte,
+                     "sensor": {"montant_affiche": affiche,
+                                "cout_moyen_rotation": moyen,
+                                "derive_pct": derive,
+                                "alerte_derive": alerte}}
+
+    def _lire_notes(self, logement_id):
+        return self._lire_json_obj(
+            os.path.join(self.state_dir, "menage-notes", logement_id,
+                         "notes.json"), [])
+
+    def _sauver_notes(self, logement_id, lignes):
+        base = os.path.join(self.state_dir, "menage-notes", logement_id)
+        os.makedirs(base, exist_ok=True)
+        with open(os.path.join(base, "notes.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(lignes, f, ensure_ascii=False, indent=2)
+
+    # --- POST /menage-note : score qualité 1-5 (+ alerte temps vs ~3h) ---
+    def menage_note(self, logement_id, qui, note, ref_resa="",
+                    dossier="", commentaire=""):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "note qualite = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        try:
+            note_i = int(float(str(note)))
+        except (TypeError, ValueError):
+            return 400, {"erreur": "note entière 1-5 requise"}
+        if note_i < 1 or note_i > 5:
+            return 400, {"erreur": "note entière 1-5 requise"}
+        alerte_temps, duree = False, None
+        nom = str(dossier or "").strip()
+        if nom:
+            chemin, err = self._dossier_menage(logement_id, nom)
+            if err:
+                return 404, {"erreur": err}
+            todo, err = self._lire_todos(chemin)
+            if err:
+                return 404, {"erreur": err}
+            duree = todo.get("duree_presence_min")
+            if isinstance(duree, (int, float)):
+                ecart = abs(duree - self.MENAGE_DUREE_ATTENDUE_MIN) \
+                    / self.MENAGE_DUREE_ATTENDUE_MIN
+                alerte_temps = ecart > self.MENAGE_ECART_TEMPS
+        lignes = self._lire_notes(logement_id)
+        lignes.append({"ref": str(ref_resa or nom or "").strip()[:80],
+                       "note": note_i,
+                       "commentaire": str(commentaire or "")[:500],
+                       "dossier": os.path.basename(nom) if nom else "",
+                       "duree_presence_min": duree,
+                       "alerte_temps": alerte_temps,
+                       "date": dt.date.today().isoformat(),
+                       "note_par": qui, "note_le": utcnow_iso()})
+        self._sauver_notes(logement_id, lignes)
+        self.log_decision(logement_id, os.path.basename(nom) if nom
+                          else str(ref_resa or "note").strip()[:80], qui,
+                          "menage_note",
+                          f"score {note_i}/5"
+                          + (" (ecart temps >20 %)" if alerte_temps else ""))
+        return 201, {"logement_id": logement_id, "note": note_i,
+                     "notes_total": len(lignes),
+                     "duree_presence_min": duree,
+                     "alerte_temps": alerte_temps}
+
+    # --- GET /menage-score : moyenne + alertes qualité/temps ---
+    def menage_score(self, logement_id):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        lignes = self._lire_notes(logement_id)
+        notes = [int(n.get("note", 0) or 0) for n in lignes
+                 if 1 <= int(n.get("note", 0) or 0) <= 5]
+        moyenne = round(sum(notes) / len(notes), 2) if notes else None
+        base = os.path.join(self.state_dir, "menage", logement_id)
+        try:
+            dossiers = os.listdir(base)
+        except FileNotFoundError:
+            dossiers = []
+        durees, ecarts = [], 0
+        for nom in dossiers:
+            todo, err = self._lire_todos(os.path.join(base, nom))
+            if err:
+                continue
+            duree = todo.get("duree_presence_min")
+            if isinstance(duree, (int, float)):
+                durees.append(duree)
+                if abs(duree - self.MENAGE_DUREE_ATTENDUE_MIN) \
+                        / self.MENAGE_DUREE_ATTENDUE_MIN \
+                        > self.MENAGE_ECART_TEMPS:
+                    ecarts += 1
+        duree_moy = round(sum(durees) / len(durees), 1) if durees else None
+        return 200, {"logement_id": logement_id, "notes_total": len(notes),
+                     "score_moyen": moyenne,
+                     "alerte_qualite": (moyenne is not None
+                                        and len(notes) >= 3
+                                        and moyenne < self.MENAGE_SCORE_SEUIL),
+                     "rotations_pointees": len(durees),
+                     "duree_moyenne_min": duree_moy,
+                     "duree_attendue_min": self.MENAGE_DUREE_ATTENDUE_MIN,
+                     "ecarts_temps": ecarts}
+
+    # --- P6-22 §14 : formation 30 min + test départ complet ---
+    def _lire_formation(self, logement_id):
+        return self._lire_json_obj(
+            os.path.join(self.state_dir, "formation", logement_id,
+                         "sessions.json"), {})
+
+    def _sauver_formation(self, logement_id, sessions):
+        base = os.path.join(self.state_dir, "formation", logement_id)
+        os.makedirs(base, exist_ok=True)
+        with open(os.path.join(base, "sessions.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(sessions, f, ensure_ascii=False, indent=2)
+
+    # --- GET /formation : programme ou statut session ---
+    def formation(self, logement_id, session=""):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        modules = [{"id": mid, "label": label, "duree_min": duree}
+                   for mid, label, duree in self.FORMATION_MODULES]
+        if not str(session or "").strip():
+            return 200, {"logement_id": logement_id,
+                         "programme_30min": modules,
+                         "duree_totale_min": self.FORMATION_DUREE_MIN,
+                         "drill": "1x/trimestre (rotation blanche) + papier "
+                                  "daté (§14)"}
+        sid = str(session).strip()
+        if not self.REF_RE.fullmatch(sid) or ".." in sid:
+            return 400, {"erreur": "session slug seule (traversée bloquée)"}
+        sessions = self._lire_formation(logement_id)
+        dossier = sessions.get(sid)
+        if not dossier:
+            return 404, {"erreur": f"session inconnue : {sid} "
+                                   "(POST /formation-session d'abord)"}
+        coches = [m for m in [x[0] for x in self.FORMATION_MODULES]
+                  if dossier.get("modules", {}).get(m)]
+        return 200, {"logement_id": logement_id, "session": sid,
+                     "presta": dossier.get("presta"),
+                     "statut": dossier.get("statut"),
+                     "modules_coches": coches,
+                     "modules_manquants": [
+                         m for m in [x[0] for x in self.FORMATION_MODULES]
+                         if m not in coches],
+                     "dossier_menage": dossier.get("dossier_menage", ""),
+                     "validee_le": dossier.get("validee_le", "")}
+
+    # --- POST /formation-session : rotation blanche (drill trimestriel) ---
+    def formation_session(self, logement_id, qui, presta):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "session formation = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        presta = re.sub(r"[^a-z0-9_-]+", "_",
+                        str(presta or "").lower()).strip("_")
+        if not presta:
+            return 400, {"erreur": "presta requis (slug nominatif)"}
+        sessions = self._lire_formation(logement_id)
+        sid = (f"SES-{dt.date.today().isoformat()}-"
+               f"{len(sessions) + 1:02d}")
+        sessions[sid] = {"presta": presta, "statut": "en_cours",
+                         "modules": {}, "dossier_menage": "",
+                         "ouverte_par": qui,
+                         "ouverte_le": utcnow_iso(), "validee_le": ""}
+        self._sauver_formation(logement_id, sessions)
+        self.log_decision(logement_id, sid, qui, "formation_session",
+                          f"rotation blanche ouverte ({presta})")
+        return 201, {"logement_id": logement_id, "session": sid,
+                     "presta": presta, "statut": "en_cours",
+                     "modules": [m[0] for m in self.FORMATION_MODULES]}
+
+    # --- POST /formation-module : coche 1-tap (idempotent) ---
+    def formation_module(self, logement_id, qui, session, module):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "module formation = geste HUMAIN "
+                                   "(qui != auto/llm/jev)"}
+        sid = str(session or "").strip()
+        if not sid or not self.REF_RE.fullmatch(sid) or ".." in sid:
+            return 400, {"erreur": "session slug seule (traversée bloquée)"}
+        mod = str(module or "").strip().lower()
+        attendus = [m[0] for m in self.FORMATION_MODULES]
+        if mod not in attendus:
+            return 400, {"erreur": "module parmi : "
+                                   + ", ".join(attendus)}
+        sessions = self._lire_formation(logement_id)
+        dossier = sessions.get(sid)
+        if not dossier:
+            return 404, {"erreur": f"session inconnue : {sid}"}
+        if dossier.get("statut") == "formation_validee":
+            return 409, {"erreur": "session déjà validée "
+                                   "(nouvelle session pour drill suivant)",
+                         "code": "session_cloturee"}
+        deja = bool(dossier.get("modules", {}).get(mod))
+        dossier.setdefault("modules", {})[mod] = {"par": qui,
+                                                  "le": utcnow_iso()}
+        sessions[sid] = dossier
+        self._sauver_formation(logement_id, sessions)
+        self.log_decision(logement_id, sid, qui, "formation_module",
+                          f"module {mod} coché")
+        return 200, {"logement_id": logement_id, "session": sid,
+                     "module": mod,
+                     "statut": "deja_coche" if deja else "coche"}
+
+    # --- POST /formation-valider : 5 modules + dossier remise_en_dispo ---
+    def formation_valider(self, logement_id, qui, session, dossier_menage):
+        if not logement_existe(self.logements_yaml, logement_id):
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not self._qui_humain(qui):
+            return 400, {"erreur": "validation formation = attestation HOTE "
+                                   "(qui != auto/llm/jev)"}
+        sid = str(session or "").strip()
+        if not sid or not self.REF_RE.fullmatch(sid) or ".." in sid:
+            return 400, {"erreur": "session slug seule (traversée bloquée)"}
+        sessions = self._lire_formation(logement_id)
+        dossier = sessions.get(sid)
+        if not dossier:
+            return 404, {"erreur": f"session inconnue : {sid}"}
+        if dossier.get("statut") == "formation_validee":
+            return 200, {"statut": "deja_validee", "session": sid,
+                         "logement_id": logement_id}
+        manquants = [m for m in [x[0] for x in self.FORMATION_MODULES]
+                     if not dossier.get("modules", {}).get(m)]
+        chemin, err = self._dossier_menage(logement_id, dossier_menage)
+        todo = None
+        if not err:
+            todo, err = self._lire_todos(chemin)
+        manq_dossier = ""
+        if err or not todo or todo.get("statut") != "remise_en_dispo":
+            manq_dossier = ("dossier menage non cloture "
+                            "(test depart complet exige)")
+        if manquants or manq_dossier:
+            self.log_decision(logement_id, sid, qui,
+                              "formation_validation_bloquee",
+                              "; ".join(manquants
+                                        + ([manq_dossier] if manq_dossier
+                                           else [])))
+            return 409, {"erreur": "formation incomplète : test départ "
+                                   "complet exigé",
+                         "code": "formation_incomplete",
+                         "modules_manquants": manquants,
+                         "dossier_menage_ok": not manq_dossier}
+        dossier["statut"] = "formation_validee"
+        dossier["dossier_menage"] = os.path.basename(chemin)
+        dossier["validee_par"] = qui
+        dossier["validee_le"] = utcnow_iso()
+        sessions[sid] = dossier
+        self._sauver_formation(logement_id, sessions)
+        self.log_decision(logement_id, sid, qui, "formation_validee",
+                          f"{dossier.get('presta')} : 5 modules + "
+                          f"{os.path.basename(chemin)} OK")
+        return 200, {"statut": "formation_validee", "session": sid,
+                     "logement_id": logement_id,
+                     "presta": dossier.get("presta"),
+                     "dossier_menage": os.path.basename(chemin)}
 
 
     def _fiche_mission(self, logement_id, presta, motif, debut, fin, dossier):
@@ -1195,6 +2239,51 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(400, {"erreur": "logement_id requis"})
             code, obj = eng.todos_lecture(logement_id, dossier)
             return self._json(code, obj)
+        if url.path == "/edl":
+            # P6-16 §5.6 : statut EDL voyageur (non_commence/partiel/complet).
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = eng.edl_statut(logement_id,
+                                       qs.get("ref_resa", [""])[0])
+            return self._json(code, obj)
+        if url.path == "/objets":
+            # P6-17 §5.7-bis : liste objets trouvés (filtre statut opt).
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = eng.objets(logement_id,
+                                   qs.get("statut", [""])[0])
+            return self._json(code, obj)
+        if url.path == "/menage-tarif":
+            # P6-19 §12.2-ter : supplément + 10 postes + surcharge saison.
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = eng.menage_tarif(logement_id)
+            return self._json(code, obj)
+        if url.path == "/menage-couts":
+            # P6-19 : moyenne + dérive + payload sensor.
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = eng.menage_couts(logement_id)
+            return self._json(code, obj)
+        if url.path == "/menage-score":
+            # P6-19 : moyenne qualité + durées vs ~3h.
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = eng.menage_score(logement_id)
+            return self._json(code, obj)
+        if url.path == "/formation":
+            # P6-22 §14 : programme 30 min ou statut session.
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = eng.formation(logement_id,
+                                      qs.get("session", [""])[0])
+            return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 
     def do_POST(self):
@@ -1272,6 +2361,146 @@ class Handler(BaseHTTPRequestHandler):
             code, obj = eng.sinistre(p.get("logement_id", ""), p.get("motif", ""),
                                      p.get("declarant", ""), p.get("description", ""),
                                      p.get("canal", "direct"), p.get("resa", ""))
+            return self._json(code, obj)
+        if url.path == "/edl-consentement":
+            # P6-16 §5.6 : consentement explicite arrivée (préalable photos).
+            if not (p.get("logement_id") and p.get("ref_resa")
+                    and p.get("qui") is not None):
+                return self._json(
+                    400, {"erreur": "logement_id, ref_resa, qui requis"})
+            code, obj = eng.edl_consentement(
+                p["logement_id"], p["ref_resa"], p["qui"],
+                p.get("consentement", False), p.get("nom_voyageur", ""))
+            return self._json(code, obj)
+        if url.path == "/edl-photo":
+            # P6-16 §5.6 : photo horodatée par pièce (consentement + 24 h).
+            if not (p.get("logement_id") and p.get("ref_resa")
+                    and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, ref_resa, qui requis"})
+            code, obj = eng.edl_photo(
+                p["logement_id"], p["ref_resa"], p.get("phase", ""),
+                p.get("piece", ""), p.get("nom", ""),
+                p.get("donnees_base64", ""), p["qui"],
+                p.get("prise_le", ""))
+            return self._json(code, obj)
+        if url.path == "/edl-video":
+            # P6-16 §5.6 : vidéo optionnelle <60 s (tour complet).
+            if not (p.get("logement_id") and p.get("ref_resa")
+                    and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, ref_resa, qui requis"})
+            code, obj = eng.edl_video(
+                p["logement_id"], p["ref_resa"], p.get("phase", ""),
+                p.get("nom", ""), p.get("donnees_base64", ""),
+                p.get("duree_s", ""), p["qui"], p.get("prise_le", ""))
+            return self._json(code, obj)
+        if url.path == "/edl-purge":
+            # P6-16 §5.6 : purge 90 j (geste HUMAIN seul).
+            if not (p.get("logement_id") and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui requis"})
+            code, obj = eng.edl_purge(p["logement_id"], p["qui"])
+            return self._json(code, obj)
+        if url.path == "/objet-trouve":
+            # P6-17 §5.7-bis : fiche objet trouvé (geste INTERVENANT seul).
+            if not (p.get("logement_id") and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui requis"})
+            if not p.get("description"):
+                return self._json(
+                    400, {"erreur": "description requise"})
+            code, obj = eng.objet_trouve(
+                p["logement_id"], p["qui"], p["description"],
+                p.get("piece", ""), p.get("ref_resa", ""),
+                p.get("photo_base64", ""))
+            return self._json(code, obj)
+        if url.path == "/objet-reclamer":
+            # P6-17 §5.7-bis : réclamation voyageur/humain.
+            if not (p.get("logement_id") and p.get("objet_id")
+                    and p.get("qui") and p.get("ref_resa")):
+                return self._json(
+                    400, {"erreur": "logement_id, objet_id, qui, ref_resa "
+                                    "requis"})
+            code, obj = eng.objet_reclamer(
+                p["logement_id"], p["objet_id"], p["qui"],
+                p["ref_resa"])
+            return self._json(code, obj)
+        if url.path == "/objet-envoyer":
+            # P6-17 §5.7-bis : envoi Colissimo forfait 15 € (preuve exigée).
+            if not (p.get("logement_id") and p.get("objet_id")
+                    and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, objet_id, qui requis"})
+            code, obj = eng.objet_envoyer(
+                p["logement_id"], p["objet_id"], p["qui"],
+                p.get("preuve_paiement", ""))
+            return self._json(code, obj)
+        if url.path == "/objet-cloturer":
+            # P6-17 §5.7-bis : don/stock après 30 j non réclamé.
+            if not (p.get("logement_id") and p.get("objet_id")
+                    and p.get("qui") and p.get("sort")):
+                return self._json(
+                    400, {"erreur": "logement_id, objet_id, qui, sort requis"})
+            code, obj = eng.objet_cloturer(
+                p["logement_id"], p["objet_id"], p["qui"], p["sort"])
+            return self._json(code, obj)
+        if url.path == "/menage-cout":
+            # P6-19 §12.2-ter : coût réel rotation (saisie HUMAINE).
+            if not (p.get("logement_id") and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui requis"})
+            if p.get("montant") is None:
+                return self._json(400, {"erreur": "montant > 0 requis"})
+            code, obj = eng.menage_cout(
+                p["logement_id"], p["qui"], p["montant"],
+                p.get("ref_resa", ""), p.get("dossier", ""),
+                p.get("facture", ""))
+            return self._json(code, obj)
+        if url.path == "/menage-note":
+            # P6-19 : score qualité 1-5 (geste HUMAIN seul).
+            if not (p.get("logement_id") and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui requis"})
+            if p.get("note") is None:
+                return self._json(400, {"erreur": "note 1-5 requise"})
+            code, obj = eng.menage_note(
+                p["logement_id"], p["qui"], p["note"],
+                p.get("ref_resa", ""), p.get("dossier", ""),
+                p.get("commentaire", ""))
+            return self._json(code, obj)
+        if url.path == "/formation-session":
+            # P6-22 §14 : rotation blanche (geste HUMAIN seul).
+            if not (p.get("logement_id") and p.get("qui")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui requis"})
+            if not p.get("presta"):
+                return self._json(400, {"erreur": "presta requis"})
+            code, obj = eng.formation_session(
+                p["logement_id"], p["qui"], p["presta"])
+            return self._json(code, obj)
+        if url.path == "/formation-module":
+            # P6-22 §14 : module coché 1-tap (idempotent).
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("session") and p.get("module")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, session, module "
+                                    "requis"})
+            code, obj = eng.formation_module(
+                p["logement_id"], p["qui"], p["session"], p["module"])
+            return self._json(code, obj)
+        if url.path == "/formation-valider":
+            # P6-22 : attestation HOTE (modules + dossier clôturé).
+            if not (p.get("logement_id") and p.get("qui")
+                    and p.get("session")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, session requis"})
+            if not p.get("dossier_menage"):
+                return self._json(
+                    400, {"erreur": "dossier_menage requis (test depart)"})
+            code, obj = eng.formation_valider(
+                p["logement_id"], p["qui"], p["session"],
+                p["dossier_menage"])
             return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 

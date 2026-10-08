@@ -1,4 +1,4 @@
-# lab/Dockerfile.moteur — image générique stdlib pour les 10 moteurs LCD (P2 + P6-8 + P6-1 + P6-4 + P6-5 + P6-3).
+# lab/Dockerfile.moteur — image générique stdlib pour les 12 moteurs LCD (P2 + P6-8 + P6-1 + P6-4 + P6-5 + P6-3 + P6-18 + P7-3).
 # Python stdlib seule, 0 € logiciel. Aucun secret ici : tout passe par env LCD_*.
 # Image TRANSFÉRABLE : même image pour tous les logements/box — seuls
 # logements.yaml + secrets.yaml + branding.yaml + annuaires sont montés par box.
@@ -26,8 +26,8 @@ RUN useradd -r -u 10001 lcd && mkdir -p /opt/lcd/state /opt/lcd/logs \
     && chown -R lcd:lcd /opt/lcd
 USER lcd
 
-# state/logs = volumes (runtime, jamais commités). Ports moteurs 8090-8099.
-EXPOSE 8090 8091 8092 8093 8094 8095 8096 8097 8098 8099
+# state/logs = volumes (runtime, jamais commités). Ports moteurs 8090-8100 + UI 8050.
+EXPOSE 8050 8090 8091 8092 8093 8094 8095 8096 8097 8098 8099 8100
 
 # --config : config de LAB seule. --logements : copie lab montée par compose.
 # --branding ignoré par la plupart des moteurs sauf facturation (branding lab monté).

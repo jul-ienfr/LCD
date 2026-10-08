@@ -1,0 +1,15 @@
+# custom/compta/compta.service — systemd (LXC/box dédié, P6-18).
+[Unit]
+Description=LCD compta auto (P6-18) — ingestion + rapprochement + simulateur + clôture
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/compta/compta.py --config /opt/lcd/compta/config.yaml --logements /opt/lcd/logements.yaml --serve
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

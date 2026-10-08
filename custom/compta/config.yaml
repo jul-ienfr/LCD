@@ -1,0 +1,21 @@
+# custom/compta/config.yaml — compta auto P6-18 (§12.6).
+# Ingestion factures + rapprochement payouts/banque + simulateur micro/réel +
+# jauges fiscales + clôture mensuelle le 5. Secrets : aucun externe.
+# Port :8100 (nouveau LXC/box, même réseau que 8090-8099).
+http_port: 8100
+state_dir: "./state"
+decision_log_dir: "./state"   # box : monter /config/logs/ ici (cf. ics-sync)
+# Confiance catégorisation < seuil -> file validation humaine (dashboard).
+seuil_confiance: 0.7
+# Rapprochement : écart montant > 2 % OU ligne orpheline > 7 j -> file
+# (jamais d'écriture auto en compta).
+seuil_ecart: 0.02
+delai_orpheline_j: 7
+# Jauges fiscales LMNP (cumul parc §12.6.4, affichées par logement ici).
+plafond_micro_non_classe: 15000
+plafond_micro_classe: 77700
+alerte_jauge: 0.8
+# Compteur résidence principale (nuits) : blocage stop-sell au-delà.
+plafond_nuits_principale: 120
+# Clôture mensuelle : le 5 du mois suivant (jamais avant).
+jour_cloture: 5
