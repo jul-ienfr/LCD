@@ -169,6 +169,11 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     fast→eu→local) + aucun cache décision (Jev direct, cache_ttl 0)
     + `POST /resoudre` direct + `POST /tester` KO documenté
     (lab = box ; proxy :4000 + clés + `rest_command.lcd_chat` = box).
+32. garde-fous 0 € P7-19 (§6.5) : cascade Groq free → Mistral UE →
+    Ollama local + EU-only + secrets jamais exposés (routes +
+    composer audités) + UI LAN seule (défaut `127.0.0.1`, `0.0.0.0`
+    = exception lab explicite) + kill-switch `jev_enabled` +
+    `sensor.llm/jev_cout_mois` + backends custom-1 (entités log1).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

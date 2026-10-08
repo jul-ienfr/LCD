@@ -5,7 +5,8 @@
 input_select:
   log2_llm_backend:
     name: "log2 backend LLM"
-    options: [lcd-chat-fast, lcd-chat-strong, lcd-chat-eu, lcd-chat-local]
+    options: [lcd-chat-fast, lcd-chat-strong, lcd-chat-eu, lcd-chat-local,
+              lcd-chat-custom-1]
     initial: lcd-chat-fast
   log2_jev_backend:
     name: "log2 backend Jev"

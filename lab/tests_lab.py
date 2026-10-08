@@ -4,6 +4,7 @@
 # Usage : cd lab && docker compose up -d --build && python3 tests_lab.py
 # Teardown : docker compose down -v
 import json
+import os
 import sys
 import time
 import urllib.parse
@@ -4041,7 +4042,56 @@ check("routes : custom-1 garde-fous 0.2/250 + validation ok",
       f"HTTP {code} total={len(fiches)}")
 
 print()
+print("== 33. garde-fous 0 EUR : cascade + secrets + LAN + kill-switch (P7-19 §6.5) ==")
+code, rt5 = get("router", "/routes")
+fourn = {a.get("alias"): a.get("fournisseur") for a in
+         rt5.get("aliases", [])} if isinstance(rt5, dict) else {}
+check("cascade 0 EUR : groq free -> mistral UE -> ollama local",
+      code == 200 and isinstance(rt5, dict)
+      and fourn.get(rt5.get("primaire")) == "groq"
+      and [fourn.get(f) for f in rt5.get("fallbacks", [])] == ["mistral",
+                                                              "ollama"],
+      f"HTTP {code} {fourn}")
+SECRETS_MOTS = ("api_key", "master_key", "Bearer", "CHANGER")
+code, cl = post("router", "/composer",
+                {"usage": "ollm-resume-logs",
+                 "variables": {"stats": "10 decisions",
+                               "cas_faibles": "1"}})
+check("secrets jamais exposes : routes + composer sans cle",
+      isinstance(rt5, dict)
+      and not any(m in json.dumps(rt5) for m in SECRETS_MOTS)
+      and code == 200 and isinstance(cl, dict)
+      and not any(m in json.dumps(cl) for m in SECRETS_MOTS),
+      f"HTTP {code}")
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+try:
+    with open(os.path.join(REPO, "custom", "llm-router-ui",
+                            "router_ui.py"),
+              encoding="utf-8") as f:
+        src_router = f.read()
+    with open(os.path.join(REPO, "lab", "docker-compose.yml"),
+              encoding="utf-8") as f:
+        src_compose = f.read()
+    with open(os.path.join(REPO, "homeassistant", "packages", "log1",
+                            "log1.yaml"),
+              encoding="utf-8") as f:
+        src_log1 = f.read()
+except OSError as e:
+    src_router = src_compose = src_log1 = ""
+    check("fichiers versionnes lisibles", False, str(e))
+check("UI jamais WAN : bind LAN par defaut, 0.0.0.0 = exception lab",
+      '"127.0.0.1"' in src_router and "LCD_BIND" in src_router
+      and 'LCD_BIND: "0.0.0.0"' in src_compose,
+      "defaut 127.0.0.1 + override lab explicite")
+check("kill-switch + couts + EU + custom-1 : entites log1",
+      all(s in src_log1 for s in ("jev_enabled", "jev_cout_mois",
+                                  "llm_cout_mois", "llm_eu_only",
+                                  "log1_jev_backend",
+                                  "lcd-chat-custom-1")),
+      "selects + sensors + flags presents")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19.")

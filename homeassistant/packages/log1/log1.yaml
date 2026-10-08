@@ -11,7 +11,8 @@ input_select:
   # Backends Phase 7 (P7-4/P7-5) — dashboard /systeme §1.6.4-4, UI :8050 lit routing.json
   log1_llm_backend:
     name: "log1 backend LLM"
-    options: [lcd-chat-fast, lcd-chat-strong, lcd-chat-eu, lcd-chat-local]
+    options: [lcd-chat-fast, lcd-chat-strong, lcd-chat-eu, lcd-chat-local,
+              lcd-chat-custom-1]
     initial: lcd-chat-fast
   log1_jev_backend:
     name: "log1 backend Jev"

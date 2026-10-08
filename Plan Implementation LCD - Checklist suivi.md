@@ -5,7 +5,7 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `52 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `53 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
@@ -13,7 +13,7 @@
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
 - Phase 6 Exploitation : 22/22 ✔
-- Phase 7 Voix + LLM/Jev : 13/20
+- Phase 7 Voix + LLM/Jev : 14/20
 - Phase 8 Recette / go-live : 0/12
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
@@ -165,7 +165,7 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, proxy LiteLLM `:4000`, 
 - [x] P7-16 Juridique LLM M-LLM-1→7 (§6.7.7) : résumé CGV 1 page/langue (mentions L.111-1/L.112-1/L.221-28/L.612-1 + médiateur + ODR, R.212-1 interdit, verbatim caution, validation humaine datée), check-list conformité (`verifiee: false` → BLOQUÉ), lettre syndic, relances RC/registre/DPE/taxe/syndic (dispatch bloqué si `suspendu_assurance`), réclamation/médiation, digest audit, filtrage RBAC prompt scopé — FAIT lab 2026-10-08 (part lab-testable) : registre `prompts.yaml` (7 usages LLM `jllm-*` + interdits garde-fous) + composeur + batterie lab §30 verte (lab = box ; exécution + gel + validation 1-tap = box)
 - [x] P7-17 Juridique Jev M-JEV-1→7 (§6.7.8) : garde-fou R.212-1, complétude conformité bloquante, routage réclamation/médiation (jamais clôture auto), éligibilité caution avant forclusion, criticité échéances (digest vs critique), anti-fuite RBAC, anomalie pilotage (jamais d'écriture auto compta, pièces 10 ans chiffrées) — FAIT lab 2026-10-08 (part lab-testable) : registre `prompts.yaml` (7 usages Jev `jjev-*` + construits Noul/Choice/Score + seuils) + composeur (backend typesafe, même contrat trous seuls) + batterie lab §31 verte (lab = box ; exécution Jev + seuils prod = `POST /gardien` + box)
 - [ ] P7-18 Ordre suggéré : M-LLM-2 + M-LLM-5 (zéro écriture) → M-JEV-1 + M-JEV-2 (marge) → M-LLM-4 + M-LLM-3 → M-LLM-6 + M-JEV-4 → M-LLM-7 → M-JEV-3 + M-JEV-5 + M-JEV-6
-- [ ] P7-19 Garde-fous 0 € : Groq free → Mistral UE → Ollama ; `sensor.jev_cout_mois` ; EU-only si `llm_eu_only` ; secrets jamais au LLM ; UI jamais WAN
+- [x] P7-19 Garde-fous 0 € : Groq free → Mistral UE → Ollama ; `sensor.jev_cout_mois` ; EU-only si `llm_eu_only` ; secrets jamais au LLM ; UI jamais WAN — FAIT lab 2026-10-08 (part lab-testable) : cascade vérifiée (`/routes` groq→mistral→ollama) + EU-only (`/resoudre`) + audit secrets (`/routes` + `/composer` sans clé) + bind LAN par défaut (`127.0.0.1`, `0.0.0.0` = exception lab) + kill-switch `jev_enabled` + coûts + backends custom-1 (entités log1) + batterie lab §33 verte (lab = box ; coûts réels + dépréciation mensuelle = box)
 - [ ] P7-20 Option B `custom/jev-gateway/` (wrapper OpenAI-compatible → SystemOne) seulement si 0 € strict absolu (sinon appel direct recommandé Phase 7)
 
 ## Phase 8 — Recette + go-live
