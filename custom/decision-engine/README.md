@@ -36,6 +36,15 @@
 #   menage_heure_pref HH:MM, menage_pendant_absence oui/non) posées à
 #   l'opt-in, exposées SÛRES au pré-remplissage ; dispatchées par
 #   POST /menage-intermediaire côté dispatch-presta (dates certaines).
+# - P6-14 (§5.7-quinquies) : questionnaire J-2 GET/POST /questionnaire —
+#   1 lien PWA+PIN, 3 min, pré-rempli mémoire si hash reconnu, 4 blocs
+#   (arrivee/preferences/extras/contrat), M2 « On a compris : … Corriger ? »
+#   + correction 1-tap (même ref = 200), M3 suggestions max 3 filtrées
+#   allergènes (prix JAMAIS ici, art. 225-1), cut-off extras J-1 18h =
+#   statut cutoff_depasse (jamais bloquant), J1 complétude (incomplet ->
+#   relance_auto ciblée). Garde-fous : qui HUMAIN seul, ref_resa slug seule,
+#   nb_voyageurs <= occupants_max copro, chauffage clampé 21 °C, jamais PIN
+#   ni hash en sortie. Stockage runtime `questionnaire-<logX>.json` (gitignoré).
 #
 # ## Règles
 # - Ne génère JAMAIS de PIN (KeyMaster + Nuki Hub seuls, §1.6) ; ne fait JAMAIS de tool-calling

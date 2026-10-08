@@ -31,6 +31,23 @@
 #   POST /memoire {action: optin/optout/purge, logement_id, qui, hash?, ...}
 #     -> opt-in/out 1-tap HUMAIN + purge 24 mois (opt-out = oubli immédiat).
 #     Jamais de CSI brut (hash seul), jamais d'effet prix (art.225-1).
+#   GET  /questionnaire?logement_id=log1[&ref_resa=<slug>&hash=<sha256>&langue=<code>]
+#     -> P6-14 : schéma 4 blocs (arrivée/préférences/extras/contrat) + pré-rempli
+#     mémoire si hash reconnu + état complétude si ref_resa (repondu_complet /
+#     incomplet / non_repondu + blocs manquants + risque friction). 503 si
+#     `questionnaire: off`, 404 logement inconnu. Jamais de PIN, jamais de hash
+#     en sortie.
+#   POST /questionnaire {logement_id, qui, ref_resa, arrivee, reponses, optins, hash?}
+#     -> P6-14 : dépôt 1-tap HUMAIN (qui auto -> 400), ref_resa slug seule
+#     (traversée bloquée -> 400), nb voyageurs <= occupants_max copro (sinon
+#     400), températures bornées Versatile (chauffage clampé 21 °C max),
+#     extras = ids socle seuls (prix jamais ici, extras seul fait foi),
+#     cut-off J-1 18h : extras hors délai = statut cutoff_depasse (proposer sur
+#     place), jamais de refus global (ne bloque jamais l'accès). Réponse M2
+#     « On a compris : … Corriger ? » + suggestions M3 (max 3, filtre
+#     allergènes, opt-in requis sinon génériques) + opt-in mémoire -> fiche
+#     §5.7-quater (si `memoire_voyageur: off` : séjour seul, non persisté).
+#     201 créé / 200 mis à jour (même ref = correction 1-tap).
 #   POST /decision {logement_id, ref, qui, quoi, canal?, montant?, motif?, llm?, jev?}
 #     -> vérifie RBAC + bornes + hors_bornes Jev, log JSONL (bloqué si refusé, loggé aussi)
 #   GET  /health -> {"ok": true}
@@ -365,6 +382,49 @@ MEMOIRE_CHAMPS = ("opt_in", "opt_in_le", "dernier_sejour", "langue",
                   "menage_pendant_absence")
 QUI_AUTO_MEMOIRE = ("auto", "llm", "jev", "moteur-direct",
                     "moteur-dispatch", "moteur-caution", "")
+
+
+# P6-14 §5.7-quinquies : questionnaire pré-arrivée J-2. 1 lien PWA+PIN, 3 min,
+# tout pré-rempli si voyageur reconnu (§5.7-quater), 4 blocs (arrivée /
+# préférences / extras / contrat+opt-ins), cut-off extras J-1 18h, rappel
+# ciblé J-1 15h, jamais bloquant (sans réponse = kit standard + défaut).
+# GET /questionnaire : schéma + pré-rempli mémoire (hash) + complétude J1
+# (ref_resa : état + blocs manquants + risque friction + relance).
+# POST /questionnaire : dépôt 1-tap HUMAIN (qui auto -> 400), ref_resa slug
+# seule (traversée bloquée -> 400), 201 créé / 200 mis à jour (correction).
+# Stockage : `questionnaire-<logX>.json` dans decision_log_dir (volume
+# decision-state, runtime gitignoré comme decision.logX.jsonl, jamais commité).
+QUESTIONNAIRE_BLOCS = ("arrivee", "preferences", "extras", "contrat")
+# M2 : champs libres normalisés -> input_* (LLM :4000 hors moteur ; ici
+# extraction déterministe + « On a compris : … Corriger ? » 1-tap avant
+# écriture). Validation voyageur obligatoire (a_corriger_1tap).
+QUESTIONNAIRE_CHAMPS_M2 = ("heure_arrivee", "nb_voyageurs", "vol",
+                           "temp_chauffage", "temp_clim", "allergies",
+                           "consignes")
+# Schéma des 4 blocs (champs attendus ; extras = ids catalogue socle,
+# contrat = CGV 1-tap P6-15 + opt-ins). Si `memoire_voyageur: off` : blocs
+# 1+3+4 seuls (choix valables séjour courant, jamais persistés).
+QUESTIONNAIRE_SCHEMA_BLOCS = {
+    "arrivee": ("heure_arrivee", "vol", "nb_voyageurs", "consigne_bagages",
+                "parking"),
+    "preferences": ("langue", "temp_chauffage", "temp_clim",
+                    "pack_teletravail", "kit_bebe", "kit_plage",
+                    "menage_frequence_j", "menage_heure_pref",
+                    "menage_pendant_absence", "gouts_kit", "allergies",
+                    "courses_type", "petit_dej", "consignes"),
+    "extras": ("extra_ids",),
+    "contrat": ("accepte_cgv", "optin_memoire", "optin_geoloc",
+                "optin_crm_retour"),
+}
+REF_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+QUI_AUTO_QUESTIONNAIRE = QUI_AUTO_MEMOIRE
+TEMP_CHAUFFAGE_MAX = 21.0  # Versatile §5.7-quater : jamais >21 °C forcé
+QUESTIONNAIRE_CUTOFF_J_MOINS = 1  # cut-off extras J-1 18h (§5.6-ter)
+QUESTIONNAIRE_CUTOFF_HEURE = 18
+# M3 : suggestions génériques (opt-in mémoire absent : pas de fiche goûts).
+# Ids socle catalogue, prix JAMAIS ici (extras seul fait foi, art. 225-1).
+QUESTIONNAIRE_SUGGESTIONS_GENERIQUES = ("kit_bienvenue_offert", "petit_dej",
+                                        "transfert_aeroport")
 
 
 def lire_memoire(path):
@@ -1047,6 +1107,337 @@ class Moteur:
         return 200, {"statut": "purge", "purgees": purgees,
                      "restantes": len(self.memoire)}
 
+    # --- P6-14 §5.7-quinquies : questionnaire pré-arrivée J-2 ---
+    def _chemin_questionnaire(self, logement_id):
+        """État runtime (volume decision-state, gitignoré comme les JSONL,
+        jamais commité) : un JSON par logement {ref_resa: dossier}."""
+        return os.path.join(self.decision_dir,
+                            f"questionnaire-{logement_id}.json")
+
+    def _lire_questionnaires(self, logement_id):
+        try:
+            with open(self._chemin_questionnaire(logement_id),
+                      encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def _sauver_questionnaires(self, logement_id, dossiers):
+        with open(self._chemin_questionnaire(logement_id), "w",
+                  encoding="utf-8") as f:
+            json.dump(dossiers, f, ensure_ascii=False, indent=1, sort_keys=True)
+
+    def questionnaire_schema(self, logement_id, ref_resa="",
+                             hash_voyageur="", langue="fr"):
+        """GET /questionnaire : schéma 4 blocs + pré-rempli mémoire (hash) +
+        complétude J1 (ref_resa : état + manquants + risque + relance).
+        503 si `questionnaire: off`. Jamais de PIN, jamais de hash en sortie."""
+        l = self.logts.get(logement_id)
+        if not l:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not l["features"].get("questionnaire", False):
+            return 503, {"erreur": "questionnaire: off pour ce logement"}
+        code_langue = str(langue or "fr").lower()[:2]
+        if code_langue not in LANGUES_SOCLE:
+            code_langue = "fr"
+        # Si `memoire_voyageur: off` : blocs 1+3+4 seuls (choix séjour
+        # courant, jamais persistés).
+        avec_prefs = bool(l["features"].get("memoire_voyageur", False))
+        blocs = [b for b in QUESTIONNAIRE_BLOCS
+                 if b != "preferences" or avec_prefs]
+        schema = {b: list(QUESTIONNAIRE_SCHEMA_BLOCS[b]) for b in blocs}
+        fiche = (self._fiche_valide(hash_voyageur)
+                 if str(hash_voyageur or "").strip() else None)
+        pre_rempli = {}
+        if fiche is not None:
+            pre_rempli = {
+                "langue": str(fiche.get("langue", "fr") or "fr"),
+                "consignes": str(fiche.get("consignes", "") or ""),
+                "gouts_kit": str(fiche.get("extras_favoris", "") or ""),
+                "menage_frequence_j": str(fiche.get(
+                    "menage_frequence_j", "0") or "0"),
+                "menage_heure_pref": str(fiche.get(
+                    "menage_heure_pref", "11:00") or "11:00"),
+                "menage_pendant_absence": str(fiche.get(
+                    "menage_pendant_absence", "non") or "non"),
+            }
+        completude = {"etat": "non_repondu", "blocs_remplis": [],
+                      "blocs_manquants": list(blocs),
+                      "risque_friction": 1.0, "relance": "dashboard",
+                      "relance_ciblee": ""}
+        if str(ref_resa or "").strip():
+            dossiers = self._lire_questionnaires(logement_id)
+            dossier = dossiers.get(str(ref_resa).strip(), {})
+            remplis = [b for b in blocs if any(
+                str((dossier.get(b, {}) or {}).get(c, "") or "").strip()
+                for c in QUESTIONNAIRE_SCHEMA_BLOCS[b])]
+            manquants = [b for b in blocs if b not in remplis]
+            risque = round(len(manquants) / max(len(blocs), 1), 2)
+            etat_c = ("non_repondu" if not dossier
+                      else ("repondu_complet" if not manquants else "incomplet"))
+            relance = ("relance_auto" if (manquants
+                                          and etat_c != "repondu_complet")
+                       else "dashboard")
+            completude = {
+                "etat": etat_c, "blocs_remplis": remplis,
+                "blocs_manquants": manquants, "risque_friction": risque,
+                "relance": relance,
+                "relance_ciblee": (f"il manque : {', '.join(manquants)}"
+                                  if relance == "relance_auto" and manquants
+                                  else "")}
+        return 200, {"statut": "schema", "logement_id": logement_id,
+                     "langue": code_langue, "blocs": schema,
+                     "blocs_sans_preferences": not avec_prefs,
+                     "pre_rempli": pre_rempli,
+                     "voyageur_reconnu": fiche is not None,
+                     "completude": completude,
+                     "suggestions_generiques": list(
+                         QUESTIONNAIRE_SUGGESTIONS_GENERIQUES),
+                     "cutoff_extras": (f"J-{QUESTIONNAIRE_CUTOFF_J_MOINS} "
+                                       f"{QUESTIONNAIRE_CUTOFF_HEURE}h00"),
+                     "jamais_bloquant": True}
+
+    @staticmethod
+    def _normaliser_m2(arrivee, reponses):
+        """M2 déterministe (moteur) : normalise les champs libres (arrivée +
+        réponses) en valeurs typées + résumé « On a compris : … Corriger ? »
+        (validation voyageur 1-tap OBLIGATOIRE avant écriture input_*/mémoire ;
+        le LLM :4000 hors moteur ne fait que proposer, jamais écrire)."""
+        src = dict(arrivee or {})
+        for k, v in (reponses or {}).items():
+            src.setdefault(k, v)
+        norm = {}
+        norm["heure_arrivee"] = str(src.get("heure_arrivee", "") or "").strip()[:5]
+        try:
+            norm["nb_voyageurs"] = int(float(str(src.get("nb_voyageurs", "")
+                                                     or "0")))
+        except ValueError:
+            norm["nb_voyageurs"] = 0
+        norm["vol"] = str(src.get("vol", "") or "").strip().upper()[:12]
+        for cle in ("temp_chauffage", "temp_clim"):
+            try:
+                v = float(str(src.get(cle, "") or ""))
+                norm[cle] = None if v != v else v  # NaN (vide) = absent
+            except ValueError:
+                norm[cle] = None
+        # Versatile : chauffage jamais forcé >21 °C (clampé en code, signalé).
+        if (norm.get("temp_chauffage") is not None
+                and norm["temp_chauffage"] > TEMP_CHAUFFAGE_MAX):
+            norm["temp_chauffage"] = TEMP_CHAUFFAGE_MAX
+            norm["temp_chauffage_clampee"] = True
+        norm["allergies"] = [
+            x.strip().lower() for x in
+            str(src.get("allergies", "") or "").replace(";", ",").split(",")
+            if x.strip()][:10]
+        norm["consignes"] = str(src.get("consignes", "") or "").strip()[:500]
+        morceaux = []
+        if norm["heure_arrivee"]:
+            morceaux.append(f"arrivée {norm['heure_arrivee']}")
+        if norm["nb_voyageurs"]:
+            morceaux.append(f"{norm['nb_voyageurs']} voyageur(s)")
+        if norm["vol"]:
+            morceaux.append(f"vol {norm['vol']}")
+        if norm.get("temp_chauffage") is not None:
+            morceaux.append(f"chauffage {norm['temp_chauffage']} °C")
+        if norm.get("temp_clim") is not None:
+            morceaux.append(f"clim {norm['temp_clim']} °C")
+        if norm["allergies"]:
+            morceaux.append(f"allergies : {', '.join(norm['allergies'])}")
+        if norm["consignes"]:
+            morceaux.append(f"consignes : {norm['consignes'][:80]}")
+        norm["compris"] = ("On a compris : " + "; ".join(morceaux)
+                           + ". Corriger ?" if morceaux
+                           else "On a compris : rien. Corriger ?")
+        return norm
+
+    def _suggestions_m3(self, fiche, allergies):
+        """M3 : max 3 suggestions (ids catalogue socle, prix JAMAIS ici —
+        extras seul fait foi, art. 225-1). Filtre allergènes strict
+        (sous-chaîne, jamais de diagnostic santé). Opt-in absent (pas de fiche
+        goûts) -> génériques seules."""
+        favoris = []
+        if fiche is not None:
+            favoris = [x.strip().lower() for x in
+                       str(fiche.get("extras_favoris", "") or "")
+                       .replace(";", ",").split(",") if x.strip()]
+        allergenes = [a for a in (allergies or []) if a]
+
+        def _ok(candidat):
+            return not any(a in candidat for a in allergenes)
+        retenues = [c for c in favoris if _ok(c)][:3]
+        for gen in QUESTIONNAIRE_SUGGESTIONS_GENERIQUES:
+            if len(retenues) >= 3:
+                break
+            if gen not in retenues and _ok(gen):
+                retenues.append(gen)
+        return retenues
+
+    def questionnaire_depot(self, logement_id, qui_id, ref_resa, arrivee=None,
+                            reponses=None, optins=None, hash_voyageur=""):
+        """POST /questionnaire : dépôt 1-tap HUMAIN (qui auto -> 400), ref_resa
+        slug seule (traversée bloquée -> 400), nb voyageurs <= occupants_max
+        copro (sinon 400), températures bornées Versatile (chauffage clampé
+        21 °C max, jamais rejeté), extras = ids socle seuls (prix jamais ici),
+        cut-off J-1 18h : extras hors délai = statut cutoff_depasse (proposer
+        sur place), jamais de refus global (ne bloque jamais l'accès).
+        201 créé / 200 mis à jour (même ref = correction 1-tap). Jamais de PIN
+        (ni entrée ni sortie), jamais de hash en sortie."""
+        l = self.logts.get(logement_id)
+        if not l:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not l["features"].get("questionnaire", False):
+            return 503, {"erreur": "questionnaire: off pour ce logement"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_QUESTIONNAIRE:
+            return 400, {"erreur": "geste humain exigé (qui != auto/llm/jev)"}
+        ref = str(ref_resa or "").strip()
+        if not ref or not REF_RE.fullmatch(ref) or ".." in ref:
+            return 400, {"erreur": "ref_resa slug seule (traversée bloquée)"}
+        norm = self._normaliser_m2(arrivee, reponses)
+        # occupants_max copro (renseigné -> borne dure, jamais inventée).
+        occ_max = str(l.get("occupants_max", "") or "").strip()
+        if (norm["nb_voyageurs"] and occ_max.isdigit()
+                and norm["nb_voyageurs"] > int(occ_max)):
+            return 400, {"erreur": f"nb_voyageurs > occupants_max copro ({occ_max})"}
+        arrivee = dict(arrivee or {})
+        reponses = dict(reponses or {})
+        optins = dict(optins or {})
+        # Bloc arrivée : M2 normalisé + date (cut-off) + textes courts.
+        bloc_arrivee = {
+            "heure_arrivee": norm["heure_arrivee"],
+            "nb_voyageurs": norm["nb_voyageurs"],
+            "vol": norm["vol"],
+            "date_arrivee": str(arrivee.get("date_arrivee", "") or "")[:10],
+            "consigne_bagages": str(arrivee.get("consigne_bagages", "")
+                                    or "")[:20],
+            "parking": str(arrivee.get("parking", "") or "")[:20],
+        }
+        # Cut-off extras J-1 18h : dépassé -> statut informatif seul (proposer
+        # sur place), jamais de refus global.
+        cutoff_depasse = False
+        if bloc_arrivee["date_arrivee"]:
+            try:
+                j_arr = dt.date.fromisoformat(bloc_arrivee["date_arrivee"])
+                limite = dt.datetime.combine(
+                    j_arr - dt.timedelta(days=QUESTIONNAIRE_CUTOFF_J_MOINS),
+                    dt.time(QUESTIONNAIRE_CUTOFF_HEURE))
+                cutoff_depasse = dt.datetime.now() >= limite
+            except ValueError:
+                bloc_arrivee["date_arrivee"] = ""
+        # Bloc préférences : champs schéma seuls, textes bornés, jamais PIN/hash.
+        bloc_prefs = {}
+        for champ in QUESTIONNAIRE_SCHEMA_BLOCS["preferences"]:
+            if champ in ("temp_chauffage", "temp_clim"):
+                bloc_prefs[champ] = norm.get(champ)
+            elif champ in ("menage_frequence_j", "menage_heure_pref",
+                           "menage_pendant_absence", "langue", "gouts_kit",
+                           "allergies", "courses_type", "petit_dej",
+                           "consignes", "pack_teletravail", "kit_bebe",
+                           "kit_plage"):
+                v = reponses.get(champ, "")
+                bloc_prefs[champ] = (",".join(norm["allergies"])
+                                    if champ == "allergies"
+                                    else str(v or "")[:200])
+        # Bloc extras : ids socle seuls (format slug, invalides ignorés +
+        # signalés) ; prix JAMAIS ici (extras seul fait foi, art. 225-1).
+        bruts = (arrivee.get("extra_ids", reponses.get("extra_ids", [])) or [])
+        if isinstance(bruts, str):
+            bruts = [x.strip() for x in bruts.replace(";", ",").split(",")]
+        extra_ids, ignores = [], []
+        for cand in bruts:
+            cand = str(cand or "").strip().lower()[:60]
+            if not cand:
+                continue
+            (extra_ids if REF_RE.fullmatch(cand) else ignores).append(cand)
+        statut_extras = ("cutoff_depasse" if (cutoff_depasse and extra_ids)
+                         else "ok")
+        bloc_extras = {"extra_ids": extra_ids, "statut": statut_extras}
+        # Bloc contrat + opt-ins (CGV 1-tap P6-15 ; opt-ins booléens).
+        bloc_contrat = {k: str(optins.get(k, "") or "").strip().lower()
+                        in ("true", "1", "oui", "yes")
+                        for k in QUESTIONNAIRE_SCHEMA_BLOCS["contrat"]}
+        # M3 : suggestions (fiche opt-in si hash reconnu, sinon génériques).
+        fiche = (self._fiche_valide(hash_voyageur)
+                 if str(hash_voyageur or "").strip() else None)
+        suggestions = self._suggestions_m3(fiche, norm["allergies"])
+        # Opt-in mémoire -> fiche §5.7-quater (geste humain déjà vérifié) ;
+        # si `memoire_voyageur: off` : séjour seul, non persisté.
+        optin_mem = bloc_contrat["optin_memoire"]
+        mem_persiste, sejour_seul = False, False
+        if optin_mem and fiche is not None or (optin_mem and str(
+                hash_voyageur or "").strip()
+                and re.fullmatch(r"[0-9a-f]{64}",
+                                 str(hash_voyageur or "").lower())):
+            h = str(hash_voyageur).lower()
+            if l["features"].get("memoire_voyageur", False):
+                maj = dict(self.memoire.get(h, {}))
+                maj.update({
+                    "opt_in": "true",
+                    "opt_in_le": maj.get("opt_in_le", "") or utcnow_iso()[:10],
+                    "dernier_sejour": dt.date.today().isoformat(),
+                    "langue": str(reponses.get("langue", "") or "fr").lower()[:2]
+                    if str(reponses.get("langue", "") or "").lower()[:2]
+                    in LANGUES_SOCLE else maj.get("langue", "fr"),
+                    "consignes": norm["consignes"] or maj.get("consignes", ""),
+                    "extras_favoris": ",".join(extra_ids[:10])
+                    or maj.get("extras_favoris", ""),
+                })
+                if str(reponses.get("menage_frequence_j", "") or "").strip():
+                    try:
+                        maj["menage_frequence_j"] = str(max(0, min(
+                            30, int(str(reponses["menage_frequence_j"])))))
+                    except ValueError:
+                        pass
+                if re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d",
+                                str(reponses.get("menage_heure_pref", "")
+                                    or "").strip()):
+                    maj["menage_heure_pref"] = str(
+                        reponses["menage_heure_pref"]).strip()
+                if str(reponses.get("menage_pendant_absence", "")
+                       or "").strip().lower() in ("oui", "yes", "true", "1",
+                                                 "non", "no", "false", "0"):
+                    maj["menage_pendant_absence"] = (
+                        "oui" if str(reponses["menage_pendant_absence"])
+                        .strip().lower() in ("oui", "yes", "true", "1")
+                        else "non")
+                self.memoire[h] = maj
+                self._sauver_memoire()
+                mem_persiste = True
+            else:
+                sejour_seul = True
+        dossier = {"arrivee": bloc_arrivee, "preferences": bloc_prefs,
+                   "extras": bloc_extras, "contrat": bloc_contrat,
+                   "compris": norm["compris"], "a_corriger_1tap": True,
+                   "temp_chauffage_clampee": bool(
+                       norm.get("temp_chauffage_clampee")),
+                   "suggestions": suggestions,
+                   "optin_memoire_persiste": mem_persiste,
+                   "optin_memoire_sejour_seul": sejour_seul,
+                   "maj_le": utcnow_iso()}
+        dossiers = self._lire_questionnaires(logement_id)
+        statut, code = ("mis_a_jour", 200) if ref in dossiers else ("cree", 201)
+        dossiers[ref] = dossier
+        self._sauver_questionnaires(logement_id, dossiers)
+        remplis = [b for b in QUESTIONNAIRE_BLOCS if any(
+            str(dossier.get(b, {}).get(c, "") or "").strip()
+            if not isinstance(dossier.get(b, {}).get(c, ""), bool)
+            else dossier.get(b, {}).get(c, False)
+            for c in QUESTIONNAIRE_SCHEMA_BLOCS[b])]
+        self.log_decision(logement_id, f"questionnaire-{ref}", qui_id, "acces",
+                          None, None,
+                          f"questionnaire J-2 {statut} ({len(remplis)}/4 blocs)")
+        return code, {"statut": statut, "ref_resa": ref,
+                      "logement_id": logement_id, "blocs_remplis": remplis,
+                      "compris": norm["compris"], "a_corriger_1tap": True,
+                      "temp_chauffage_clampee": bool(
+                          norm.get("temp_chauffage_clampee")),
+                      "suggestions": suggestions,
+                      "extras": {"ids": extra_ids, "statut": statut_extras,
+                                 "ignores": ignores},
+                      "optin_memoire_persiste": mem_persiste,
+                      "optin_memoire_sejour_seul": sejour_seul,
+                      "jamais_bloquant": True}
+
 
 class Handler(BaseHTTPRequestHandler):
     engine = None
@@ -1102,6 +1493,16 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(400, {"erreur": "logement_id requis"})
             code, obj = self.engine.pre_remplissage(qs.get("hash", [""])[0])
             return self._json(code, obj)
+        if url.path == "/questionnaire":
+            # P6-14 §5.7-quinquies : schéma 4 blocs + pré-rempli + J1.
+            # 503 si `questionnaire: off`. Jamais de PIN, jamais de hash.
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = self.engine.questionnaire_schema(
+                logement_id, qs.get("ref_resa", [""])[0],
+                qs.get("hash", [""])[0], qs.get("langue", ["fr"])[0])
+            return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 
     def do_POST(self):
@@ -1147,6 +1548,15 @@ class Handler(BaseHTTPRequestHandler):
                     p["logement_id"], p["qui"])
             else:
                 return self._json(400, {"erreur": "action inconnue (optin/optout/purge)"})
+            return self._json(code, obj)
+        if url.path == "/questionnaire":
+            # P6-14 §5.7-quinquies : dépôt 1-tap humain (201 créé / 200 maj).
+            if not (p.get("logement_id") and p.get("qui") and p.get("ref_resa")):
+                return self._json(
+                    400, {"erreur": "logement_id, qui, ref_resa requis"})
+            code, obj = self.engine.questionnaire_depot(
+                p["logement_id"], p["qui"], p["ref_resa"], p.get("arrivee"),
+                p.get("reponses"), p.get("optins"), p.get("hash", ""))
             return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 

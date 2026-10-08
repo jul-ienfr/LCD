@@ -8,6 +8,7 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+from datetime import date, timedelta
 
 BASE = {
     "ics": "http://127.0.0.1:8090",
@@ -1463,7 +1464,173 @@ check("opt-out apres P6-13 -> 200 oublie", code == 200
       f"HTTP {code} {out_men}")
 
 print()
+print("== 11-deicies. questionnaire J-2 (P6-14 §5.7-quinquies) ==")
+# GET schema : 4 blocs, pre-rempli vide (voyageur inconnu), J1 non_repondu.
+code, sch = get("decision", "/questionnaire?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "langue": "fr"}))
+check("GET schema 4 blocs + non_repondu",
+      code == 200 and isinstance(sch, dict)
+      and set(sch.get("blocs", {})) == {"arrivee", "preferences", "extras",
+                                        "contrat"}
+      and sch.get("pre_rempli") == {}
+      and sch.get("voyageur_reconnu") is False
+      and sch.get("completude", {}).get("etat") == "non_repondu"
+      and sch.get("completude", {}).get("risque_friction") == 1.0
+      and sch.get("jamais_bloquant") is True, f"HTTP {code} {sch}")
+# GET sans logement_id / logement inconnu.
+code, obj = get("decision", "/questionnaire?langue=fr")
+check("GET sans logement_id -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/questionnaire?logement_id=logX")
+check("GET logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+
+# Garde-fous depot : qui auto -> 400, ref traversee -> 400, champs requis.
+code, obj = post("decision", "/questionnaire",
+                 {"logement_id": "log1", "qui": "auto", "ref_resa": "LAB-P614"})
+check("depot qui=auto refuse 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/questionnaire",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": "../evil"})
+check("depot ref traversee bloquee 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/questionnaire",
+                 {"logement_id": "log1", "qui": "personne_01"})
+check("depot sans ref_resa -> 400", code == 400, f"HTTP {code} {obj}")
+# occupants_max copro log1=5 : 9 voyageurs refuses.
+code, obj = post("decision", "/questionnaire",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": "LAB-P614-TROP",
+                  "arrivee": {"nb_voyageurs": 9}})
+check("depot 9 voyageurs > occupants_max 5 -> 400", code == 400,
+      f"HTTP {code} {obj}")
+
+# Depot 201 : M2 « On a compris », chauffage clampe 21, suggestions M3 max 3.
+REF_Q = f"LAB-P614-{int(time.time())}"
+code, dep = post("decision", "/questionnaire",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_Q,
+                  "arrivee": {"heure_arrivee": "17:30", "nb_voyageurs": 2,
+                              "vol": "af1234",
+                              "date_arrivee": "2099-06-01"},
+                  "reponses": {"temp_chauffage": 24, "langue": "fr",
+                               "allergies": "arachide",
+                               "menage_frequence_j": "7",
+                               "menage_heure_pref": "10:30",
+                               "menage_pendant_absence": "oui"},
+                  "optins": {"accepte_cgv": "oui"}})
+check("depot 201 + M2 compris + clamp 21 + M3 generiques",
+      code == 201 and isinstance(dep, dict)
+      and dep.get("statut") == "cree"
+      and "On a compris" in dep.get("compris", "")
+      and "Corriger" in dep.get("compris", "")
+      and dep.get("a_corriger_1tap") is True
+      and dep.get("temp_chauffage_clampee") is True
+      and isinstance(dep.get("suggestions"), list)
+      and len(dep.get("suggestions", [])) <= 3
+      and dep.get("extras", {}).get("statut") == "ok"
+      and dep.get("jamais_bloquant") is True
+      and "hash" not in dep, f"HTTP {code} {dep}")
+
+# Correction 1-tap : meme ref -> 200 mis_a_jour (chauffage 19, pas de clamp).
+code, maj = post("decision", "/questionnaire",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_Q,
+                  "arrivee": {"heure_arrivee": "18:00", "nb_voyageurs": 2,
+                              "date_arrivee": "2099-06-01"},
+                  "reponses": {"temp_chauffage": 19, "langue": "fr"},
+                  "optins": {"accepte_cgv": "oui"}})
+check("correction meme ref -> 200 mis_a_jour sans clamp",
+      code == 200 and isinstance(maj, dict)
+      and maj.get("statut") == "mis_a_jour"
+      and maj.get("temp_chauffage_clampee") is False
+      and "18:00" in maj.get("compris", ""), f"HTTP {code} {maj}")
+
+# Extras ids invalides ignores (jamais de prix ici, art. 225-1).
+code, ide = post("decision", "/questionnaire",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": f"LAB-P614-{int(time.time())}-X",
+                  "arrivee": {"date_arrivee": "2099-06-01"},
+                  "reponses": {"extra_ids": ["petit_dej", "../../evil"]}})
+check("extras invalides ignores, jamais de prix",
+      code == 201 and isinstance(ide, dict)
+      and ide.get("extras", {}).get("ids") == ["petit_dej"]
+      and ide.get("extras", {}).get("ignores") == ["../../evil"]
+      and "prix" not in json.dumps(ide), f"HTTP {code} {ide}")
+
+# Cut-off J-1 18h : arrivee hier -> extras cutoff_depasse, jamais bloquant.
+hier = (date.today() - timedelta(days=1)).isoformat()
+code, cut = post("decision", "/questionnaire",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": f"LAB-P614-{int(time.time())}-C",
+                  "arrivee": {"date_arrivee": hier,
+                              "extra_ids": ["petit_dej"]},
+                  "reponses": {}})
+check("cut-off depasse -> statut cutoff_depasse, jamais bloquant",
+      code == 201 and isinstance(cut, dict)
+      and cut.get("extras", {}).get("statut") == "cutoff_depasse"
+      and cut.get("jamais_bloquant") is True
+      and cut.get("statut") == "cree", f"HTTP {code} {cut}")
+
+# J1 completude : dossier incomplet -> etat + manquants + relance ciblee.
+code, j1 = get("decision", "/questionnaire?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "ref_resa": REF_Q}))
+check("J1 incomplet -> manquants + relance_auto ciblee",
+      code == 200 and isinstance(j1, dict)
+      and j1.get("completude", {}).get("etat") == "incomplet"
+      and j1.get("completude", {}).get("blocs_manquants") != []
+      and j1.get("completude", {}).get("relance") == "relance_auto"
+      and "il manque" in j1.get("completude", {}).get("relance_ciblee", ""),
+      f"HTTP {code} {j1}")
+
+# Opt-in memoire reconnu : GET pre-remplit langue/consignes/menage.
+code, opt_q = post("decision", "/memoire",
+                   {"action": "optin", "logement_id": "log1",
+                    "qui": "personne_01", "hash": HASH_LAB,
+                    "preferences": {"langue": "es",
+                                    "consignes": "etage 2",
+                                    "extras_favoris": "petit_dej, velo",
+                                    "menage_frequence_j": "7"}})
+check("opt-in memoire pour pre-rempli -> 200", code == 200,
+      f"HTTP {code} {opt_q}")
+code, sch_mem = get("decision", "/questionnaire?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "hash": HASH_LAB}))
+check("GET hash reconnu -> pre-rempli memoire + generiques",
+      code == 200 and isinstance(sch_mem, dict)
+      and sch_mem.get("voyageur_reconnu") is True
+      and sch_mem.get("pre_rempli", {}).get("langue") == "es"
+      and sch_mem.get("pre_rempli", {}).get("consignes") == "etage 2"
+      and sch_mem.get("pre_rempli", {}).get("menage_frequence_j") == "7"
+      and "hash" not in json.dumps(sch_mem), f"HTTP {code} {sch_mem}")
+
+# Depot avec hash reconocido + optin_memoire : fiche maj (sejour courant),
+# suggestions M3 depuis favoris (filtre allergene : velo garde, pas l'allergene).
+code, dep_mem = post("decision", "/questionnaire",
+                     {"logement_id": "log1", "qui": "personne_01",
+                      "ref_resa": f"LAB-P614-{int(time.time())}-M",
+                      "hash": HASH_LAB,
+                      "arrivee": {"date_arrivee": "2099-06-01"},
+                      "reponses": {"allergies": "velo"},
+                      "optins": {"optin_memoire": "oui"}})
+check("depot optin_memoire -> persiste + M3 filtre allergene",
+      code == 201 and isinstance(dep_mem, dict)
+      and dep_mem.get("optin_memoire_persiste") is True
+      and "velo" not in (dep_mem.get("suggestions") or [])
+      and len(dep_mem.get("suggestions", [])) <= 3,
+      f"HTTP {code} {dep_mem}")
+code, fiche_q = get("decision", f"/memoire?logement_id=log1&hash={HASH_LAB}")
+check("fiche memoire maj par questionnaire",
+      code == 200 and isinstance(fiche_q, dict)
+      and fiche_q.get("statut") == "reconnu", f"HTTP {code} {fiche_q}")
+
+# Oubli final : opt-out (registre lab restaure avant commit).
+code, out_q = post("decision", "/memoire",
+                   {"action": "optout", "logement_id": "log1",
+                    "qui": "personne_01", "hash": HASH_LAB})
+check("opt-out final P6-14 -> 200 oublie", code == 200
+      and isinstance(out_q, dict)
+      and out_q.get("fiche_supprimee") is True,
+      f"HTTP {code} {out_q}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14.")
