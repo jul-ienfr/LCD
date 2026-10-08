@@ -3648,7 +3648,7 @@ llm = sorted(u.get("usage") for u in pg.get("usages", [])
 jev = sorted(u.get("usage") for u in pg.get("usages", [])
              if u.get("moteur") == "jev") if isinstance(pg, dict) else []
 check("GET /prompts : M1-M8 LLM + J1-J9 Jev + pricing/compta + ops",
-      code == 200 and isinstance(pg, dict) and pg.get("total") == 40
+      code == 200 and isinstance(pg, dict) and pg.get("total") == 49
       and set(["m1-detection-langue",
                "m2-normalisation-questionnaire",
                "m3-suggestion-extras", "m4-reformulation-menage",
@@ -3664,6 +3664,11 @@ check("GET /prompts : M1-M8 LLM + J1-J9 Jev + pricing/compta + ops",
                "ollm-conflit-ics", "ollm-diagnostic-panne",
                "ollm-resume-logs", "ollm-fiche-mission",
                "ollm-dossier-incomplet", "ollm-ecart-compta"]) <= set(llm)
+      and set(["ojev-scoring-dispatch", "ojev-gravite-sinistre",
+               "ojev-completude-photo", "ojev-conflit-ics-garder",
+               "ojev-diagnostic-supervision", "ojev-fusion-wifi",
+               "ojev-linge", "ojev-caution-recours",
+               "ojev-gating-palier"]) <= set(jev)
       and all(u.get("alias") and u.get("variables")
               for u in pg.get("usages", [])
               if u.get("moteur") == "llm"),
@@ -3840,7 +3845,65 @@ check("composer ollm-conflit-ics -> 200 ordre marge rappele",
       f"HTTP {code} {co4}")
 
 print()
+print("== 29. prompts ops Jev M-JEV1-9 : registre + composeur seuils (P7-15 §6.7.6) ==")
+code, co = post("router", "/composer",
+                {"usage": "ojev-scoring-dispatch",
+                 "variables": {"motif": "fuite SDB",
+                               "metier": "plomberie",
+                               "zone": "santa_severa",
+                               "candidats": "A 55/h 4.5 lun-sam"}})
+check("composer ojev-scoring-dispatch -> 200 filtre zone+RC + jamais auto hors zone",
+      code == 200 and isinstance(co, dict)
+      and co.get("moteur") == "jev"
+      and co.get("backend") == "typesafe"
+      and "A 55/h 4.5" in co.get("prompt", "")
+      and "jamais auto hors zone" in co.get("seuils", "")
+      and "choice_presta" in co.get("construits", [])
+      and co.get("placeholders_restants") == 0,
+      f"HTTP {code} {co}")
+code, obj = post("router", "/composer",
+                 {"usage": "ojev-gravite-sinistre",
+                  "variables": {"sinistre": "fuite",
+                                "logement": "log1"}})
+check("composer ojev-gravite-sinistre sans canal -> 422",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("manquants") == ["canal"],
+      f"HTTP {code} {obj}")
+code, co2 = post("router", "/composer",
+                 {"usage": "ojev-fusion-wifi",
+                  "variables": {"signaux": "PIR+dB 70",
+                                "occupation": "confirmee",
+                                "consentement": "opt-in"}})
+check("composer ojev-fusion-wifi -> 200 verbatim + jamais CSI/seul",
+      code == 200 and isinstance(co2, dict)
+      and "sans caméra" in co2.get("prompt", "")
+      and "PIR+dB 70" in co2.get("prompt", "")
+      and "wifi_seul" in co2.get("interdits", [])
+      and "csi_brut" in co2.get("interdits", []),
+      f"HTTP {code} {co2}")
+code, co3 = post("router", "/composer",
+                 {"usage": "ojev-caution-recours",
+                  "variables": {"dossier": "EDL + facture 180",
+                                "canal": "airbnb",
+                                "montant": "180"}})
+check("composer ojev-caution-recours -> 200 jamais sans justificatifs",
+      code == 200 and isinstance(co3, dict)
+      and "14 j" in co3.get("seuils", "")
+      and "retenue_sans_preuve" in co3.get("interdits", []),
+      f"HTTP {code} {co3}")
+code, co4 = post("router", "/composer",
+                 {"usage": "ojev-gating-palier",
+                  "variables": {"checklist": "4/9 KO",
+                                "copro": "verifiee false",
+                                "tableau": "a_verifier"}})
+check("composer ojev-gating-palier -> 200 BLOQUEE si verifiee false",
+      code == 200 and isinstance(co4, dict)
+      and "BLOQUÉE" in co4.get("seuils", "")
+      and "mise_en_ligne_forcee" in co4.get("interdits", []),
+      f"HTTP {code} {co4}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15.")

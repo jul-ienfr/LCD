@@ -144,6 +144,12 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     fiche mission + dossier incomplet + écart compta/onboarding
     (registre étendu, garde-fous jamais retenue/promesse/
     montant/hors-zone/PIN/écriture auto, exécution box).
+28. prompts ops Jev M-JEV1→9 P7-15 (§6.7.6) : vrai scoring dispatch
+    Choice, gravité sinistre SLA, complétude photo sans vision,
+    conflit ICS garder, diagnostic supervision, fusion WiFi-sensing
+    (verbatim, jamais seul), linge, caution/litige (jamais sans
+    justificatifs), gating palier (verifiee false = BLOQUÉE)
+    (registre étendu, seuils dashboard/file/BLOQUÉE, exécution box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

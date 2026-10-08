@@ -247,3 +247,66 @@ prompts:
     variables: [ecart, details]
     interdits: [ecriture_auto, cle_bancaire]
     systeme: "Explique l'écart compta (commission/payout/extra) + aide onboarding (tableau/230 V = électricien obligatoire, copro verifiee bloque mise en ligne). Lecture seule, jamais d'écriture auto, orpheline >7 j = file. Écart : {{ ecart }} — Détails : {{ details }}."
+  - usage: ojev-scoring-dispatch
+    moteur: jev
+    construits: [choice_presta, score_adequation, noul_hors_zone, noul_rc_douteuse]
+    seuils: "conf<0,7 : dashboard ; critique+favori : mission auto, sinon 2e choix + humain (jamais auto hors zone)"
+    variables: [motif, metier, zone, candidats]
+    interdits: [hors_zone_auto, sans_rc]
+    systeme: "Score le dispatch (Choice presta + Score adéquation + Noul hors_zone + Noul RC douteuse). Filtre code zone+actif+RC d'abord, full-auto seulement SLA critique + favori, hors zone jamais auto. Motif : {{ motif }} — Métier : {{ metier }} — Zone : {{ zone }} — Candidats : {{ candidats }}."
+  - usage: ojev-gravite-sinistre
+    moteur: jev
+    construits: [score_gravite_sinistre, noul_urgence_relogement, choice_metier, noul_caution]
+    seuils: "conf basse : humain ; jamais retenue sans justificatifs (AirCover 14 j / Booking 48 h / Vrbo ~14 j)"
+    variables: [sinistre, logement, canal]
+    interdits: [retenue_sans_preuve, debit_vcc]
+    systeme: "Juge la gravité sinistre (Score gravité + Noul urgence relogement + Choice métier + Noul caution à ouvrir). Délais plateforme en code + compte à rebours, humain si conf basse, jamais de retenue sans justificatifs. Sinistre : {{ sinistre }} — Logement : {{ logement }} — Canal : {{ canal }}."
+  - usage: ojev-completude-photo
+    moteur: jev
+    construits: [noul_dossier_incomplet, score_completude]
+    seuils: "incomplet : file validation (clôture bloquée en code, jamais de déblocage auto)"
+    variables: [dossier, metadonnees]
+    interdits: [cloture_forcee, sanction_auto]
+    systeme: "Juge la complétude photo sans vision (Noul dossier incomplet + Score complétude sur métadonnées : nb photos/pièce, EXIF, horodatage, >24 h, vidéo optionnelle). Contrôle EXIF déterministe, clôture bloquée en code si manquantes. Dossier : {{ dossier }} — Métadonnées : {{ metadonnees }}."
+  - usage: ojev-conflit-ics-garder
+    moteur: jev
+    construits: [choice_garder, noul_relogement, score_impact]
+    seuils: "ordre marge inviolable (direct>Airbnb>Booking>Abritel), humain <15 min"
+    variables: [resa_a, resa_b, log2_libre]
+    interdits: [ordre_invente]
+    systeme: "Juge le conflit ICS (Choice garder + Noul relogement possible + Score impact client). Ordre marge en code inviolable, Jev vérifie/route, humain <15 min. Résa A : {{ resa_a }} — Résa B : {{ resa_b }} — Log2 libre : {{ log2_libre }}."
+  - usage: ojev-diagnostic-supervision
+    moteur: jev
+    construits: [choice_cause, noul_intervention_humaine]
+    seuils: "watchdogs déterministes, routage groupée/critique seul, anti-spam digest"
+    variables: [symptome, signaux]
+    interdits: [spam_alerte]
+    systeme: "Diagnostique la cause supervision (Choice wan/box/zigbee/thread/mqtt/batterie/capteur_muet + Noul intervention humaine requise). Watchdogs déterministes, Jev routage seul, anti-spam digest. Symptôme : {{ symptome }} — Signaux : {{ signaux }}."
+  - usage: ojev-fusion-wifi
+    moteur: jev
+    construits: [choice_classe, score_surnombre, noul_fete_probable]
+    seuils: "jamais WiFi seul : 2 sources <2 min + humain confirme (purge 90 j)"
+    variables: [signaux, occupation, consentement]
+    interdits: [wifi_seul, csi_brut, chambre_sdb]
+    systeme: "Fusionne WiFi-sensing (Choice humain/animal/indéterminé + Score surnombre + Noul fête probable, PIR+ouvrants+conso+dB+wifi). Jamais WiFi seul, 2 sources <2 min + humain confirme, opt-in séjour, jamais chambres/SDB, jamais CSI brut, purge 90 j. Verbatim : Le logement est équipé d'un système de détection de présence sans caméra ni enregistrement audio/vidéo. Vous pouvez refuser sans conséquence. Signaux : {{ signaux }} — Occupation : {{ occupation }} — Consentement : {{ consentement }}."
+  - usage: ojev-linge
+    moteur: jev
+    construits: [score_rupture_linge, noul_pressing_retard, choice_action]
+    seuils: "seuils code <2 jeux (<3 été) : alerte, notif hebdo groupée"
+    variables: [jeux_dispos, pressing_delai, prochain_checkin]
+    interdits: [rupture_non_signalee]
+    systeme: "Juge le linge (Score rupture + Noul pressing retard + Choice attendre/express/commander). Seuils code <2 jeux (<3 été), seuils Grocy, notif hebdo groupée. Jeux dispos : {{ jeux_dispos }} — Pressing délai : {{ pressing_delai }} — Prochain check-in : {{ prochain_checkin }}."
+  - usage: ojev-caution-recours
+    moteur: jev
+    construits: [score_risque_contestation, noul_dossier_suffisant, choice_canal_recours]
+    seuils: "insuffisant : dossier bloqué + rappel ; délais 14 j/48 h en code"
+    variables: [dossier, canal, montant]
+    interdits: [retenue_sans_preuve, debit_vcc]
+    systeme: "Juge le recours caution (Score risque contestation + Noul dossier suffisant AirCover/Booking/Vrbo + Choice canal recours). Justificatifs photos+facture/devis obligatoires en code, info voyageur 48 h via plateforme, jamais de débit VCC Booking. Dossier : {{ dossier }} — Canal : {{ canal }} — Montant : {{ montant }}."
+  - usage: ojev-gating-palier
+    moteur: jev
+    construits: [choice_palier, noul_copro_bloquante, noul_secu_elec]
+    seuils: "checklist KO : socle+Nuki seul ; copro verifiee false : mise en ligne BLOQUÉE"
+    variables: [checklist, copro, tableau]
+    interdits: [mise_en_ligne_forcee]
+    systeme: "Juge le palier wizard (Choice socle+Nuki seul vs full + Noul copro bloquante + Noul sécu élec requise). Checklist KO = socle+Nuki seul en code, copro verifiee false = mise en ligne BLOQUÉE, tableau = électricien. Checklist : {{ checklist }} — Copro : {{ copro }} — Tableau : {{ tableau }}."
