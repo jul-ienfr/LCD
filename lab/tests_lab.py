@@ -3648,7 +3648,7 @@ llm = sorted(u.get("usage") for u in pg.get("usages", [])
 jev = sorted(u.get("usage") for u in pg.get("usages", [])
              if u.get("moteur") == "jev") if isinstance(pg, dict) else []
 check("GET /prompts : M1-M8 LLM + J1-J9 Jev + pricing/compta + ops",
-      code == 200 and isinstance(pg, dict) and pg.get("total") == 56
+      code == 200 and isinstance(pg, dict) and pg.get("total") == 63
       and set(["m1-detection-langue",
                "m2-normalisation-questionnaire",
                "m3-suggestion-extras", "m4-reformulation-menage",
@@ -3673,6 +3673,10 @@ check("GET /prompts : M1-M8 LLM + J1-J9 Jev + pricing/compta + ops",
                "jllm-lettre-syndic", "jllm-relance-echeance",
                "jllm-aide-mediation", "jllm-digest-audit",
                "jllm-filtre-rbac"]) <= set(llm)
+      and set(["jjev-garde-fou-clauses", "jjev-conformite-bloquante",
+               "jjev-routage-litige", "jjev-eligibilite-caution",
+               "jjev-criticite-echeances", "jjev-anti-fuite",
+               "jjev-anomalie-pilotage"]) <= set(jev)
       and all(u.get("alias") and u.get("variables")
               for u in pg.get("usages", [])
               if u.get("moteur") == "llm"),
@@ -3961,7 +3965,58 @@ check("composer jllm-filtre-rbac -> 200 refuse hors scope + jamais secret",
       f"HTTP {code} {co4}")
 
 print()
+print("== 31. prompts juridique Jev M-JEV-1-7 : registre + seuils (P7-17 §6.7.8) ==")
+code, co = post("router", "/composer",
+                {"usage": "jjev-garde-fou-clauses",
+                 "variables": {"document": "CGV test",
+                               "source": "M-LLM-1"}})
+check("composer jjev-garde-fou-clauses -> 200 auto-bloquant + construits",
+      code == 200 and isinstance(co, dict)
+      and co.get("moteur") == "jev"
+      and co.get("backend") == "typesafe"
+      and "auto-bloquant" in co.get("seuils", "")
+      and "CGV test" in co.get("prompt", "")
+      and "noul_amende_forfaitaire" in co.get("construits", [])
+      and co.get("placeholders_restants") == 0,
+      f"HTTP {code} {co}")
+code, obj = post("router", "/composer",
+                 {"usage": "jjev-eligibilite-caution",
+                  "variables": {"dossier": "EDL",
+                                "canal": "airbnb"}})
+check("composer jjev-eligibilite-caution sans delai -> 422",
+      code == 422 and isinstance(obj, dict)
+      and obj.get("manquants") == ["delai"],
+      f"HTTP {code} {obj}")
+code, co2 = post("router", "/composer",
+                 {"usage": "jjev-routage-litige",
+                  "variables": {"reclamation": "bruit",
+                                "frustration": "0.9"}})
+check("composer jjev-routage-litige -> 200 jamais cloture auto + mediateur",
+      code == 200 and isinstance(co2, dict)
+      and "L.612-1" in co2.get("prompt", "")
+      and "cloture_auto" in co2.get("interdits", []),
+      f"HTTP {code} {co2}")
+code, co3 = post("router", "/composer",
+                 {"usage": "jjev-anti-fuite",
+                  "variables": {"reponse": "CA 12000",
+                                "role": "presta"}})
+check("composer jjev-anti-fuite -> 200 blocage + jamais secret",
+      code == 200 and isinstance(co3, dict)
+      and "blocage" in co3.get("seuils", "")
+      and "secret" in co3.get("interdits", []),
+      f"HTTP {code} {co3}")
+code, co4 = post("router", "/composer",
+                 {"usage": "jjev-anomalie-pilotage",
+                  "variables": {"signaux": "TVA incoherente",
+                                "perimetre": "compta"}})
+check("composer jjev-anomalie-pilotage -> 200 file + jamais ecriture auto",
+      code == 200 and isinstance(co4, dict)
+      and "file validation" in co4.get("seuils", "")
+      and "ecriture_auto" in co4.get("interdits", []),
+      f"HTTP {code} {co4}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17.")

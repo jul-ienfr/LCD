@@ -156,6 +156,13 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     relances (sans menace, humain valide), médiation L.612-1 + ODR,
     digest audit (jamais PIN), filtre RBAC scopé (refuse hors scope,
     secrets jamais exposés) (registre étendu, exécution box).
+30. prompts juridique Jev M-JEV-1→7 P7-17 (§6.7.8) : garde-fou
+    clauses R.212-1 (auto-bloquant), complétude conformité
+    (verifiee false + stop-sell), routage litige (jamais clôture
+    auto), éligibilité caution (jamais sans justificatifs),
+    criticité échéances (push/digest), anti-fuite RBAC (blocage +
+    log), anomalie pilotage (file, jamais écriture auto)
+    (registre étendu, seuils dashboard/file/BLOQUÉE, exécution box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

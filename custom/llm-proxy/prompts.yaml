@@ -345,3 +345,52 @@ prompts:
     variables: [role, logements, demande]
     interdits: [hors_scope, secret]
     systeme: "Filtre la demande au périmètre du rôle (rôle + logements depuis acces.yaml, révocation auto, journal 90 j). Refuse hors scope, secrets jamais exposés, presta = mission seule, voyageur = PWA durée séjour jamais HA direct. Rôle : {{ role }} — Logements : {{ logements }} — Demande : {{ demande }}."
+  - usage: jjev-garde-fou-clauses
+    moteur: jev
+    construits: [noul_clause_abusive, noul_amende_forfaitaire, noul_paiement_hors_plateforme]
+    seuils: "noul>0,8+conf>0,75 : auto-bloquant, sinon dashboard ; conf<0,7 : revue"
+    variables: [document, source]
+    interdits: [mise_en_ligne_forcee]
+    systeme: "Traque les clauses abusives pré-publication (Noul clause abusive R.212-1 + Noul amende forfaitaire + Noul paiement hors plateforme) sur tout règlement/CGV généré. Auto-bloquant si seuils, sinon dashboard, revue si conf basse, jamais de mise en ligne forcée. Document : {{ document }} — Source : {{ source }}."
+  - usage: jjev-conformite-bloquante
+    moteur: jev
+    construits: [choice_completude, score_risque_mise_en_ligne]
+    seuils: "incomplet : verifiee false + stop-sell (décision déterministe finale)"
+    variables: [dossier, pieces]
+    interdits: [mise_en_ligne_forcee]
+    systeme: "Score la complétude conformité (Choice complet/incomplet + Score risque mise en ligne depuis Cerfa, numéro, DPE, taxe, assurance). Incomplet = verifiee false + stop-sell, décision déterministe finale, règles > Jev. Dossier : {{ dossier }} — Pièces : {{ pieces }}."
+  - usage: jjev-routage-litige
+    moteur: jev
+    construits: [noul_litige, score_frustration, choice_orientation]
+    seuils: "litige>0,8 : file hôte + médiateur L.612-1 (jamais clôture auto)"
+    variables: [reclamation, frustration]
+    interdits: [cloture_auto]
+    systeme: "Route la réclamation (Noul litige + Score frustration + Choice auto/hôte/médiateur). Litige fort = file hôte + médiateur L.612-1 proposé, jamais de clôture auto, humain seul saisit le médiateur. Réclamation : {{ reclamation }} — Frustration : {{ frustration }}."
+  - usage: jjev-eligibilite-caution
+    moteur: jev
+    construits: [noul_justificatifs, choice_canal]
+    seuils: "insuffisant : dossier bloqué + rappel (AirCover 14 j / Booking 48 h)"
+    variables: [dossier, canal, delai]
+    interdits: [retenue_sans_preuve, debit_vcc]
+    systeme: "Juge l'éligibilité caution avant forclusion (Noul justificatifs suffisants photos+facture + Choice AirCover/Booking/Vrbo/direct). Insuffisant = dossier bloqué + rappel, jamais de retenue sans justificatifs, jamais de débit VCC. Dossier : {{ dossier }} — Canal : {{ canal }} — Délai : {{ delai }}."
+  - usage: jjev-criticite-echeances
+    moteur: jev
+    construits: [score_criticite, choice_diffusion]
+    seuils: "critique : push immédiat, sinon digest 1/j (jamais silencieuse)"
+    variables: [echeances, contexte]
+    interdits: [alerte_masquee]
+    systeme: "Juge la criticité des échéances pilotage (Score criticité RC/registre/DPE/taxe/120 j/plafonds + Choice groupée/critique). Critique = push immédiat, sinon digest 1 j, proposition jamais silencieuse, 1-tap humain. Échéances : {{ echeances }} — Contexte : {{ contexte }}."
+  - usage: jjev-anti-fuite
+    moteur: jev
+    construits: [choice_perimetre, noul_fuite_hors_scope]
+    seuils: ">0,5 : blocage + log (journal 90 j, 2FA, révocation auto)"
+    variables: [reponse, role]
+    interdits: [hors_scope, secret]
+    systeme: "Traque la fuite hors scope (Choice périmètre + Noul fuite sur toute réponse dashboard/PWA). Fuite = blocage + log, acces.yaml source vérité, secrets jamais exposés. Réponse : {{ reponse }} — Rôle : {{ role }}."
+  - usage: jjev-anomalie-pilotage
+    moteur: jev
+    construits: [noul_anomalie]
+    seuils: "file validation, jamais écriture auto compta (pièces 10 ans chiffrées)"
+    variables: [signaux, perimetre]
+    interdits: [ecriture_auto]
+    systeme: "Traque l'anomalie pilotage (Noul doublon compta, TVA incohérente, dérive prix hors bornes, dispatch hors zone, écart pointage >20 %, rapprochement >2 %). File validation, jamais d'écriture auto compta, temps facturé = temps pointé. Signaux : {{ signaux }} — Périmètre : {{ perimetre }}."
