@@ -12,5 +12,7 @@
 - Extras : pré-commande J-1 18h via PWA.
 
 ## Départ
-- Checklist PWA 30 s + photos.
+- Checklist PWA 30 s + photos : fenêtres fermées, clim/chaud coupés, LV/LL
+  vidés et lancés, poubelles sorties (tri Métropole NCA), bagages consignés si besoin.
+- Porte : code révoqué départ+30 min (PIN à usage unique, jamais réutilisé).
 - Urgence : {{ tel_urgence }}.

@@ -26,6 +26,9 @@ views:
           Langue : `input_text.log1_langue_voyageur` (socle FR/EN/ES/IT/DE + maternelle auto §5.7-ter).
         visibility:
           - condition: state
+            entity: input_boolean.log1_enable_guide_vivant
+            state: "on"
+          - condition: state
             entity: input_select.logement_actif
             state:
               - log1
@@ -34,6 +37,9 @@ views:
         entities:
           - input_text.log1_langue_voyageur
         visibility:
+          - condition: state
+            entity: input_boolean.log1_enable_guide_vivant
+            state: "on"
           - condition: state
             entity: input_select.logement_actif
             state:
@@ -45,10 +51,8 @@ views:
           Backup papier : QR pièces imprimés si tablette HS.
         visibility:
           - condition: state
-            entity: input_select.logement_actif
-            state:
-              - log1
-              - tous
+            entity: input_boolean.log1_enable_wallpanel
+            state: "on"
   - title: Guide
     visibility:
       - condition: state
@@ -65,10 +69,8 @@ views:
           jamais bloquée. Fiches `docs/templates/qr_{salon,cuisine,chambre,sdb,entree}.svg`.
         visibility:
           - condition: state
-            entity: input_select.logement_actif
-            state:
-              - log1
-              - tous
+            entity: input_boolean.log1_enable_qr_pieces
+            state: "on"
       - type: markdown
         content: >
           Extras (`extras_upsell: on`) : mini-bar honnêteté (conso déclarée +
@@ -89,10 +91,8 @@ views:
           Enquête J+1 auto (§5.7-bis : ≥4★ lien public, <4★ rattrapage privé <15 min 8h-22h).
         visibility:
           - condition: state
-            entity: input_select.logement_actif
-            state:
-              - log1
-              - tous
+            entity: input_boolean.log1_enable_avis_j1
+            state: "on"
   - title: Urgences
     visibility:
       - condition: state

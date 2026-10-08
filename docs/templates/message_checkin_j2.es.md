@@ -3,7 +3,7 @@
 # Firmado {{ marque }}, nunca « LCD/HA ».
 # Variables: {{ marque }}, {{ logement }}, {{ pin }}, {{ slot_nom }}, {{ arrivee }},
 # {{ depart }}, {{ wifi_qr }}, {{ heure_arrivee }}, {{ adresse }}, {{ tel_urgence }},
-# {{ lien_questionnaire }}, {{ lien_guide }}.
+# {{ lien_questionnaire }}, {{ lien_guide }}, {{ lien_pwa }}.
 # Placeholders {{ }} INTOCABLES (§5.7-ter).
 # Si pin vacío (log2 smart_lock off) → message_boite_cles, consigna caja llaves (sin MQTT, §5.2).
 
@@ -17,6 +17,7 @@ WiFi: escanear {{ wifi_qr }} (conexión <3 s).
 
 Antes de llegar (3 min): {{ lien_questionnaire }}
 Guía del alojamiento: {{ lien_guide }}
+Tu espacio (PWA): {{ lien_pwa }} — QR del salón en la entrada para el recorrido.
 
 Urgencia en el lugar: {{ tel_urgence }}.
 — {{ marque }}

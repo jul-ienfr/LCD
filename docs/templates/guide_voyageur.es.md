@@ -12,5 +12,8 @@
 - Extras: pre-pedido J-1 18h vía PWA.
 
 ## Salida
-- Checklist PWA 30 s + fotos.
+- Checklist PWA 30 s + fotos: ventanas cerradas, calefacción/clima apagados,
+  lavavajillas y lavadora vaciados y puestos en marcha, basura fuera
+  (recogida selectiva local), consigna de equipaje si necesario.
+- Puerta: código revocado 30 min después de la salida (PIN de un solo uso).
 - Urgencia: {{ tel_urgence }}.

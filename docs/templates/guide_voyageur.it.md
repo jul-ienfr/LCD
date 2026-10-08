@@ -12,5 +12,8 @@
 - Extra: pre-ordine J-1 18h via PWA.
 
 ## Partenza
-- Checklist PWA 30 s + foto.
+- Checklist PWA 30 s + foto: finestre chiuse, riscaldamento/clima spenti,
+  lavastoviglie e lavatrice svuotate e avviate, rifiuti fuori
+  (raccolta differenziata locale), deposito bagagli se necessario.
+- Porta: codice revocato 30 min dopo il checkout (PIN monouso).
 - Emergenza: {{ tel_urgence }}.

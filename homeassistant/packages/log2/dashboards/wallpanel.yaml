@@ -24,6 +24,9 @@ views:
           Langue : `input_text.log2_langue_voyageur` (socle + maternelle auto §5.7-ter).
         visibility:
           - condition: state
+            entity: input_boolean.log2_enable_guide_vivant
+            state: "on"
+          - condition: state
             entity: input_select.logement_actif
             state:
               - log2
@@ -32,6 +35,9 @@ views:
         entities:
           - input_text.log2_langue_voyageur
         visibility:
+          - condition: state
+            entity: input_boolean.log2_enable_guide_vivant
+            state: "on"
           - condition: state
             entity: input_select.logement_actif
             state:
@@ -43,10 +49,8 @@ views:
           Backup papier : QR pièces imprimés si tablette HS.
         visibility:
           - condition: state
-            entity: input_select.logement_actif
-            state:
-              - log2
-              - tous
+            entity: input_boolean.log2_enable_wallpanel
+            state: "on"
   - title: Guide
     visibility:
       - condition: state
@@ -61,20 +65,16 @@ views:
           tri Métropole NCA, bruit 22h-8h. Kit bienvenue offert (pas de mini-bar payant ici).
         visibility:
           - condition: state
-            entity: input_select.logement_actif
-            state:
-              - log2
-              - tous
+            entity: input_boolean.log2_enable_qr_pieces
+            state: "on"
       - type: markdown
         content: >
           Départ zéro friction : checklist PWA 30 s + photos.
           Enquête J+1 auto (§5.7-bis : ≥4★ lien public, <4★ rattrapage privé <15 min 8h-22h).
         visibility:
           - condition: state
-            entity: input_select.logement_actif
-            state:
-              - log2
-              - tous
+            entity: input_boolean.log2_enable_avis_j1
+            state: "on"
   - title: Urgences
     visibility:
       - condition: state

@@ -3,7 +3,7 @@
 # Signiert {{ marque }}, niemals „LCD/HA".
 # Variablen: {{ marque }}, {{ logement }}, {{ pin }}, {{ slot_nom }}, {{ arrivee }},
 # {{ depart }}, {{ wifi_qr }}, {{ heure_arrivee }}, {{ adresse }}, {{ tel_urgence }},
-# {{ lien_questionnaire }}, {{ lien_guide }}.
+# {{ lien_questionnaire }}, {{ lien_guide }}, {{ lien_pwa }}.
 # Platzhalter {{ }} UNANTASTBAR (§5.7-ter).
 # Wenn pin leer (log2 smart_lock off) → message_boite_cles, Schlüsselbox-Anweisung (kein MQTT, §5.2).
 
@@ -17,6 +17,7 @@ WLAN: {{ wifi_qr }} scannen (Verbindung <3 s).
 
 Vor Anreise (3 Min.): {{ lien_questionnaire }}
 Unterkunftsführer: {{ lien_guide }}
+Dein Bereich (PWA): {{ lien_pwa }} — Wohnzimmer-QR am Eingang für den Rundgang.
 
 Notfall vor Ort: {{ tel_urgence }}.
 — {{ marque }}

@@ -12,5 +12,8 @@
 - Extras: pre-order before D-1 18h via PWA.
 
 ## Departure
-- PWA checklist 30 s + photos.
+- PWA checklist 30 s + photos: windows closed, heating/AC off, dishwasher
+  and washer emptied and started, bins out (local sorting rules), luggage
+  storage if needed.
+- Door: code revoked 30 min after checkout (single-use PIN, never reused).
 - Emergency: {{ tel_urgence }}.

@@ -12,5 +12,8 @@
 - Extras: Vorbestellung J-1 18h via PWA.
 
 ## Abreise
-- PWA-Checkliste 30 s + Fotos.
+- PWA-Checkliste 30 s + Fotos: Fenster zu, Heizung/Klima aus, Spül- und
+  Waschmaschine geleert und gestartet, Müll raus (lokale Trennung),
+  Gepäckaufbewahrung bei Bedarf.
+- Tür: Code 30 Min nach Checkout widerrufen (Einmal-PIN).
 - Notfall: {{ tel_urgence }}.
