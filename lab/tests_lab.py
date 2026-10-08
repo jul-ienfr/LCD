@@ -65,6 +65,22 @@ def post(moteur, chemin, payload):
             return code, {"erreur": str(e)}
 
 
+def put(moteur, chemin, payload):
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(BASE[moteur] + chemin, data=data,
+                                 headers={"Content-Type": "application/json"},
+                                 method="PUT")
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.status, json.loads(r.read().decode("utf-8"))
+    except Exception as e:
+        code = getattr(e, "code", None) or 0
+        try:
+            return code, json.loads(e.read().decode("utf-8"))
+        except Exception:
+            return code, {"erreur": str(e)}
+
+
 def _aff(txt):
     try:
         print(txt)
@@ -4129,7 +4145,67 @@ check("P7-8 satellites + PWA : meme pipeline + escalade humaine",
       "criteres 5 s + escalade documentes (mesure = box)")
 
 print()
+print("== 36. gate go/no-go prix : bornes + direct seul + reco OTA + objectivite (P8-7 §9) ==")
+bornes_ok = True
+for d in ("2026-01-15", "2026-04-10", "2026-08-15", "2026-08-16",
+          "2026-12-24", "2027-02-01"):
+    code, px = get("pricing", "/prix?" + urllib.parse.urlencode(
+        {"logement_id": "log1", "date": d}))
+    pv = px.get("pivot") if isinstance(px, dict) else None
+    if not (code == 200 and pv is not None
+            and 75 <= float(pv) <= 290):
+        bornes_ok = False
+check("balayage 6 dates : pivots dans [75,290]",
+      bornes_ok, "plancher/plafond inviolables toute l'annee")
+code, pxmax = get("pricing", "/prix?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "date": "2026-08-15", "k_events": "5",
+     "occ_j30": "0.99", "ferie": "1"}))
+check("forcage max -> pivot 290 + clampe + bornes [75,290]",
+      code == 200 and isinstance(pxmax, dict)
+      and pxmax.get("pivot") == 290
+      and pxmax.get("clampe") is True
+      and pxmax.get("bornes") == [75, 290],
+      f"HTTP {code} {pxmax}")
+code, pxmin = get("pricing", "/prix?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "date": "2026-02-01", "k_events": "0.01",
+     "occ_j30": "0.0"}))
+check("forcage min -> pivot 75 + clampe",
+      code == 200 and isinstance(pxmin, dict)
+      and pxmin.get("pivot") == 75
+      and pxmin.get("clampe") is True,
+      f"HTTP {code} {pxmin}")
+code, pxa = get("pricing", "/prix?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "date": "2026-08-15"}))
+code, pxb = get("pricing", "/prix?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "date": "2026-08-15", "langue": "ar",
+     "voyageurs": "9", "nationalite": "xx"}))
+check("objectivite art. 225-1 : attributs voyageur ignores",
+      code == 200 and isinstance(pxa, dict) and isinstance(pxb, dict)
+      and pxa.get("pivot") == pxb.get("pivot"),
+      f"HTTP {code} {pxa} vs {pxb}")
+code, ap = put("pricing", "/prix",
+               {"logement_id": "log1", "date": "2027-05-01",
+                "prix": 180, "qui": "test-lab-humain"})
+check("PUT /prix dans bornes -> direct seul (OTA = reco)",
+      code == 200 and isinstance(ap, dict)
+      and ap.get("statut") == "applique_direct"
+      and "reco" in ap.get("note", ""),
+      f"HTTP {code} {ap}")
+code, ap2 = put("pricing", "/prix",
+                {"logement_id": "log1", "date": "2027-05-02",
+                 "prix": 500, "qui": "test-lab-humain"})
+check("PUT /prix hors bornes sans motif -> 422",
+      code == 422, f"HTTP {code} {ap2}")
+code, reco = get("pricing", "/reco-ota?" +
+                urllib.parse.urlencode({"logement_id": "log1"}))
+check("GET /reco-ota -> reco 1-tap lecture seule (jamais d'ecriture)",
+      code == 200 and isinstance(reco, dict)
+      and isinstance(reco.get("reco_ota_1tap"), dict)
+      and "direct" not in reco.get("reco_ota_1tap", {}),
+      f"HTTP {code} {reco}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7.")

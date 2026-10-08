@@ -5,7 +5,7 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `58 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `59 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
@@ -14,7 +14,7 @@
 - Phase 5 Sécurité : 0/10
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 19/20
-- Phase 8 Recette / go-live : 0/12
+- Phase 8 Recette / go-live : 1/12
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
 
@@ -176,7 +176,7 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, proxy LiteLLM `:4000`, 
 - [ ] P8-4 Pannes simulées : (1) WAN 2 h jour d'arrivée, (2) Nuki Hub débranché, (3) batterie Nuki retirée, (4) double résa, (5) voyageur bloqué 2h
 - [ ] P8-5 Test DAAF + vanne + sirène + piles ; coupure longue + arrivée (code OK + Master Lock + message J-1)
 - [ ] P8-6 Formation ménage + registre RGPD + relecture juriste CGV/mentions avant mise en ligne multi-plateformes
-- [ ] P8-7 Vérification borniers prix 75/290 + jamais d'écriture auto OTA + critères objectifs seuls (art. 225-1)
+- [x] P8-7 Vérification borniers prix 75/290 + jamais d'écriture auto OTA + critères objectifs seuls (art. 225-1) — PARTIEL lab 2026-10-08 : balayage 6 dates dans [75,290] + clamp prouvé (290/75 + `clampe` + bornes) + objectivité (attributs voyageur ignorés, même pivot) + `PUT /prix` direct seul (422 hors bornes sans motif) + `GET /reco-ota` 1-tap lecture seule + batterie lab §36 verte (reste box/terrain : validation visuelle Vue Prix + go/no-go P8-8)
 - [ ] P8-8 Go-live log1 → tag git + entrée changelog + `Date MAJ`
 - [ ] P8-9 Maintenance mensuelle : vanne/sirène/piles + DAAF
 - [ ] P8-10 Maintenance trimestrielle : codes, revue pricing, backup-restore test, rotation WiFi vérifiée

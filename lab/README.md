@@ -185,6 +185,11 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     satellites + PWA parler/écrire (même pipeline M1-M8/J1-J9,
     escalation humaine <15 min, critères 5 s) (install + mesures
     box ; P7-9 recette terrain restante).
+35. gate go/no-go prix P8-7 (§9) : balayage bornes [75,290] +
+    clamp prouvé (290/75 + `clampe`) + objectivité art. 225-1
+    (attributs voyageur ignorés) + `PUT /prix` direct seul (422
+    hors bornes sans motif) + `GET /reco-ota` 1-tap lecture seule
+    (jamais d'écriture auto OTA).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`
