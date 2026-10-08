@@ -3508,12 +3508,12 @@ print("== 23. UI routage proxy LLM : routes + backup/audit + tester + reload (P7
 code, rt = get("router", "/routes")
 noms = sorted(a.get("alias") for a in rt.get("aliases", [])) \
     if isinstance(rt, dict) else []
-check("GET /routes : fast + fallbacks + 4 aliases + validation ok",
+check("GET /routes : fast + fallbacks + 5 aliases + validation ok",
       code == 200 and isinstance(rt, dict)
       and rt.get("primaire") == "lcd-chat-fast"
       and rt.get("fallbacks") == ["lcd-chat-eu", "lcd-chat-local"]
-      and noms == ["lcd-chat-eu", "lcd-chat-fast", "lcd-chat-local",
-                   "lcd-chat-strong"]
+      and noms == ["lcd-chat-custom-1", "lcd-chat-eu", "lcd-chat-fast",
+                   "lcd-chat-local", "lcd-chat-strong"]
       and rt.get("validation", {}).get("ok") is True
       and rt.get("alerte_cout_mois_eur") == 5,
       f"HTTP {code} {rt}")
@@ -4016,7 +4016,32 @@ check("composer jjev-anomalie-pilotage -> 200 file + jamais ecriture auto",
       f"HTTP {code} {co4}")
 
 print()
+print("== 32. proxy LiteLLM : alias custom-1 + fallbacks + garde-fous (P7-2 §6.5) ==")
+code, rc = post("router", "/resoudre", {"alias": "lcd-chat-custom-1"})
+check("resoudre custom-1 direct -> 200 via demande (endpoint box)",
+      code == 200 and isinstance(rc, dict)
+      and rc.get("alias_effectif") == "lcd-chat-custom-1"
+      and rc.get("via") == "demande",
+      f"HTTP {code} {rc}")
+code, tc = post("router", "/tester",
+                {"qui": "test-lab-humain",
+                 "alias": "lcd-chat-custom-1"})
+check("tester custom-1 -> KO documente (endpoint box requis)",
+      code == 200 and isinstance(tc, dict)
+      and tc.get("alias") == "lcd-chat-custom-1"
+      and tc.get("ok") is False,
+      f"HTTP {code} {tc}")
+code, rt4 = get("router", "/routes")
+fiches = {a.get("alias"): a for a in rt4.get("aliases", [])} \
+    if isinstance(rt4, dict) else {}
+check("routes : custom-1 garde-fous 0.2/250 + validation ok",
+      code == 200 and isinstance(rt4, dict)
+      and len(fiches) == 5
+      and rt4.get("validation", {}).get("ok") is True,
+      f"HTTP {code} total={len(fiches)}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2.")

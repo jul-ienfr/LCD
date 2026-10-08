@@ -121,7 +121,7 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 21. traçabilité P7-7 (§6.7) : langue voyageur en log JSONL + `GET
     /journal?backend=&alias=&langue=` (filtres dashboard combinables,
     vides = sans filtre).
-22. UI routage P7-3 (§6.5) : `GET /routes` (primaire + fallbacks + 4
+22. UI routage P7-3 (§6.5) : `GET /routes` (primaire + fallbacks + 5
     aliases + validation garde-fous, clés API jamais exposées) + `POST
     /route` 1-tap humain (alias connus, anti-redondance, retry 0-3,
     cooldown 0-300, clés garde-fou 400, backup 5 max + audit) + `POST
@@ -161,8 +161,14 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     (verifiee false + stop-sell), routage litige (jamais clôture
     auto), éligibilité caution (jamais sans justificatifs),
     criticité échéances (push/digest), anti-fuite RBAC (blocage +
-    log), anomalie pilotage (file, jamais écriture auto)
+    log), anomalie     pilotage (file, jamais écriture auto)
     (registre étendu, seuils dashboard/file/BLOQUÉE, exécution box).
+31. proxy LiteLLM P7-2 (§6.5) : alias `lcd-chat-custom-1` (`api_base`
+    endpoint box + clé `CUSTOM_LLM_API_KEY_1`, garde-fous 0.2/250) +
+    `router_settings` (retry 1, cooldown 30 s, fallbacks
+    fast→eu→local) + aucun cache décision (Jev direct, cache_ttl 0)
+    + `POST /resoudre` direct + `POST /tester` KO documenté
+    (lab = box ; proxy :4000 + clés + `rest_command.lcd_chat` = box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

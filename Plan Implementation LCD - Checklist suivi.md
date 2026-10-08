@@ -5,7 +5,7 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `51 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `52 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
@@ -13,7 +13,7 @@
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
 - Phase 6 Exploitation : 22/22 ✔
-- Phase 7 Voix + LLM/Jev : 12/20
+- Phase 7 Voix + LLM/Jev : 13/20
 - Phase 8 Recette / go-live : 0/12
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
@@ -148,7 +148,7 @@ Dépendances : Grocy (add-on + intégration), WallPanel, Telegram/Companion App,
 Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, proxy LiteLLM `:4000`, UI routage `:8050` (FastAPI/Flask), Ollama `qwen2.5:7b`, GroqCloud free, Mistral si `llm_eu_only`, TypeSafe Jev, 2 satellites S3-BOX-3/Atom Echo.
 
 - [ ] P7-1 Wyoming + Whisper-small + Piper + openWakeWord (BYOD : smartphone voyageur seul, consentement par échange révocable, jamais de codes/vanne/portail/alarme OFF en réponse, urgences → fixe hôte+112)
-- [ ] P7-2 Proxy LiteLLM `:4000` : `custom/llm-proxy/config.yaml` (groq/ollama/mistral/custom `api_base`, fallbacks, master_key, spend-logging, `cache_ttl: 0` sur `lcd-jev`) + `rest_command.lcd_chat` (`temperature 0.2 / max_tokens 250 / timeout 8s voix / 6s Jev`, retry 1, cooldown 30s)
+- [x] P7-2 Proxy LiteLLM `:4000` : `custom/llm-proxy/config.yaml` (groq/ollama/mistral/custom `api_base`, fallbacks, master_key, spend-logging, `cache_ttl: 0` sur `lcd-jev`) + `rest_command.lcd_chat` (`temperature 0.2 / max_tokens 250 / timeout 8s voix / 6s Jev`, retry 1, cooldown 30s) — PARTIEL lab 2026-10-08 : alias `lcd-chat-custom-1` (`api_base` box + clé `CUSTOM_LLM_API_KEY_1`, garde-fous 0.2/250) + `router_settings` (retry 1, cooldown 30 s, fallbacks fast→eu→local) + aucun cache décision (Jev direct) + `POST /resoudre`/`POST /tester` custom-1 + batterie lab §32 verte (reste box : proxy `:4000` + clés + `rest_command.lcd_chat` décommenté + spend réel)
 - [x] P7-3 `routing.json` + `endpoints.yaml` + UI `custom/llm-router-ui/` `:8050` (LAN+WireGuard seule, primaire + fallbacks illimités `lcd-chat-*`/`jev-*`, Tester par ligne, reload chaud, santé OK/KO/cooldown, garde-fous non supprimables) — FAIT lab 2026-10-08 : `custom/llm-router-ui/router_ui.py` stdlib `:8050` (`GET /routes` primaire+fallbacks+4 aliases+validation garde-fous, clés API jamais exposées + `POST /route` 1-tap humain alias connus/anti-redondance/retry/cooldown + backup 5 max + audit + `POST /tester` TCP court/cloud + santé mémorisée + `POST /reload`, LAN seule jamais WAN) + service lab compose + batterie lab §23 verte (lab = box ; Tester réel + proxy :4000 + clés = box)
 - [x] P7-4 Aliases : `lcd-chat-fast` Groq 8b 0 € / `strong` 70b / `eu` Mistral si `llm_eu_only` / `local` Ollama / `custom-N` + `select.log1_llm_backend` + `input_text.log1_llm_model_override` + `sensor.llm_cout_mois` (alerte >5 €) + verif dépréciation mensuelle — FAIT lab 2026-10-08 (part lab-testable) : `POST /resoudre` router-ui `:8050` (lecture seule : `eu_only` → override UE, alias direct fast/strong/eu/local, sinon primaire ; jamais de clé exposée) + batterie lab §24 verte (lab = box ; selects/sensors HA + `sensor.llm_cout_mois` + dépréciation mensuelle = box)
 - [ ] P7-5 Jev SystemOne : `rest_command.typesafe_systemone` (`POST https://api.typesafe.ai/v1/systemone`, `jev-latest`/`jev-1.13.0`, ~0,042 $/Mtok, ~0,05-0,15 €/mois, timeout 6s, retry 1, `cache_ttl: 0`, kill-switch `input_boolean.jev_enabled`, `select.log1_jev_backend`) ; 0 € strict = off + règles déterministes seules

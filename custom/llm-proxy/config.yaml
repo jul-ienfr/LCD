@@ -3,6 +3,8 @@
 # temperature 0.2, max_tokens 250. Clé maître dans secrets.yaml (jamais ici).
 # Timeouts : 8 s voix / 6 s Jev, retry 1, cooldown 30 s (§6.7 garde-fous, voir endpoints.yaml).
 # BYOD consentement par échange, jamais de codes/serrure/vanne en vocal, jamais de PIN en clair.
+# Cache : AUCUN cache proxy sur les décisions (Jev = appel direct SystemOne,
+# cache_ttl 0 verrouillé) ; spend-logging = logs proxy + decision.logX.jsonl (P7-7).
 
 model_list:
   - model_name: lcd-chat-fast
@@ -33,6 +35,22 @@ model_list:
       temperature: 0.2
       max_tokens: 250
       timeout: 8
+  - model_name: lcd-chat-custom-1
+    litellm_params:
+      model: openai/lcd-custom-1
+      api_base: http://localhost:11435
+      api_key: os.environ/CUSTOM_LLM_API_KEY_1
+      temperature: 0.2
+      max_tokens: 250
+      timeout: 8
+
+router_settings:
+  num_retries: 1
+  cooldown_time: 30
+  fallbacks:
+    - {"lcd-chat-fast": ["lcd-chat-eu", "lcd-chat-local"]}
+    - {"lcd-chat-strong": ["lcd-chat-fast", "lcd-chat-local"]}
+    - {"lcd-chat-eu": ["lcd-chat-local"]}
 
 general_settings:
   master_key: os.environ/LLM_PROXY_MASTER_KEY
