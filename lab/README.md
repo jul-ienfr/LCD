@@ -174,6 +174,11 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     composer audités) + UI LAN seule (défaut `127.0.0.1`, `0.0.0.0`
     = exception lab explicite) + kill-switch `jev_enabled` +
     `sensor.llm/jev_cout_mois` + backends custom-1 (entités log1).
+33. Jev SystemOne P7-5 (§6.6) : squelette `rest_command`
+    versionné (endpoint, `jev-latest`/`jev-1.13.0`, timeout 6 s,
+    `cache_ttl: 0`, kill-switch, seuils) + selects backend +
+    override endpoint (activation + clé = box ; option B P7-20 non
+    retenue : appel direct).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

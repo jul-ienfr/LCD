@@ -4091,7 +4091,28 @@ check("kill-switch + couts + EU + custom-1 : entites log1",
       "selects + sensors + flags presents")
 
 print()
+print("== 34. Jev SystemOne : squelette box + selects + kill-switch (P7-5 §6.6) ==")
+try:
+    with open(os.path.join(REPO, "homeassistant", "packages", "log1",
+                            "voix.yaml"),
+              encoding="utf-8") as f:
+        src_voix = f.read()
+except OSError as e:
+    src_voix = ""
+    check("voix.yaml lisible", False, str(e))
+check("rest_command typesafe squelette : endpoint + kill-switch + seuils",
+      all(s in src_voix for s in ("api.typesafe.ai/v1/systemone",
+                                  "jev-latest", "jev_enabled",
+                                  "cache_ttl", "timeout 6",
+                                  "noul>0,8", "confidence<0,7")),
+      "squelette box versionne (activation + cle = box)")
+check("select jev_backend : latest/1.13.0/off + override endpoint",
+      all(s in src_log1 for s in ("jev-latest", "jev-1.13.0",
+                                  "log1_jev_endpoint_override")),
+      "choix backend + custom box")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5.")
