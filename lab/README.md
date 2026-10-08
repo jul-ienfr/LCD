@@ -205,6 +205,11 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     packages RÉELS montés (miroir vérifié, 0 dérive) + API `:8123`
     + entités socle (jev/enabled, backends dont custom-1, coûts).
     Moteurs NON recâblés (TODO-BOX : `rest_command` + push HA).
+39. push HA réel (P1-10/P2-4/P2-7/P2-9) : event J-2 → 200 `emis`
+    + `sensor.log1_prix_nuit` == pivot J après recalcul +
+    `calendar.log1_planning` contient la résa (JWT lab forgé ;
+    box = Bearer `secrets.yaml`, repli `ha_non_configure`
+    conservé si HA injoignable).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

@@ -30,6 +30,10 @@ services:
       LCD_DECISION_LOG_DIR: /opt/lcd/logs
       # Secrets de LAB (faux) — jamais de clés réelles ici :
       LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+      # Box HA virtuelle : push events/states réel (JWT lab forgé).
+      LCD_HA_URL: http://homeassistant:8123
+      LCD_HA_REFRESH_ID: "6c6162326f782d7669727475616c2d02"
+      LCD_HA_JWT_KEY: "6c61622d7669727475616c2d6a77742d6c61622d30312d6c61622d3032"
     volumes:
       - ics-state:/opt/lcd/state
       - ics-logs:/opt/lcd/logs
@@ -60,6 +64,10 @@ services:
       LCD_DECISION_LOG_DIR: /opt/lcd/logs
       LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
       LCD_ICS_SYNC_URL: http://ics-sync:8090
+      # Box HA virtuelle : push sensors réel (JWT lab forgé).
+      LCD_HA_URL: http://homeassistant:8123
+      LCD_HA_REFRESH_ID: "6c6162326f782d7669727475616c2d02"
+      LCD_HA_JWT_KEY: "6c61622d7669727475616c2d6a77742d6c61622d30312d6c61622d3032"
     volumes:
       - pricing-state:/opt/lcd/state
       - ics-logs:/opt/lcd/logs
@@ -91,6 +99,10 @@ services:
       LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
       LCD_ICS_SYNC_URL: http://ics-sync:8090
       LCD_PRICING_URL: http://pricing:8091
+      # Box HA virtuelle : push events réel (JWT lab forgé).
+      LCD_HA_URL: http://homeassistant:8123
+      LCD_HA_REFRESH_ID: "6c6162326f782d7669727475616c2d02"
+      LCD_HA_JWT_KEY: "6c61622d7669727475616c2d6a77742d6c61622d30312d6c61622d3032"
     volumes:
       - decision-state:/opt/lcd/state
       - ics-logs:/opt/lcd/logs

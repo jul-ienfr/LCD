@@ -62,7 +62,8 @@ def main():
                 "version": "2026.10.0"}]}})
     _ecrire(os.path.join(store, "onboarding"), {
         "version": 4, "minor_version": 1, "key": "onboarding",
-        "data": {"done": ["user"]}})
+        "data": {"done": ["user", "core_config", "analytics",
+                          "integration"]}})
     print(f"bootstrap : utilisateur {USER_NAME!r} + token lab provisionnés")
     return 0
 

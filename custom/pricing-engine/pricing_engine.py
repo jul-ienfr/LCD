@@ -26,11 +26,15 @@
 #   env : LCD_SECRETS_YAML, LCD_QLOAPPS_URL/KEY, LCD_HA_URL/TOKEN, LCD_ICS_SYNC_URL, LCD_HTTP_PORT.
 
 import argparse
+import base64
 import datetime as dt
+import hashlib
+import hmac
 import json
 import os
 import re
 import sys
+import time
 import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -50,6 +54,28 @@ MODES = {
 
 def utcnow_iso():
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+
+
+def forger_jeton_ha(duree_s=900):
+    """Jeton d'accès HA : Bearer secrets.yaml (box, prioritaire, jamais
+    CHANGER) ou JWT lab forgé (box virtuelle : LCD_HA_REFRESH_ID +
+    LCD_HA_JWT_KEY, HS256 iss = refresh id). "" si non configuré
+    (jamais d'appel aveugle, jamais de WAN)."""
+    rid = os.environ.get("LCD_HA_REFRESH_ID", "")
+    key = os.environ.get("LCD_HA_JWT_KEY", "")
+    if not (rid and key):
+        return ""
+    now = int(time.time())
+
+    def _b64(obj):
+        return base64.urlsafe_b64encode(json.dumps(obj).encode()).rstrip(
+            b"=").decode()
+    head = _b64({"alg": "HS256", "typ": "JWT"})
+    pay = _b64({"iss": rid, "iat": now, "exp": now + duree_s})
+    sig = base64.urlsafe_b64encode(hmac.new(
+        key.encode(), (head + "." + pay).encode(),
+        hashlib.sha256).digest()).rstrip(b"=").decode()
+    return head + "." + pay + "." + sig
 
 
 def clamp(prix, pmin, pmax):
@@ -340,11 +366,18 @@ class Pricing:
         return ligne
 
     def ha_post(self, chemin, payload):
-        if not (self.ha_url and self.ha_token and not self.ha_token.startswith("CHANGER")):
+        auth = ""
+        if self.ha_token and not self.ha_token.startswith("CHANGER"):
+            auth = f"Bearer {self.ha_token}"
+        else:
+            jeton = forger_jeton_ha()
+            if jeton:
+                auth = f"Bearer {jeton}"
+        if not (self.ha_url and auth):
             return False, "ha_non_configure"
         req = urllib.request.Request(
             self.ha_url + chemin, data=json.dumps(payload or {}).encode("utf-8"),
-            headers={"Authorization": f"Bearer {self.ha_token}",
+            headers={"Authorization": auth,
                      "Content-Type": "application/json"}, method="POST")
         try:
             with urllib.request.urlopen(req, timeout=10) as r:

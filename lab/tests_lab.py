@@ -1040,7 +1040,8 @@ check("GET /alertes log2 OK",
       f"HTTP {code} {al}")
 
 print("== 11-quinquies. guide vivant : events localises J-2/J-1/J+1 (P6-9-bis §5.7-ter) ==")
-# Decision-engine :8092 — ha_url vide en lab -> 202 loge_sans_ha attendu.
+# Decision-engine :8092 — push HA reel (200 emis) si box joignable,
+# repli 202 loge_sans_ha sinon (jamais bloquant).
 # Reponse = metadonnees SURES uniquement (jamais message ni PIN en clair).
 BASE_DATA = {"marque": "Test Marque", "logement": "log1",
              "slot_nom": "Voyageur Test", "arrivee": "2026-11-10",
@@ -1059,8 +1060,8 @@ def event(type_evt, logement, qui, data):
 code, j2_fr = event("lcd_j2_envoi_acces", "log1", "personne_01",
                     {**BASE_DATA, "langue": "fr", "pin": "482913"})
 check("J-2 FR log1 202 + gabarit + PIN transite (KeyMaster)",
-      code == 202 and isinstance(j2_fr, dict)
-      and j2_fr.get("statut") == "loge_sans_ha"
+      code in (200, 202) and isinstance(j2_fr, dict)
+      and j2_fr.get("statut") in ("emis", "loge_sans_ha")
       and j2_fr.get("gabarit_trouve") is True
       and j2_fr.get("placeholders_restants") == 0
       and j2_fr.get("pin_transmis") is True
@@ -1075,7 +1076,7 @@ check("J-2 reponse sans message ni PIN en clair",
 code, j2_en = event("lcd_j2_envoi_acces", "log1", "personne_01",
                     {**BASE_DATA, "langue": "en", "pin": "482913"})
 check("J-2 EN log1 socle sans badge auto",
-      code == 202 and isinstance(j2_en, dict)
+      code in (200, 202) and isinstance(j2_en, dict)
       and j2_en.get("langue") == "en"
       and j2_en.get("traduction_auto") is False
       and j2_en.get("placeholders_restants") == 0,
@@ -1084,7 +1085,7 @@ check("J-2 EN log1 socle sans badge auto",
 code, j1_fr = event("lcd_j1_rappel", "log1", "personne_01",
                     {**BASE_DATA, "langue": "fr", "pin": "482913"})
 check("J-1 FR rappel seul : PIN force vide (jamais re-push §5.2)",
-      code == 202 and isinstance(j1_fr, dict)
+      code in (200, 202) and isinstance(j1_fr, dict)
       and j1_fr.get("pin_transmis") is False
       and j1_fr.get("gabarit_trouve") is True
       and j1_fr.get("placeholders_restants") == 0,
@@ -1093,7 +1094,7 @@ check("J-1 FR rappel seul : PIN force vide (jamais re-push §5.2)",
 code, avis_en = event("lcd_avis_j1", "log1", "personne_01",
                       {**BASE_DATA, "langue": "en", "pin": "482913"})
 check("J+1 EN enquete : jamais de PIN",
-      code == 202 and isinstance(avis_en, dict)
+      code in (200, 202) and isinstance(avis_en, dict)
       and avis_en.get("pin_transmis") is False
       and avis_en.get("langue") == "en"
       and avis_en.get("placeholders_restants") == 0,
@@ -1103,7 +1104,7 @@ code, j2_l2 = event("lcd_j2_envoi_acces", "log2", "personne_01",
                     {**BASE_DATA, "logement": "log2", "langue": "fr",
                      "pin": "999999"})
 check("log2 LIGHT J-2 : pin vide + consigne boite a cles (jamais genere)",
-      code == 202 and isinstance(j2_l2, dict)
+      code in (200, 202) and isinstance(j2_l2, dict)
       and j2_l2.get("pin_transmis") is False
       and j2_l2.get("message_boite_cles") is True
       and j2_l2.get("gabarit_trouve") is True
@@ -1113,7 +1114,7 @@ check("log2 LIGHT J-2 : pin vide + consigne boite a cles (jamais genere)",
 code, j2_pt = event("lcd_j2_envoi_acces", "log1", "personne_01",
                     {**BASE_DATA, "langue": "pt", "pin": "482913"})
 check("fallback hors socle pt -> EN + badge auto",
-      code == 202 and isinstance(j2_pt, dict)
+      code in (200, 202) and isinstance(j2_pt, dict)
       and j2_pt.get("langue") == "en"
       and j2_pt.get("traduction_auto") is True
       and j2_pt.get("gabarit_trouve") is True,
@@ -1125,7 +1126,7 @@ check("fallback hors socle pt -> EN + badge auto",
 code, j2_def = event("lcd_j2_envoi_acces", "log1", "personne_01",
                      {"langue": "fr", "pin": "482913"})
 check("defaults J-2 data minimale : gabarit trouve sans placeholders",
-      code == 202 and isinstance(j2_def, dict)
+      code in (200, 202) and isinstance(j2_def, dict)
       and j2_def.get("gabarit_trouve") is True
       and j2_def.get("placeholders_restants") == 0
       and j2_def.get("pin_transmis") is True
@@ -1144,7 +1145,7 @@ code, j2_exp = event("lcd_j2_envoi_acces", "log1", "personne_01",
                       "lien_questionnaire": "http://q.fourni",
                       "lien_guide": "http://g.fourni", "lien_avis": "http://a.fourni"})
 check("donnees fournies jamais ecrasees par defaults",
-      code == 202 and isinstance(j2_exp, dict)
+      code in (200, 202) and isinstance(j2_exp, dict)
       and j2_exp.get("gabarit_trouve") is True
       and j2_exp.get("placeholders_restants") == 0,
       f"HTTP {code} {j2_exp}")
@@ -1181,7 +1182,7 @@ print("== 11-sexies. wifi invite isole (P6-10 §5.10) ==")
 code, j2_wifi = event("lcd_j2_envoi_acces", "log1", "personne_01",
                       {"langue": "fr", "pin": "482913"})
 check("wifi_qr produit par defaults (secrets lab) : gabarit sans placeholders",
-      code == 202 and isinstance(j2_wifi, dict)
+      code in (200, 202) and isinstance(j2_wifi, dict)
       and j2_wifi.get("gabarit_trouve") is True
       and j2_wifi.get("placeholders_restants") == 0,
       f"HTTP {code} {j2_wifi}")
@@ -1191,7 +1192,7 @@ code, j2_wifi_f = event("lcd_j2_envoi_acces", "log1", "personne_01",
                         {"langue": "fr", "pin": "482913",
                          "wifi_qr": "WIFI:T:WPA;S:Fourni;P:faux;;"})
 check("wifi_qr fourni jamais ecrase par defaults",
-      code == 202 and isinstance(j2_wifi_f, dict)
+      code in (200, 202) and isinstance(j2_wifi_f, dict)
       and j2_wifi_f.get("gabarit_trouve") is True
       and j2_wifi_f.get("placeholders_restants") == 0,
       f"HTTP {code} {j2_wifi_f}")
@@ -1203,7 +1204,7 @@ code, j2_ret = event("lcd_j2_envoi_acces", "log1", "personne_01",
                      {**BASE_DATA, "langue": "fr", "pin": "482913",
                       "retour_voyageur": True})
 check("returning FR : J-2 202 + gabarit + sans fuite message/PIN",
-      code == 202 and isinstance(j2_ret, dict)
+      code in (200, 202) and isinstance(j2_ret, dict)
       and j2_ret.get("gabarit_trouve") is True
       and j2_ret.get("placeholders_restants") == 0
       and "message" not in j2_ret and "pin" not in j2_ret,
@@ -1213,7 +1214,7 @@ check("returning FR : J-2 202 + gabarit + sans fuite message/PIN",
 code, j2_new = event("lcd_j2_envoi_acces", "log1", "personne_01",
                      {**BASE_DATA, "langue": "en", "pin": "482913"})
 check("non-returning EN : J-2 202 + gabarit + placeholders 0",
-      code == 202 and isinstance(j2_new, dict)
+      code in (200, 202) and isinstance(j2_new, dict)
       and j2_new.get("gabarit_trouve") is True
       and j2_new.get("placeholders_restants") == 0
       and j2_new.get("langue") == "en",
@@ -1348,7 +1349,7 @@ check("reconnu -> 200 fiche SURE sans hash",
 code, j2_mem = event("lcd_j2_envoi_acces", "log1", "personne_01",
                      {**BASE_DATA, "pin": "482913", "hash": HASH_LAB})
 check("returning hash : J-2 202 + langue memoire es + retour_voyageur",
-      code == 202 and isinstance(j2_mem, dict)
+      code in (200, 202) and isinstance(j2_mem, dict)
       and j2_mem.get("langue") == "es"
       and j2_mem.get("retour_voyageur") is True
       and j2_mem.get("gabarit_trouve") is True
@@ -1358,7 +1359,7 @@ code, j2_mem_fr = event("lcd_j2_envoi_acces", "log1", "personne_01",
                         {**BASE_DATA, "langue": "fr", "pin": "482913",
                          "hash": HASH_LAB})
 check("returning hash : langue fournie fr prime sur memoire",
-      code == 202 and isinstance(j2_mem_fr, dict)
+      code in (200, 202) and isinstance(j2_mem_fr, dict)
       and j2_mem_fr.get("langue") == "fr"
       and j2_mem_fr.get("retour_voyageur") is True, f"HTTP {code} {j2_mem_fr}")
 
@@ -1384,7 +1385,7 @@ code, j2_oublie = event("lcd_j2_envoi_acces", "log1", "personne_01",
                         {**BASE_DATA, "langue": "fr", "pin": "482913",
                          "hash": HASH_LAB})
 check("hash inconnu -> non-returning",
-      code == 202 and isinstance(j2_oublie, dict)
+      code in (200, 202) and isinstance(j2_oublie, dict)
       and j2_oublie.get("retour_voyageur") is False, f"HTTP {code} {j2_oublie}")
 
 # Purge 24 mois : geste humain, 400 si auto ; ici 0 fiche expiree (opt-in du jour).
@@ -1887,7 +1888,7 @@ code, j2_nosign = event_ref("lcd_j2_envoi_acces", "log1", "personne_01",
                             {**BASE_DATA, "langue": "fr", "pin": "482913",
                              "canal": "direct"})
 check("J-2 direct non signe : contrat False + pin False (jamais bloquant)",
-      code == 202 and isinstance(j2_nosign, dict)
+      code in (200, 202) and isinstance(j2_nosign, dict)
       and j2_nosign.get("contrat_signe") is False
       and j2_nosign.get("pin_autorise") is False
       and j2_nosign.get("gabarit_trouve") is True,
@@ -1903,7 +1904,7 @@ code, j2_sign = event_ref("lcd_j2_envoi_acces", "log1", "personne_01",
                           {**BASE_DATA, "langue": "fr", "pin": "482913",
                            "canal": "direct"})
 check("J-2 direct signe : contrat True + pin True",
-      code == 202 and isinstance(j2_sign, dict)
+      code in (200, 202) and isinstance(j2_sign, dict)
       and j2_sign.get("contrat_signe") is True
       and j2_sign.get("pin_autorise") is True,
       f"HTTP {code} {j2_sign}")
@@ -3507,7 +3508,12 @@ code, ev_es = post("decision", "/event",
                     "qui": "personne_01", "ref": "LAB-P77-EVT",
                     "data": {**BASE_DATA, "langue": "es",
                              "pin": "482913"}})
-check("event J-2 ES -> 202", code == 202, f"HTTP {code} {ev_es}")
+check("event J-2 ES -> 200 emis (push HA reel)",
+      code == 200 and isinstance(ev_es, dict)
+      and ev_es.get("statut") == "emis"
+      and ev_es.get("ha") == 200
+      and ev_es.get("langue") == "es",
+      f"HTTP {code} {ev_es}")
 
 code, jb = get("decision", "/journal?" + urllib.parse.urlencode(
     {"logement_id": "log1", "qui": "personne_01",
@@ -4377,7 +4383,44 @@ check("HA miroir packages : lab = box (0 derive)",
       f"{len(pkgs(src_lab))} includes")
 
 print()
+print("== 40. push HA reel : event + sensors + calendar (lab/P2-4/P2-7/P2-9) ==")
+code, rc = post("pricing", "/recalcul", {"logement_id": "log1"})
+grille = rc.get("grille", []) if isinstance(rc, dict) else []
+pivot_j = grille[0].get("pivot") if grille else None
+check("recalcul -> 200 + grille",
+      code == 200 and pivot_j is not None,
+      f"HTTP {code} pivot_j={pivot_j}")
+code, capt = ha_get("/api/states/sensor.log1_prix_nuit") if ha_pret \
+    else (0, "HA down")
+check("HA sensor.log1_prix_nuit == pivot J (push pricing)",
+      code == 200 and isinstance(capt, dict)
+      and int(float(capt.get("state", -1))) == (pivot_j or -2),
+      f"HTTP {code} {capt}")
+_ref40 = "LAB-PUSH40"
+code, br40 = post("booking", "/resa",
+                  {"logement_id": "log1", "debut": "2027-06-01",
+                   "fin": "2027-06-03", "voyageurs": 2,
+                   "ref": _ref40})
+check("resa directe 2027-06 -> 201 (declenche calendar)",
+      code == 201 and isinstance(br40, dict),
+      f"HTTP {code} {br40}")
+code, cf40 = post("booking", "/confirmer",
+                  {"logement_id": "log1", "ref": _ref40,
+                   "qui": "test-lab-humain"})
+check("confirmer 2027-06 -> 201 (occupe + ICS)",
+      code == 201 and isinstance(cf40, dict),
+      f"HTTP {code} {cf40}")
+code, cal = ha_get("/api/states/calendar.log1_planning") if ha_pret \
+    else (0, "HA down")
+sejs = cal.get("attributes", {}).get("sejours", []) \
+    if isinstance(cal, dict) else []
+check("HA calendar.log1_planning contient la resa (push ics-sync)",
+      code == 200 and isinstance(cal, dict)
+      and _ref40 in {s.get("ref") for s in sejs},
+      f"HTTP {code} sejours={len(sejs)}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha.")
