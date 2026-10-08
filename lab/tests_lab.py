@@ -4112,7 +4112,24 @@ check("select jev_backend : latest/1.13.0/off + override endpoint",
       "choix backend + custom box")
 
 print()
+print("== 35. voix BYOD + satellites : squelettes box + garde-fous (P7-1/8 §6.5) ==")
+check("P7-1 Wyoming : add-ons + BYOD + offline + jamais codes/PIN",
+      all(s in src_voix for s in ("Wyoming", "Whisper", "Piper",
+                                  "openWakeWord", "BYOD",
+                                  "consentement",
+                                  "jamais de codes",
+                                  "jamais de PIN en clair",
+                                  "112")),
+      "squelette box versionne (install + pipeline = box)")
+check("P7-8 satellites + PWA : meme pipeline + escalade humaine",
+      all(s in src_voix for s in ("S3-BOX-3", "PWA",
+                                  "même pipeline",
+                                  "escalation humaine",
+                                  "<15 min")),
+      "criteres 5 s + escalade documentes (mesure = box)")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8.")

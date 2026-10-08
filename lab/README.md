@@ -179,6 +179,12 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     `cache_ttl: 0`, kill-switch, seuils) + selects backend +
     override endpoint (activation + clé = box ; option B P7-20 non
     retenue : appel direct).
+34. voix P7-1/8 (§6.5) : squelettes Wyoming + Whisper-small + Piper
+    + openWakeWord (BYOD, consentement révocable, offline-first,
+    jamais codes/PIN/serrure/vanne, urgences fixe + 112) + 2
+    satellites + PWA parler/écrire (même pipeline M1-M8/J1-J9,
+    escalation humaine <15 min, critères 5 s) (install + mesures
+    box ; P7-9 recette terrain restante).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

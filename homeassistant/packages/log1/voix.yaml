@@ -5,6 +5,28 @@
 assist_pipeline: []
 
 # Squelettes Phase 7 — TODO-BOX : décommenter quand proxy :4000 + secrets.yaml réel posés.
+# P7-1 Wyoming + Whisper-small + Piper + openWakeWord (BYOD : smartphone voyageur
+#   seul, consentement par échange révocable, jamais de codes/vanne/portail/alarme OFF
+#   en réponse, urgences → fixe hôte + 112) :
+#   - add-ons box : Wyoming (serveur), Whisper-small (STT local), Piper fr/en/es/it/de
+#     (TTS local), openWakeWord (wake-word local, audio jamais envoyée sans wake).
+#   - assist_pipeline nomme la pipeline "LCD log1" : conversation = rest_command.lcd_chat
+#     (proxy :4000, P7-2), STT = Whisper-small, TTS = Piper voix locale.
+#   - WAN down → sentences locales seules (offline-first §5.1 : pas d'appel proxy,
+#     réponses figées : consignes + urgences + mise en relation hôte).
+#   - Garde-fous vocaux (rappelés dans le prompt système lcd_chat) : jamais de codes,
+#     jamais serrure/vanne/portail/alarme OFF, jamais de PIN en clair, urgences =
+#     consigne fixe hôte + 112 (jamais de diagnostic ni de promesse d'intervention).
+# P7-8 2 satellites + prompts voix + PWA parler/écrire (même pipeline) :
+#   - 2 satellites ESPHome (S3-BOX-3 séjour + Atom Echo entrée, log1) : wake-word local,
+#     même pipeline "LCD log1", volume nuit borné, muet 22h-8h sauf urgences.
+#   - PWA parler/écrire : même pipeline que les satellites (texte = message direct,
+#     voix = STT navigateur + même proxy), escalation humaine auto <15 min 8h-22h
+#     (todo dispatch si pas de réponse exploitable, jamais de boucle auto).
+#   - Critères sortie (mesure box P7-9) : 3 questions socle FR/EN/ES/IT/DE + maternelle
+#     <5 s avec WAN (proxy) et <5 s sans WAN (fallback local).
+
+# Squelettes Phase 7 — TODO-BOX : décommenter quand proxy :4000 + secrets.yaml réel posés.
 # P7-2 `rest_command.lcd_chat` (cf. §7 + checklist P7-2/P7-4) :
 #   - POST proxy unique http://<ip-lan>:4000/v1/chat/completions (HA ne parle qu'au proxy)
 #   - model = chaîne lue dans custom/llm-proxy/routing.json (usage voix : primaire UI + fallbacks N)
