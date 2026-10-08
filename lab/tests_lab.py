@@ -5,7 +5,9 @@
 # Teardown : docker compose down -v
 import json
 import os
+import shutil
 import sys
+import tempfile
 import time
 import urllib.parse
 import urllib.request
@@ -4240,7 +4242,42 @@ check("compose : branding monte pour dispatch",
       "decision + facturation + dispatch")
 
 print()
+print("== 38. clone log2 : prod BLOQUEE + defauts surs (P8-12 §9) ==")
+try:
+    sys.path.insert(0, os.path.join(REPO, "custom", "decision-engine"))
+    import decision as _dec
+    _tmp = tempfile.mkdtemp(prefix="p812-")
+    os.environ["LCD_DECISION_LOG_DIR"] = _tmp
+    _logts = _dec.lire_logements(os.path.join(
+        REPO, "custom", "logements.yaml"))
+    _acces, _dbl = _dec.lire_acces(os.path.join(
+        REPO, "custom", "acces.yaml"))
+    _l2 = _logts.get("log2", {})
+    check("prod log2 : verifiee false + light + bornes",
+          _l2.get("copro_verifiee") is False
+          and _l2.get("prix_min") == 75
+          and _l2.get("prix_max") == 290
+          and _l2.get("features", {}).get("smart_lock") is False
+          and _l2.get("features", {}).get("voix") is False
+          and _l2.get("features", {}).get("extras_upsell") is False
+          and _l2.get("features", {}).get("vitrines_gratuites") is False,
+          "clone sur : mise en ligne BLOQUEE par defaut")
+    _eng = _dec.Moteur({}, _logts, _acces, {}, {})
+    _c2, _o2 = _eng.emettre_event("lcd_j2_envoi_acces", "log2",
+                                  "personne_01", ref="LAB-P812")
+    _c1, _o1 = _eng.emettre_event("lcd_j2_envoi_acces", "log1",
+                                  "personne_01", ref="LAB-P812")
+    check("prod : events J-2 log1+log2 BLOQUES (wizard requis)",
+          _c2 == 403 and _c1 == 403
+          and "BLOQU" in _o2.get("motif", "")
+          and "BLOQU" in _o1.get("motif", ""),
+          f"HTTP {_c2}/{_c1} {_o2}")
+    shutil.rmtree(_tmp, ignore_errors=True)
+except Exception as e:
+    check("porte copro prod (unitaire decision)", False, str(e))
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12.")

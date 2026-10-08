@@ -5,7 +5,7 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `60 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `61 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 3/14
 - Phase 2 PMS/synchro/pricing : 14/16
@@ -14,7 +14,7 @@
 - Phase 5 Sécurité : 0/10
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 19/20
-- Phase 8 Recette / go-live : 2/12
+- Phase 8 Recette / go-live : 3/12
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
 
@@ -181,7 +181,7 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, proxy LiteLLM `:4000`, 
 - [ ] P8-9 Maintenance mensuelle : vanne/sirène/piles + DAAF
 - [ ] P8-10 Maintenance trimestrielle : codes, revue pricing, backup-restore test, rotation WiFi vérifiée
 - [ ] P8-11 Maintenance annuelle : piles, audit, 4G failover ? (~30 € clé + SIM prépayée)
-- [ ] P8-12 Cloner log2 (light) : même socle, `verifiee: false` + défaut sûr max jusqu'au wizard copro complet
+- [x] P8-12 Cloner log2 (light) : même socle, `verifiee: false` + défaut sûr max jusqu'au wizard copro complet — PARTIEL lab 2026-10-08 : prod `verifiee: false` (log1+log2) + light (serrure/voix/extras/vitrines off) + bornes intactes + porte décision unitaire (events J-2 → 403 BLOQUÉE, wizard requis) + batterie lab §38 verte (lab `verifiee: true` = exception ; clone réel = box)
 
 ---
 
