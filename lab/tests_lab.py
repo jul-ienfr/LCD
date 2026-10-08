@@ -4378,6 +4378,21 @@ check("HA entites socle : jev/enabled, backends, couts",
                            "sensor.llm_cout_mois",
                            "sensor.jev_cout_mois")),
       f"HTTP {code} {len(ids)} states")
+check("HA input_text fusionnes (0 doublon) : wifi/heure/motif/ref log1+log2",
+      all(e in ids for e in
+          ("input_text.log1_langue_voyageur",
+           "input_text.log1_wifi_key",
+           "input_text.log1_wifi_ssid",
+           "input_text.log1_heure_arrivee",
+           "input_text.log1_forcage_motif",
+           "input_text.log1_ref_sejour",
+           "input_text.log2_langue_voyageur",
+           "input_text.log2_wifi_key",
+           "input_text.log2_wifi_ssid",
+           "input_text.log2_heure_arrivee",
+           "input_text.log2_forcage_motif",
+           "input_text.log2_ref_sejour")),
+      "merge P1-7bis charge sur box")
 opts = fiches.get("input_select.log1_llm_backend",
                   {}).get("attributes", {}).get("options", [])
 check("HA select backend : 5 aliases dont custom-1",

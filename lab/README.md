@@ -204,8 +204,9 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     `homeassistant:stable` + provisionnement headless
     (`ha-bootstrap` : admin lab + token, `.storage` éphémère) +
     packages RÉELS montés (miroir vérifié, 0 dérive) + API `:8123`
-    + entités socle (jev/enabled, backends dont custom-1, coûts).
-    Moteurs NON recâblés (TODO-BOX : `rest_command` + push HA).
+    + entités socle (jev/enabled, backends dont custom-1, coûts,
+    `input_text` fusionnés log1+log2 — 0 clé dupliquée) + push
+    réel moteurs→HA (§40) + boucle HA→moteur (§41).
 39. push HA réel (P1-10/P2-4/P2-7/P2-9) : event J-2 → 200 `emis`
     + `sensor.log1_prix_nuit` == pivot J après recalcul +
     `calendar.log1_planning` contient la résa (JWT lab forgé ;

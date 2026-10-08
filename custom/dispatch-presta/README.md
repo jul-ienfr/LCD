@@ -117,6 +117,8 @@ Moteur stdlib `:8096`. Proposition seule, jamais d'envoi auto ; mission = 1-tap 
 Zone + actif + RC valide seuls dispatchés. Hors zone = 2e choix, jamais auto.
 Ancien champ `zone:` texte migré vers `zones:` + avertissement `migrations`.
 Traçabilité `decision.logX.jsonl` (schéma P2-13).
+Fiche mission : `{{ marque }}` = branding (`--branding`, repli `votre hôte`,
+jamais `LCD` en dur — marque blanche P8-3).
 
 ## Lab / box
 
