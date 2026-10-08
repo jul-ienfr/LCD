@@ -199,6 +199,12 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     (serrure/voix/extras/vitrines off) + bornes intactes + porte
     décision unitaire (events J-2 log1+log2 → 403 BLOQUÉE,
     wizard copro requis ; lab `verifiee: true` = exception).
+38. box HA virtuelle (§1.5.6/P1-10) : conteneur
+    `homeassistant:stable` + provisionnement headless
+    (`ha-bootstrap` : admin lab + token, `.storage` éphémère) +
+    packages RÉELS montés (miroir vérifié, 0 dérive) + API `:8123`
+    + entités socle (jev/enabled, backends dont custom-1, coûts).
+    Moteurs NON recâblés (TODO-BOX : `rest_command` + push HA).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

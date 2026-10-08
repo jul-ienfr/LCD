@@ -1,0 +1,56 @@
+# lab/ha-virtual/configuration.yaml — box HA virtuelle (lab Docker).
+# MIROIR de homeassistant/configuration.yaml : même bloc `packages:` (toute
+# divergence = réaligner, vérifié batterie §39). Différences assumées vs box :
+# - `api:` + `auth:` + `onboarding:` explicites (provisionnement headless,
+#   `lab/ha-virtual/bootstrap.py` ; pas d'UI first-boot en lab) ;
+# - PAS de `frontend:` ni `panel_iframe:` (API seule, jamais WAN) ;
+# - recorder SQLite local (même purge 10 j + excludes PIN/codes P1-10).
+# Secrets : aucun `!secret` actif dans les packages (que du commenté) ;
+# rien à monter. Volumes nommés (jamais commités) : haconfig.
+
+homeassistant:
+  name: LCD-lab
+  packages:
+    log1_communs: !include packages/log1/log1.yaml
+    log1_acces: !include packages/log1/acces.yaml
+    log1_energie: !include packages/log1/energie.yaml
+    log1_securite: !include packages/log1/securite.yaml
+    log1_exploitation: !include packages/log1/exploitation.yaml
+    log1_voix: !include packages/log1/voix.yaml
+    log2_communs: !include packages/log2/log2.yaml
+    log2_acces: !include packages/log2/acces.yaml
+    log2_energie: !include packages/log2/energie.yaml
+    log2_securite: !include packages/log2/securite.yaml
+    log2_exploitation: !include packages/log2/exploitation.yaml
+    log2_voix: !include packages/log2/voix.yaml
+
+# API + auth (provisionnement headless : bootstrap.py, jamais d'UI en lab).
+api:
+auth:
+onboarding:
+
+# Recorder 10 j (P1-10) — mêmes excludes que la box (PIN/codes/WiFi).
+recorder:
+  purge_keep_days: 10
+  exclude:
+    entity_globs:
+      - "*pin*"
+      - "*code*"
+      - "*keymaster*"
+      - "*nuki*"
+      - "*wifi*"
+
+logbook:
+  exclude:
+    entity_globs:
+      - "*pin*"
+      - "*code*"
+      - "*keymaster*"
+      - "*nuki*"
+      - "*wifi*"
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - ::1

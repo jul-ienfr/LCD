@@ -3,8 +3,12 @@
 # P2-14 : tunnel direct <60 s + conflit ICS + bornes 75/290 inviolables.
 # Usage : cd lab && docker compose up -d --build && python3 tests_lab.py
 # Teardown : docker compose down -v
+import base64
+import hashlib
+import hmac
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -88,6 +92,44 @@ def _aff(txt):
         print(txt)
     except UnicodeEncodeError:
         print(txt.encode("ascii", "replace").decode("ascii"))
+
+
+HA_URL = "http://127.0.0.1:8123"
+# Box HA virtuelle : refresh id + cle JWT FACTICES de lab (bootstrap.py).
+HA_REFRESH_ID = "6c6162326f782d7669727475616c2d02"
+HA_JWT_KEY = "6c61622d7669727475616c2d6a77742d6c61622d30312d6c61622d3032"
+
+
+def _b64url(obj):
+    return base64.urlsafe_b64encode(json.dumps(obj).encode()).rstrip(
+        b"=").decode()
+
+
+def ha_token(duree_s=900):
+    """JWT d'acces box virtuelle (HS256, iss = refresh id lab)."""
+    now = int(time.time())
+    head = _b64url({"alg": "HS256", "typ": "JWT"})
+    pay = _b64url({"iss": HA_REFRESH_ID, "iat": now,
+                   "exp": now + duree_s})
+    sig = base64.urlsafe_b64encode(hmac.new(
+        HA_JWT_KEY.encode(), (head + "." + pay).encode(),
+        hashlib.sha256).digest()).rstrip(b"=").decode()
+    return head + "." + pay + "." + sig
+
+
+def ha_get(chemin, timeout=15):
+    req = urllib.request.Request(HA_URL + chemin,
+                                 headers={"Authorization": "Bearer "
+                                                            + ha_token()})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, json.loads(r.read().decode("utf-8"))
+    except Exception as e:
+        code = getattr(e, "code", None) or 0
+        try:
+            return code, json.loads(e.read().decode("utf-8"))
+        except Exception:
+            return code, str(e)
 
 
 def check(nom, cond, detail=""):
@@ -4277,7 +4319,65 @@ except Exception as e:
     check("porte copro prod (unitaire decision)", False, str(e))
 
 print()
+print("== 39. box HA virtuelle : API + entites socle (lab/P1-10 §1.5.6) ==")
+ha_pret = False
+for _ in range(12):
+    try:
+        urllib.request.urlopen(HA_URL + "/api/", timeout=10)
+    except urllib.error.HTTPError as e:
+        if e.code == 401:
+            ha_pret = True
+            break
+    except Exception:
+        pass
+    time.sleep(10)
+check("HA :8123 joignable (401 sans auth = vivante)", ha_pret,
+      "box virtuelle bootée")
+code, cfgha = ha_get("/api/config") if ha_pret else (0, {})
+check("HA auth JWT lab -> /api/config 200",
+      code == 200 and isinstance(cfgha, dict)
+      and cfgha.get("version"),
+      f"HTTP {code} {cfgha.get('version') if isinstance(cfgha, dict) else cfgha}")
+code, states = ha_get("/api/states") if ha_pret else (0, [])
+ids = sorted(s.get("entity_id", "") for s in states) \
+    if isinstance(states, list) else []
+fiches = {s.get("entity_id"): s for s in states} \
+    if isinstance(states, list) else {}
+check("HA entites socle : jev/enabled, backends, couts",
+      code == 200 and all(e in ids for e in
+                          ("input_boolean.jev_enabled",
+                           "input_boolean.llm_eu_only",
+                           "input_select.log1_llm_backend",
+                           "input_select.log1_jev_backend",
+                           "sensor.llm_cout_mois",
+                           "sensor.jev_cout_mois")),
+      f"HTTP {code} {len(ids)} states")
+opts = fiches.get("input_select.log1_llm_backend",
+                  {}).get("attributes", {}).get("options", [])
+check("HA select backend : 5 aliases dont custom-1",
+      "lcd-chat-custom-1" in opts
+      and "lcd-chat-fast" in opts,
+      f"{opts}")
+try:
+    with open(os.path.join(REPO, "homeassistant",
+                            "configuration.yaml"),
+              encoding="utf-8") as f:
+        src_conf = f.read()
+    with open(os.path.join(REPO, "lab", "ha-virtual",
+                            "configuration.yaml"),
+              encoding="utf-8") as f:
+        src_lab = f.read()
+except OSError as e:
+    src_conf = src_lab = ""
+    check("configs HA lisibles", False, str(e))
+pkgs = lambda s: sorted(re.findall(r"^\s+\w+: !include (\S+)",
+                                    s, re.M))
+check("HA miroir packages : lab = box (0 derive)",
+      pkgs(src_conf) and pkgs(src_conf) == pkgs(src_lab),
+      f"{len(pkgs(src_lab))} includes")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha.")

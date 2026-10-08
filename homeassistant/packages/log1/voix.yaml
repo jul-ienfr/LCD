@@ -2,7 +2,9 @@
 # BYOD strict, consentement par échange, jamais de codes/serrure/vanne en vocal.
 # NOTE Phase 7 : installer Wyoming/Whisper/Piper/openWakeWord + configurer proxy :4000.
 
-assist_pipeline: []
+# Pipeline "LCD log1" (TODO-BOX : déclarer quand Wyoming + proxy posés ;
+# `assist_pipeline:` exige un dict — jamais une liste vide).
+# assist_pipeline:
 
 # Squelettes Phase 7 — TODO-BOX : décommenter quand proxy :4000 + secrets.yaml réel posés.
 # P7-1 Wyoming + Whisper-small + Piper + openWakeWord (BYOD : smartphone voyageur
