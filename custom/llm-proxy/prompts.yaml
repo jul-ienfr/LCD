@@ -310,3 +310,38 @@ prompts:
     variables: [checklist, copro, tableau]
     interdits: [mise_en_ligne_forcee]
     systeme: "Juge le palier wizard (Choice socle+Nuki seul vs full + Noul copro bloquante + Noul sécu élec requise). Checklist KO = socle+Nuki seul en code, copro verifiee false = mise en ligne BLOQUÉE, tableau = électricien. Checklist : {{ checklist }} — Copro : {{ copro }} — Tableau : {{ tableau }}."
+  - usage: jllm-resume-cgv
+    alias: lcd-chat-fast
+    variables: [articles, langue, mentions]
+    interdits: [clause_abusive, montant_invente, numero_invente]
+    systeme: "Résume CGV/contrat en 1 page dans la langue demandée depuis les 14 articles (capacité, bruit 22h-8h, non-fumeur, caution, annulation, L.221-28, médiation L.612-1). Mentions L.111-1/L.112-1/L.221-28/L.612-1 + médiateur nom+site+ODR obligatoires, R.212-1 interdit, montants jamais inventés, caution verbatim : Une empreinte de XXX EUR sera demandée à l'arrivée et libérée sous 7 jours après état des lieux. Validation humaine datée. Articles : {{ articles }} — Langue : {{ langue }} — Mentions : {{ mentions }}."
+  - usage: jllm-check-conformite
+    alias: lcd-chat-fast
+    variables: [copro, mairie, logement]
+    interdits: [avis_juridique, numero_invente]
+    systeme: "Compile la check-list conformité (copro + mairie + logement : Cerfa 14004*04 + numéro annonce, registre national, DPE, taxe séjour, RC/PNO/MRH, classement) en statuts OK/manquants. Pas d'avis juridique, relecture juriste obligatoire, verifiee false = mise en ligne BLOQUÉE, jamais de numéro inventé. Copro : {{ copro }} — Mairie : {{ mairie }} — Logement : {{ logement }}."
+  - usage: jllm-lettre-syndic
+    alias: lcd-chat-fast
+    variables: [trimestre, preuves]
+    interdits: [audio, chambre_sdb]
+    systeme: "Rédige la lettre tranquillité du trimestre depuis les preuves (dB seuls, messages 22h-8h, interventions, attestations) : aucun dépassement + rappel + intervention <15 min. dB seuls jamais audio, jamais chambres/SDB, chiffres EXIF/logs seuls, humain envoie via messagerie tracée. Trimestre : {{ trimestre }} — Preuves : {{ preuves }}."
+  - usage: jllm-relance-echeance
+    alias: lcd-chat-fast
+    variables: [echeance, destinataire]
+    interdits: [menace_juridique]
+    systeme: "Rédige la relance d'échéance (RC pro J-30/J-7, registre national, syndic) ton poli ferme sans menace juridique auto. Dispatch bloqué si suspendu_assurance (règle déterministe), humain valide l'envoi. Échéance : {{ echeance }} — Destinataire : {{ destinataire }}."
+  - usage: jllm-aide-mediation
+    alias: lcd-chat-fast
+    variables: [reclamation, canal]
+    interdits: [renonciation, clause_abusive]
+    systeme: "Aide la réponse réclamation + rappelle la médiation L.612-1 obligatoire si pro, sans renonciation. Mention médiateur + ODR obligatoire, pas de clause attributive ni médiation payante imposée (R.212-1), humain valide, traçabilité plateforme. Réclamation : {{ reclamation }} — Canal : {{ canal }}."
+  - usage: jllm-digest-audit
+    alias: lcd-chat-fast
+    variables: [periode, logs]
+    interdits: [pin_clair, secret]
+    systeme: "Résume l'audit de la période (dérives prix, litiges, sinistres, accès) + post-mortem 5 lignes si récidive. Jamais de PIN en clair (4 derniers seuls), WiFi = statut+classe+horodatage, confidentiel hors marque blanche. Période : {{ periode }} — Logs : {{ logs }}."
+  - usage: jllm-filtre-rbac
+    alias: lcd-chat-fast
+    variables: [role, logements, demande]
+    interdits: [hors_scope, secret]
+    systeme: "Filtre la demande au périmètre du rôle (rôle + logements depuis acces.yaml, révocation auto, journal 90 j). Refuse hors scope, secrets jamais exposés, presta = mission seule, voyageur = PWA durée séjour jamais HA direct. Rôle : {{ role }} — Logements : {{ logements }} — Demande : {{ demande }}."

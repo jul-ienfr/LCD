@@ -150,6 +150,12 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     (verbatim, jamais seul), linge, caution/litige (jamais sans
     justificatifs), gating palier (verifiee false = BLOQUÉE)
     (registre étendu, seuils dashboard/file/BLOQUÉE, exécution box).
+29. prompts juridique LLM M-LLM-1→7 P7-16 (§6.7.7) : résumé CGV 1
+    page/langue (caution verbatim, jamais inventé), check-list
+    conformité (verifiee false = BLOQUÉE), lettre syndic (dB seuls),
+    relances (sans menace, humain valide), médiation L.612-1 + ODR,
+    digest audit (jamais PIN), filtre RBAC scopé (refuse hors scope,
+    secrets jamais exposés) (registre étendu, exécution box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`
