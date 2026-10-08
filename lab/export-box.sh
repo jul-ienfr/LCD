@@ -10,7 +10,9 @@ set -e
 cd "$(dirname "$0")"
 STAMP=$(date +%Y%m%d)
 docker compose build
-IMAGES=$(docker compose config --images | sort -u)
+# Seules les images maison lcd-lab-* voyagent : homeassistant:stable et
+# python:slim sont re-tirés sur la box (1 seul accès WAN requis).
+IMAGES=$(docker compose config --images | sort -u | grep '^lcd-lab-')
 # shellcheck disable=SC2086
 docker save -o "lcd-box-${STAMP}.tar" $IMAGES
 sha256sum "lcd-box-${STAMP}.tar" > "lcd-box-${STAMP}.tar.sha256"
