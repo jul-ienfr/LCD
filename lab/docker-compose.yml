@@ -98,12 +98,16 @@ services:
       - ../custom/acces.yaml:/opt/lcd/acces.yaml:ro
       - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
       - ./branding.lab.yaml:/opt/lcd/branding.yaml:ro
+      # memoire.lab en RW (box-equivalent) : registre opt-in muté à chaque
+      # opt-in/out/purge (geste humain seul). Reset : `git checkout -- memoire.lab`.
+      - ./memoire.lab/:/opt/lcd/memoire
     command: >
       sh -c "python3 /opt/lcd/custom/decision-engine/decision.py
       --config /opt/lcd/config.yaml
       --logements /opt/lcd/logements.yaml
       --acces /opt/lcd/acces.yaml
-      --branding /opt/lcd/branding.yaml --serve"
+      --branding /opt/lcd/branding.yaml
+      --memoire /opt/lcd/memoire/voyageurs.lab.yaml --serve"
     depends_on:
       ics-sync:
         condition: service_healthy

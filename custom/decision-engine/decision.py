@@ -25,6 +25,12 @@
 #   GET  /phrases?logement_id=log1[&cle=<cle>&langue=<code>&var=...] -> P6-11 :
 #     sans cle = catalogue 20 phrases 1-tap ; avec cle = phrase rendue localisée
 #     (placeholders injectés APRÈS choix langue, jamais de PIN ici)
+#   GET  /memoire?logement_id=log1&hash=<sha256>&qui=<qui> -> P6-12 :
+#     fiche pré-remplissage (langue/consignes/extras favoris, jamais le hash)
+#     ou 404 (inconnu / opt-out / expiré)
+#   POST /memoire {action: optin/optout/purge, logement_id, qui, hash?, ...}
+#     -> opt-in/out 1-tap HUMAIN + purge 24 mois (opt-out = oubli immédiat).
+#     Jamais de CSI brut (hash seul), jamais d'effet prix (art.225-1).
 #   POST /decision {logement_id, ref, qui, quoi, canal?, montant?, motif?, llm?, jev?}
 #     -> vérifie RBAC + bornes + hors_bornes Jev, log JSONL (bloqué si refusé, loggé aussi)
 #   GET  /health -> {"ok": true}
@@ -344,6 +350,73 @@ def utcnow_iso():
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
 
 
+# P6-12 §5.7-quater : mémoire voyageur. Opt-in séjour seul (geste HUMAIN
+# 1-tap, qui != auto/llm/jev/moteur-*), jamais de discrimination tarifaire
+# (art.225-1 : aucun effet prix), jamais de CSI brut (hash sha256 seul),
+# purge 24 mois (dernier_sejour > 730 j), présence 90 j = logs JSONL.
+# Registre : custom/memoire/voyageurs.yaml (box) / voyageurs.lab.yaml (lab RW,
+# monté comme inventaire/stocks lab, reset via `git checkout -- memoire.lab`).
+# Format : liste `- hash: "<hex64>"` + champs scalaires (opt_in, opt_in_le,
+# dernier_sejour AAAA-MM-JJ, langue socle, consignes, extras_favoris CSV).
+MEMOIRE_CHAMPS = ("opt_in", "opt_in_le", "dernier_sejour", "langue",
+                  "consignes", "extras_favoris")
+QUI_AUTO_MEMOIRE = ("auto", "llm", "jev", "moteur-direct",
+                    "moteur-dispatch", "moteur-caution", "")
+
+
+def lire_memoire(path):
+    """Lit le registre mémoire : {hash: {champs}}. Parseur minimal stdlib
+    (liste `- hash:` + scalaires), même style que lire_acces. Absent = {}."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            lignes = f.readlines()
+    except FileNotFoundError:
+        return {}
+    fiches = {}
+    cur = None
+    for brute in lignes:
+        ligne = brute.split("#", 1)[0].rstrip("\n")
+        if not ligne.strip():
+            continue
+        prop = ligne.strip()
+        if prop.startswith("- hash:"):
+            cur = prop.split(":", 1)[1].strip().strip("\"'")
+            if re.fullmatch(r"[0-9a-f]{64}", (cur or "").lower()):
+                fiches[cur.lower()] = {}
+                cur = cur.lower()
+            else:
+                cur = None  # hash invalide -> ignoré (jamais de CSI brut)
+            continue
+        if cur and ":" in prop and not prop.startswith("- "):
+            k, v = [x.strip().strip("\"'") for x in prop.split(":", 1)]
+            if k in MEMOIRE_CHAMPS and v not in ("", "null", "None"):
+                fiches[cur][k] = v
+    return fiches
+
+
+def ecrire_memoire(path, fiches):
+    """Réécrit le registre (même format). Trié par hash (déterministe)."""
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("# custom/memoire/voyageurs.yaml — registre opt-in (P6-12 §5.7-quater).\n"
+                "# Hash seul, jamais de CSI brut. Purge 24 mois. Écrit par geste humain.\n"
+                "voyageurs:\n")
+        for h in sorted(fiches):
+            f.write(f"  - hash: \"{h}\"\n")
+            for k in MEMOIRE_CHAMPS:
+                if fiches[h].get(k) not in (None, ""):
+                    f.write(f"    {k}: \"{fiches[h][k]}\"\n")
+
+
+def memoire_expiree(fiche, aujourd_hui=None):
+    """True si dernier_sejour > 730 j (purge 24 mois) ou date invalide."""
+    try:
+        sejour = dt.date.fromisoformat(str(fiche.get("dernier_sejour", "")))
+    except ValueError:
+        return True
+    ref = aujourd_hui or dt.date.today()
+    return (ref - sejour).days > 730
+
+
 def charger_yaml_plat(path):
     data = {}
     try:
@@ -493,12 +566,17 @@ def lire_acces(path):
 
 
 class Moteur:
-    def __init__(self, cfg, logts, acces, secrets, branding=None):
+    def __init__(self, cfg, logts, acces, secrets, branding=None,
+                 memoire_path=""):
         self.cfg = cfg
         self.logts = logts
         self.acces = acces
         self.secrets = secrets
         self.branding = dict(branding or {})
+        # P6-12 §5.7-quater : registre opt-in (hash seul, jamais CSI brut).
+        # Lu au boot, réécrit à chaque opt-in/out/purge (geste humain seul).
+        self.memoire_path = memoire_path or ""
+        self.memoire = (lire_memoire(memoire_path) if memoire_path else {})
         self.decision_dir = os.environ.get("LCD_DECISION_LOG_DIR",
                                           cfg.get("decision_log_dir", "./state"))
         os.makedirs(self.decision_dir, exist_ok=True)
@@ -748,6 +826,18 @@ class Moteur:
         for k_def, v_def in self.vars_statiques(logement_id).items():
             if not (data.get(k_def) or "") and (v_def or ""):
                 data[k_def] = v_def
+        # P6-12 §5.7-quater : returning via hash (data fournie par geste
+        # humain / renvoi / ics-sync futur, jamais calculé ici). Si le hash
+        # matche une fiche opt-in valide : langue fiche si absente + flag
+        # retour_voyageur (Bon retour ci-dessous). Données fournies priment
+        # TOUJOURS. Jamais de hash/CSI ni de PIN en sortie (réponse SÛRE).
+        if str(data.get("hash", "") or "").strip():
+            fiche = self._fiche_valide(data.get("hash", ""))
+            if fiche is not None:
+                if not (data.get("langue") or ""):
+                    data["langue"] = str(fiche.get("langue", "fr") or "fr")
+                data["retour_voyageur"] = True
+                data.pop("hash", None)  # jamais transmis à HA ni loggé
         langue = (data.get("langue") or "fr")
         # log2 LIGHT / smart_lock off -> pin vide + message boîte à clés (jamais généré ici)
         if not l["features"].get("smart_lock", True):
@@ -791,6 +881,8 @@ class Moteur:
                       "type": type_event, "ha": info,
                       "langue": langue_utilisee,
                       "traduction_auto": traduction_auto,
+                      "retour_voyageur": bool(str(data.get("retour_voyageur", ""))
+                                              .lower() in ("true", "1", "oui", "yes")),
                       "gabarit_trouve": bool(msg),
                       "message_longueur": len(msg),
                       "placeholders_restants": msg.count("{{"),
@@ -833,6 +925,101 @@ class Moteur:
                      "langue": utilisee, "traduction_auto": auto,
                      "phrase": texte,
                      "placeholders_restants": texte.count("{{")}
+
+    # --- P6-12 §5.7-quater : mémoire voyageur (opt-in séjour seul) ---
+    def _sauver_memoire(self):
+        if self.memoire_path:
+            ecrire_memoire(self.memoire_path, self.memoire)
+
+    def _fiche_valide(self, hash_voyageur):
+        """Fiche opt-in non expirée ou None (inconnu / opt-out / expiré /
+        hash invalide). Jamais de CSI brut : la clé est le hash seul."""
+        h = str(hash_voyageur or "").lower()
+        fiche = self.memoire.get(h)
+        if not fiche or fiche.get("opt_in") not in ("true", "1", "oui", "yes", True):
+            return None
+        if memoire_expiree(fiche):
+            return None
+        return fiche
+
+    def pre_remplissage(self, hash_voyageur):
+        """GET /memoire : fiche SÛRE loggable (jamais le hash en sortie,
+        jamais de PIN — il n'y en a pas ici de toute façon)."""
+        fiche = self._fiche_valide(hash_voyageur)
+        if fiche is None:
+            return 404, {"erreur": "voyageur inconnu, opt-out ou fiche expirée"}
+        langue = str(fiche.get("langue", "fr") or "fr").lower()[:2]
+        if langue not in LANGUES_SOCLE:
+            langue = "fr"
+        extras = [x.strip() for x in str(fiche.get("extras_favoris", "") or "").split(",")
+                  if x.strip()]
+        return 200, {"statut": "reconnu",
+                     "langue": langue,
+                     "consignes": str(fiche.get("consignes", "") or ""),
+                     "extras_favoris": extras}
+
+    def memoire_optin(self, logement_id, qui_id, hash_voyageur, prefs=None):
+        """POST /memoire optin : geste HUMAIN seul (qui != auto/llm/jev/
+        moteur-*), ref séjour exigée via prefs (traçabilité). Crée/maj la
+        fiche (dernier_sejour = aujourd'hui). Jamais d'effet prix."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_MEMOIRE:
+            return 400, {"erreur": "geste humain exigé (qui != auto/llm/jev)"}
+        h = str(hash_voyageur or "").lower()
+        if not re.fullmatch(r"[0-9a-f]{64}", h):
+            return 400, {"erreur": "hash sha256 hex 64 requis (jamais de CSI brut)"}
+        prefs = dict(prefs or {})
+        langue = str(prefs.get("langue", "fr") or "fr").lower()[:2]
+        if langue not in LANGUES_SOCLE:
+            langue = "fr"
+        self.memoire[h] = {
+            "opt_in": "true",
+            "opt_in_le": str(prefs.get("opt_in_le", "") or "") or utcnow_iso()[:10],
+            "dernier_sejour": dt.date.today().isoformat(),
+            "langue": langue,
+            "consignes": str(prefs.get("consignes", "") or "")[:500],
+            "extras_favoris": ",".join(
+                [x.strip() for x in str(prefs.get("extras_favoris", "") or "")
+                 .replace(";", ",").split(",") if x.strip()][:10]),
+        }
+        self._sauver_memoire()
+        self.log_decision(logement_id, f"memoire-optin", qui_id, "acces",
+                          None, None, "opt-in mémoire (hash seul, sans effet prix)")
+        return 200, {"statut": "optin", "langue": langue}
+
+    def memoire_optout(self, logement_id, qui_id, hash_voyageur):
+        """POST /memoire optout : oubli IMMÉDIAT (suppression fiche). Même
+        garde-fou humain que l'opt-in. 200 même si inconnu (idempotent)."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_MEMOIRE:
+            return 400, {"erreur": "geste humain exigé (qui != auto/llm/jev)"}
+        h = str(hash_voyageur or "").lower()
+        supprime = self.memoire.pop(h, None) is not None
+        if supprime:
+            self._sauver_memoire()
+        self.log_decision(logement_id, "memoire-optout", qui_id, "acces",
+                          None, None, "opt-out mémoire (oubli immédiat)")
+        return 200, {"statut": "optout", "fiche_supprimee": supprime}
+
+    def memoire_purge(self, logement_id, qui_id):
+        """POST /memoire purge : supprime fiches dernier_sejour > 730 j
+        (24 mois). Geste humain. Retourne le nb purgé (SÛR, loggable)."""
+        if logement_id not in self.logts:
+            return 404, {"erreur": f"logement inconnu: {logement_id}"}
+        if not qui_id or str(qui_id).strip().lower() in QUI_AUTO_MEMOIRE:
+            return 400, {"erreur": "geste humain exigé (qui != auto/llm/jev)"}
+        avant = len(self.memoire)
+        self.memoire = {h: f for h, f in self.memoire.items()
+                        if not memoire_expiree(f)}
+        purgees = avant - len(self.memoire)
+        if purgees:
+            self._sauver_memoire()
+        self.log_decision(logement_id, "memoire-purge", qui_id, "acces",
+                          None, None, f"purge mémoire 24 mois : {purgees}")
+        return 200, {"statut": "purge", "purgees": purgees,
+                     "restantes": len(self.memoire)}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -881,6 +1068,14 @@ class Handler(BaseHTTPRequestHandler):
                 logement_id, qs.get("cle", [""])[0],
                 qs.get("langue", ["fr"])[0], variables)
             return self._json(code, obj)
+        if url.path == "/memoire":
+            # P6-12 §5.7-quater : fiche pré-remplissage (hash seul en entrée,
+            # jamais en sortie). 404 si inconnu/opt-out/expiré.
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            code, obj = self.engine.pre_remplissage(qs.get("hash", [""])[0])
+            return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 
     def do_POST(self):
@@ -909,6 +1104,24 @@ class Handler(BaseHTTPRequestHandler):
             code, obj = self.engine.emettre_event(
                 p["type"], p["logement_id"], p["qui"], p.get("ref", ""), p.get("data"))
             return self._json(code, obj)
+        if url.path == "/memoire":
+            # P6-12 §5.7-quater : optin/optout/purge (geste humain seul).
+            action = str(p.get("action", "") or "").lower()
+            if not (p.get("logement_id") and p.get("qui") and action):
+                return self._json(400, {"erreur": "logement_id, qui, action requis"})
+            if action == "optin":
+                code, obj = self.engine.memoire_optin(
+                    p["logement_id"], p["qui"], p.get("hash", ""),
+                    p.get("preferences"))
+            elif action == "optout":
+                code, obj = self.engine.memoire_optout(
+                    p["logement_id"], p["qui"], p.get("hash", ""))
+            elif action == "purge":
+                code, obj = self.engine.memoire_purge(
+                    p["logement_id"], p["qui"])
+            else:
+                return self._json(400, {"erreur": "action inconnue (optin/optout/purge)"})
+            return self._json(code, obj)
         return self._json(404, {"erreur": "inconnu"})
 
 
@@ -919,6 +1132,8 @@ def main():
     ap.add_argument("--acces", default="../acces.yaml")
     ap.add_argument("--branding", default="../branding.yaml",
                     help="variables statiques marque (PRIVÉ, absent = {})")
+    ap.add_argument("--memoire", default="../memoire/voyageurs.yaml",
+                    help="registre mémoire opt-in (P6-12, hash seul, absent = {})")
     ap.add_argument("--check", action="store_true",
                     help="vérifie copro + pousse sensor.logX_config_ok + affiche état")
     ap.add_argument("--serve", action="store_true", help="démarre l'API HTTP")
@@ -935,7 +1150,7 @@ def main():
         return 2
     secrets = charger_yaml_plat(os.environ.get("LCD_SECRETS_YAML", "./secrets.yaml"))
     branding = charger_branding(args.branding)  # PRIVÉ, absent = {} (jamais commité)
-    eng = Moteur(cfg, logts, acces, secrets, branding)
+    eng = Moteur(cfg, logts, acces, secrets, branding, args.memoire)
     Handler.engine = eng
 
     if args.check or not args.serve:

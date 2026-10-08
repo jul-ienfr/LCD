@@ -20,6 +20,19 @@
 # - Jamais de PIN ni secret (ni en entree ni en sortie : pin/code/message ignores).
 #   Reponse SURE loggable (phrase + metadonnees, comme /event).
 #
+# ## Mémoire voyageur P6-12 (§5.7-quater) — GET/POST /memoire
+# - Opt-in séjour seul, 1-tap révocable, geste HUMAIN seul (qui != auto/llm/jev/
+#   moteur-*). Registre `custom/memoire/voyageurs.yaml` (box) : hash sha256 seul,
+#   jamais de CSI brut, jamais d'effet prix (art.225-1).
+# - GET /memoire?logement_id=log1&hash=<hex64> -> fiche SÛRE loggable
+#   (langue/consignes/extras_favoris, jamais le hash) ou 404 (inconnu/opt-out/expiré).
+# - POST /memoire {action: optin/optout/purge, ...} -> opt-in (crée/maj fiche,
+#   dernier_sejour = jour J), opt-out (oubli IMMÉDIAT, idempotent), purge
+#   (dernier_sejour > 730 j = 24 mois). Présence 90 j = logs JSONL.
+# - Returning J-2 : data.hash reconnu (fiche opt-in valide) -> langue fiche si
+#   absente + « Bon retour ! » localisé socle 5 ; hash jamais transmis ni loggé.
+#   Jamais de PIN ni secret ici (ni entrée ni sortie).
+#
 # ## Règles
 # - Ne génère JAMAIS de PIN (KeyMaster + Nuki Hub seuls, §1.6) ; ne fait JAMAIS de tool-calling
 #   serrure/vanne/portail direct — passe par blueprints + vérif état.

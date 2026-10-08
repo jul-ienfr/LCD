@@ -1,0 +1,3 @@
+# custom/memoire/voyageurs.yaml — registre opt-in (P6-12 §5.7-quater).
+# Hash seul, jamais de CSI brut. Purge 24 mois. Écrit par geste humain.
+voyageurs:

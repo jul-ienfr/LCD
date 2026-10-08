@@ -1239,8 +1239,115 @@ check("logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
 code, obj = get("decision", "/phrases?cle=bienvenue&langue=fr")
 check("sans logement_id -> 400", code == 400, f"HTTP {code} {obj}")
 
+print("== 11-octies. memoire voyageur (P6-12 §5.7-quater) ==")
+# Opt-in/out/purge = geste HUMAIN seul (personne_01). Hash sha256 hex64 FAUX de
+# lab (jamais de CSI reel). Registre lab RW, reponses SURES (jamais hash/PIN).
+HASH_LAB = "a" * 64
+code, inconnu = get("decision", f"/memoire?logement_id=log1&hash={HASH_LAB}")
+check("inconnu -> 404 pre-remplissage", code == 404, f"HTTP {code} {inconnu}")
+
+# Garde-fous : qui auto refuse, hash invalide refuse, logement inconnu 404.
+code, obj = post("decision", "/memoire",
+                 {"action": "optin", "logement_id": "log1", "qui": "auto",
+                  "hash": HASH_LAB, "preferences": {"langue": "es"}})
+check("opt-in auto -> 400 geste humain exige", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/memoire",
+                 {"action": "optin", "logement_id": "log1", "qui": "personne_01",
+                  "hash": "CSI-brut-non", "preferences": {"langue": "es"}})
+check("opt-in CSI brut -> 400 hash sha256 exige", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/memoire",
+                 {"action": "optin", "logement_id": "logX", "qui": "personne_01",
+                  "hash": HASH_LAB, "preferences": {"langue": "es"}})
+check("opt-in logement inconnu -> 404", code == 404, f"HTTP {code} {obj}")
+
+# Opt-in humain : langue es + consignes + extras favoris 1-tap.
+code, optin = post("decision", "/memoire",
+                   {"action": "optin", "logement_id": "log1", "qui": "personne_01",
+                    "hash": HASH_LAB,
+                    "preferences": {"langue": "es", "consignes": "etage sans ascenseur",
+                                    "extras_favoris": "petit_dej, velo"}})
+check("opt-in humain -> 200 langue es", code == 200 and isinstance(optin, dict)
+      and optin.get("statut") == "optin" and optin.get("langue") == "es"
+      and "hash" not in optin, f"HTTP {code} {optin}")
+
+# Pre-remplissage : reconnu, langue/consignes/extras, jamais le hash.
+code, fiche = get("decision", f"/memoire?logement_id=log1&hash={HASH_LAB}")
+check("reconnu -> 200 fiche SURE sans hash",
+      code == 200 and isinstance(fiche, dict)
+      and fiche.get("statut") == "reconnu" and fiche.get("langue") == "es"
+      and fiche.get("consignes") == "etage sans ascenseur"
+      and fiche.get("extras_favoris") == ["petit_dej", "velo"]
+      and "hash" not in fiche, f"HTTP {code} {fiche}")
+
+# Returning via hash : J-2 pre-remplit langue es + flag retour (Bon retour),
+# sans ecraser la langue fournie ; hash jamais transmis (ni reponse ni HA).
+code, j2_mem = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                     {**BASE_DATA, "pin": "482913", "hash": HASH_LAB})
+check("returning hash : J-2 202 + langue memoire es + retour_voyageur",
+      code == 202 and isinstance(j2_mem, dict)
+      and j2_mem.get("langue") == "es"
+      and j2_mem.get("retour_voyageur") is True
+      and j2_mem.get("gabarit_trouve") is True
+      and "message" not in j2_mem and "pin" not in j2_mem
+      and "hash" not in j2_mem, f"HTTP {code} {j2_mem}")
+code, j2_mem_fr = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                        {**BASE_DATA, "langue": "fr", "pin": "482913",
+                         "hash": HASH_LAB})
+check("returning hash : langue fournie fr prime sur memoire",
+      code == 202 and isinstance(j2_mem_fr, dict)
+      and j2_mem_fr.get("langue") == "fr"
+      and j2_mem_fr.get("retour_voyageur") is True, f"HTTP {code} {j2_mem_fr}")
+
+# Opt-out = oubli immediat : 404 apres ; idempotent (2e opt-out 200).
+code, out = post("decision", "/memoire",
+                 {"action": "optout", "logement_id": "log1",
+                  "qui": "personne_01", "hash": HASH_LAB})
+check("opt-out humain -> 200 fiche supprimee",
+      code == 200 and isinstance(out, dict)
+      and out.get("statut") == "optout"
+      and out.get("fiche_supprimee") is True, f"HTTP {code} {out}")
+code, oublie = get("decision", f"/memoire?logement_id=log1&hash={HASH_LAB}")
+check("apres opt-out -> 404 oublie", code == 404, f"HTTP {code} {oublie}")
+code, out2 = post("decision", "/memoire",
+                  {"action": "optout", "logement_id": "log1",
+                   "qui": "personne_01", "hash": HASH_LAB})
+check("opt-out idempotent -> 200 fiche_supprimee False",
+      code == 200 and isinstance(out2, dict)
+      and out2.get("fiche_supprimee") is False, f"HTTP {code} {out2}")
+
+# Apres oubli : J-2 avec hash inconnu = non-returning (pas de Bon retour).
+code, j2_oublie = event("lcd_j2_envoi_acces", "log1", "personne_01",
+                        {**BASE_DATA, "langue": "fr", "pin": "482913",
+                         "hash": HASH_LAB})
+check("hash inconnu -> non-returning",
+      code == 202 and isinstance(j2_oublie, dict)
+      and j2_oublie.get("retour_voyageur") is False, f"HTTP {code} {j2_oublie}")
+
+# Purge 24 mois : geste humain, 400 si auto ; ici 0 fiche expiree (opt-in du jour).
+code, purge_auto = post("decision", "/memoire",
+                        {"action": "purge", "logement_id": "log1", "qui": "llm"})
+check("purge auto -> 400 geste humain exige", code == 400, f"HTTP {code} {purge_auto}")
+code, purge = post("decision", "/memoire",
+                   {"action": "purge", "logement_id": "log1",
+                    "qui": "personne_01"})
+check("purge humaine -> 200 compteurs SURS",
+      code == 200 and isinstance(purge, dict)
+      and purge.get("statut") == "purge"
+      and purge.get("purgees") == 0
+      and "hash" not in purge, f"HTTP {code} {purge}")
+
+# Action inconnue / champs manquants -> 400.
+code, obj = post("decision", "/memoire",
+                 {"action": "oublier", "logement_id": "log1",
+                  "qui": "personne_01", "hash": HASH_LAB})
+check("action inconnue -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = post("decision", "/memoire", {"action": "optin", "qui": "personne_01"})
+check("sans logement_id -> 400", code == 400, f"HTTP {code} {obj}")
+code, obj = get("decision", "/memoire?hash=" + HASH_LAB)
+check("GET sans logement_id -> 400", code == 400, f"HTTP {code} {obj}")
+
 print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12.")
