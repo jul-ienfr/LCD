@@ -4507,7 +4507,57 @@ check("history : sensor.log1_prix_nuit archive (graphe Vue Prix)",
       hist_ok, f"pivot_j={pivot_j} (commit recorder)")
 
 print()
+print("== 43. recette P7-9 : composeur 63 usages + determinisme + 5 langues (lab/P7-9) ==")
+code, reg43 = get("router", "/prompts")
+us43 = reg43.get("usages", []) if isinstance(reg43, dict) else []
+check("recette : registre 63 usages llm+jev (post-pivot :4000)",
+      code == 200 and len(us43) == 63,
+      f"HTTP {code} total={len(us43)}")
+rec_ok, rec_ko, deter_ko, lat43 = 0, [], [], []
+for u in us43:
+    vars43 = {k: "RECETTE-" + k for k in (u.get("variables") or [])}
+    t0 = time.time()
+    c1, o1 = post("router", "/composer",
+                  {"usage": u.get("usage"), "variables": vars43})
+    lat43.append((time.time() - t0) * 1000.0)
+    c2, o2 = post("router", "/composer",
+                  {"usage": u.get("usage"), "variables": vars43})
+    bon = (c1 == 200 and c2 == 200 and isinstance(o1, dict)
+           and isinstance(o2, dict)
+           and o1.get("placeholders_restants") == 0)
+    if bon:
+        rec_ok += 1
+        if o1.get("prompt") != o2.get("prompt"):
+            deter_ko.append(u.get("usage"))
+    else:
+        rec_ko.append(u.get("usage"))
+check("recette : 63/63 composes 200 + 0 residu (aucun appel LLM, 0 quota)",
+      code == 200 and rec_ok == 63 and not rec_ko,
+      f"ok={rec_ok}/63 ko={rec_ko[:5]}")
+check("recette : composeur deterministe (2x meme prompt)",
+      rec_ok == 63 and not deter_ko, f"ko={deter_ko[:5]}")
+lat43.sort()
+p50 = lat43[len(lat43) // 2] if lat43 else -1
+p95 = lat43[int(len(lat43) * 0.95)] if lat43 else -1
+check("recette : latence composeur locale p95 < 2000 ms",
+      p95 >= 0 and p95 < 2000,
+      f"p50={p50:.1f}ms p95={p95:.1f}ms n={len(lat43)}")
+msgs43 = {"fr": "Ou est la plage ?", "en": "Where is the beach?",
+          "es": "Donde esta la playa ?", "it": "Dov'e la spiaggia ?",
+          "de": "Wo ist der Strand ?"}
+verb43 = []
+for lg, tx in msgs43.items():
+    c3, o3 = post("router", "/composer",
+                  {"usage": "m1-detection-langue",
+                   "variables": {"message": tx}})
+    if not (c3 == 200 and isinstance(o3, dict)
+            and tx in (o3.get("prompt") or "")):
+        verb43.append(lg)
+check("recette : m1 5 langues verbatim preserve (UTF-8, jamais traduit)",
+      not verb43, f"ko={verb43} (execution LLM/Jev reelle = box)")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9.")

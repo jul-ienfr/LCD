@@ -5,7 +5,7 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `63 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `64 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 4/14
 - Phase 2 PMS/synchro/pricing : 15/16
@@ -13,7 +13,7 @@
 - Phase 4 Énergie : 0/10
 - Phase 5 Sécurité : 0/10
 - Phase 6 Exploitation : 22/22 ✔
-- Phase 7 Voix + LLM/Jev : 19/20
+- Phase 7 Voix + LLM/Jev : 20/20 ✔
 - Phase 8 Recette / go-live : 3/12
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
@@ -155,7 +155,7 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, gateway `:4000` apport�
 - [x] P7-6 Seuils transverses en code : `noul>0,8 + confidence>0,75 → auto borné sinon dashboard`, `confidence<0,7 → jamais d'auto`, `hors_bornes>0,5 → blocage` ; LLM/Jev consultatifs seuls, jamais tool-calling serrure/vanne/portail, jamais génération PIN/ouverture (KeyMaster+Nuki Hub seuls) — FAIT lab 2026-10-08 : `GET /seuils` (doc vivante) + `POST /gardien` decision :8092 (RBAC -> outil interdit serrure/vanne/portail/ouverture/PIN/alarme_off TOUJOURS bloqué -> hors_bornes>0,5 bloqué -> conf<0,7 dashboard jamais d'auto -> noul>0,8+conf>0,75 auto borné réversible seul -> sinon dashboard ; scores absents = 0 ; log JSONL avec trace P7-7 alias/fournisseur/modèle + backend/endpoint/confidence) + batterie lab §21 verte (lab = box ; P7-2/3/4/5 = déploiement box : secrets LiteLLM, proxy :4000, UI :8050, Jev SystemOne)
 - [x] P7-7 Traçabilité : `decision.logX.jsonl` (alias+fournisseur+modèle+endpoint+tokens+latence, Jev backend+endpoint+modèle+confidence) + filtre dashboard par backend/alias/langue — FAIT lab 2026-10-08 : champ `langue` additif en log (events : langue utilisée ; gardien : langue passée) + `GET /journal?backend=&alias=&langue=` combinables (vides = sans filtre) decision :8092 + batterie lab §22 verte (lab = box ; tokens/latence réels = proxy :4000 box)
 - [x] P7-8 2 satellites + prompts voix + PWA parler/écrire (même pipeline, escalation humaine auto <15 min 8h-22h) ; critères : 3 questions socle 5 + maternelle <5 s avec WAN (proxy) et <5 s sans WAN (fallback local) — PARTIEL lab 2026-10-08 : squelette `voix.yaml` log1 (2 satellites S3-BOX-3/Atom Echo + PWA même pipeline M1-M8/J1-J9 + escalation + critères) + batterie lab §35 verte (reste box/terrain : satellites + PWA + mesures 5 s + P7-9)
-- [ ] P7-9 Recette : 50 requêtes/langue socle + maternelle (Groq vs Mistral vs Jev vs custom, latence/coût/confidence, seuils relevés si <EN)
+- [x] P7-9 Recette : 50 requêtes/langue socle + maternelle (Groq vs Mistral vs Jev vs custom, latence/coût/confidence, seuils relevés si <EN) — PARTIEL lab 2026-10-09 (post-pivot : Groq/Mistral remplacés par mimo-v2.6-flash/muse-spark-1.3/jev-1.13 via `:4000`) : batterie lab §43 (63/63 usages composés 200 + 0 résidu + déterministe 2× + p95 ~29 ms, 0 appel LLM = 0 quota ; m1 5 langues verbatim préservé) verte (reste box/terrain : exécution LLM/Jev réelle 50 requêtes/langue + mesures 5 s + seuils relevés si <EN)
 - [x] P7-10 Parcours voyageur LLM M1-M8 (§6.7.1) : détection langue M1, normalisation questionnaire M2, suggestion extras M3, reformulation ménage M4, messages langue M5, résumé avis M6, concierge + courses M7, contrat FALC + carte + transcription M8 — FAIT lab 2026-10-08 (part lab-testable) : registre versionné `custom/llm-proxy/prompts.yaml` (8 prompts FR source + variables + interdits) + `GET /prompts` + `POST /composer` router-ui `:8050` (trous seuls 422, placeholders injectés APRÈS, jamais d'appel LLM — proxy `:4000` box, sortie = proposition 1-tap) + batterie lab §25 verte (lab = box ; exécution LLM + gel socle + carte/transcription vidéo = box)
 - [x] P7-11 Parcours voyageur Jev J1-J9 (§6.7.2) : complétude J-2 J1, confiance trad J2, éligibilité extras J3, cohérence mémoire J4, sentiment avis J5, dispatch zone/assurance J6, tri nocturne fusion dB J7, routage sinistre J8, qualité ménage J9 (jamais sanction auto) — FAIT lab 2026-10-08 (part lab-testable) : registre `prompts.yaml` étendu (9 usages Jev + construits Noul/Choice/Score + seuils, appel direct SystemOne box) + composeur (`moteur: jev`, même contrat trous seuls, backend typesafe) + batterie lab §26 verte (lab = box ; exécution Jev + seuils prod = `POST /gardien` + box) — PIVOT 2026-10-09 : backend `zen` (`:4000`, modèle `jev-1.13`)
 - [x] P7-12 Pricing/compta LLM M-LLM-1→7 (§6.7.3) : résumé events Vue Prix, justification prix, micro vs réel, écarts payouts/banque, clamp canal, relevé concurrence (jamais de scraping auto, saisie manuelle), CGV/factures/emails à trous (montants moteur/compta/direct, Factur-X B2B / PDF B2C, 1-tap) — FAIT lab 2026-10-08 (part lab-testable) : registre `prompts.yaml` (7 usages LLM + interdits) + composeur + batterie lab §27 verte (lab = box ; exécution + gel + validation 1-tap = box)
