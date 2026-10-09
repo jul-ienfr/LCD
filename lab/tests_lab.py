@@ -4910,7 +4910,42 @@ check("offline : event HA up -> 200 emis (digest retour)",
       ha_revient and emis_up, f"emis={emis_up}")
 
 print()
+print("== 46. maintenance trimestrielle dry-run : revue pricing + QR wifi + volumes + journal (lab/P8-10) ==")
+code, rc46 = post("pricing", "/recalcul", {"logement_id": "log1"})
+gr46 = rc46.get("grille", []) if isinstance(rc46, dict) else []
+piv46 = [g.get("pivot") for g in gr46
+         if isinstance(g, dict) and g.get("pivot") is not None]
+check("maintenance : revue pricing 7 j dans [75,290]",
+      code == 200 and len(piv46) >= 7
+      and all(75 <= p <= 290 for p in piv46),
+      f"HTTP {code} pivots={piv46[:8]}")
+code, j246 = post("decision", "/event",
+                  {"type": "lcd_j2_envoi_acces", "logement_id": "log1",
+                   "qui": "personne_01", "ref": "LAB-MAINT46",
+                   "data": {"langue": "fr", "pin": "482913"}})
+check("maintenance : QR wifi regenere via J-2 (rotation = changer secrets)",
+      code == 200 and isinstance(j246, dict)
+      and j246.get("gabarit_trouve") is True
+      and j246.get("message_longueur", 0) > 0
+      and j246.get("placeholders_restants") == 0,
+      f"HTTP {code} {j246}")
+vols46 = subprocess.run(
+    ["docker", "volume", "ls", "--filter", "name=lcd-lab",
+     "--format", "{{.Name}}"],
+    capture_output=True, timeout=60, text=True)
+noms46 = [l.strip() for l in (vols46.stdout or "").splitlines()
+          if l.strip()]
+check("maintenance : volumes state sauvegardables presents (backup = box)",
+      vols46.returncode == 0 and len(noms46) >= 10,
+      f"volumes={len(noms46)}")
+code, jl46 = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01"}))
+tot46 = jl46.get("total", 0) if isinstance(jl46, dict) else 0
+check("maintenance : journal 90 j non vide (tracabilite)",
+      code == 200 and tot46 > 0, f"HTTP {code} total={tot46}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2 + incident/offline P8-1/P8-4.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2 + incident/offline P8-1/P8-4 + maintenance P8-10.")

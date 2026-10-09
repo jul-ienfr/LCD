@@ -236,6 +236,10 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     avis 2→geste 1-tap + HA stop→202 `loge_sans_ha`→
     start→200 `emis` (panne simulée in-test ; vraie
     coupure WAN/Nuki = box).
+45. maintenance trimestrielle dry-run P8-10 (§9) :
+    revue pricing bornes + QR WiFi J-2 + 14 volumes
+    state + journal 90 j (backup-restore réel = box ;
+    P8-6 formation/RGPD déjà verts §19/20).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`
