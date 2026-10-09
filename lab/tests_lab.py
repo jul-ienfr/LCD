@@ -4557,7 +4557,225 @@ check("recette : m1 5 langues verbatim preserve (UTF-8, jamais traduit)",
       not verb43, f"ko={verb43} (execution LLM/Jev reelle = box)")
 
 print()
+print("== 44. sejour temoin zero-touch : devis->J-2->J-1->checkout->avis->menage (lab/P8-2) ==")
+REF_Z = "LAB-ZERO44"
+ZT = []
+code, dvz = post("booking", "/devis", {"logement_id": "log1",
+                                       "debut": "2027-09-10",
+                                       "fin": "2027-09-12",
+                                       "voyageurs": 2,
+                                       "extras": ["petit_dej"]})
+tot_z = dvz.get("total_ttc", 0) if isinstance(dvz, dict) else 0
+if not (code == 200 and tot_z > 0):
+    ZT.append("devis")
+check("zero-touch : devis 200 + total", code == 200 and tot_z > 0,
+      f"HTTP {code} {dvz}")
+code, brz = post("booking", "/resa", {"logement_id": "log1",
+                                      "debut": "2027-09-10",
+                                      "fin": "2027-09-12",
+                                      "voyageurs": 2,
+                                      "extras": ["petit_dej"],
+                                      "ref": REF_Z})
+if code != 201:
+    ZT.append("resa")
+check("zero-touch : brouillon 201", code == 201, f"HTTP {code} {brz}")
+code, cfz = post("booking", "/confirmer", {"logement_id": "log1",
+                                           "ref": REF_Z,
+                                           "qui": "test-lab-humain"})
+if code != 201:
+    ZT.append("confirmer")
+check("zero-touch : confirmer 201 (1-tap humaine)",
+      code == 201, f"HTTP {code} {cfz}")
+code, qz = post("decision", "/questionnaire",
+                {"logement_id": "log1", "qui": "personne_01",
+                 "ref_resa": REF_Z,
+                 "arrivee": {"heure_arrivee": "17:30", "nb_voyageurs": 2,
+                             "date_arrivee": "2027-09-10"},
+                 "reponses": {"temp_chauffage": 19, "langue": "fr"},
+                 "optins": {"accepte_cgv": "oui"}})
+if code != 201:
+    ZT.append("questionnaire")
+check("zero-touch : questionnaire 201", code == 201, f"HTTP {code} {qz}")
+code, sgz = post("decision", "/contrat",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_Z, "nom_voyageur": "Voyageur Temoin",
+                  "signature": "tactile-base64-temoin-zero-touch-lab",
+                  "accepte_cgv": True,
+                  "optins": {"optin_memoire": False,
+                             "optin_geoloc": False,
+                             "optin_crm_retour": False}})
+if not (code == 201 and isinstance(sgz, dict)
+        and sgz.get("statut") == "signe"):
+    ZT.append("contrat")
+check("zero-touch : contrat signe 201",
+      code == 201 and isinstance(sgz, dict)
+      and sgz.get("statut") == "signe", f"HTTP {code} {sgz}")
+code, hdz = post("caution", "/hold",
+                 {"logement_id": "log1", "ref_resa": REF_Z,
+                  "canal": "direct", "mode": "swikly", "montant": 600})
+if code != 200:
+    ZT.append("hold")
+check("zero-touch : hold 600 EUR 200 (bornes 500-800)",
+      code == 200, f"HTTP {code} {hdz}")
+code, txz = post("caution", "/taxe",
+                 {"logement_id": "log1", "ref_resa": REF_Z,
+                  "canal": "direct", "classe": 3, "prix_nuitee": 110,
+                  "adultes": 2, "nuits": 2})
+if code != 200:
+    ZT.append("taxe")
+check("zero-touch : taxe 200", code == 200, f"HTTP {code} {txz}")
+for _typ44, _lbl44 in (("lcd_j2_envoi_acces", "J-2"),
+                       ("lcd_j1_rappel", "J-1"),
+                       ("lcd_checkout", "checkout")):
+    c44, o44 = post("decision", "/event",
+                    {"type": _typ44, "logement_id": "log1",
+                     "qui": "personne_01", "ref": REF_Z,
+                     "data": {"langue": "fr", "pin": "482913"}})
+    if not (c44 in (200, 202) and isinstance(o44, dict)):
+        ZT.append("event-" + _lbl44)
+    check(f"zero-touch : event {_lbl44} emis (push HA)",
+          c44 in (200, 202) and isinstance(o44, dict),
+          f"HTTP {c44} {o44}")
+code, avz = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_Z, "note": 5,
+                  "commentaire": "Parfait sejour temoin, merci !"})
+if not (code == 201 and isinstance(avz, dict)
+        and avz.get("routage") == "lien_public"):
+    ZT.append("avis")
+check("zero-touch : avis 5 -> lien_public (0 rattrapage)",
+      code == 201 and isinstance(avz, dict)
+      and avz.get("routage") == "lien_public", f"HTTP {code} {avz}")
+code, paz = post("compta", "/payout",
+                 {"logement_id": "log1", "qui": "test-lab-humain",
+                  "canal": "direct", "montant": int(tot_z) or 300,
+                  "date": date.today().isoformat(), "nuits": 2,
+                  "ref_resa": REF_Z})
+if code != 201:
+    ZT.append("payout")
+check("zero-touch : payout direct 201", code == 201, f"HTTP {code} {paz}")
+code, rsz = post("caution", "/restituer",
+                 {"logement_id": "log1", "ref_resa": REF_Z,
+                  "qui": "test-lab-humain"})
+if not (code == 200 and isinstance(rsz, dict)
+        and rsz.get("statut") == "restitue"):
+    ZT.append("restituer")
+check("zero-touch : hold restitue 200 (0 casse, 0 debit)",
+      code == 200 and isinstance(rsz, dict)
+      and rsz.get("statut") == "restitue", f"HTTP {code} {rsz}")
+code, csz = post("dispatch", "/edl-consentement",
+                 {"logement_id": "log1", "ref_resa": REF_Z,
+                  "qui": "lab_voyageur_01", "consentement": True,
+                  "nom_voyageur": "Voyageur Temoin"})
+if code != 201:
+    ZT.append("edl-consentement")
+check("zero-touch : EDL consenti 201", code == 201, f"HTTP {code} {csz}")
+edl_ok = True
+for _ph44 in ("entree", "sortie"):
+    for _pc44 in ("salon", "cuisine", "chambre", "sdb", "entree"):
+        c44, o44 = post("dispatch", "/edl-photo",
+                        {"logement_id": "log1", "ref_resa": REF_Z,
+                         "phase": _ph44, "piece": _pc44, "nom": "test.png",
+                         "donnees_base64": PETITE_PHOTO,
+                         "qui": "lab_voyageur_01"})
+        if c44 != 201:
+            edl_ok = False
+            ZT.append(f"edl-photo-{_ph44}-{_pc44}")
+check("zero-touch : EDL 5 pieces E/S 201 (preuves caution)",
+      edl_ok, "")
+code, tdz = post("dispatch", "/todos",
+                 {"logement_id": "log1", "ref_resa": REF_Z,
+                  "checkout": "2027-09-12",
+                  "checkin_suivant": "2027-09-13",
+                  "qui": "test-lab-humain"})
+dos_z = tdz.get("dossier", "") if isinstance(tdz, dict) else ""
+if not (code == 201 and dos_z):
+    ZT.append("todos")
+check("zero-touch : todos menage 201 + dossier",
+      code == 201 and bool(dos_z), f"HTTP {code} {tdz}")
+pt_ok = True
+for _ev44 in ("arrivee", "depart"):
+    c44, o44 = post("dispatch", "/menage-pointage",
+                    {"logement_id": "log1", "dossier": dos_z,
+                     "evenement": _ev44, "qui": "lab_menage_01"})
+    if c44 != 200:
+        pt_ok = False
+        ZT.append("pointage-" + _ev44)
+check("zero-touch : pointage arrivee/depart 200", pt_ok, "")
+mph_ok = True
+for _ph44, _pc44 in (("entree", "salon"), ("sortie", "salon")):
+    c44, o44 = post("dispatch", "/menage-photo",
+                    {"logement_id": "log1", "dossier": dos_z,
+                     "phase": _ph44, "piece": _pc44, "nom": "test.png",
+                     "donnees_base64": PETITE_PHOTO,
+                     "qui": "lab_menage_01"})
+    if c44 != 201:
+        mph_ok = False
+        ZT.append("menage-photo-" + _ph44)
+check("zero-touch : photos menage E/S 201", mph_ok, "")
+code, miz = post("dispatch", "/mission",
+                 {"logement_id": "log1", "presta_id": "lab_plomb_01",
+                  "motif": f"menage_zero_{REF_Z}",
+                  "qui": "test-lab-humain"})
+nom_z = (miz.get("dossier", "") if isinstance(miz, dict)
+         else "").rsplit("/", 1)[-1]
+if not (code == 201 and nom_z):
+    ZT.append("mission")
+for _ev44 in ("arrivee", "depart"):
+    c44, _ = post("dispatch", "/pointage",
+                  {"logement_id": "log1", "dossier": nom_z,
+                   "evenement": _ev44, "qui": "lab_plomb_01"})
+    if c44 != 200:
+        ZT.append("inter-pointage-" + _ev44)
+for _ph44 in ("avant", "apres"):
+    c44, _ = post("dispatch", "/photo",
+                  {"logement_id": "log1", "dossier": nom_z,
+                   "phase": _ph44, "piece": "cuisine", "nom": "test.png",
+                   "donnees_base64": PETITE_PHOTO,
+                   "qui": "lab_plomb_01"})
+    if c44 != 201:
+        ZT.append("inter-photo-" + _ph44)
+c44, _ = post("dispatch", "/cloture",
+              {"logement_id": "log1", "dossier": nom_z,
+               "qui": "test-lab-humain"})
+if c44 != 201:
+    ZT.append("inter-cloture")
+check("zero-touch : dossier intervention cloture (traca)",
+      "inter-cloture" not in ZT, "")
+code, mc1 = post("dispatch", "/menage-cloture",
+                 {"logement_id": "log1", "dossier": dos_z,
+                  "checklist": {}, "photos_voyageur_ok": True,
+                  "dossier_intervention": nom_z,
+                  "qui": "test-lab-humain"})
+cases_z = (mc1.get("cases_manquantes", [])
+           if isinstance(mc1, dict) else [])
+coche_z = {c: True for c in cases_z}
+code, mc2 = post("dispatch", "/menage-cloture",
+                 {"logement_id": "log1", "dossier": dos_z,
+                  "checklist": coche_z, "photos_voyageur_ok": True,
+                  "dossier_intervention": nom_z,
+                  "qui": "test-lab-humain"})
+if not (code == 201 and isinstance(mc2, dict)
+        and mc2.get("statut") == "remise_en_dispo"):
+    ZT.append("menage-cloture")
+check("zero-touch : cloture 201 remise_en_dispo",
+      code == 201 and isinstance(mc2, dict)
+      and mc2.get("statut") == "remise_en_dispo",
+      f"HTTP {code} {mc2}")
+code, jlz = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01"}))
+refs_z = [e.get("ref") for e in jlz.get("entrees", [])] \
+    if isinstance(jlz, dict) else []
+if REF_Z not in refs_z:
+    ZT.append("journal-ref")
+check("zero-touch : journal trace la resa (traca bout-en-bout)",
+      code == 200 and REF_Z in refs_z,
+      f"HTTP {code} entrees={len(refs_z)}")
+check("zero-touch : 0 intervention corrective (que des 1-tap prevues)",
+      not ZT, f"correctifs={ZT}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2.")

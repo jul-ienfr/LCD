@@ -5,7 +5,7 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `64 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `65 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 4/14
 - Phase 2 PMS/synchro/pricing : 15/16
@@ -14,7 +14,7 @@
 - Phase 5 Sécurité : 0/10
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 20/20 ✔
-- Phase 8 Recette / go-live : 3/12
+- Phase 8 Recette / go-live : 4/12
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
 
@@ -171,7 +171,7 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, gateway `:4000` apport�
 ## Phase 8 — Recette + go-live
 
 - [ ] P8-1 5 scénarios : résa→arrivée, séjour incident complet, départ→ménage, offline 2 h, panne+feu test
-- [ ] P8-2 Test zéro-touch : 1 séjour témoin complet sans intervention hôte (hors ménage physique)
+- [x] P8-2 Test zéro-touch : 1 séjour témoin complet sans intervention hôte (hors ménage physique) — PARTIEL lab 2026-10-09 : batterie lab §44 (`LAB-ZERO44` : devis 519 € → brouillon → confirmer 1-tap → questionnaire → contrat signé → hold 600 € → taxe 9,20 € → events J-2/J-1/checkout émis push HA → avis 5 lien_public → payout 519 € → hold restitué → EDL 5 pièces E/S → ménage pointage/photos/clôture `remise_en_dispo` → journal tracé, **0 intervention corrective**) verte (reste box/terrain : séjour témoin réel + PIN KeyMaster + ménage physique)
 - [x] P8-3 Test marque blanche : changer `branding.yaml` → PWA + SMS + QR + dashboards re-thémés, 0 fuite « LCD/Home Assistant » (grep + navigation) — PARTIEL lab 2026-10-08 : `GET /phrases` bon_retour FR/EN rendu avec marque lab (0 fuite, 0 placeholder) + dispatch `--branding` (fiche mission = marque ou repli `votre hôte`, `LCD` en dur supprimé) + volume branding monté + batterie lab §37 verte (reste box : navigation PWA + SMS + QR + dashboards re-thémés)
 - [ ] P8-4 Pannes simulées : (1) WAN 2 h jour d'arrivée, (2) Nuki Hub débranché, (3) batterie Nuki retirée, (4) double résa, (5) voyageur bloqué 2h
 - [ ] P8-5 Test DAAF + vanne + sirène + piles ; coupure longue + arrivée (code OK + Master Lock + message J-1)

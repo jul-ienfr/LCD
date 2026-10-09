@@ -226,6 +226,11 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     résidu + déterministe (2× même prompt) + p95 < 2 s,
     0 appel LLM (0 quota) + m1 5 langues verbatim préservé
     (exécution LLM/Jev réelle + mesures 5 s = box).
+43. séjour témoin zéro-touch P8-2 (§9) : `LAB-ZERO44`
+    devis→confirmer→questionnaire→contrat→hold→taxe→
+    J-2/J-1/checkout→avis 5→payout→restitution→EDL 5
+    pièces→ménage `remise_en_dispo`, 0 intervention
+    corrective (1-tap prévues seules ; séjour réel = box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`
