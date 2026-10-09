@@ -3461,10 +3461,10 @@ check("gardien conf 0.5 -> dashboard jamais d'auto",
       f"HTTP {code} {gd}")
 
 # noul>0,8 + conf>0,75 -> auto borné + trace P7-7 écho.
-LLM_LAB = {"alias": "lcd-chat-fast", "fournisseur": "groq",
-           "modele": "llama-3.1-8b"}
-JEV_LAB = {"backend": "typesafe", "endpoint": "systemone",
-           "modele": "jev-1.13.0", "noul": 0.9, "confidence": 0.8,
+LLM_LAB = {"alias": "lcd-chat-fast", "fournisseur": "openai",
+           "modele": "mimo-v2.6-flash"}
+JEV_LAB = {"backend": "zen", "endpoint": ":4000",
+           "modele": "jev-1.13", "noul": 0.9, "confidence": 0.8,
            "hors_bornes": 0.1}
 code, ga = post("decision", "/gardien",
                 {"logement_id": "log1", "qui": "personne_01",
@@ -3476,7 +3476,7 @@ check("gardien seuils OK -> 200 auto_borne + trace",
       and ga.get("trace", {}).get("llm", {}).get("alias")
       == "lcd-chat-fast"
       and ga.get("trace", {}).get("jev", {}).get("backend")
-      == "typesafe"
+      == "zen"
       and ga.get("trace", {}).get("jev", {}).get("confidence") == 0.8,
       f"HTTP {code} {ga}")
 
@@ -3509,14 +3509,15 @@ check("gardien sans scores -> dashboard",
 
 print()
 print("== 22. tracabilite P7-7 : langue en log + filtres dashboard backend/alias/langue (§6.7) ==")
-# Entrée tracée : gardien auto_borne (typesafe + lcd-chat-fast + es).
+# Entrée tracée : gardien auto_borne (zen + lcd-chat-fast + es).
 code, gt = post("decision", "/gardien",
                 {"logement_id": "log1", "qui": "personne_01",
                  "quoi": "menage", "ref": "LAB-P77", "langue": "es",
-                 "llm": {"alias": "lcd-chat-fast", "fournisseur": "groq",
-                         "modele": "llama-3.1-8b"},
-                 "jev": {"backend": "typesafe", "endpoint": "systemone",
-                         "modele": "jev-1.13.0", "noul": 0.9,
+                 "llm": {"alias": "lcd-chat-fast",
+                         "fournisseur": "openai",
+                         "modele": "mimo-v2.6-flash"},
+                 "jev": {"backend": "zen", "endpoint": ":4000",
+                         "modele": "jev-1.13", "noul": 0.9,
                          "confidence": 0.8, "hors_bornes": 0.1}})
 check("gardien trace LAB-P77 -> 200 auto_borne",
       code == 200 and isinstance(gt, dict)
@@ -3538,10 +3539,10 @@ check("event J-2 ES -> 200 emis (push HA reel)",
 
 code, jb = get("decision", "/journal?" + urllib.parse.urlencode(
     {"logement_id": "log1", "qui": "personne_01",
-     "backend": "typesafe"}))
+     "backend": "zen"}))
 refs_b = {e.get("ref") for e in jb.get("entrees", [])} \
     if isinstance(jb, dict) else set()
-check("journal backend=typesafe contient LAB-P77",
+check("journal backend=zen contient LAB-P77",
       code == 200 and "LAB-P77" in refs_b,
       f"HTTP {code} total={jb.get('total') if isinstance(jb, dict) else jb}")
 
@@ -3567,7 +3568,7 @@ check("journal langue=es contient LAB-P77 + event ES",
 
 code, jc = get("decision", "/journal?" + urllib.parse.urlencode(
     {"logement_id": "log1", "qui": "personne_01",
-     "backend": "typesafe", "alias": "lcd-chat-fast", "langue": "es"}))
+     "backend": "zen", "alias": "lcd-chat-fast", "langue": "es"}))
 check("journal combine backend+alias+langue isole LAB-P77",
       code == 200 and isinstance(jc, dict)
       and "LAB-P77" in {e.get("ref") for e in jc.get("entrees", [])},
@@ -3575,7 +3576,7 @@ check("journal combine backend+alias+langue isole LAB-P77",
 
 code, jo = get("decision", "/journal?" + urllib.parse.urlencode(
     {"logement_id": "log1", "qui": "personne_01",
-     "backend": "openai"}))
+     "backend": "anthropic"}))
 check("journal backend inconnu -> total 0",
       code == 200 and isinstance(jo, dict) and jo.get("total") == 0,
       f"HTTP {code} {jo}")
