@@ -10,6 +10,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -4775,7 +4776,141 @@ check("zero-touch : 0 intervention corrective (que des 1-tap prevues)",
       not ZT, f"correctifs={ZT}")
 
 print()
+print("== 45. sejour incident + offline-first : degat->dispatch->debit->avis2 + HA down/up (lab/P8-1/P8-4) ==")
+REF_I = "LAB-INC45"
+code, bri = post("booking", "/resa", {"logement_id": "log1",
+                                      "debut": "2027-10-05",
+                                      "fin": "2027-10-07",
+                                      "voyageurs": 2, "ref": REF_I})
+check("incident : brouillon 201", code == 201, f"HTTP {code} {bri}")
+code, cfi = post("booking", "/confirmer", {"logement_id": "log1",
+                                           "ref": REF_I,
+                                           "qui": "test-lab-humain"})
+check("incident : confirmer 201", code == 201, f"HTTP {code} {cfi}")
+code, sgi = post("decision", "/contrat",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_I, "nom_voyageur": "Voyageur Incident",
+                  "signature": "tactile-base64-incident-lab-preuve",
+                  "accepte_cgv": True, "optins": {}})
+check("incident : contrat signe 201",
+      code == 201 and isinstance(sgi, dict)
+      and sgi.get("statut") == "signe", f"HTTP {code} {sgi}")
+code, hdi = post("caution", "/hold",
+                 {"logement_id": "log1", "ref_resa": REF_I,
+                  "canal": "direct", "mode": "swikly", "montant": 600})
+check("incident : hold 600 EUR 200", code == 200, f"HTTP {code} {hdi}")
+code, dpi = post("dispatch", "/dispatch", {"logement_id": "log1",
+                                           "motif": "fuite_eau",
+                                           "qui": "test-lab-humain"})
+check("incident : dispatch fuite_eau -> lab_plomb_01 (zone+RC)",
+      code == 200 and isinstance(dpi, dict)
+      and dpi.get("proposition", {}).get("id") == "lab_plomb_01",
+      f"HTTP {code} {dpi}")
+code, sii = post("dispatch", "/sinistre",
+                 {"logement_id": "log1", "motif": "degat_eau_sdb",
+                  "declarant": "test-lab-humain",
+                  "description": "Fuite siphon SDB constatee sortie (lab)",
+                  "canal": "direct"})
+check("incident : sinistre 201 + fiche SLA",
+      code == 201 and isinstance(sii, dict)
+      and isinstance(sii.get("fiche"), dict), f"HTTP {code} {sii}")
+code, csi = post("dispatch", "/edl-consentement",
+                 {"logement_id": "log1", "ref_resa": REF_I,
+                  "qui": "lab_voyageur_01", "consentement": True,
+                  "nom_voyageur": "Voyageur Incident"})
+check("incident : EDL consenti 201", code == 201, f"HTTP {code} {csi}")
+edl_i_ok = True
+for _ph45 in ("entree", "sortie"):
+    for _pc45 in ("salon", "cuisine", "chambre", "sdb", "entree"):
+        c45, _ = post("dispatch", "/edl-photo",
+                      {"logement_id": "log1", "ref_resa": REF_I,
+                       "phase": _ph45, "piece": _pc45, "nom": "test.png",
+                       "donnees_base64": PETITE_PHOTO,
+                       "qui": "lab_voyageur_01"})
+        if c45 != 201:
+            edl_i_ok = False
+check("incident : EDL sortie complet (preuves debit)", edl_i_ok, "")
+code, dbi = post("caution", "/debiter",
+                 {"logement_id": "log1", "ref_resa": REF_I,
+                  "montant": 180,
+                  "justificatifs": ["edl_sortie_sdb_degats",
+                                     "facture_plombier_180"],
+                  "qui": "test-lab-humain"})
+check("incident : debit 180 EUR justifie 200 (jamais sans preuve)",
+      code == 200 and isinstance(dbi, dict)
+      and dbi.get("statut") == "debite", f"HTTP {code} {dbi}")
+code, avi = post("decision", "/avis",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_I, "note": 2,
+                  "commentaire": "Fuite SDB pendant le sejour, decu."})
+check("incident : avis 2 -> rattrapage + validation requise",
+      code == 201 and isinstance(avi, dict)
+      and avi.get("routage") == "rattrapage_prive"
+      and avi.get("geste", {}).get("validation_requise") is True,
+      f"HTTP {code} {avi}")
+code, gsi = post("decision", "/avis-geste",
+                 {"logement_id": "log1", "qui": "personne_01",
+                  "ref_resa": REF_I, "geste": "remboursement_partiel",
+                  "montant_eur": 30})
+check("incident : geste 30 EUR 1-tap + alerte (jamais debit auto)",
+      code == 200 and isinstance(gsi, dict)
+      and gsi.get("statut") == "geste_valide"
+      and gsi.get("alerte_montant") is True, f"HTTP {code} {gsi}")
+code, jli = get("decision", "/journal?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "qui": "personne_01"}))
+refs_i = [e.get("ref") for e in jli.get("entrees", [])] \
+    if isinstance(jli, dict) else []
+check("incident : journal trace la resa + debit + geste",
+      code == 200 and REF_I in refs_i,
+      f"HTTP {code} entrees={len(refs_i)}")
+down_ok = subprocess.run(
+    ["docker", "compose", "stop", "homeassistant"],
+    capture_output=True, timeout=90).returncode == 0
+check("offline : HA stoppee (panne simulee P8-4)",
+      down_ok, "docker compose stop homeassistant")
+emis_down = False
+for _ in range(12):
+    c45, o45 = post("decision", "/event",
+                    {"type": "lcd_j1_rappel", "logement_id": "log1",
+                     "qui": "personne_01", "ref": REF_I,
+                     "data": {"langue": "fr", "pin": "482913"}})
+    if c45 == 202 and isinstance(o45, dict) \
+            and o45.get("statut") == "loge_sans_ha":
+        emis_down = True
+        break
+    time.sleep(5)
+check("offline : event HA down -> 202 loge_sans_ha (jamais bloquant)",
+      down_ok and emis_down, f"repli={emis_down}")
+up_ok = subprocess.run(
+    ["docker", "compose", "start", "homeassistant"],
+    capture_output=True, timeout=90).returncode == 0
+ha_revient = False
+for _ in range(36):
+    c45, _ = ha_get("/api/config")
+    if c45 in (200, 401):
+        ha_revient = True
+        break
+    time.sleep(5)
+check("offline : HA redemarre (retour courant/panne)",
+      up_ok and ha_revient, f"up={up_ok} revient={ha_revient}")
+emis_up = False
+if ha_revient:
+    time.sleep(10)
+    for _ in range(12):
+        c45, o45 = post("decision", "/event",
+                        {"type": "lcd_j1_rappel", "logement_id": "log1",
+                         "qui": "personne_01", "ref": REF_I,
+                         "data": {"langue": "fr", "pin": "482913"}})
+        if c45 == 200 and isinstance(o45, dict) \
+                and o45.get("statut") == "emis":
+            emis_up = True
+            break
+        time.sleep(5)
+check("offline : event HA up -> 200 emis (digest retour)",
+      ha_revient and emis_up, f"emis={emis_up}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2 + incident/offline P8-1/P8-4.")

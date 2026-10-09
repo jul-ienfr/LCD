@@ -231,6 +231,11 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     J-2/J-1/checkout→avis 5→payout→restitution→EDL 5
     pièces→ménage `remise_en_dispo`, 0 intervention
     corrective (1-tap prévues seules ; séjour réel = box).
+44. séjour incident + offline-first P8-1/P8-4 (§9) :
+    `LAB-INC45` dégât→dispatch→sinistre→débit justifié→
+    avis 2→geste 1-tap + HA stop→202 `loge_sans_ha`→
+    start→200 `emis` (panne simulée in-test ; vraie
+    coupure WAN/Nuki = box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`

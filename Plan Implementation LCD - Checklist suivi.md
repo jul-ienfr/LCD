@@ -5,7 +5,7 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `65 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `67 / ~120` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 4/14
 - Phase 2 PMS/synchro/pricing : 15/16
@@ -14,7 +14,7 @@
 - Phase 5 Sécurité : 0/10
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 20/20 ✔
-- Phase 8 Recette / go-live : 4/12
+- Phase 8 Recette / go-live : 6/12
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
 
@@ -170,10 +170,10 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, gateway `:4000` apport�
 
 ## Phase 8 — Recette + go-live
 
-- [ ] P8-1 5 scénarios : résa→arrivée, séjour incident complet, départ→ménage, offline 2 h, panne+feu test
+- [x] P8-1 5 scénarios : résa→arrivée, séjour incident complet, départ→ménage, offline 2 h, panne+feu test — PARTIEL lab 2026-10-09 : batterie lab §44 (résa→arrivée + départ→ménage zéro-touch) + §45 (`LAB-INC45` : dégât SDB → dispatch plombier zone+RC → sinistre fiche SLA → EDL complet → débit caution 180 € justifié → avis 2 rattrapage → geste 30 € 1-tap, jamais débit auto) + offline (HA stoppée → event 202 `loge_sans_ha` jamais bloquant → HA redémarrée → 200 `emis`) vertes (reste box/terrain : scénarios réels + panne+feu + offline WAN 2 h jour d'arrivée)
 - [x] P8-2 Test zéro-touch : 1 séjour témoin complet sans intervention hôte (hors ménage physique) — PARTIEL lab 2026-10-09 : batterie lab §44 (`LAB-ZERO44` : devis 519 € → brouillon → confirmer 1-tap → questionnaire → contrat signé → hold 600 € → taxe 9,20 € → events J-2/J-1/checkout émis push HA → avis 5 lien_public → payout 519 € → hold restitué → EDL 5 pièces E/S → ménage pointage/photos/clôture `remise_en_dispo` → journal tracé, **0 intervention corrective**) verte (reste box/terrain : séjour témoin réel + PIN KeyMaster + ménage physique)
 - [x] P8-3 Test marque blanche : changer `branding.yaml` → PWA + SMS + QR + dashboards re-thémés, 0 fuite « LCD/Home Assistant » (grep + navigation) — PARTIEL lab 2026-10-08 : `GET /phrases` bon_retour FR/EN rendu avec marque lab (0 fuite, 0 placeholder) + dispatch `--branding` (fiche mission = marque ou repli `votre hôte`, `LCD` en dur supprimé) + volume branding monté + batterie lab §37 verte (reste box : navigation PWA + SMS + QR + dashboards re-thémés)
-- [ ] P8-4 Pannes simulées : (1) WAN 2 h jour d'arrivée, (2) Nuki Hub débranché, (3) batterie Nuki retirée, (4) double résa, (5) voyageur bloqué 2h
+- [x] P8-4 Pannes simulées : (1) WAN 2 h jour d'arrivée, (2) Nuki Hub débranché, (3) batterie Nuki retirée, (4) double résa, (5) voyageur bloqué 2h — PARTIEL lab 2026-10-09 : (1) adaptée = HA down → repli 202 jamais bloquant → up → 200 (§45 verte) ; (4) déjà verte §5 à chaque batterie (reste box/terrain : (2) Hub débranché + (3) batterie retirée + (5) voyageur bloqué + (1) vraie coupure WAN 2 h)
 - [ ] P8-5 Test DAAF + vanne + sirène + piles ; coupure longue + arrivée (code OK + Master Lock + message J-1)
 - [ ] P8-6 Formation ménage + registre RGPD + relecture juriste CGV/mentions avant mise en ligne multi-plateformes
 - [x] P8-7 Vérification borniers prix 75/290 + jamais d'écriture auto OTA + critères objectifs seuls (art. 225-1) — PARTIEL lab 2026-10-08 : balayage 6 dates dans [75,290] + clamp prouvé (290/75 + `clampe` + bornes) + objectivité (attributs voyageur ignorés, même pivot) + `PUT /prix` direct seul (422 hors bornes sans motif) + `GET /reco-ota` 1-tap lecture seule + batterie lab §36 verte (reste box/terrain : validation visuelle Vue Prix + go/no-go P8-8)
