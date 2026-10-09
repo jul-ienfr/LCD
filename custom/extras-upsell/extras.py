@@ -431,8 +431,11 @@ class Extras:
             return []
 
     def _stocker_toutes(self, logement_id, commandes):
-        with open(self._chemin(logement_id), "w", encoding="utf-8") as f:
+        cible = self._chemin(logement_id)
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(commandes, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     def log_decision(self, logement_id, ref, qui, quoi, montant, motif,
                        commission=None, net_hote=None):
@@ -538,8 +541,11 @@ class Extras:
         return stock
 
     def _stocker_stock(self, logement_id, stock):
-        with open(self._chemin_stock(logement_id), "w", encoding="utf-8") as f:
+        cible = self._chemin_stock(logement_id)
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(stock, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     def _lire_consos(self, logement_id):
         chemin = self._chemin_consos(logement_id)
@@ -553,8 +559,11 @@ class Extras:
             return []
 
     def _stocker_consos(self, logement_id, consos):
-        with open(self._chemin_consos(logement_id), "w", encoding="utf-8") as f:
+        cible = self._chemin_consos(logement_id)
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(consos, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     # --- GET /minibar ---
     def get_minibar(self, logement_id):

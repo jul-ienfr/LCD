@@ -133,8 +133,11 @@ class Caution:
             return None
 
     def _stocker(self, logement_id, ref, meta):
-        with open(self._chemin(logement_id, ref), "w", encoding="utf-8") as f:
+        cible = self._chemin(logement_id, ref)
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     def hold(self, logement_id, ref, canal, mode, montant):
         if canal == "airbnb":

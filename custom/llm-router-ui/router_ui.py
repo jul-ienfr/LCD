@@ -244,9 +244,11 @@ class Routeur:
         return aliases, routing, err, endpoints, sante
 
     def _sauver_sante(self, sante):
-        with open(os.path.join(self.state_dir, "router-health.json"), "w",
-                  encoding="utf-8") as f:
+        cible = os.path.join(self.state_dir, "router-health.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(sante, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, cible)
 
     def _audit(self, qui, avant, apres):
         with open(os.path.join(self.state_dir, "routes-audit.jsonl"),
@@ -380,11 +382,12 @@ class Routeur:
         data.update(apres)
         entete = [l for l in brut.splitlines()
                   if l.strip().startswith("#")]
-        with open(chemin, "w", encoding="utf-8") as f:
-            for l in entete:
-                f.write(l + "\n")
-            json.dump(data, f, ensure_ascii=False, indent=2)
-            f.write("\n")
+        lignes = [l + "\n" for l in entete]
+        lignes.append(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.writelines(lignes)
+        os.replace(tmp, chemin)
         self._audit(qui, avant, apres)
         return 200, {"statut": "route_changee", "avant": avant,
                      "apres": apres}

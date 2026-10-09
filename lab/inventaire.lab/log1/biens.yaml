@@ -159,3 +159,13 @@ biens:
     utilisations_nb: 1
     derniere_utilisation: 2026-10-09
     etat: 1
+  - qr: TEST-INV-1791521953
+    logement: log1
+    categorie: linge
+    label: Drap test lab
+    date_achat: 2026-10-01
+    prix_achat: 20
+    lavages_nb: 1
+    utilisations_nb: 1
+    derniere_utilisation: 2026-10-09
+    etat: 1

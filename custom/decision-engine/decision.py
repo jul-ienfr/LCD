@@ -595,15 +595,18 @@ def lire_memoire(path):
 
 def ecrire_memoire(path, fiches):
     """Réécrit le registre (même format). Trié par hash (déterministe)."""
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("# custom/memoire/voyageurs.yaml — registre opt-in (P6-12 §5.7-quater).\n"
-                "# Hash seul, jamais de CSI brut. Purge 24 mois. Écrit par geste humain.\n"
-                "voyageurs:\n")
-        for h in sorted(fiches):
-            f.write(f"  - hash: \"{h}\"\n")
-            for k in MEMOIRE_CHAMPS:
-                if fiches[h].get(k) not in (None, ""):
-                    f.write(f"    {k}: \"{fiches[h][k]}\"\n")
+    lignes = ["# custom/memoire/voyageurs.yaml — registre opt-in (P6-12 §5.7-quater).",
+              "# Hash seul, jamais de CSI brut. Purge 24 mois. Écrit par geste humain.",
+              "voyageurs:"]
+    for h in sorted(fiches):
+        lignes.append(f"  - hash: \"{h}\"")
+        for k in MEMOIRE_CHAMPS:
+            if fiches[h].get(k) not in (None, ""):
+                lignes.append(f"    {k}: \"{fiches[h][k]}\"")
+    tmp = str(path) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write("\n".join(lignes) + "\n")
+    os.replace(tmp, path)
 
 
 def memoire_expiree(fiche, aujourd_hui=None):
@@ -873,10 +876,11 @@ class Moteur:
             return {}
 
     def _sauver_revocations(self, revoc):
-        with open(os.path.join(self.decision_dir,
-                               "acces-revocations.json"), "w",
-                  encoding="utf-8") as f:
+        chemin = os.path.join(self.decision_dir, "acces-revocations.json")
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(revoc, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, chemin)
 
     def autoriser(self, qui_id, action, logement_id):
         p = self.acces.get(qui_id)
@@ -1115,10 +1119,11 @@ class Moteur:
         return {"releves": [], "attestations": []}
 
     def _sauver_preuves(self, logement_id, carnet):
-        with open(os.path.join(self.decision_dir,
-                               f"preuves-{logement_id}.json"), "w",
-                  encoding="utf-8") as f:
+        chemin = os.path.join(self.decision_dir, f"preuves-{logement_id}.json")
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(carnet, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, chemin)
 
     @staticmethod
     def _est_nuit(heure_iso):
@@ -1286,10 +1291,12 @@ class Moteur:
                                       "attestations": synth[
                                           "attestations"]},
                          "redige_le": utcnow_iso(), "redige_par": qui}
-        with open(os.path.join(self.decision_dir,
-                               f"lettres-{logement_id}.json"), "w",
-                  encoding="utf-8") as f:
+        chemin = os.path.join(self.decision_dir,
+                                f"lettres-{logement_id}.json")
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(lettres, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, chemin)
         self.log_decision(logement_id, f"lettre-{trim}", qui, "acces",
                           None, None,
                           f"lettre tranquillité brouillon ({dest})")
@@ -1332,10 +1339,12 @@ class Moteur:
         lettre["envoyee_le"] = utcnow_iso()
         lettre["envoyee_par"] = qui
         lettres[trim] = lettre
-        with open(os.path.join(self.decision_dir,
-                               f"lettres-{logement_id}.json"), "w",
-                  encoding="utf-8") as f:
+        chemin = os.path.join(self.decision_dir,
+                                f"lettres-{logement_id}.json")
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(lettres, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, chemin)
         self.log_decision(logement_id, f"lettre-{trim}", qui, "acces",
                           None, None,
                           f"lettre tranquillité envoyée ({canal})")
@@ -1920,9 +1929,11 @@ class Moteur:
             return {}
 
     def _sauver_questionnaires(self, logement_id, dossiers):
-        with open(self._chemin_questionnaire(logement_id), "w",
-                  encoding="utf-8") as f:
+        chemin = self._chemin_questionnaire(logement_id)
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(dossiers, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, chemin)
 
     def questionnaire_schema(self, logement_id, ref_resa="",
                              hash_voyageur="", langue="fr"):
@@ -2251,9 +2262,11 @@ class Moteur:
             return {}
 
     def _sauver_contrats(self, logement_id, dossiers):
-        with open(self._chemin_contrat(logement_id), "w",
-                  encoding="utf-8") as f:
+        chemin = self._chemin_contrat(logement_id)
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(dossiers, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, chemin)
 
     @staticmethod
     def _code_retour(ref_resa):
@@ -2451,9 +2464,11 @@ class Moteur:
             return {}
 
     def _sauver_avis(self, logement_id, dossiers):
-        with open(self._chemin_avis(logement_id), "w",
-                  encoding="utf-8") as f:
+        chemin = self._chemin_avis(logement_id)
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(dossiers, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, chemin)
 
     @staticmethod
     def _todo_correctif(commentaire):

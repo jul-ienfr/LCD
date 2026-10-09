@@ -193,8 +193,11 @@ class BookingDirect:
             return None
 
     def _stocker(self, logement_id, ref, meta):
-        with open(self._chemin(logement_id, ref), "w", encoding="utf-8") as f:
+        cible = self._chemin(logement_id, ref)
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     def log_decision(self, logement_id, ref, qui, quoi, montant, motif):
         ligne = {"ts": utcnow_iso(), "logement_id": logement_id, "ref": ref,

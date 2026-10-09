@@ -474,11 +474,17 @@ class Dispatch:
                         "photos_avant": [], "photos_apres": [],
                         "statut": "mission_creee",
                         "regle": "ecart >20% presence vs declare -> alerte (P6-2)"}
-        with open(os.path.join(dossier, "intervention.json"), "w", encoding="utf-8") as f:
+        chemin = os.path.join(dossier, "intervention.json")
+        tmp = chemin + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(intervention, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, chemin)
         fiche = self._fiche_mission(logement_id, presta, motif, debut, fin, dossier)
-        with open(os.path.join(dossier, "mission.md"), "w", encoding="utf-8") as f:
+        chemin_md = os.path.join(dossier, "mission.md")
+        tmp_md = chemin_md + ".tmp"
+        with open(tmp_md, "w", encoding="utf-8") as f:
             f.write(fiche)
+        os.replace(tmp_md, chemin_md)
         self.log_decision(logement_id, motif, qui, "mission_creee",
                           f"{presta_id} ({'HORS ZONE validee humain' if hors_zone else 'en zone'})"
                           + f" -> {dossier}")
@@ -602,9 +608,11 @@ class Dispatch:
             return None, "intervention.json illisible (POST /mission d'abord)"
 
     def _sauver_intervention(self, chemin, obj):
-        with open(os.path.join(chemin, "intervention.json"), "w",
-                  encoding="utf-8") as f:
+        cible = os.path.join(chemin, "intervention.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(obj, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     @staticmethod
     def _qui_humain(qui):
@@ -840,9 +848,11 @@ class Dispatch:
             return None, "todos.json illisible (POST /todos d'abord)"
 
     def _sauver_todos(self, chemin, obj):
-        with open(os.path.join(chemin, "todos.json"), "w",
-                  encoding="utf-8") as f:
+        cible = os.path.join(chemin, "todos.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(obj, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     @staticmethod
     def _deadline_moins_2h(checkin_suivant):
@@ -1283,9 +1293,11 @@ class Dispatch:
 
     def _sauver_edl(self, chemin, obj):
         obj["maj_le"] = utcnow_iso()
-        with open(os.path.join(chemin, "edl.json"), "w",
-                  encoding="utf-8") as f:
+        cible = os.path.join(chemin, "edl.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(obj, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     @staticmethod
     def _pieces_couvertes(photos):
@@ -1600,10 +1612,12 @@ class Dispatch:
 
     def _sauver_objet(self, logement_id, objet_id, fiche):
         os.makedirs(self._dossier_objets(logement_id), exist_ok=True)
-        with open(os.path.join(self._dossier_objets(logement_id),
-                               f"{objet_id}.json"), "w",
-                  encoding="utf-8") as f:
+        cible = os.path.join(self._dossier_objets(logement_id),
+                             f"{objet_id}.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(fiche, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     # --- POST /objet-trouve ---
     def objet_trouve(self, logement_id, qui, description, piece="",
@@ -1827,9 +1841,11 @@ class Dispatch:
     def _sauver_couts(self, logement_id, lignes):
         base = os.path.join(self.state_dir, "menage-couts", logement_id)
         os.makedirs(base, exist_ok=True)
-        with open(os.path.join(base, "couts.json"), "w",
-                  encoding="utf-8") as f:
+        cible = os.path.join(base, "couts.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(lignes, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     def _lire_json_obj(self, chemin, defaut):
         try:
@@ -1900,9 +1916,11 @@ class Dispatch:
     def _sauver_notes(self, logement_id, lignes):
         base = os.path.join(self.state_dir, "menage-notes", logement_id)
         os.makedirs(base, exist_ok=True)
-        with open(os.path.join(base, "notes.json"), "w",
-                  encoding="utf-8") as f:
+        cible = os.path.join(base, "notes.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(lignes, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     # --- POST /menage-note : score qualité 1-5 (+ alerte temps vs ~3h) ---
     def menage_note(self, logement_id, qui, note, ref_resa="",
@@ -1997,9 +2015,11 @@ class Dispatch:
     def _sauver_formation(self, logement_id, sessions):
         base = os.path.join(self.state_dir, "formation", logement_id)
         os.makedirs(base, exist_ok=True)
-        with open(os.path.join(base, "sessions.json"), "w",
-                  encoding="utf-8") as f:
+        cible = os.path.join(base, "sessions.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(sessions, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     # --- GET /formation : programme ou statut session ---
     def formation(self, logement_id, session=""):
@@ -2204,8 +2224,11 @@ class Dispatch:
                  "suivi_caution": "en_cours — JAMAIS de retenue sans justificatifs "
                                   "(photos E/S + facture/devis)",
                  "statut": "ouvert"}
-        with open(os.path.join(dossier, "fiche.json"), "w", encoding="utf-8") as f:
+        cible = os.path.join(dossier, "fiche.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(fiche, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
         self.log_decision(logement_id, motif, declarant, "sinistre_ouvert",
                           f"{canal} : echeance {echeance} -> {dossier}")
         return 201, {"dossier": dossier, "fiche": fiche}

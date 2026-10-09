@@ -1,0 +1,28 @@
+# Contexte de build (racine) : seuls custom/, docs/templates/ et
+# lab/lab-config/ sont COPY par lab/Dockerfile.moteur. Tout le reste
+# (runtime, secrets, tar d'export, .git) est exclu pour des builds rapides.
+.git/
+__pycache__/
+*.pyc
+*.pyo
+*.tar
+*.tar.sha256
+*.log
+*.jsonl
+*.pid
+.DS_Store
+Thumbs.db
+config/
+backups/
+.claude/
+docs/log1/
+docs/log2/
+docs/parc/
+custom/*/state/
+lab/*state*/
+lab/secrets.lab.yaml
+lab/ha-virtual/
+lab/memoire.lab/
+lab/inventaire.lab/
+lab/stocks.lab/
+lab/prestataires.lab/

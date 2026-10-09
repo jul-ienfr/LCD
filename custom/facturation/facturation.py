@@ -346,9 +346,11 @@ class Facturation:
     def _stocker_meta(self, logement_id, ref_resa, type_doc, meta):
         dossier = os.path.join(self.contrats_dir, logement_id)
         os.makedirs(dossier, exist_ok=True)
-        with open(os.path.join(dossier, f"{ref_resa}_{type_doc}.json"),
-                  "w", encoding="utf-8") as f:
+        cible = os.path.join(dossier, f"{ref_resa}_{type_doc}.json")
+        tmp = cible + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, cible)
 
     def _lire_meta(self, logement_id, ref_resa, type_doc):
         try:

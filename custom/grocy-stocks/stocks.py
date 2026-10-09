@@ -122,22 +122,25 @@ def lire_conso(path):
 def ecrire_conso(path, items):
     """Écrit conso.yaml (schéma fixe, ordre stable)."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("# stocks consommables — seuils + liste courses (§5.6).\n")
-        f.write("# Généré/maintenu par custom/grocy-stocks/stocks.py (P6-3).\n")
-        if not items:
-            f.write("consommables: []\n")
-            return
-        f.write("consommables:\n")
+    lignes = ["# stocks consommables — seuils + liste courses (§5.6).",
+              "# Généré/maintenu par custom/grocy-stocks/stocks.py (P6-3)."]
+    if not items:
+        lignes.append("consommables: []")
+    else:
+        lignes.append("consommables:")
         for c in items:
-            f.write(f"  - id: {c.get('id', '')}\n")
+            lignes.append(f"  - id: {c.get('id', '')}")
             for k in ("label", "stock", "unite", "seuil", "cible",
                       "conso_rotation"):
                 if k in c and c[k] not in ("", None):
                     v = c[k]
                     if isinstance(v, str) and (":" in v or "#" in v):
                         v = f'"{v}"'
-                    f.write(f"    {k}: {v}\n")
+                    lignes.append(f"    {k}: {v}")
+    tmp = str(path) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write("\n".join(lignes) + "\n")
+    os.replace(tmp, path)
 
 
 def statut_conso(c):

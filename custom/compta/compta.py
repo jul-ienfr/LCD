@@ -213,8 +213,10 @@ class Compta:
             return defaut
 
     def _ecrire_json(self, chemin, obj):
-        with open(chemin, "w", encoding="utf-8") as f:
+        tmp = str(chemin) + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(obj, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, chemin)
 
     @staticmethod
     def _date_valide(val):

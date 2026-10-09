@@ -146,15 +146,14 @@ def lire_biens(path):
 def ecrire_biens(path, biens):
     """Écrit biens.yaml (schéma fixe, clés triées stables)."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("# inventaire biens — registre durable QR/NFC (§5.6-bis).\n")
-        f.write("# Généré/maintenu par custom/inventaire/inventaire.py (P6-4).\n")
-        if not biens:
-            f.write("biens: []\n")
-            return
-        f.write("biens:\n")
+    lignes = ["# inventaire biens — registre durable QR/NFC (§5.6-bis).",
+              "# Généré/maintenu par custom/inventaire/inventaire.py (P6-4)."]
+    if not biens:
+        lignes.append("biens: []")
+    else:
+        lignes.append("biens:")
         for b in biens:
-            f.write(f"  - qr: {b.get('qr', '')}\n")
+            lignes.append(f"  - qr: {b.get('qr', '')}")
             for k in ("logement", "categorie", "label", "date_achat",
                       "prix_achat", "fournisseur", "garantie_fin",
                       "lavages_nb", "utilisations_nb", "derniere_utilisation",
@@ -163,7 +162,11 @@ def ecrire_biens(path, biens):
                     v = b[k]
                     if isinstance(v, str) and (":" in v or "#" in v):
                         v = f'"{v}"'
-                    f.write(f"    {k}: {v}\n")
+                    lignes.append(f"    {k}: {v}")
+    tmp = str(path) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write("\n".join(lignes) + "\n")
+    os.replace(tmp, path)
 
 
 def inactivite_jours(bien):
