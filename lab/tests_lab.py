@@ -31,6 +31,7 @@ BASE = {
     "stocks": "http://127.0.0.1:8099",
     "compta": "http://127.0.0.1:8100",
     "router": "http://127.0.0.1:8050",
+    "dashboard": "http://127.0.0.1:8060",
 }
 ECHECS = []
 
@@ -4946,7 +4947,34 @@ check("maintenance : journal 90 j non vide (tracabilite)",
       code == 200 and tot46 > 0, f"HTTP {code} total={tot46}")
 
 print()
+print("== 47. dashboard pilote :8060 : page + apercu multi-logements (lab/P1-13) ==")
+code, pg47 = get("dashboard", "/")
+check("dashboard : page 200 HTML vue d'ensemble log1+log2",
+      code == 200 and isinstance(pg47, str)
+      and "Vue d'ensemble" in pg47
+      and "log1" in pg47 and "log2" in pg47
+      and "lecture seule" in pg47,
+      f"HTTP {code} len={len(pg47) if isinstance(pg47, str) else pg47}")
+code, ap47 = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+check("dashboard : apercu log1 200 (prix 7j + journal + todos + routage)",
+      code == 200 and isinstance(ap47, dict)
+      and len(ap47.get("prix_7j", [])) >= 7
+      and isinstance(ap47.get("journal_total"), int)
+      and isinstance(ap47.get("todos"), list)
+      and ap47.get("routage_primaire") == "lcd-chat-fast"
+      and ap47.get("ha_vivante") is True,
+      f"HTTP {code} {str(ap47)[:150]}")
+code, obj = get("dashboard", "/api/apercu")
+check("dashboard : apercu sans logement -> 400", code == 400,
+      f"HTTP {code} {obj}")
+code, obj = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
+    {"logement_id": "logX"}))
+check("dashboard : apercu logement inconnu -> 404", code == 404,
+      f"HTTP {code} {obj}")
+
+print()
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
-print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2 + incident/offline P8-1/P8-4 + maintenance P8-10.")
+print("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2 + incident/offline P8-1/P8-4 + maintenance P8-10 + dashboard P1-13.")

@@ -422,6 +422,30 @@ services:
       timeout: 5s
       retries: 5
 
+  # Dashboard pilote :8060 (P1-13/P2-9) : AU-DESSUS de HA, parle aux moteurs
+  # (prix/journal/todos/routage), multi-logements/multi-box via config.
+  # Lecture seule : jamais d'écriture/PIN/secret. PWA = autre étage.
+  dashboard-hote:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/dashboard-hote/dashboard.py
+        CONFIG: lab/lab-config/dashboard.yaml
+    ports: ["8060:8060"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8060"
+    command: >
+      sh -c "python3 /opt/lcd/custom/dashboard-hote/dashboard.py
+      --config /opt/lcd/config.yaml --serve"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8060/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
   # Box HA virtuelle (lab) : Home Assistant conteneur + provisionnement headless.
   # Boucles prouvées §40 (moteurs→HA : events/sensors/calendar) + §41
   # (HA→moteur : script → rest_command → decision, qui=dashboard_hote).

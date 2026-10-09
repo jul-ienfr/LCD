@@ -1,0 +1,16 @@
+# lab/lab-config/dashboard.yaml — config LAB dashboard pilote :8060 (P1-13 §9).
+# Lecture seule, LAN seule. Multi-systèmes : 1 entrée par logement/box
+# (futures box = autre URL pricing/decision/dispatch + qui dédié).
+http_port: 8060
+qui: "dashboard_hote"
+systems:
+  - id: "log1"
+    nom: "Log1 Santa Severa (lab)"
+  - id: "log2"
+    nom: "Log2 futur (lab)"
+urls:
+  pricing: "http://pricing:8091"
+  decision: "http://decision:8092"
+  dispatch: "http://dispatch:8096"
+  router: "http://llm-router-ui:8050"
+  homeassistant: "http://homeassistant:8123"

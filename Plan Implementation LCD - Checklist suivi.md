@@ -5,9 +5,9 @@
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
 
-**Progression globale (MAJ manuelle) :** `69 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `70 / ~120` tâches.
 - Phase 0 Commandes : 0/8
-- Phase 1 Socle : 4/14
+- Phase 1 Socle : 5/14
 - Phase 2 PMS/synchro/pricing : 15/16
 - Phase 3 Accès : 0/8
 - Phase 4 Énergie : 0/10
@@ -48,7 +48,7 @@ Dépendances à installer : Proxmox VE, VM HAOS (4 vCPU/8 Go), Mosquitto, Zigbee
 - [x] P1-10 Recorder purge 10 j (FAIT en `configuration.yaml` : `purge_keep_days: 10` + exclude PIN/codes recorder+logbook, InfluxDB exclu — reste à valider sur box) ; logbook + `decision.log1.jsonl` (`/config/logs/`, runtime box — schéma documenté 2026-10-06 en `custom/decision-engine/README.md`) ; entités socle FAIT 2026-10-06 (`input_text.logX_wifi_key`, `input_select.logX_mode_gestion/menage_facturation`, `sensor.llm/jev_cout_mois` stubs, `input_boolean.llm_eu_only/jev_enabled` en log1.yaml) — PARTIEL lab 2026-10-08 : box HA virtuelle (mêmes packages + recorder 10 j + excludes) + push réel prouvé (event J-2 → 200 `emis`, sensors prix + calendar poussés, batterie lab §40 verte ; `forger_jeton_ha()` box-safe, repli `ha_non_configure` si injoignable) + batterie lab §39 verte (reste box : graphe Vue Prix visuel + `/config/logs/` + purge constatée)
 - [ ] P1-11 Test coupure WAN 10 min : serrure Thread, chauffage, ECS, bruit→local, incendie survivent
 - [ ] P1-12 Test coupure secteur 20 min (NUT + coupe ECS/pré-chauffe) + arrêt propre + remontée seule + digest
-- [ ] P1-13 Dashboard hôte v1 : santé (WAN, Zigbee LQI, Thread, MQTT, backup vérifié), batteries/LQI
+- [x] P1-13 Dashboard hôte v1 : santé (WAN, Zigbee LQI, Thread, MQTT, backup vérifié), batteries/LQI — PARTIEL lab 2026-10-09 : dashboard pilote `:8060` (`custom/dashboard-hote/`, AU-DESSUS de HA, parle aux moteurs : prix 7 j + journal + todos + routage + santé HA, multi-logements via config, lecture seule jamais PIN/secret, batterie lab §47 verte) ; accès visuel box HA virtuelle (compte `lab`, voir `lab/README.md`) — reste box : cartes Lovelace + santé WAN/Zigbee/Thread/MQTT/batteries + validation visuelle
 - [ ] P1-14 Restauration backup testée (trimestriel ensuite)
 
 ## Phase 2 — Moteur direct + synchro + pricing (§3/§4/§4-bis/§4-ter)

@@ -246,6 +246,10 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     revue pricing bornes + QR WiFi J-2 + 14 volumes
     state + journal 90 j (backup-restore réel = box ;
     P8-6 formation/RGPD déjà verts §19/20).
+46. dashboard pilote `:8060` P1-13 (§9) : page HTML
+    vue d'ensemble multi-logements (prix 7 j + journal
+    + todos + routage + santé HA, lecture seule) +
+    `/api/apercu` JSON (cartes Lovelace = box).
 
 > Note état : `extras-state/<logX>/extras_commandes.json` est un runtime
 > (jamais commité, comme `inventaire.lab/` pour le registre). `contrat-<logX>.json`
