@@ -122,21 +122,22 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 21. traçabilité P7-7 (§6.7) : langue voyageur en log JSONL + `GET
     /journal?backend=&alias=&langue=` (filtres dashboard combinables,
     vides = sans filtre).
-22. UI routage P7-3 (§6.5) : `GET /routes` (primaire + fallbacks + 5
+22. UI routage P7-3 (§6.5) : `GET /routes` (primaire + fallbacks + 6
     aliases + validation garde-fous, clés API jamais exposées) + `POST
     /route` 1-tap humain (alias connus, anti-redondance, retry 0-3,
     cooldown 0-300, clés garde-fou 400, backup 5 max + audit) + `POST
-    /tester` (TCP court local / statut cloud clé box, santé mémorisée,
-    lab sans backends = KO documenté) + `POST /reload`.
+    /tester` (TCP court : gateway `:4000` hôte OK, Ollama/custom KO
+    documentés, santé mémorisée) + `POST /reload`.
 23. aliases P7-4 (§6.5) : `POST /resoudre` (lecture seule : `eu_only` →
-    override Mistral UE, alias direct fast/strong/eu/local, sinon
-    primaire ; selects/sensors/couts/dépréciation = box HA).
+    override eu (EU non garanti via gateway), alias direct
+    fast/strong/eu/local, sinon primaire ;
+    selects/sensors/couts/dépréciation = box HA).
 24. prompts voyageur M1-M8 P7-10 (§6.7.1) : `GET /prompts` (8 usages +
     alias + variables + interdits) + `POST /composer` (trous seuls 422,
     placeholders injectés APRÈS, jamais d'appel LLM — proxy `:4000` box).
 25. prompts voyageur Jev J1-J9 P7-11 (§6.7.2) : registre étendu (moteur
-    jev + construits Noul/Choice/Score + seuils, appel direct SystemOne
-    box) + composeur (même contrat trous seuls, backend typesafe).
+    jev + construits Noul/Choice/Score + seuils, backend zen `:4000`
+    box) + composeur (même contrat trous seuls, backend zen).
 26. prompts pricing/compta P7-12/13 (§6.7.3-4) : M-LLM-1→7 + M-JEV-1→6
     (registre étendu, seuils file/blocage/1-tap, exécution box).
 27. prompts ops M-LLM1→10 P7-14 (§6.7.5) : classification dégât sans
@@ -164,22 +165,24 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
     criticité échéances (push/digest), anti-fuite RBAC (blocage +
     log), anomalie     pilotage (file, jamais écriture auto)
     (registre étendu, seuils dashboard/file/BLOQUÉE, exécution box).
-31. proxy LiteLLM P7-2 (§6.5) : alias `lcd-chat-custom-1` (`api_base`
-    endpoint box + clé `CUSTOM_LLM_API_KEY_1`, garde-fous 0.2/250) +
+31. proxy P7-2 (§6.5) : gateway `:4000` apportée (muse-spark 1.3 +
+    jev-1.13) + alias `lcd-chat-custom-1` (`api_base` endpoint box +
+    clé `CUSTOM_LLM_API_KEY_1`, garde-fous 0.2/250) +
     `router_settings` (retry 1, cooldown 30 s, fallbacks
-    fast→eu→local) + aucun cache décision (Jev direct, cache_ttl 0)
-    + `POST /resoudre` direct + `POST /tester` KO documenté
-    (lab = box ; proxy :4000 + clés + `rest_command.lcd_chat` = box).
-32. garde-fous 0 € P7-19 (§6.5) : cascade Groq free → Mistral UE →
-    Ollama local + EU-only + secrets jamais exposés (routes +
-    composer audités) + UI LAN seule (défaut `127.0.0.1`, `0.0.0.0`
-    = exception lab explicite) + kill-switch `jev_enabled` +
-    `sensor.llm/jev_cout_mois` + backends custom-1 (entités log1).
-33. Jev SystemOne P7-5 (§6.6) : squelette `rest_command`
-    versionné (endpoint, `jev-latest`/`jev-1.13.0`, timeout 6 s,
-    `cache_ttl: 0`, kill-switch, seuils) + selects backend +
-    override endpoint (activation + clé = box ; option B P7-20 non
-    retenue : appel direct).
+    fast→eu→local) + `POST /resoudre` direct + `POST /tester`
+    (TCP gateway OK, Ollama/custom KO documentés ; clés/quota =
+    proxy, jamais lab).
+32. garde-fous P7-19 (§6.5) : cascade muse-spark → eu → Ollama
+    local (offline) + EU-only non garanti via gateway + secrets
+    jamais exposés (routes + composer audités) + UI LAN seule
+    (défaut `127.0.0.1`, `0.0.0.0` = exception lab explicite) +
+    kill-switch `jev_enabled` + `sensor.llm/jev_cout_mois` +
+    backends custom-1 (entités log1 ; coûts = proxy).
+33. Jev P7-5 (§6.6) : squelette `rest_command` versionné
+    (gateway `:4000` OpenAI-compatible, modèle `jev-1.13`,
+    timeout 6 s, kill-switch, seuils) + selects backend +
+    override endpoint (option B P7-20 non retenue : direct
+    compatible, pas de wrapper).
 34. voix P7-1/8 (§6.5) : squelettes Wyoming + Whisper-small + Piper
     + openWakeWord (BYOD, consentement révocable, offline-first,
     jamais codes/PIN/serrure/vanne, urgences fixe + 112) + 2

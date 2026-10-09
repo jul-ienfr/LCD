@@ -64,3 +64,10 @@ consommables:
     seuil: 1
     cible: 3
     conso_rotation: 0
+  - id: TEST-STOCK
+    label: Test stocks lab
+    stock: 10
+    unite: piece
+    seuil: 4
+    cible: 10
+    conso_rotation: 2

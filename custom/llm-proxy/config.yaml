@@ -1,30 +1,37 @@
-# custom/llm-proxy/config.yaml — proxy LiteLLM :4000 (Phase 7, §6.5).
-# 0 € : Groq free (primaire) → Mistral UE (si llm_eu_only) → Ollama local (fallback).
-# temperature 0.2, max_tokens 250. Clé maître dans secrets.yaml (jamais ici).
-# Timeouts : 8 s voix / 6 s Jev, retry 1, cooldown 30 s (§6.7 garde-fous, voir endpoints.yaml).
+# custom/llm-proxy/config.yaml — proxy :4000 (Phase 7, §6.5).
+# PIVOT 2026-10-09 : modèles servis par la gateway :4000 apportée par l'hôte
+# (fast = mimo-v2.6-flash, strong/eu = muse-spark 1.3, jev = jev-1.13 ;
+# modifiables en UNE ligne, cf. P7-18).
+# Clés/quota/coûts = gérés par le proxy lui-même, jamais ici, jamais en lab.
+# Garde-fous LCD inviolables : temperature 0.2, max_tokens 250, timeouts
+# 8 s voix / 6 s Jev, retry 1, cooldown 30 s (§6.7, voir endpoints.yaml).
 # BYOD consentement par échange, jamais de codes/serrure/vanne en vocal, jamais de PIN en clair.
-# Cache : AUCUN cache proxy sur les décisions (Jev = appel direct SystemOne,
-# cache_ttl 0 verrouillé) ; spend-logging = logs proxy + decision.logX.jsonl (P7-7).
+# EU-ONLY NON GARANTI via cette gateway (llm_eu_only = préférence routage,
+# pas de preuve d'hébergement UE — seul Ollama local est vraiment local).
+# Cache : AUCUN cache proxy sur les décisions (Jev via :4000, jamais de
+# décision cachée) ; traçabilité = logs proxy + decision.logX.jsonl (P7-7).
+# api_base : PC-dev = host.docker.internal:4000 (hôte) ; box = URL gateway
+# (modifiable, le port peut changer — UNE ligne par alias).
 
 model_list:
   - model_name: lcd-chat-fast
     litellm_params:
-      model: groq/llama-3.1-8b-instant
-      api_key: os.environ/GROQ_API_KEY
+      model: openai/mimo-v2.6-flash
+      api_base: http://host.docker.internal:4000
       temperature: 0.2
       max_tokens: 250
       timeout: 8
   - model_name: lcd-chat-strong
     litellm_params:
-      model: groq/llama-3.1-70b-versatile
-      api_key: os.environ/GROQ_API_KEY
+      model: openai/muse-spark-1.3-contributor
+      api_base: http://host.docker.internal:4000
       temperature: 0.2
       max_tokens: 250
       timeout: 8
   - model_name: lcd-chat-eu
     litellm_params:
-      model: mistral/mistral-small-latest
-      api_key: os.environ/MISTRAL_API_KEY
+      model: openai/muse-spark-1.3-contributor
+      api_base: http://host.docker.internal:4000
       temperature: 0.2
       max_tokens: 250
       timeout: 8
@@ -43,6 +50,13 @@ model_list:
       temperature: 0.2
       max_tokens: 250
       timeout: 8
+  - model_name: lcd-jev
+    litellm_params:
+      model: openai/jev-1.13
+      api_base: http://host.docker.internal:4000
+      temperature: 0.2
+      max_tokens: 250
+      timeout: 6
 
 router_settings:
   num_retries: 1

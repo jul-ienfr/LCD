@@ -4,9 +4,11 @@
 # jamais d'écriture (validation 1-tap voyageur ou moteur déterministe seul).
 # Garde-fous : voir `interdits:` par usage (revue box, jamais assouplis sans
 # relecture). Format : UNE ligne par champ (parseur stdlib routeur-ui).
-# Alias : lcd-chat-fast (défaut 0 €), lcd-chat-strong (mensuel/lourd).
-# Usages j* : moteur jev (appel direct SystemOne box, P7-5 — wrapper
-# jev-gateway option B seulement si 0 € strict, P7-20) avec construits
+# Alias : lcd-chat-fast (défaut), lcd-chat-strong (lourd), lcd-chat-eu,
+# lcd-chat-local (Ollama, seul vraiment local/offline), lcd-chat-custom-N,
+# lcd-jev (Jev via proxy). Coûts/quota = proxy :4000, jamais ici.
+# Usages j* : moteur jev (via proxy :4000 apporté, PIVOT 2026-10-09 — wrapper
+# jev-gateway non retenu, P7-20) avec construits
 # Noul/Choice/Score + seuils (même seuils que POST /gardien decision).
 prompts:
   - usage: m1-detection-langue

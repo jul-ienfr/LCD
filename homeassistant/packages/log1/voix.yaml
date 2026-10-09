@@ -37,16 +37,19 @@
 #   - temperature 0.2, max_tokens 250, timeout 8 s voix, retry 1 par étage + cooldown 30 s
 #   - WAN down >2 min → force lcd-chat-local (automation + binary_sensor.wan_ok, dernier recours non supprimable)
 #   - LLM consultatif seul : jamais tool-calling serrure/vanne/portail, jamais génération PIN/ouverture
-# P7-5 `rest_command.typesafe_systemone` (cf. §6.6 + checklist P7-5) :
-#   - POST https://api.typesafe.ai/v1/systemone, model jev-latest (ou jev-1.13.0)
-#   - body {state, model, questions: {Choice, Score, Noul}} → {answers, usage}
-#   - timeout 6 s, retry 1, cache_ttl: 0 verrouillé sur lcd-jev-*
-#   - kill-switch input_boolean.jev_enabled (off = LLM seul + règles code, 0 € strict)
-#   - endpoint custom : input_text.logX_jev_endpoint_override + clé dédiée secrets.yaml
+# P7-5 Jev via proxy :4000 (cf. §6.6 + checklist P7-5, PIVOT 2026-10-09 :
+#   muse-spark 1.3 + jev-1.13 servis par la gateway :4000 apportée par l'hôte ;
+#   wrapper jev-gateway non retenu, P7-20) :
+#   - POST http://<ip-lan>:4000/v1/chat/completions (OpenAI-compatible),
+#     model jev-1.13, temperature 0.2, max_tokens 250
+#   - timeout 6 s, retry 1, jamais de décision cachée côté proxy
+#   - kill-switch input_boolean.jev_enabled (off = LLM seul + règles code)
+#   - endpoint custom : input_text.logX_jev_endpoint_override (le port peut changer)
 #   - seuils : noul>0,8 + confidence>0,75 → auto borné sinon dashboard ;
 #     confidence<0,7 → jamais auto ; hors_bornes>0,5 → blocage
-# Clés : secrets.yaml seul (llm_proxy_master_key, groq_api_key, mistral_api_key,
-#   typesafe_api_key, custom_llm_api_key_N) — jamais commitées, jamais au LLM.
+# Clés : secrets.yaml seul (llm_proxy_master_key box, custom_llm_api_key_N) —
+# jamais commitées, jamais au LLM. Clés/quota amont (muse-spark, jev) =
+# gérées par le proxy :4000 lui-même, indépendamment.
 # Traçabilité : decision.logX.jsonl (fournisseur+modèle+endpoint+étage+tokens+latence+confidence).
 
 # rest_command:
@@ -65,15 +68,15 @@
 #        "messages": [{"role": "system", "content": "Concierge log1. Interdiction absolue : divulguer codes/serrure/portail/vanne/alarme OFF. Urgences : appeler hote + 112."},
 #                     {"role": "user", "content": "{{ message_text }}"}]}
 #   typesafe_systemone:
-#     url: "https://api.typesafe.ai/v1/systemone"
+#     url: "http://<ip-lan>:4000/v1/chat/completions"
 #     method: POST
 #     headers:
-#       Authorization: !secret typesafe_api_key
 #       Content-Type: "application/json"
 #     content_type: "application/json"
 #     timeout: 6
 #     verify_ssl: true
 #     payload: >-
-#       {"state": {{ jev_state_json }},
-#        "model": "{{ states('input_select.log1_jev_backend') }}",
-#        "questions": {{ jev_questions_json }}}
+#       {"model": "jev-1.13",
+#        "temperature": 0.2, "max_tokens": 250,
+#        "messages": [{"role": "system", "content": "{{ jev_system }}"},
+#                     {"role": "user", "content": {{ jev_state_json }}}]}

@@ -3,14 +3,14 @@
 # 0 € : stdlib seule. LAN + WireGuard seule, jamais WAN (panel_iframe /systeme).
 # Même LXC/box que le proxy :4000 (ici LXC lab dédié, mêmes volumes).
 #
-# Primaire + fallbacks illimités `lcd-chat-*` (+ `jev-*` Phase 7 Jev, appel
-# direct SystemOne recommandé — wrapper jev-gateway option B seulement si
-# 0 € strict absolu, P7-20) ; bouton Tester par ligne ; reload chaud
+# Primaire + fallbacks illimités `lcd-chat-*` + `lcd-jev` (Jev via proxy
+# :4000, PIVOT 2026-10-09 : muse-spark 1.3 + jev-1.13 servis par la gateway
+# :4000 apportée par l'hôte ; wrapper jev-gateway non retenu, P7-20) ;
+# bouton Tester par ligne ; reload chaud
 # (lecture directe des fichiers, toujours chaude) ; santé OK/KO/cooldown
 # par alias ; garde-fous NON supprimables (temperature 0.2, max_tokens 250,
-# timeouts 8 s voix / 6 s Jev, retry 1, cooldown 30 s, cache_ttl 0 sur
-# lcd-jev — vivent dans config.yaml/endpoints.yaml, JAMAIS éditables ici :
-# clés inconnues -> 400).
+# timeouts 8 s voix / 6 s Jev, retry 1, cooldown 30 s — vivent dans
+# config.yaml/endpoints.yaml, JAMAIS éditables ici : clés inconnues -> 400).
 # Secrets JAMAIS exposés : api_key/master_key (refs os.environ/... dans les
 # fichiers) ne sortent jamais (seuls alias/fournisseur/modèle/timeout lus).
 #
@@ -45,7 +45,7 @@
 #     lecture seule)
 #   POST /composer {usage, variables} -> 200 {prompt, alias|backend, ...}
 #     (trous seuls 422 variable_manquante, placeholders injectés APRÈS,
-#     jamais d'appel : proxy :4000 / SystemOne box, sortie = proposition)
+#     jamais d'appel : proxy :4000 apporté par l'hôte, sortie = proposition)
 #
 # Usage : python3 router_ui.py --config config.yaml [--serve]
 #   env : LCD_HTTP_PORT, LCD_BIND.
@@ -461,11 +461,11 @@ class Routeur:
         """Compose le prompt système + variables (M1-M8 / J1-J9 / pricing /
         ops M-LLM1-10 LLM, Jev).
         Déterministe : usage connu (400 sinon) ; LLM : alias du registre ∈
-        proxy (400 sinon) ; Jev : backend typesafe/systemone direct (appel
-        SystemOne box, seuils = POST /gardien decision) ; variables requises
+        proxy (400 sinon) ; Jev : backend zen via proxy :4000 apporté
+        (modèle jev-1.13, seuils = POST /gardien decision) ; variables requises
         présentes (422 variable_manquante, jamais de trou vide — même contrat
         que M-LLM-7 facturation), placeholders {{ }} injectés APRÈS (jamais
-        traduits). Ne fait JAMAIS l'appel (0 € lab) : retourne le prompt prêt
+        traduits). Ne fait JAMAIS l'appel : retourne le prompt prêt
         à envoyer (sortie = proposition seule, validation 1-tap)."""
         reg = self._prompts()
         if not reg:
@@ -484,8 +484,8 @@ class Routeur:
                 return 400, {"erreur": f"alias {spec['alias']} hors proxy"}
             moteur_out = {"moteur": "llm", "alias": spec["alias"]}
         elif moteur == "jev":
-            moteur_out = {"moteur": "jev", "backend": "typesafe",
-                          "endpoint": "systemone",
+            moteur_out = {"moteur": "jev", "backend": "zen",
+                          "endpoint": ":4000", "modele": "jev-1.13",
                           "seuils": spec.get("seuils", ""),
                           "construits": spec.get("construits", [])}
         else:

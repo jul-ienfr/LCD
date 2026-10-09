@@ -3595,12 +3595,12 @@ print("== 23. UI routage proxy LLM : routes + backup/audit + tester + reload (P7
 code, rt = get("router", "/routes")
 noms = sorted(a.get("alias") for a in rt.get("aliases", [])) \
     if isinstance(rt, dict) else []
-check("GET /routes : fast + fallbacks + 5 aliases + validation ok",
+check("GET /routes : fast + fallbacks + 6 aliases + validation ok",
       code == 200 and isinstance(rt, dict)
       and rt.get("primaire") == "lcd-chat-fast"
       and rt.get("fallbacks") == ["lcd-chat-eu", "lcd-chat-local"]
       and noms == ["lcd-chat-custom-1", "lcd-chat-eu", "lcd-chat-fast",
-                   "lcd-chat-local", "lcd-chat-strong"]
+                   "lcd-chat-local", "lcd-chat-strong", "lcd-jev"]
       and rt.get("validation", {}).get("ok") is True
       and rt.get("alerte_cout_mois_eur") == 5,
       f"HTTP {code} {rt}")
@@ -3674,11 +3674,18 @@ check("tester local -> KO documente (pas d'Ollama en lab)",
       f"HTTP {code} {tl}")
 code, tf = post("router", "/tester",
                 {"qui": "test-lab-humain", "alias": "lcd-chat-fast"})
-check("tester cloud -> KO cle box requise",
+check("tester fast -> OK TCP gateway :4000 hote",
       code == 200 and isinstance(tf, dict)
-      and tf.get("ok") is False
-      and "box" in tf.get("detail", ""),
+      and tf.get("ok") is True
+      and isinstance(tf.get("latence_ms"), int),
       f"HTTP {code} {tf}")
+code, tj = post("router", "/tester",
+                {"qui": "test-lab-humain", "alias": "lcd-jev"})
+check("tester lcd-jev -> OK TCP gateway :4000 hote",
+      code == 200 and isinstance(tj, dict)
+      and tj.get("alias") == "lcd-jev"
+      and tj.get("ok") is True,
+      f"HTTP {code} {tj}")
 code, rt3 = get("router", "/routes")
 check("sante memorisee local KO",
       code == 200 and isinstance(rt3, dict)
@@ -3697,21 +3704,21 @@ check("reload -> 200 reloaded + validation ok",
 print()
 print("== 24. aliases LLM : resolution backend effectif (P7-4 §6.5) ==")
 code, rs = post("router", "/resoudre", {})
-check("resoudre defaut -> primaire fast",
+check("resoudre defaut -> primaire fast (mimo flash :4000)",
       code == 200 and isinstance(rs, dict)
       and rs.get("alias_effectif") == "lcd-chat-fast"
-      and rs.get("fournisseur") == "groq"
+      and rs.get("fournisseur") == "openai"
+      and rs.get("modele") == "openai/mimo-v2.6-flash"
       and rs.get("via") == "primaire",
       f"HTTP {code} {rs}")
 code, reu = post("router", "/resoudre", {"eu_only": True})
-check("resoudre eu_only -> override Mistral UE",
+check("resoudre eu_only -> override eu (EU non garanti via gateway)",
       code == 200 and isinstance(reu, dict)
       and reu.get("alias_effectif") == "lcd-chat-eu"
-      and reu.get("fournisseur") == "mistral"
       and reu.get("via") == "eu_only_override",
       f"HTTP {code} {reu}")
 code, rd = post("router", "/resoudre", {"alias": "lcd-chat-strong"})
-check("resoudre alias direct strong (70b)",
+check("resoudre alias direct strong (muse-spark)",
       code == 200 and isinstance(rd, dict)
       and rd.get("alias_effectif") == "lcd-chat-strong"
       and rd.get("via") == "demande"
@@ -3821,7 +3828,8 @@ code, cj = post("router", "/composer",
 check("composer j5 -> 200 moteur jev + seuils + construits",
       code == 200 and isinstance(cj, dict)
       and cj.get("moteur") == "jev"
-      and cj.get("backend") == "typesafe"
+      and cj.get("backend") == "zen"
+      and cj.get("modele") == "jev-1.13"
       and "2" in cj.get("prompt", "")
       and "Menage sale" in cj.get("prompt", "")
       and cj.get("placeholders_restants") == 0
@@ -3950,7 +3958,7 @@ code, co = post("router", "/composer",
 check("composer ojev-scoring-dispatch -> 200 filtre zone+RC + jamais auto hors zone",
       code == 200 and isinstance(co, dict)
       and co.get("moteur") == "jev"
-      and co.get("backend") == "typesafe"
+      and co.get("backend") == "zen"
       and "A 55/h 4.5" in co.get("prompt", "")
       and "jamais auto hors zone" in co.get("seuils", "")
       and "choice_presta" in co.get("construits", [])
@@ -4060,7 +4068,7 @@ code, co = post("router", "/composer",
 check("composer jjev-garde-fou-clauses -> 200 auto-bloquant + construits",
       code == 200 and isinstance(co, dict)
       and co.get("moteur") == "jev"
-      and co.get("backend") == "typesafe"
+      and co.get("backend") == "zen"
       and "auto-bloquant" in co.get("seuils", "")
       and "CGV test" in co.get("prompt", "")
       and "noul_amende_forfaitaire" in co.get("construits", [])
@@ -4123,19 +4131,20 @@ fiches = {a.get("alias"): a for a in rt4.get("aliases", [])} \
     if isinstance(rt4, dict) else {}
 check("routes : custom-1 garde-fous 0.2/250 + validation ok",
       code == 200 and isinstance(rt4, dict)
-      and len(fiches) == 5
+      and len(fiches) == 6
+      and "lcd-jev" in fiches
       and rt4.get("validation", {}).get("ok") is True,
       f"HTTP {code} total={len(fiches)}")
 
 print()
-print("== 33. garde-fous 0 EUR : cascade + secrets + LAN + kill-switch (P7-19 §6.5) ==")
+print("== 33. garde-fous : cascade + secrets + LAN + kill-switch (P7-19 §6.5) ==")
 code, rt5 = get("router", "/routes")
 fourn = {a.get("alias"): a.get("fournisseur") for a in
          rt5.get("aliases", [])} if isinstance(rt5, dict) else {}
-check("cascade 0 EUR : groq free -> mistral UE -> ollama local",
+check("cascade : primaire mimo flash -> eu -> ollama local (offline)",
       code == 200 and isinstance(rt5, dict)
-      and fourn.get(rt5.get("primaire")) == "groq"
-      and [fourn.get(f) for f in rt5.get("fallbacks", [])] == ["mistral",
+      and fourn.get(rt5.get("primaire")) == "openai"
+      and [fourn.get(f) for f in rt5.get("fallbacks", [])] == ["openai",
                                                               "ollama"],
       f"HTTP {code} {fourn}")
 SECRETS_MOTS = ("api_key", "master_key", "Bearer", "CHANGER")
@@ -4186,10 +4195,10 @@ try:
 except OSError as e:
     src_voix = ""
     check("voix.yaml lisible", False, str(e))
-check("rest_command typesafe squelette : endpoint + kill-switch + seuils",
-      all(s in src_voix for s in ("api.typesafe.ai/v1/systemone",
-                                  "jev-latest", "jev_enabled",
-                                  "cache_ttl", "timeout 6",
+check("rest_command zen squelette : endpoint + kill-switch + seuils",
+      all(s in src_voix for s in ("v1/chat/completions",
+                                  "jev-1.13", "jev_enabled",
+                                  "timeout 6",
                                   "noul>0,8", "confidence<0,7")),
       "squelette box versionne (activation + cle = box)")
 check("select jev_backend : latest/1.13.0/off + override endpoint",
