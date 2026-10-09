@@ -20,6 +20,12 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 0 rebuild. Export box : `sh export-box.sh` → `lcd-box-<date>.tar`
 (`docker load -i ... && docker compose up -d` sur la box avec SES fichiers).
 
+> Accès visuel box HA virtuelle : http://127.0.0.1:8123
+> (compte `lab`, mot de passe `lab-lcd-2026` — valeurs LAB jetables,
+> volume `haconfig` éphémère `down -v` ; recréer via le store
+> `.storage/auth_provider.homeassistant` si reset).
+> UI routage (JSON) : http://localhost:8050/routes — pas de page HTML.
+
 > Note volumes : `inventaire.lab/` est monté en RW (box-équivalent) car le
 > registre est un état muté à chaque clôture ménage (+1 utilisation). Les runs
 > de tests y ajoutent des biens `TEST-INV-*` (assertions en `>=`, jamais `==`) —
