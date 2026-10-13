@@ -36,8 +36,9 @@ puis diffusion externe.
   puis libre. Sans commission sur le brut.
 - **KIT — 890 € posé + 240 €/an maintenance.** Box + logiciel + doc +
   formation 1 h. Client autonome, pas de supervision permanente.
-  Maintenance obligatoire année 1, reconductible. Intervention hors
-  garantie facturée.
+  Maintenance obligatoire année 1, reconductible. Garantie légale de
+  conformité 2 ans sur le matériel vendu (panne non provoquée = échange,
+  pas de débat). Intervention hors garantie facturée.
 
 Règles : 1 logement = 1 box = 1 mandat actif. Jamais de pilotage sans
 mandat signé. Montée en gamme KIT → PILOTAGE → FULL sans réinstallation

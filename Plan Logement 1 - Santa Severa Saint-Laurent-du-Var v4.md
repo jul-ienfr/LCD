@@ -26,6 +26,11 @@ saisonnière. Vérif règlement + PV à chaque visite.
 Mairie : Cerfa 14004*04 + récépissé + n° sur toutes les annonces. Sans n° =
 dépublier. Pas de go-live sans n°. 120 j/an max résidence principale
 (vérifier 90 j Métropole) ; secondaire = PLU + changement d'usage / quota.
+**Changement d'usage / compensation (résidence secondaire, Métropole NCA) :
+vérifier délibération en vigueur à chaque onboarding (règle = date du mandat,
+jamais du plan) ; si compensation exigée = devis + notaire, jamais promis
+au client sans écrit mairie ; local commercial / ERP = exclu (pas de
+transformation, pas d'ERP).**
 Registre national (loi 19/11/2024) : bascule 2026, veille active.
 Par client : 1 dossier conformité (Cerfa + PLU + quota de SA commune).
 
@@ -70,6 +75,12 @@ rappel J-1 15h ; sans réponse = kit standard, accès jamais bloqué),
 extras payés d'avance (Stripe/Swikly tagué), guide PWA 5 langues (20 phrases
 critiques validées humain), contrat voyageur PWA 30 s (PDF horodaté),
 mémoire opt-in révocable purge 24 mois, WG FULL/PILOTAGE (KIT à la demande).
+Permis de louer (si commune l'instaure, ex Nice programme) : dossier +
+visite + autorisation affichés avant go-live, renouvellement suivi au
+registre ; sans permis là où exigé = pas de mise en ligne.
+Diagnostics obligatoires avant go-live : DPE + CREP (plomb, si bâti
+<1949) + ERP/merguez état des risques + détecteurs fumée ; rapport
+affiché dans le logement + PDF au contrat PWA ; défaut = go-live bloqué.
 
 ## §L3 Onboarding 7 étapes — identique par client
 
@@ -122,6 +133,10 @@ calmes seuls (copro). Télétravail hors saison : pack 20-30 €, visio +10 €.
 Conciergerie = partenariats à commission seuls (VTC 20-30 %, voiture/vélo
 15-20 %, chef 15 %, massage/baby 15-20 %, pressing 15 € + tickets,
 resto/plage 10 % côté pro, excursions 10-15 %).
+Grille prestas affichée (révisée 1x/an, indexée, jamais d'oral) : ménage
+3 h + linge, dépannage (forfait déplacement + /h par métier), astreinte
+nuit/week-end ; devis >200 € systématique, validation 1-tap ; temps
+pointé = temps facturé (PWA), écart >20 % = 409 + revue.
 Accueil physique option 25-30 € (FULL/PILOTAGE, jamais systématique) :
 presta assuré de la zone, créneau 30 min (remise clés + tour logement +
 consignes tri), photo horodatée = preuve, commandé d'avance (cut-off J-1

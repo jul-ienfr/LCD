@@ -245,6 +245,20 @@ impayé = rappel J+5, mise en demeure J+15, suspension pilotage J+30
 amiable puis injonction si >500 €. Tout est tracé, jamais de coupure
 sauvage d'un séjour en cours. RC pro + expiry, transport/enfants =
 prestas assurés.
+Assurances par logement (vérifiées à l'onboarding, expiry auto) : PNO
+obligatoire en copro (loi ALUR, même en saisonnière) + déclaration LCD à
+l'assureur (MRH classique seule = refus d'indemnisation) + RC Exploitation
+loueur meublé ; client (mandat) = attestation PNO couvrant la courte durée
+remise au mandat puis à chaque renouvellement, défaut = suspension
+commercialisation après mise en demeure ; voyageur = RC villégiature
+exigée au questionnaire J-2 (défaut = assurance plateforme rappelée,
+jamais de blocage d'arrivée).
+Requalification : auto-entrepreneur banni pour le ménage régulier (lien
+de subordination) — prestas = sociétés ou indépendants multi-clients
+facturant au réel, grille affichée, jamais de planning imposé.
+Fermeture / hivernage (vide >30 j) : box ON, hors-gel 12 °C, VMC auto,
+passage presta mensuel 25 €, EDL d'inoccupation horodaté ; remise en
+service = checklist 1 h + photos.
 Annuaire ≥2 actifs/métier/zone RC vérifiée, alerte si <2. Sinistres :
 dossier auto + dispatch + compte à rebours + suivi + clôture compta.
 

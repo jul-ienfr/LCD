@@ -77,11 +77,16 @@ versions + changelog.
 
 1 plan comptable par SIREN, jamais de mélange. Chaque écriture `:8100`
 porte `entite_id + logement_id + ref + qui`. Relevé mensuel : brut −
-commission − ménage − plateforme = net reversé J+5. Garde-fous : SCI à
+commission − ménage − plateforme = net reversé J+5. Compte dédié par
+client (jamais de compte perso, jamais de mélange inter-clients) ;
+compensation entre sommes dues = ligne distincte sur le relevé, jamais
+sur sommes contestées de bonne foi sans accord écrit. Garde-fous : SCI à
 l'IR = nue seule, meublé <10 % sinon 422 + bascule IS ; seuils 15 k€ /
 77,7 k€ + 120 j affichés à titre indicatif, validation expert-comptable
 obligatoire. E-facture : export Chorus Pro/PDP. Rapprochement >2 % →
-file humaine.
+file humaine. Expert-comptable par entité (référencé au mandat, relecture
+annuelle régimes + seuils) : simulateur et jauges = indicatifs, jamais un
+avis fiscal.
 
 ## §P6 CRUD + PMS (sans réinventer)
 
