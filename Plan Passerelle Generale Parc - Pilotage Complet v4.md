@@ -172,7 +172,10 @@ outbox >50, rapprochement >2 %. Auth : `/login` rate-limitée (5 tentatives
 de session sans expiry. Anti-phishing humain : jamais de lien de paiement
 par SMS sauf tunnel Stripe/Swikly déclaré au contrat ; faux « votre
 caution » = P2 (alerte + plainte plateforme) ; formation phishing 1x/an ;
-cyber-assurance dès 5 logements. Versions épinglées, SBOM minimal, veille
+cyber-assurance dès 5 logements. Vishing : jamais de code/PIN par
+téléphone sans vérification d'identité via messagerie plateforme
+(appel entrant seul insuffisant, rappel au n° du dossier). Versions
+épinglées, SBOM minimal, veille
 CVE mensuelle, MAJ manuelles + snapshot + rollback, jamais d'OTA auto.
 Calendrier EOL suivi (revue mensuelle, tableau : composant + version +
 fin de support + prochaine MAJ — Python, HA, Next.js, Caddy, Proxmox,
@@ -212,7 +215,9 @@ programmés (hebdo/mensuel PDF par entité), PWA hôte (pilotage mobile
 offline-first), NL/PT, multi-devises EUR/CHF/GBP (taux BCE/j),
 prévisionnel 90 j (occupation + CA + charges projetés, bornes réelles,
 jamais de promesse), journal hash-chaîné (immuabilité prouvable,
-vérification 1 commande). Chaque item = 1 flag + 1 dossier + batterie.
+vérification 1 commande), liste d'attente (dates complètes = file +
+réattribution auto si annulation, 1-tap, ordre chrono, purge checkout+7 j,
+jamais de surréservation §S5). Chaque item = 1 flag + 1 dossier + batterie.
 
 Tailles : gateway ~700-850 lignes stdlib, agent ~200-250, YAML ~200,
 `i18n` ~150-250/langue, `deploy-vps.sh` ~150-200, batteries +~350.

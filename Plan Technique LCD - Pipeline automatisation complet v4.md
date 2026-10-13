@@ -256,6 +256,19 @@ Protection juridique (~300-500 €/an, obligatoire dès le 1er mandat tiers) :
 litiges voyageurs / plateformes / voisins / copro ; activée <48 h
 (dossier photos + EDL + contrat + messages) ; jamais sans PJ au-delà de
 2 biens tiers.
+Dégât des eaux / IRSI (cas N°1 en copro) : tranches <1 600 € / <5 000 €
+(1 / 2 assureurs), qui appelle qui sous 5 j (constat amiable + syndic +
+photos) ; jamais de travaux sans accord assureur ; dossier copro suivi
+au ticket, jamais d'oral.
+CATNAT (complète la force majeure) : arrêté interministériel + déclaration
+mairie/assureur sous 10 j (30 j sécheresse), franchise légale 380 €,
+expertise ; report/avoir/remboursement comme force majeure, jamais de
+rétention abusive.
+Démarchage / devis / factures : mandat signé hors établissement (visite,
+visio) = bordereau de rétractation 14 j joint, jamais omis ; devis >200 €
+= mentions (validité 3 mois, assurance, médiation, TVA) ; factures = piste
+d'audit fiable (devis → BL → facture, art. 242 nonies A, numérotation
+continue, jamais de trou).
 
 Caution : Airbnb = AirCover + 14 j (caution hors plateforme INTERDITE) ;
 Booking = collecte séparée déclarée (VCC = séjour seul) ; Abritel =

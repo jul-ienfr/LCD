@@ -238,6 +238,27 @@ commission 20-30 %, dates imposées, avis non maîtrisés) ; alternative =
 carte cadeau maison (montant libre, valable 12 mois, direct seul,
 remboursable jamais d'avoir imposé).
 
+Vétusté + EDL (cohérence §S7) : grille de vétusté signée au contrat
+(neuf / état d'usage / usé, par pièce et équipement, photos datées) ;
+EDL entrée/sortie conservés **13 mois** (preuves : chargebacks 180 j +
+litiges caution) ; PII voyageur purgée à 90 j (§S7), jamais les preuves.
+Sans grille signée = aucune retenue vétusté, jamais d'exception.
+Objets de valeur / cambriolage : plafond d'exclusion 500 € (espèces,
+bijoux, jamais garantis — mention contrat + annonce, coffre conseillé si
+présent) ; cambriolage = P1 (plainte <24 h, ne rien toucher, serrure
+changée <48 h, relogement à nos frais, dossier assureur + PJ).
+Sécurité réglementaire (kit affiché, plastifié, vérifié trimestriel) :
+n° enregistrement + taxe + règlement copro + DPE + plan d'évacuation +
+112 et n° hôte ; chaudière gaz = entretien annuel obligatoire
+(attestation au dossier) ; ECS = anti-légionellose 65 °C 1x/sem + purge
+après vacance >7 j.
+Règles occupants : mineur seul = refusé (jamais d'arrivée sans adulte
+présent, pièce d'identité du responsable au J-2) ; animaux = carnet de
+vaccination + puce exigés au J-2 (défaut = refus, jamais de négociation
+sur place) ; énergie = usage raisonnable (seuil kWh/nuit affiché au
+contrat, dépassement refacturé au réel Linky, jamais de coupure en
+occupé).
+
 Arrivée autonome standard (FULL/PILOTAGE/KIT) : consigne envoyée J-2
 (PIN/fenêtre + code boîte + photo porte + parking + poubelles) ; fallback
 = clé physique Master Lock (code tournant, changé par séjour) ; preuve =
