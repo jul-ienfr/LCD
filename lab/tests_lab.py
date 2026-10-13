@@ -5501,10 +5501,11 @@ fuites = [p for p in PORTS_SOCLE if p in caddy]
 check("G3 : Caddyfile ne publie AUCUN port du socle (§1 intangible)",
       not fuites, f"ports trouves={fuites}")
 _sites = [l.strip() for l in caddy.splitlines()
-          if re.match(r"^(https?|tls)://", l.strip())]
-check("G3 : Caddyfile publie uniquement parc.<zone> derrière Authelia",
-      len(_sites) == 1 and "parc.{$ZONE}" in _sites[0]
-      and "forward_auth authelia:9091" in caddy, f"sites={_sites}")
+          if re.match(r"^https?://", l.strip())]
+check("G3 : Caddyfile publie parc.+api.<zone> derriere Authelia (P1 SaaS)",
+      len(_sites) == 2 and "parc.{$ZONE}" in _sites[0]
+      and "api.{$API_ZONE:{$ZONE}}" in _sites[1]
+      and caddy.count("forward_auth authelia:9091") >= 2, f"sites={_sites}")
 check("G3 : Authelia exige 2e facteur pour le groupe admin (MFA §4)",
       "group:parc_admin" in authelia and "two_factor" in authelia
       and "default_policy: 'deny'" in authelia)
@@ -8028,6 +8029,83 @@ finally:
 check("69 : ADR-006 SQLite versionne (choix + seuils + hebergement)",
       os.path.isfile(os.path.join(REPO, "docs", "decisions-parc", "2026",
                                   "ADR-006-sqlite.md")))
+
+print("== 70. passerelle parc : /v1/statut bascule P1/P2/P3 (SaaS) ==")
+c70, r70 = get("passerelle", "/v1/statut")
+check("70 : GET /v1/statut = 200 + lecture seule + phase p1/p2/p3",
+      c70 == 200 and r70.get("lecture_seule") is True
+      and r70.get("phase_conseillee") in ("p1", "p2", "p3"),
+      f"HTTP {c70} phase={r70.get('phase_conseillee')}")
+check("70 : seuils figes (vercel 100 Go, VM 70 %, ~10 logements)",
+      r70.get("seuils", {}).get("vercel_bande_go_mois") == 100
+      and r70.get("seuils", {}).get("nb_logements_p3") == 10,
+      str(r70.get("seuils"))[:120])
+_et70 = r70.get("etat", {})
+check("70 : etat mesure (uptime, logements, boxes, sans mesure inventee)",
+      isinstance(_et70.get("uptime_s"), int) and _et70.get("uptime_s") >= 0
+      and isinstance(_et70.get("nb_logements"), int)
+      and _et70.get("mesure") is False, str(_et70)[:160])
+check("70 : 0 fuite PIN/secret/token/cle sur /v1/statut",
+      not [t for t in ('"pin"', '"secret"', '"token"', '"password"',
+                       '"api_key"', "Bearer", "LCD_HA_")
+           if t in json.dumps(r70, ensure_ascii=False)])
+
+print("== 71. passerelle parc : forfaits SaaS kit/pilotage/full (Passerelle v2 §0) ==")
+# a) pur : enums + relevés par forfait (KIT/PILOTAGE = 0 commission sur brut)
+import importlib.util as _iu71
+_m71 = _iu71.spec_from_file_location(
+    "mandats71", os.path.join(REPO, "custom", "passerelle-parc", "mandats.py"))
+mandats71 = _iu71.module_from_spec(_m71)
+_m71.loader.exec_module(mandats71)
+check("71 : FORFAITS kit/pilotage/full_service figes",
+      tuple(mandats71.FORFAITS) == ("kit", "pilotage", "full_service"))
+_rkit71 = mandats71.journal_revenus(
+    {"mode": "mandat_tiers", "forfait": "kit", "commission_pct": 25},
+    1000, menage=110, plateforme=170)
+_rpil71 = mandats71.journal_revenus(
+    {"mode": "mandat_tiers", "forfait": "pilotage", "commission_pct": 25},
+    1000, menage=110, plateforme=170)
+_rfull71 = mandats71.journal_revenus(
+    {"mode": "mandat_tiers", "forfait": "full_service", "commission_pct": 25},
+    1000, menage=110, plateforme=170)
+check("71 : releve KIT = 0 commission (vente+maintenance hors releve)",
+      _rkit71["commission_conciergerie"] == 0.0
+      and _rkit71["net_reverse"] == 720.0, str(_rkit71)[:120])
+check("71 : releve PILOTAGE = 0 commission (abo hors releve)",
+      _rpil71["commission_conciergerie"] == 0.0
+      and _rpil71["net_reverse"] == 720.0, str(_rpil71)[:120])
+check("71 : releve FULL = commission % prelevee (25 sur 1000)",
+      _rfull71["commission_conciergerie"] == 25.0
+      and _rfull71["net_reverse"] == 695.0, str(_rfull71)[:120])
+_b71, _ = mandats71.verifier({"mode": "mandat_tiers", "entite_id": "e",
+                              "forfait": "vip"})
+check("71 : forfait hors enum = bloquant",
+      any("forfait hors enum" in b for b in _b71), str(_b71)[:120])
+# b) simulateur : forfait KIT/PILOTAGE = 0 commission, inconnu = 422
+_c71 = _iu71.spec_from_file_location(
+    "crm71", os.path.join(REPO, "custom", "passerelle-parc", "crm.py"))
+crm71 = _iu71.module_from_spec(_c71)
+_c71.loader.exec_module(crm71)
+_skit71, _e71 = crm71.simulateur(150, 60, forfait="kit")
+check("71 : simulateur KIT = commission 0 (jamais prelevee sur brut)",
+      _e71 is None and _skit71["commission"] == 0.0
+      and _skit71["forfait"] == "kit", str(_skit71)[:120])
+_, _evip71 = crm71.simulateur(150, 60, forfait="vip")
+check("71 : simulateur forfait inconnu = erreur (422 cote gateway)",
+      _evip71 is not None and "forfait hors enum" in str(_evip71),
+      str(_evip71)[:120])
+# c) route : POST /v1/simulateur avec forfait pilote la commission
+c71, r71 = post("passerelle", "/v1/simulateur",
+                {"qui": "commercial_01", "entite_id": "ent-lab-portail",
+                 "adr": 150, "occupation_pct": 60, "forfait": "pilotage"})
+check("71 : POST /v1/simulateur forfait=pilotage = 200 + commission 0",
+      c71 == 200 and r71.get("commission") == 0.0
+      and r71.get("forfait") == "pilotage", f"HTTP {c71}")
+c71, r71 = post("passerelle", "/v1/simulateur",
+                {"qui": "commercial_01", "entite_id": "ent-lab-portail",
+                 "adr": 150, "occupation_pct": 60, "forfait": "vip"})
+check("71 : POST /v1/simulateur forfait inconnu = 422", c71 == 422,
+      f"HTTP {c71}")
 
 
 if ECHECS:

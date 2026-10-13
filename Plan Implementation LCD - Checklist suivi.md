@@ -10,7 +10,7 @@
 > `Plan Logement 1 - Santa Severa Saint-Laurent-du-Var v2.md` (pilote + gabarit pack),
 > `Plan Technique LCD - Adaptation SaaS v1.md` (deltas multi-tenants).
 
-**Progression globale (MAJ manuelle) :** `70 / ~141` tâches.
+**Progression globale (MAJ manuelle) :** `73 / ~143` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 5/14
 - Phase 2 PMS/synchro/pricing : 15/16
@@ -20,8 +20,8 @@
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 20/20 ✔
 - Phase 8 Recette / go-live : 8/12
-- Phase 9 Hébergement SaaS 3 phases : 0/10
-- Phase 10 Offre SaaS + 1er client tiers : 0/8
+- Phase 9 Hébergement SaaS 3 phases : 2/12
+- Phase 10 Offre SaaS + 1er client tiers : 1/8
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
 
@@ -207,6 +207,8 @@ changer `LCD_GATEWAY_URL` + bloc Caddy + service systemd, rien à réécrire.
 - [ ] P9-8 Durcissement WAN control plane : gateway jamais exposée sans TLS+auth, rate-limit écritures, audit `qui` (déjà en lab, à valider en prod)
 - [ ] P9-9 Revue coûts trimestrielle : rester en P1 tant que seuils verts ; P3 rentabilisée dès ~3-5 logements abonnés
 - [ ] P9-10 Base SQLite V2 (ADR-006) : `stockage.py` (schéma v1 + `--migrer` idempotent + `--export` + `--check`) + `parc.db` WAL sur volume persistant + backup chiffré quotidien + batterie lab §69 verte + Postgres réévalué seulement si ~50 logements
+- [x] P9-11 Bascule mesurée P1/P2/P3 : `GET /v1/statut` (phase + seuils + état, 0 secret) + Caddy `api.<domaine>` actif P1 + batterie lab §70 verte (fait, 2026-10-13)
+- [x] P9-12 Front PWA + CI : `manifest.ts` + icônes SVG + `vitest` 5 tests verts + `.github/workflows/ci.yml` (lint+test+build+batterie) (fait, 2026-10-13)
 
 ## Phase 10 — Offre SaaS + 1er client tiers
 
@@ -218,7 +220,7 @@ log1/log2 = vitrines + bancs d'essai.
 - [ ] P10-2 Pack box client standardisé par forfait (FULL : pack complet ; PILOTAGE : box légère ; KIT : box + doc) + chiffrage pack + délai install
 - [ ] P10-3 Checklist onboarding client (visite → pack → install → WireGuard → registre → `box_id`/`logement_id` → go-live) issue du gabarit log1 v2
 - [ ] P10-4 Isolation tenant validée : RBAC par client/entité (`acces.yaml`), registres isolés par logement, portail proprio par logement, export-compta par entité
-- [ ] P10-5 Facturation par tenant : compteurs par logement (nuits, extras, coûts IA) + facture mensuelle (facturation existante) + relances
+- [x] P10-5 Facturation par tenant : compteurs par logement (nuits, extras, coûts IA) + facture mensuelle (facturation existante) + relances — forfaits appliqués : `FORFAITS` kit/pilotage/full enum bloquante, relevés KIT/PILOTAGE = 0 commission, FULL = commission %, simulateur `forfait=` (422 si inconnu) + batterie §71 verte (fait, 2026-10-13)
 - [ ] P10-6 1er client tiers signé (cible : 1 logement FULL ou PILOTAGE) + install + go-live + retour 30 j
 - [ ] P10-7 Kit démo : visite vitrine log1 + dashboard opérateur multi-clients + argumentaire simulateur (`/v1/simulateur`)
 - [ ] P10-8 RC pro conciergerie + assurances mandats tiers (jamais de gestion pour tiers sans couverture)

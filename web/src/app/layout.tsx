@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "LCD — Parc",
   description:
     "Pilotage parc : hote, voyageur, proprietaire, commercial. Fonctionne sans JavaScript.",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#18181b",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent" },
 };
 
 export default function RootLayout({

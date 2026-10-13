@@ -161,6 +161,31 @@ logements) ; réévaluation Postgres managé seulement si multi-writer réel
   idempotent + journal append-only + FK entité inconnue refusée +
   `integrity_check` OK + schéma sans colonne secret + ADR-006 versionné.
 
+## §7. Durcissement SaaS 2026 (batterie §§70-71, front PWA, CI)
+
+- **Bascule P1/P2/P3 mesurée** : `GET /v1/statut` (lecture seule, 0 secret)
+  = phase conseillée + seuils figés (Vercel 100 Go/mois, VM 70 % durable,
+  ~10 logements) + état (uptime, logements, taille `parc.db`, outbox) ;
+  compteurs opérateur via `state/parc/statut.json` (cron 5 min), sinon
+  `mesure: false` (jamais de 0 inventé). Batterie **§70** (4 checks).
+- **Caddy P1** : bloc `api.<domaine>` ACTIF (Vercel → gateway, Authelia
+  devant, aucun port du socle) ; `parc.` = alias historique ; `sejour.` en
+  G3 réel. Batterie G3 : 2 sites derrière Authelia exigés.
+- **Forfaits appliqués** : `FORFAITS = kit/pilotage/full_service` figé dans
+  `mandats.py` (enum bloquante, `forfait` scalaire versionné) ;
+  `journal_revenus` : KIT/PILOTAGE = 0 commission sur le brut (vente +
+  maintenance / abo facturés hors relevé), FULL = commission % (défaut
+  20 %, fourchette 20-30 %) ; `simulateur(forfait=...)` idem (inconnu =
+  422). Montée en gamme sans réinstallation (flags + mandat). Batterie
+  **§71** (9 checks : relevés ×3, enum, simulateur ×2, routes ×2).
+- **Front PWA** (`web/`) : `manifest.ts` (installable, `/voyageur`,
+  standalone, FR), icônes SVG `icon.svg` + `icon-mask.svg` (0 binaire),
+  `themeColor` + `appleWebApp` dans le layout ; sans-JS inchangé.
+- **Tests + CI** : `vitest` (`npm test`, 5 tests : 5 langues, priorité
+  `?lang=`, 14 actions libellées) ; `.github/workflows/ci.yml` (web :
+  lint+test+build Node 24 ; batterie lab sur Docker, 100 % verte exigée).
+- **Batterie 1113 OK / 0 KO** (commit ci-dessous).
+
 ## §4. Phases G0→G5 relues SaaS (réoriente v1 §8)
 
 G0/G1/G2/G2bis/G4/G5 inchangés (v1 §8) + : G2 inclut CRM commercial (§14.5,

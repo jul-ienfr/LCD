@@ -57,6 +57,8 @@ https://parc.{$ZONE} {
 # bascule). `sejour.` = PWA voyageur (lecture + 1-tap contrat), `api.` = fan-out
 # boxes/moteurs via WG (jamais WAN direct) — même garde Authelia, aucun port du
 # socle publié. Activer en G3 réel (DNS + `deploy-vps.sh init`).
+# SaaS P1 (Passerelle v2 §0-bis) : `api.` ACTIF (Vercel → gateway),
+# `sejour.` en G3 réel (PWA voyageur), `parc.` = alias historique.
 # https://sejour.{$ZONE} {
 # 	import entetes_communs
 # 	forward_auth authelia:9091 {
@@ -79,6 +81,24 @@ https://parc.{$ZONE} {
 # 		header_up -Authorization
 # 	}
 # }
+# SaaS P1 : BLOC ACTIF (Vercel → gateway). `{$API_ZONE}` = api.<domaine>
+# (défaut : même zone que le parc). Gardes identiques : Authelia AVANT tout,
+# aucun port du socle publié, pas de cookie gateway (voir `parc.` ci-dessus).
+# En lab/démo : ne pas activer (pas de DNS) — la batterie §52 vérifie que
+# les ports du socle ne sont JAMAIS publiés, bloc actif ou non.
+https://api.{$API_ZONE:{$ZONE}} {
+	import entetes_communs
+
+	forward_auth authelia:9091 {
+		uri /api/verify?auth=basic&trusted_uris=https://api.{$API_ZONE:{$ZONE}}/v1/action
+		copy_headers Remote-User Remote-Groups Remote-Name
+	}
+
+	reverse_proxy gateway-parc:8443 {
+		header_up X-Forwarded-Proto https
+		header_up -Authorization
+	}
+}
 
 # ---------------------------------------------------------------------------
 # Tout le reste du trafic WAN : fermé. Pas de bloc `http://` de repli, pas de

@@ -64,16 +64,26 @@ def relances(note_ts=None):
 
 def simulateur(adr, occupation_pct, nuits_an=365, commission_pct=25,
                plateforme_pct=17, menage_montant=110, menage_nb=80,
-               regime="micro_bic_non_classe", entite_connue=True):
+               regime="micro_bic_non_classe", entite_connue=True,
+               forfait="full_service"):
     """Simulation indicative (jamais une décision).
 
     `entite_connue=False` = 422 côté passerelle (on ne simule pas une fiscalité
-    inconnue). Tous les montants portent `indicatif: True` + la mention
+    inconnue). `forfait` (kit/pilotage/full_service) pilote la commission :
+    KIT/PILOTAGE = 0 % sur le brut (vente + maintenance / abonnement facturés
+    hors relevé), FULL = commission % (défaut 20 %, fourchette 20-30 %).
+    Tous les montants portent `indicatif: True` + la mention
     expert-comptable. Inconnu = None (jamais 0)."""
     if not entite_connue:
         return None, {"erreur": "entite_id inconnue : simulation impossible "
                                 "(422, jamais sur une fiche fiscale "
                                 "inconnue)"}
+    forfait = str(forfait or "full_service").strip()
+    if forfait not in ("kit", "pilotage", "full_service"):
+        return None, {"erreur": "forfait hors enum : kit/pilotage/"
+                                "full_service"}
+    if forfait in ("kit", "pilotage"):
+        commission_pct = 0.0
     try:
         a = float(adr)
         o = float(occupation_pct)
@@ -104,6 +114,7 @@ def simulateur(adr, occupation_pct, nuits_an=365, commission_pct=25,
             "base_fiscale_indicative": (
                 round(base_fiscale, 2) if base_fiscale is not None else None),
             "regime": regime, "indicatif": True,
+            "forfait": forfait,
             "mention": MENTION_FISCALE}, None
 
 

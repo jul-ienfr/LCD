@@ -1,0 +1,40 @@
+# LCD — CI : build + lint + tests web + batterie lab.
+#
+# Déclenchement : push + PR. La batterie lab exige Docker (runner avec
+# Docker) : `docker compose up -d --build` puis `tests_lab.py` (100 % verte
+# exigée, comme en local). Le front exige Node 24 (voir web/README).
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run lint
+        working-directory: web
+      - run: npm test
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+        env:
+          LCD_GATEWAY_URL: http://127.0.0.1:8443
+
+  batterie:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up -d --build
+        working-directory: lab
+      - run: python3 tests_lab.py
+        working-directory: lab

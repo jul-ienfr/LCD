@@ -28,6 +28,12 @@ MODES = ("propre", "mandat_tiers")
 MENAGE_A_CHARGE = ("voyageur", "proprio", "partage")
 REVERSEMENT = ("mensuel_J+5", "par_sejour")
 CIRCUITS = ("passerelle", "portail_direct", "virement_separe")
+# 3 forfaits SaaS (Passerelle v2 §0, figé) : montée en gamme KIT → PILOTAGE →
+# FULL sans réinstallation (flags + mandat, même box). Le forfait pilote les
+# features applicables (voir `journal_revenus`) et la facturation par tenant.
+FORFAITS = ("kit", "pilotage", "full_service")
+# FULL : commission en % du brut (défaut indicatif, prix réel §5 Passerelle v2).
+FORFAIT_DEFAUT_COMMISSION = {"kit": 0.0, "pilotage": 0.0, "full_service": 20.0}
 # Onboarding tiers (§3bis) : pièces du dossier `docs/logN/`.
 PIECES = ("mandat_signe", "edl_entree", "inventaire_scan", "photos",
           "rib_ref", "attestation_assurance", "enregistrement_national",
@@ -59,7 +65,8 @@ class RegistreMandats(RegistreListe):
     # Un bloc sans `statut:` (créé par `definir`, ou ajouté à la main dans le
     # YAML) entre dans le cycle par `brouillon` (§3bis).
     STATUT_INITIAL = "brouillon"
-    SCALAIRES = ("logement_id", "entite_id", "mode", "client_tiers_ref",
+    SCALAIRES = ("logement_id", "entite_id", "mode", "forfait",
+                  "client_tiers_ref",
                  "client_tiers_nom", "commission_pct", "menage_a_charge",
                  "reversement", "depot_garantie_circuit", "assurance_ref",
                  "mandat_signe_le", "echeance", "statut", "cree_le",
@@ -92,6 +99,10 @@ def verifier(champs):
         bloquants.append("mode hors enum : " + str(mode))
     if not entite_id:
         bloquants.append("entite_id obligatoire (rattachement §3bis)")
+    forfait = str(m.get("forfait", "") or "").strip() or "pilotage"
+    if forfait not in FORFAITS:
+        bloquants.append("forfait hors enum : " + str(forfait)
+                         + " — attendu " + "/".join(FORFAITS))
     if str(m.get("menage_a_charge", "") or "").strip() \
             not in MENAGE_A_CHARGE:
         rappels.append("menage_a_charge hors enum : "
@@ -140,17 +151,23 @@ def journal_revenus(mandat, brut, menage=0, plateforme=0, commission=None):
     compta reste chez l'expert-comptable)."""
     m = dict(mandat or {})
     mode = str(m.get("mode", "") or "").strip()
+    forfait = str(m.get("forfait", "") or "").strip() or "pilotage"
     proprio = (mode == "propre")
     brut_v = float(brut or 0)
     pl_v = float(plateforme or 0)
     mg_v = float(menage or 0)
-    if proprio:
+    if proprio or forfait in ("kit", "pilotage"):
+        # KIT : le client se pilote (0 commission reversement, vente +
+        # maintenance facturées hors relevé) ; PILOTAGE : abonnement
+        # €/logement/mois facturé hors relevé (jamais prélevé sur le brut).
         com_v = 0.0
     else:
         com_v = float(commission if commission is not None
-                      else (m.get("commission_pct") or 0))
+                      else (m.get("commission_pct")
+                            or FORFAIT_DEFAUT_COMMISSION["full_service"]))
     net_v = brut_v - pl_v - mg_v - com_v
-    return {"mode": mode, "entite_id": m.get("entite_id"),
+    return {"mode": mode, "forfait": forfait,
+            "entite_id": m.get("entite_id"),
             "logement_id": m.get("logement_id"),
             "brut": round(brut_v, 2), "plateforme": round(pl_v, 2),
             "menage": round(mg_v, 2),

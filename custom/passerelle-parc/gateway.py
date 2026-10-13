@@ -63,6 +63,7 @@ import llm as llmm
 import i18n as i18n_mod
 import crm as crm_mod
 import export_compta as exc
+import statut_h as sth
 
 QUI_DEFAUT = "passerelle_parc"
 FANOUT_MAX_MESURES = 200
@@ -469,6 +470,7 @@ class Passerelle:
         self.docs_dir = str(self.cfg.get("docs_dir", "") or "").strip()
         self._m = {"fanout_ms": [], "cache_hits": 0, "fanout_total": 0,
                    "ecritures": 0, "ecritures_refusees": 0}
+        self._t0 = time.time()  # uptime pour /v1/statut (bascule P1/P2/P3)
         self._charger_disque()
 
     def _resoudre(self, chemin):
@@ -1797,7 +1799,9 @@ class Passerelle:
             float((p or {}).get("nuits_an", 365) or 365),
             float((p or {}).get("commission_pct", 25) or 25),
             float((p or {}).get("plateforme_pct", 17) or 17),
-            entite_connue=connue)
+            entite_connue=connue,
+            forfait=str((p or {}).get("forfait", "full_service") or
+                        "full_service").strip())
         if serr:
             return 422, dict(serr, qui=qui)
         self._journal_parc({"ts": utcnow_iso(), "quoi": "simulateur",
@@ -3529,6 +3533,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(code, rep)
         if url.path == "/metrics":
             return self._json(200, eng.metriques())
+        # SaaS P1/P2/P3 (Passerelle v2 §0-bis) : compteurs de bascule
+        # d'hébergement + seuils, lecture seule, SANS secret ni PII.
+        if url.path == "/v1/statut":
+            return self._json(200, sth.statut_hebergement(eng))
         # §15/§17/§14.5/§6quater : lectures seules (GET), jamais de proxy
         # moteur. `?lang=` > Accept-Language > fr ; Content-Language rendu.
         if url.path in ("/v1/config-llm", "/config-llm"):
