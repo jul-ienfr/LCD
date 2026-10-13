@@ -51,6 +51,11 @@ state-test-*/
 __pycache__/
 *.pyc
 
+# Frontend web/ (Next.js, déployable Vercel — jamais commité : build + deps)
+web/node_modules/
+web/.next/
+web/out/
+
 # OS / éditeurs
 .DS_Store
 Thumbs.db
