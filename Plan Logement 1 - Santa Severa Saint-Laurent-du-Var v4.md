@@ -151,10 +151,13 @@ condition d'accès ; OTA = leurs propres assurances, on ne duplique pas.
 
 Extras : kit bienvenue OFFERT (~3-5 €, fixe) ; mini-bar soft PAYANT (8-10
 refs, ~35 € stock, marge ~7-12 €/séjour ; alcool = licence à emporter
-seule). Late 14 h 40-60 €, early 12 h 30 €, aéroport 25-35 €, courses 25 €
-+ tickets, bébé 30-45 €, plage 15-25 €, petit-déj 15 €/pers, linge 15 €,
-consigne 15 €, déco 49 €. Potentiel +250-400 €/mois à 60 % occ, extras
-calmes seuls (copro). Télétravail hors saison : pack 20-30 €, visio +10 €.
+seule). Petit-déj 15 €/pers (HACCP : traiteur agréé OU pré-emballé DLC OK,
+allergènes affichés + questionnaire, jamais de fait-maison sans agrément ;
+chaîne du froid tracée, jamais de rupture). Late 14 h 40-60 €, early 12 h
+30 €, aéroport 25-35 €, courses 25 € + tickets, bébé 30-45 €, plage 15-25 €,
+petit-déj 15 €/pers, linge 15 €, consigne 15 €, déco 49 €. Potentiel
++250-400 €/mois à 60 % occ, extras calmes seuls (copro). Télétravail hors
+saison : pack 20-30 €, visio +10 €.
 Conciergerie = partenariats à commission seuls (VTC 20-30 %, voiture/vélo
 15-20 %, chef 15 %, massage/baby 15-20 %, pressing 15 € + tickets,
 resto/plage 10 % côté pro, excursions 10-15 %).
@@ -177,6 +180,16 @@ posées). Si compatible : mention annonce « adapté PMR partiel : … »
 (détail exact, jamais « accessible » seul), voix satellite proposée,
 accueil physique recommandé. Si incompatible : on le dit au prospect,
 jamais de réservation senior forcée.
+
+Spa gonflable / jacuzzi : refusé en copro (eau + élec + bruit + assurance,
+jamais négociable) ; si villa : conditions (local technique hors d'eau,
+traitement eau tracé anti-légionellose, EDL renforcé, assurance étendue,
+forfait entretien affiché) + validation 1-tap, jamais d'installation
+sauvage.
+Communication de crise (avis assassin / bad buzz / presse) : 1 réponse
+factuelle max (jamais d'émotion, jamais 2 rounds), gel des réponses auto
+(humain seul), presse = super_admin seul (jamais de nom client, jamais de
+chiffre) ; dossier preuves en parallèle (EDL + messages + factures).
 
 Pilotage revenus : trou 1-2 nuits −20 % (jamais sous plancher) ; creux
 J+30 <30 % = 1 nuit min ; pics = 3-4 nuits + sam/mer. Flex pivot (J-7) /

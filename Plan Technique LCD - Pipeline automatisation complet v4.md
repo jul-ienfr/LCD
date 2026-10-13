@@ -287,6 +287,13 @@ jamais de blocage d'arrivée).
 Requalification : auto-entrepreneur banni pour le ménage régulier (lien
 de subordination) — prestas = sociétés ou indépendants multi-clients
 facturant au réel, grille affichée, jamais de planning imposé.
+Non-sollicitation + confidentialité prestas (clause contrat, 12 mois) :
+jamais de démarchage direct du client, jamais de code/adresse diffusé,
+jamais de photo client publiée ; manquement = déréférencement + mise en
+demeure, jamais de pénalité occulte.
+GLI / Visale (jalon, si un jour un bail classique) : GLI ~3-5 % loyers vs
+Visale gratuit <30 ans — exiger l'une avant toute signature hors LCD ;
+jamais de bail classique sans garantie.
 Fermeture / hivernage (vide >30 j) : box ON, hors-gel 12 °C, VMC auto,
 passage presta mensuel 25 €, EDL d'inoccupation horodaté ; remise en
 service = checklist 1 h + photos.
