@@ -1,11 +1,16 @@
-# Plan Implementation LCD — Checklist suivi (v2.5, 2026-10-06)
+# Plan Implementation LCD — Checklist suivi (v2.5, 2026-10-06 ; v3 SaaS 2026-10-13)
 
 > Fichier de pilotage chantier. Cocher au fur et à mesure (`- [x]`).
 > Ne jamais committer `secrets.yaml`, `custom/branding.yaml` client, `docs/logN/`, backups.
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
+> Vision SaaS (v3, 2026-10-13) : conciergerie multi-logements/multi-clients, 3 forfaits
+> (FULL-SERVICE / PILOTAGE / KIT), clients tiers dès le départ, log1/log2 = vitrines.
+> Références SaaS : `Plan Passerelle Generale Parc - Pilotage Complet v2.md` (control plane),
+> `Plan Logement 1 - Santa Severa Saint-Laurent-du-Var v2.md` (pilote + gabarit pack),
+> `Plan Technique LCD - Adaptation SaaS v1.md` (deltas multi-tenants).
 
-**Progression globale (MAJ manuelle) :** `70 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `70 / ~140` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 5/14
 - Phase 2 PMS/synchro/pricing : 15/16
@@ -15,6 +20,8 @@
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 20/20 ✔
 - Phase 8 Recette / go-live : 8/12
+- Phase 9 Hébergement SaaS 3 phases : 0/9
+- Phase 10 Offre SaaS + 1er client tiers : 0/8
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
 
@@ -182,6 +189,38 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, gateway `:4000` apport�
 - [x] P8-10 Maintenance trimestrielle : codes, revue pricing, backup-restore test, rotation WiFi vérifiée — PARTIEL lab 2026-10-09 : dry-run batterie lab §46 (revue pricing 7 j dans [75,290] + QR WiFi régénéré via J-2 + 14 volumes state sauvegardables listés + journal 90 j non vide) verte (reste box : backup-restore réel + rotation WiFi `secrets.yaml` + revue codes)
 - [ ] P8-11 Maintenance annuelle : piles, audit, 4G failover ? (~30 € clé + SIM prépayée)
 - [x] P8-12 Cloner log2 (light) : même socle, `verifiee: false` + défaut sûr max jusqu'au wizard copro complet — PARTIEL lab 2026-10-08 : prod `verifiee: false` (log1+log2) + light (serrure/voix/extras/vitrines off) + bornes intactes + porte décision unitaire (events J-2 → 403 BLOQUÉE, wizard requis) + batterie lab §38 verte (lab `verifiee: true` = exception ; clone réel = box)
+
+---
+
+## Phase 9 — Hébergement SaaS 3 phases (0 € → VPS, bascule sans réécriture)
+
+Principe : démarrer à 0 €/mois, basculer seulement sur seuils mesurés. Bascule =
+changer `LCD_GATEWAY_URL` + bloc Caddy + service systemd, rien à réécrire.
+
+- [ ] P9-1 P1 ZÉRO EURO : compte Oracle Cloud Always Free (VM gratuite à vie) + compte Vercel Hobby + domaine + Cloudflare DNS ; gateway `:8443` sur la VM, front `web/` sur Vercel (`LCD_GATEWAY_URL=https://api.<domaine>`), WireGuard boxes→VM
+- [ ] P9-2 P1 : bloc Caddy `api.<domaine>` → gateway + TLS auto + `next start` Vercel OK + test bout-en-bout (pilotage + voyageur + proprio + commercial via URL publique)
+- [ ] P9-3 Compteurs bascule en place dès J1 : bande passante Vercel (seuil ~80 % quota Hobby), CPU/RAM VM Oracle (seuil >70 % durable), nb logements ; page `/statut` ou endpoint léger
+- [ ] P9-4 P2 PRÊTE (tout Oracle, 0 €) : procédure `next start` + gateway sur la même VM + Caddy 2 blocs (front + api) — à activer si Vercel bloque (usage commercial) ou quotas dépassés
+- [ ] P9-5 P3 PRÊTE (VPS payant ~5 €/mois) : image Docker identique + doc migration (snapshot registres + `versions.lock` + re-pair WireGuard) — à activer si VM gratuite saturée ou besoin SLA pro
+- [ ] P9-6 Test bascule P1→P2 à blanc (VM Oracle, sans coupure prod) : front local → gateway VM → 1 box lab
+- [ ] P9-7 Sauvegarde control plane : snapshot registres quotidien chiffré hors site (même règle que P1-1 boxes) + test restauration
+- [ ] P9-8 Durcissement WAN control plane : gateway jamais exposée sans TLS+auth, rate-limit écritures, audit `qui` (déjà en lab, à valider en prod)
+- [ ] P9-9 Revue coûts trimestrielle : rester en P1 tant que seuils verts ; P3 rentabilisée dès ~3-5 logements abonnés
+
+## Phase 10 — Offre SaaS + 1er client tiers
+
+Forfaits : FULL-SERVICE (box + pilotage + ménage, commission ~20 %) / PILOTAGE
+(abo/logement/mois, client garde son ménage) / KIT (vente unique + maintenance).
+log1/log2 = vitrines + bancs d'essai.
+
+- [ ] P10-1 Grille tarifaire 3 forfaits écrite (prix, inclus/exclus, engagement, SLA ménage/incident) + mandat de gestion type + CGV entité
+- [ ] P10-2 Pack box client standardisé par forfait (FULL : pack complet ; PILOTAGE : box légère ; KIT : box + doc) + chiffrage pack + délai install
+- [ ] P10-3 Checklist onboarding client (visite → pack → install → WireGuard → registre → `box_id`/`logement_id` → go-live) issue du gabarit log1 v2
+- [ ] P10-4 Isolation tenant validée : RBAC par client/entité (`acces.yaml`), registres isolés par logement, portail proprio par logement, export-compta par entité
+- [ ] P10-5 Facturation par tenant : compteurs par logement (nuits, extras, coûts IA) + facture mensuelle (facturation existante) + relances
+- [ ] P10-6 1er client tiers signé (cible : 1 logement FULL ou PILOTAGE) + install + go-live + retour 30 j
+- [ ] P10-7 Kit démo : visite vitrine log1 + dashboard opérateur multi-clients + argumentaire simulateur (`/v1/simulateur`)
+- [ ] P10-8 RC pro conciergerie + assurances mandats tiers (jamais de gestion pour tiers sans couverture)
 
 ---
 
