@@ -1,0 +1,13 @@
+# i18n DE — Gateway (§17). Menschlich geprüfte UI-Texte.
+titre_page: "LCD — Park-Gateway — Steuerung"
+bandeau_joint: "{{n_up}} erreichbar · {{n_stale}} nicht erreichbar"
+ecritures_desactivees: "Schreiben deaktiviert: Box nicht erreichbar."
+nuit_one: "1 Nacht"
+nuit_other: "{{n}} Nächte"
+erreur_perimetre: "ausserhalb des Bereichs"
+erreur_qui: "menschliches qui erforderlich"
+releve_titre: "Eigentümerabrechnung"
+offre_titre: "Verwaltungsangebot"
+simulateur_note: "Nur Richtwerte — mit Steuerberater validieren."
+effacement_confirme: "Daten gelöscht und Löschung protokolliert."
+degrade_sans_ia: "KI nicht verfügbar — menschliche Warteschlange."

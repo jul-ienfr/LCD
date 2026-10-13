@@ -59,6 +59,10 @@ from registre_liste import ErreurRegistre as ErreurListe
 import mandats as mdt
 import portail as ptf
 import seuils as sxl
+import llm as llmm
+import i18n as i18n_mod
+import crm as crm_mod
+import export_compta as exc
 
 QUI_DEFAUT = "passerelle_parc"
 FANOUT_MAX_MESURES = 200
@@ -1577,6 +1581,300 @@ class Passerelle:
         """Vérifie qu'un logement existe et rend sa fiche (registre moteurs)."""
         r = self._registre()
         return r.lire(lid)
+
+    # -- §15/§16.3 : routage IA/LLM (lecture + dry-run + tester) ------------ #
+    # `llm.yaml` versionné, SANS CLÉ. Édition = même pattern que
+    # `/config-generale` (dry-run → diff → confirmer → rollback, snapshot).
+    _LLM_ADMINS = {("super_admin", "super_admin"), ("super_admin", "admin")}
+
+    def _verifier_llm(self, qui):
+        q = (qui or "").strip()
+        if not q or q in QUI_INTERDITS or q.startswith("moteur-"):
+            return 400, {"erreur": "qui humain obligatoire", "qui": qui}
+        personne = self.acces.get(q)
+        if not personne:
+            return 400, {"erreur": f"qui inconnu : {q}"}
+        if (personne.get("role"), personne.get("sous_role")) \
+                not in self._LLM_ADMINS:
+            return 403, {"erreur": f"{q} : super_admin/admin requis "
+                                    "(jamais proprio/presta/voyageur/"
+                                    "commercial)"}
+        return None, personne
+
+    def _lire_llm(self):
+        chemin = self._resoudre(self.cfg.get("llm", "llm.yaml"))
+        cfg = {"global": {}, "usages": {}, "entites": {}, "logements": {},
+               "optins": {}}
+        try:
+            with open(chemin, encoding="utf-8") as f:
+                section, usage = "", ""
+                for brute in f:
+                    if not brute.strip() or brute.strip().startswith("#"):
+                        continue
+                    ind = len(brute) - len(brute.lstrip(" "))
+                    txt = brute.strip()
+                    if ind == 0 and txt.endswith(":"):
+                        section = txt[:-1]
+                        usage = ""
+                        continue
+                    if section == "global" and ind == 2 and ":" in txt:
+                        k, v = txt.split(":", 1)
+                        cfg["global"][k.strip()] = depoluer(v)
+                    elif section == "usages" and ind == 2 and txt.endswith(":"):
+                        usage = txt[:-1]
+                        cfg["usages"][usage] = {}
+                    elif section == "usages" and usage and ind == 4 \
+                            and ":" in txt:
+                        k, v = txt.split(":", 1)
+                        cfg["usages"][usage][k.strip()] = depoluer(v)
+        except FileNotFoundError:
+            pass
+        return cfg
+
+    def config_llm_lire(self, qui):
+        code, err = self._verifier_llm(qui)
+        if code:
+            return code, err
+        cfg = self._lire_llm()
+        return 200, {"usages": sorted(cfg["usages"]),
+                     "interdits": list(llmm.INTERDITS),
+                     "lecture_seule": True, "qui": qui}
+
+    def config_llm_tester(self, p):
+        """POST /v1/llm-tester : dry-run sans écriture, sans envoi, sans WAN.
+
+        Prompt figé anonymisé → redaction PII → hash loggé → réponse
+        `degrade_sans_IA` + confidence + coût estimé. Injection détectée =
+        refus + log `injection_tentative` (§16.3). Usage interdit = 403."""
+        qui = str((p or {}).get("qui", "") or "").strip()
+        usage = str((p or {}).get("usage", "") or "").strip()
+        prompt = str((p or {}).get("prompt", "") or "")
+        code, err = self._verifier_llm(qui)
+        if code:
+            return code, err
+        if usage in llmm.INTERDITS:
+            self._journal_parc({"ts": utcnow_iso(),
+                                "quoi": "llm_interdit_tente",
+                                "qui": qui, "usage": usage})
+            return 403, {"erreur": "usage interdit (non configurable) : "
+                                   + usage}
+        if usage not in llmm.USAGES:
+            return 400, {"erreur": "usage inconnu : " + usage,
+                         "usages": list(llmm.USAGES)}
+        if llmm.injection_detectee(prompt):
+            self._journal_parc({"ts": utcnow_iso(),
+                                "quoi": "injection_tentative",
+                                "qui": qui, "usage": usage,
+                                "prompt_hash": llmm.prompt_hash(prompt)})
+            return 403, {"erreur": "instruction embarquee refusee "
+                                   "(injection_tentative loggee)"}
+        cfg = self._lire_llm()
+        tue, par = llmm.kill_actif(usage, cfg)
+        redige, nred = llmm.rediger(prompt)
+        if tue:
+            self._journal_parc({"ts": utcnow_iso(), "quoi": "llm_tester",
+                                "qui": qui, "usage": usage,
+                                "modele_effectif": "degrade_sans_IA",
+                                "prompt_hash": llmm.prompt_hash(redige),
+                                "redactions": nred, "kill": par})
+            return 200, {"usage": usage, "modele_effectif": "degrade_sans_IA",
+                         "confidence": None,
+                         "reponse": "IA indisponible — file humain.",
+                         "ia_generee": False, "kill": par,
+                         "redactions": nred, "lecture_seule": True}
+        ok, motif, eff = llmm.quota_autorise({}, usage, cfg)
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "llm_tester",
+                            "qui": qui, "usage": usage,
+                            "modele_effectif": "dry-run",
+                            "prompt_hash": llmm.prompt_hash(redige),
+                            "redactions": nred})
+        return 200, {"usage": usage, "modele_effectif": "dry-run",
+                     "confidence": 0.0,
+                     "reponse": "dry-run : sans ecriture, sans envoi, "
+                                "sans appel WAN (redaction verifiee).",
+                     "ia_generee": True, "redactions": nred,
+                     "lecture_seule": True}
+
+    # -- §14.5/G6 : CRM prospection (commercial + admins) -------------------- #
+    _CRM_ROLES = {("super_admin", "super_admin"), ("super_admin", "admin"),
+                  ("gestionnaire", "commercial")}
+
+    def _verifier_crm(self, qui):
+        q = (qui or "").strip()
+        if not q or q in QUI_INTERDITS or q.startswith("moteur-"):
+            return 400, {"erreur": "qui humain obligatoire", "qui": qui}
+        personne = self.acces.get(q)
+        if not personne:
+            return 400, {"erreur": f"qui inconnu : {q}"}
+        if (personne.get("role"), personne.get("sous_role")) \
+                not in self._CRM_ROLES:
+            return 403, {"erreur": f"{q} : commercial/admin requis "
+                                    "(jamais prix/couts/autres clients)"}
+        return None, personne
+
+    def _registre_prospects(self):
+        from registre_liste import RegistreListe as _RL
+
+        class _RP(_RL):
+            SECTION = "prospects:"
+            CLE_ID = "prospect_id"
+            STATUT_INITIAL = "suspect"
+            SCALAIRES = ("prospect_id", "nom", "bien", "source", "contact_ref",
+                         "statut", "cree_le", "cree_par", "maj_le")
+            STRUCTURES = ()
+
+        chemin = self._resoudre(self.cfg.get("prospects", "prospects.yaml"))
+        if not chemin or not os.path.isfile(chemin):
+            raise ErreurRegistre(503, "registre prospects non configure")
+        return _RP(chemin, os.path.join(self.state_dir, "parc",
+                                        "snapshots-prospects"))
+
+    def prospects_lister(self, qui):
+        code, err = self._verifier_crm(qui)
+        if code:
+            return code, err
+        try:
+            lst = self._registre_prospects().lister()
+        except ErreurRegistre as e:
+            return e.code, {"erreur": e.message}
+        return 200, {"prospects": lst, "pipeline": list(crm_mod.PIPELINE),
+                     "lecture_seule": True}
+
+    def prospect_creer(self, p):
+        qui = str((p or {}).get("qui", "") or "").strip()
+        champs = dict((p or {}).get("data") or {})
+        code, err = self._verifier_crm(qui)
+        if code:
+            return code, err
+        pid = str(champs.get("prospect_id", "") or "").strip()
+        if not pid:
+            return 400, {"erreur": "prospect_id requis", "qui": qui}
+        if champs.get("source") \
+                and str(champs["source"]) not in crm_mod.SOURCES:
+            return 400, {"erreur": "source inconnue : "
+                                   + str(champs["source"]),
+                         "sources": list(crm_mod.SOURCES)}
+        try:
+            out = self._registre_prospects().definir(pid, champs, par=qui)
+        except ErreurRegistre as e:
+            return e.code, {"erreur": e.message, "qui": qui}
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "prospect_cree",
+                            "qui": qui, "prospect_id": pid})
+        return 201, dict(out, qui=qui, relances=crm_mod.relances())
+
+    def pipeline_lire(self, qui):
+        code, err = self._verifier_crm(qui)
+        if code:
+            return code, err
+        try:
+            lst = self._registre_prospects().lister()
+        except ErreurRegistre as e:
+            return e.code, {"erreur": e.message}
+        par_statut = {}
+        for pr in lst:
+            par_statut.setdefault(str(pr.get("statut", "suspect")), []).append(
+                pr.get("prospect_id"))
+        return 200, {"par_statut": par_statut, "pipeline": list(
+            crm_mod.PIPELINE), "lecture_seule": True}
+
+    def simulateur_calculer(self, p):
+        """POST /v1/simulateur : ADR x occupation − commissions (indicatif)."""
+        qui = str((p or {}).get("qui", "") or "").strip()
+        code, err = self._verifier_crm(qui)
+        if code:
+            return code, err
+        entite_id = str((p or {}).get("entite_id", "") or "").strip()
+        if not entite_id:
+            return 422, {"erreur": "entite_id requise (jamais de simulation "
+                                   "sur une fiche fiscale inconnue)"}
+        try:
+            self._registre_entites().lire(entite_id)
+            connue = True
+        except ErreurListe:
+            connue = False
+        sim, serr = crm_mod.simulateur(
+            (p or {}).get("adr"), (p or {}).get("occupation_pct"),
+            float((p or {}).get("nuits_an", 365) or 365),
+            float((p or {}).get("commission_pct", 25) or 25),
+            float((p or {}).get("plateforme_pct", 17) or 17),
+            entite_connue=connue)
+        if serr:
+            return 422, dict(serr, qui=qui)
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "simulateur",
+                            "qui": qui, "entite_id": entite_id})
+        return 200, dict(sim, entite_id=entite_id, lecture_seule=True)
+
+    def offre_generer(self, p):
+        qui = str((p or {}).get("qui", "") or "").strip()
+        code, err = self._verifier_crm(qui)
+        if code:
+            return code, err
+        prospect_id = str((p or {}).get("prospect_id", "") or "").strip()
+        try:
+            prospects = {x.get("prospect_id"): x
+                         for x in self._registre_prospects().lister()}
+        except ErreurRegistre as e:
+            return e.code, {"erreur": e.message}
+        pr = prospects.get(prospect_id)
+        if not pr:
+            return 404, {"erreur": "prospect inconnu : " + prospect_id}
+        sim = dict((p or {}).get("simulation") or {})
+        offre = crm_mod.offre_contenu(pr, sim)
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "offre_generee",
+                            "qui": qui, "prospect_id": prospect_id,
+                            "ref": offre["ref"]})
+        return 200, dict(offre, prospect_id=prospect_id,
+                         lecture_seule=True)
+
+    # -- §6quater/§13.8 : export compta Chorus Pro / PDP (lecture seule) ----- #
+    def export_compta(self, entite_id=None):
+        """GET /export-compta : 1 plan par SIREN, jamais de mélange."""
+        try:
+            ents = self._registre_entites().lister()
+        except ErreurListe as e:
+            return e.code, {"erreur": e.message}
+        if entite_id:
+            ents = [x for x in ents
+                    if str(x.get("entite_id")) == str(entite_id)]
+            if not ents:
+                return 404, {"erreur": "entite inconnue : " + str(entite_id)}
+        factures = []
+        for b in self.boxes:
+            for l in b.get("logements", []) or []:
+                lid = str(l.get("id", "") or "")
+                m = (self.rattachements().get(lid) or {})
+                code, fin = self._finances(lid)
+                if code != 200 or not isinstance(fin, dict):
+                    continue
+                factures.append({"entite_id": m.get("entite_id"),
+                                 "logement_id": lid,
+                                 "ref": "FIN-%s" % lid,
+                                 "montant_ttc": fin.get("ca"),
+                                 "tva": "non"})
+        return 200, exc.export_parc(factures, ents)
+
+    # -- §16.3 : effacement RGPD (voyageur 90 j, prospect tracé) ------------- #
+    def effacement(self, p):
+        qui = str((p or {}).get("qui", "") or "").strip()
+        cible = str((p or {}).get("cible", "") or "").strip()
+        code, err = self._verifier_parc(qui, "", "super_admin",
+                                        creation=True)
+        if code:
+            return code, err
+        if not cible:
+            return 400, {"erreur": "cible requise (ref voyageur/prospect)"}
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "effacement_rgpd",
+                            "qui": qui, "cible_hash": llmm.prompt_hash(cible)})
+        return 200, {"efface": True, "cible_hash": llmm.prompt_hash(cible),
+                     "purge_tracee": True, "qui": qui}
+
+    # -- §17 : i18n (lecture seule, 5 langues) -------------------------------- #
+    def _catalogues_i18n(self):
+        base = os.path.join(self.base, "i18n")
+        return i18n_mod.charger(base)
+
+    def texte(self, cle, lang="fr", variables=None):
+        return i18n_mod.t(self._catalogues_i18n(), cle, lang, variables)
 
     def filtrer_logements(self, logements, entite_id=None, mode=None):
         """Filtre `?entite=` / `?mode=` sur une liste de logements (§3bis).
@@ -3231,6 +3529,40 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(code, rep)
         if url.path == "/metrics":
             return self._json(200, eng.metriques())
+        # §15/§17/§14.5/§6quater : lectures seules (GET), jamais de proxy
+        # moteur. `?lang=` > Accept-Language > fr ; Content-Language rendu.
+        if url.path in ("/v1/config-llm", "/config-llm"):
+            code, rep = eng.config_llm_lire(qs.get("qui", [""])[0])
+            return self._json(code, rep)
+        if url.path in ("/v1/pipeline", "/export-compta"):
+            if url.path == "/v1/pipeline":
+                code, rep = eng.pipeline_lire(qs.get("qui", [""])[0])
+            else:
+                code, rep = eng.export_compta(
+                    qs.get("entite", [""])[0].strip() or None)
+            return self._json(code, rep)
+        if url.path == "/v1/prospects":
+            code, rep = eng.prospects_lister(qs.get("qui", [""])[0])
+            return self._json(code, rep)
+        if url.path == "/v1/i18n":
+            cle = qs.get("cle", ["titre_page"])[0]
+            lang = qs.get("lang", [""])[0].strip().lower()
+            if lang not in i18n_mod.LANGUES:
+                lang = i18n_mod.choisir_langue(
+                    "", "", self.headers.get("Accept-Language", ""))[0]
+            self.send_response(200)
+            self.send_header("Content-Type",
+                             "application/json; charset=utf-8")
+            self.send_header("Content-Language", lang)
+            self.send_header("Vary", "Accept-Language")
+            corps = json.dumps(
+                {"cle": cle, "texte": eng.texte(cle, lang),
+                 "langue": lang, "langues": list(i18n_mod.LANGUES)},
+                ensure_ascii=False).encode("utf-8")
+            self.send_header("Content-Length", str(len(corps)))
+            self.end_headers()
+            self.wfile.write(corps)
+            return
         # G4-b : conflits split-brain + digest (§16.2). Lecture seule partout
         # sauf `trancher` (geste humain trace). En GET ici (comme /metrics) :
         # ce sont des LECTURES, pas des ecritures — les mettre en POST
@@ -3360,6 +3692,38 @@ class Handler(BaseHTTPRequestHandler):
             code, enveloppe = self.engine.action(p)
             return self._json(code, enveloppe)
         p = self._corps()
+        if url.path in ("/v1/llm-tester", "/v1/config-llm"):
+            if url.path == "/v1/llm-tester":
+                code, rep = self.engine.config_llm_tester(p)
+            else:
+                # POST /v1/config-llm : dry-run → diff (G2), édition G4.
+                # V1 : lecture du diff SANS écrire (même pattern §6bis).
+                dry = p.get("dry_run", True)
+                if dry is None or bool(dry):
+                    code, rep = 200, {"dry_run": True, "lecture_seule": True,
+                                      "diff": "aucune ecriture en dry-run",
+                                      "qui": p.get("qui", "")}
+                else:
+                    code, rep = self.engine._verifier_llm(
+                        p.get("qui", ""))
+                    rep = {"erreur": "edition G4 (dry-run seul en v1)",
+                           "qui": p.get("qui", "")} if code else \
+                        {"dry_run": False, "applique": False,
+                         "note": "edition G4 (dry-run seul en v1)"}
+                    code = 200 if not code else code
+            return self._json(code, rep)
+        if url.path == "/v1/prospects":
+            code, rep = self.engine.prospect_creer(p)
+            return self._json(code, rep)
+        if url.path == "/v1/simulateur":
+            code, rep = self.engine.simulateur_calculer(p)
+            return self._json(code, rep)
+        if url.path == "/v1/offres":
+            code, rep = self.engine.offre_generer(p)
+            return self._json(code, rep)
+        if url.path == "/v1/effacement":
+            code, rep = self.engine.effacement(p)
+            return self._json(code, rep)
         if url.path == "/parc/logements":
             code, rep = self.engine.parc_creer(p)
         elif url.path.startswith("/parc/logements/") \

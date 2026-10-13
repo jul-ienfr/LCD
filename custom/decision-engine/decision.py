@@ -146,6 +146,8 @@ PERMISSIONS = {
                                     "forcage_stop_sell"},
     ("gestionnaire", "comptable"): {"etat_lecture", "exports_compta"},
     ("gestionnaire", "support"): {"etat_lecture", "event_envoi"},
+    ("gestionnaire", "commercial"): {"etat_lecture"},  # §14.5/G6 : CRM seul
+    # (prospects/simulateur/offres côté passerelle), jamais prix/ménage.
     ("proprietaire", "proprio_logement"): {"etat_lecture", "prix_reco"},
     ("proprietaire", "proprio_parc"): {"etat_lecture", "prix_reco"},
     ("voyageur", "sejour"): {"etat_lecture"},  # sa résa seule (ref) : questionnaire, late/early
@@ -815,7 +817,7 @@ def lire_acces(path):
 # durée séjour/mission, jamais d'accès HA direct.
 MFA_EXIGEE = {("super_admin", "super_admin"), ("super_admin", "admin"),
               ("gestionnaire", "operateur"), ("gestionnaire", "comptable"),
-              ("gestionnaire", "support")}
+              ("gestionnaire", "support"), ("gestionnaire", "commercial")}
 QUI_AUTO_ACCES = QUI_AUTO_MEMOIRE
 JOURNAL_MAX_J = 90
 JOURNAL_MAX_LIGNES = 200

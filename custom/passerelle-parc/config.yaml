@@ -63,3 +63,9 @@ annonces: "annonces.yaml"
 # l'écriture : on ne garde qu'une référence `env:`/`vault:`.
 entites: "entites.yaml"
 mandats: "mandats.yaml"
+
+# Routage IA/LLM (§15) : llm.yaml versionné, SANS CLÉ (vault seul).
+# Édition POST /v1/config-llm (dry-run → diff → confirmer → rollback).
+llm: "llm.yaml"
+# CRM prospection (§14.5, G6) : prospects.yaml versionné, sans PII bancaire.
+prospects: "prospects.yaml"

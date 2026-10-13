@@ -42,6 +42,8 @@ lab/parc-registre/*.yaml
 !lab/parc-registre/entites.modele.yaml
 !lab/parc-registre/mandats.yaml
 !lab/parc-registre/mandats.modele.yaml
+!lab/parc-registre/prospects.yaml
+!lab/parc-registre/prospects.modele.yaml
 state-test-*/
 # Ancien emplacement racine (passerelle-parc avant résolution par config) :
 /state/

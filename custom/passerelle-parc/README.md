@@ -781,4 +781,24 @@ mais un déploiement réel doit ajouter ses propres tests (coût < 7 €/mois, �
   tracée `conflit_tranche` sans montant, reconvergence `/v1/action`
   explicite ; `GET /parc/conflits` + `GET /parc/digest` (lecture seule),
   `POST /parc/conflits/trancher` (seule écriture G4-b, humain seul).
-- **G6** : i18n ES/IT/DE, quotas LLM, CRM commercial, messagerie unifiée.
+- **G6** : messagerie unifiée (boîte unique OTA + SMS/WhatsApp/email via
+  channel agréé, templates M1-M8, auto-brouillons IA jamais d'envoi auto).
+- **§15/§29 (fait 2026-10-13, lab §66)** : `llm.yaml` versionné SANS CLÉ
+  (vault seul) — 9 usages, fallbacks terminés `degrade_sans_IA`, héritage
+  global → entité → logement, `cloud-optin` par entité, quotas + kill-switch,
+  redaction PII/secrets avant prompt (log = hash + métadonnées), anti
+  prompt-injection (403 + log `injection_tentative`), ref UUIDv7 (dédup 24 h),
+  clock_skew ±5 min. `GET /v1/config-llm` (admin seuls) + `POST /v1/llm-tester`
+  (dry-run sans écriture/envoi/WAN). Modules `llm.py` + `export_compta.py`.
+- **§14.5/§28 (fait 2026-10-13, lab §67)** : CRM `prospects.yaml` + `crm.py` —
+  pipeline 8 étapes, rôle `commercial_01` (prospects/simulateur/offres seuls,
+  jamais prix/coûts/config IA), relances J+3/J+7/J+15 brouillons seuls,
+  simulateur indicatif 422 sans `entite_id` connue, offre marque blanche
+  `OFFRE-*`. `GET /v1/pipeline` + `POST /v1/prospects|/v1/simulateur|/v1/offres`.
+- **§17/§30 (fait 2026-10-13, lab §68)** : `i18n/` 5 langues (FR/EN/ES/IT/DE,
+  0 clé manquante), `i18n.py` (`t()` + `[cle]` visible + pluriels + montants
+  localisés + SMS 160), `GET /v1/i18n` (`?lang=` > Accept-Language >
+  fr, `Content-Language` + `Vary`). `GET /export-compta` (mono-SIREN,
+  Chorus Pro/PDP, lecture seule) + `POST /v1/effacement` (super_admin,
+  cible hashée, purge tracée). `openapi.yaml` + `versions.lock` + 5 ADRs
+  `docs/decisions-parc/2026/`.

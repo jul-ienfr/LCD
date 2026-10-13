@@ -1,0 +1,13 @@
+# i18n IT — passerella (§17). Stringhe UI riviste da umano.
+titre_page: "LCD — Passerella del parco — gestione"
+bandeau_joint: "{{n_up}} raggiungibile(i) · {{n_stale}} irraggiungibile(i)"
+ecritures_desactivees: "Scritture disabilitate: box irraggiungibile."
+nuit_one: "1 notte"
+nuit_other: "{{n}} notti"
+erreur_perimetre: "fuori perimetro"
+erreur_qui: "qui umano obbligatorio"
+releve_titre: "Estratto conto proprietario"
+offre_titre: "Offerta di gestione"
+simulateur_note: "A titolo indicativo — da validare col commercialista."
+effacement_confirme: "Dati cancellati e purga registrata."
+degrade_sans_ia: "IA non disponibile — coda umana."

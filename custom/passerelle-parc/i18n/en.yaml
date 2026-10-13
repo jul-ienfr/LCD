@@ -1,0 +1,13 @@
+# i18n EN — gateway (§17). Human-reviewed UI strings only.
+titre_page: "LCD — Estate gateway — operations"
+bandeau_joint: "{{n_up}} reachable · {{n_stale}} unreachable"
+ecritures_desactivees: "Writes disabled: box unreachable."
+nuit_one: "1 night"
+nuit_other: "{{n}} nights"
+erreur_perimetre: "out of scope"
+erreur_qui: "human qui required"
+releve_titre: "Owner statement"
+offre_titre: "Management offer"
+simulateur_note: "Indicative only — confirm with your accountant."
+effacement_confirme: "Data erased and purge logged."
+degrade_sans_ia: "AI unavailable — human queue."

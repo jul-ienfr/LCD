@@ -68,6 +68,16 @@ personnes:
     expire_le: null                       # fin mission auto (dispatch §12.4-bis)
     mfa: false                            # PWA mission seule, jamais HA direct
 
+  - id: commercial_01
+    role: gestionnaire
+    sous_role: commercial                # §14.5/G6 : prospects + simulateur +
+                                         # offres SEULS, jamais prix/coûts/
+                                         # autres clients, qui=commercial_01
+                                         # tracé, révocable ici
+    logements: []
+    expire_le: null
+    mfa: false
+
   - id: dashboard_hote
     role: gestionnaire
     sous_role: dashboard                 # COMPTE MACHINE dashboard hôte (LAN seul, P2-9 :

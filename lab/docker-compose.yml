@@ -620,6 +620,10 @@ services:
       # DÉDIÉE, montée en LECTURE SEULE (le portail sert, il ne dépose
       # rien). Le test écrit côté hôte ; le conteneur lit via le bind.
       - ./docs.lab:/opt/lcd/docs:ro
+      # Routage IA/LLM (§15) : copie lab versionnée, lecture seule.
+      - ./lab-config/passerelle-parc-llm.yaml:/opt/lcd/lab-config/passerelle-parc-llm.yaml:ro
+      # i18n 5 langues (§17) : catalogues versionnés, lecture seule.
+      - ../custom/passerelle-parc/i18n:/opt/lcd/custom/passerelle-parc/i18n:ro
     command: >
       sh -c "python3 /opt/lcd/custom/passerelle-parc/gateway.py
       --config /opt/lcd/config.yaml --serve"

@@ -53,6 +53,33 @@ https://parc.{$ZONE} {
 	}
 }
 
+# §16.3 : domaines wildcard LE (`sejour./parc./api.<domaine>`, TTL court pour
+# bascule). `sejour.` = PWA voyageur (lecture + 1-tap contrat), `api.` = fan-out
+# boxes/moteurs via WG (jamais WAN direct) — même garde Authelia, aucun port du
+# socle publié. Activer en G3 réel (DNS + `deploy-vps.sh init`).
+# https://sejour.{$ZONE} {
+# 	import entetes_communs
+# 	forward_auth authelia:9091 {
+# 		uri /api/verify?auth=basic&trusted_uris=https://sejour.{$ZONE}/
+# 		copy_headers Remote-User Remote-Groups Remote-Name
+# 	}
+# 	reverse_proxy gateway-parc:8443 {
+# 		header_up X-Forwarded-Proto https
+# 		header_up -Authorization
+# 	}
+# }
+# https://api.{$ZONE} {
+# 	import entetes_communs
+# 	forward_auth authelia:9091 {
+# 		uri /api/verify?auth=basic&trusted_uris=https://api.{$ZONE}/
+# 		copy_headers Remote-User Remote-Groups Remote-Name
+# 	}
+# 	reverse_proxy gateway-parc:8443 {
+# 		header_up X-Forwarded-Proto https
+# 		header_up -Authorization
+# 	}
+# }
+
 # ---------------------------------------------------------------------------
 # Tout le reste du trafic WAN : fermé. Pas de bloc `http://` de repli, pas de
 # bloc "santé", pas de bloc debug. Caddy répond le minimum sur :80 (redirection

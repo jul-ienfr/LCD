@@ -1,0 +1,86 @@
+openapi: 3.0.0
+info:
+  title: Passerelle parc LCD
+  version: 1.0.0
+  description: "Pilotage parc lecture + écritures 1-tap humaines tracées (v1)."
+paths:
+  /health:
+    get:
+      summary: Santé gateway
+      responses:
+        '200': {description: OK}
+  /ready:
+    get:
+      summary: Prêt (boxes + endpoints)
+      responses:
+        '200': {description: prêt}
+        '503': {description: non prêt}
+  /v1/action:
+    post:
+      summary: Écriture 1-tap (allowlist 14 actions)
+      responses:
+        '200': {description: relayé}
+        '400': {description: qui/ref/champs}
+        '403': {description: allowlist/périmètre/rôle/copro}
+        '404': {description: box/logement inconnu}
+  /parc/logements:
+    get:
+      summary: Liste logements (lecture seule)
+      responses: {'200': {description: OK}}
+  /v1/config-llm:
+    get:
+      summary: Routage IA (lecture, admin seuls)
+      responses:
+        '200': {description: OK}
+        '403': {description: rôle refusé}
+  /v1/llm-tester:
+    post:
+      summary: Dry-run IA (sans écriture/envoi/WAN)
+      responses:
+        '200': {description: dry-run}
+        '403': {description: interdit/injection}
+  /v1/prospects:
+    get:
+      summary: Prospects CRM (commercial/admin)
+      responses: {'200': {description: OK}}
+    post:
+      summary: Créer prospect
+      responses:
+        '201': {description: créé}
+        '403': {description: rôle refusé}
+  /v1/pipeline:
+    get:
+      summary: Pipeline CRM par statut
+      responses: {'200': {description: OK}}
+  /v1/simulateur:
+    post:
+      summary: Simulation indicative (entite_id requis)
+      responses:
+        '200': {description: simulation}
+        '422': {description: entité inconnue}
+  /v1/offres:
+    post:
+      summary: Offre marque blanche
+      responses: {'200': {description: OK}}
+  /export-compta:
+    get:
+      summary: Export Chorus Pro/PDP mono-SIREN
+      responses: {'200': {description: OK}}
+  /v1/i18n:
+    get:
+      summary: Chaîne localisée (5 langues)
+      responses: {'200': {description: OK}}
+  /v1/effacement:
+    post:
+      summary: Effacement RGPD tracé (super_admin)
+      responses:
+        '200': {description: effacé}
+        '403': {description: rôle refusé}
+  /calendrier-parc:
+    get:
+      summary: Calendrier centralisé (lecture seule)
+      responses: {'200': {description: OK}}
+  /export-ota:
+    get:
+      summary: Export OTA standardisé (lecture seule)
+      responses: {'200': {description: OK}}
