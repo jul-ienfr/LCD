@@ -291,6 +291,9 @@ Non-sollicitation + confidentialité prestas (clause contrat, 12 mois) :
 jamais de démarchage direct du client, jamais de code/adresse diffusé,
 jamais de photo client publiée ; manquement = déréférencement + mise en
 demeure, jamais de pénalité occulte.
+Convention-cadre presta (signée avant la 1re mission, modèle en templates) :
+missions, SLA, tarifs indexés, assurance, non-sollicitation, résiliation
+30 j ; sans convention = pas de dispatch, jamais d'exception.
 GLI / Visale (jalon, si un jour un bail classique) : GLI ~3-5 % loyers vs
 Visale gratuit <30 ans — exiger l'une avant toute signature hors LCD ;
 jamais de bail classique sans garantie.
@@ -308,6 +311,9 @@ dossier auto + dispatch + compte à rebours + suivi + clôture compta.
 
 Fiscalité : LMNP 1 SIREN = N logements indépendants, plafonds micro
 cumulés. Jauges 15 000 € / 77 700 € + 120 j, alertes 80 %/100 %.
+Taxe foncière (client, mais intégrée au rendement) : saisie au mandat +
+au simulateur (jamais de rentabilité affichée sans TF) + rappel annuel
+au relevé (provision mensuelle conseillée, jamais d'avance de notre part).
 Simulateur micro vs réel + export 1-clic, clôture le 5. Factures + OCR
 → `docs/logN/compta/`, file basse confiance.
 DAC7 : plateformes = déclarantes (revenus vendeurs → fisc 1x/an, elles

@@ -217,6 +217,15 @@ jamais de mégots au sol) ; Minut = preuve (dB + tabac, jamais d'audio) ;
 frais de remise en état sur justificatifs seuls (blanchisserie +
 désodorisation, jamais d'amende forfaitaire) ; mention annonce +
 règlement + questionnaire J-2.
+Fête détectée (Minut, escalade N1→N2→N3, jamais de confrontation) :
+N1 = message PWA <15 min (rappel règlement + extinction demandée) ;
+N2 = appel + visite <1 h (constat photos, mise en demeure orale) ;
+N3 = plateforme saisie + caution (justificatifs) + fin de séjour anticipée
+si récidive (huissier si refus, jamais de force) ; relogement voisins
+excusés (lettre + geste si plainte).
+Tournées ménage (dès 5 logements) : regroupées par zone (cut-off J-1 18h,
+arrivées groupées même créneau, 1 déplacement = N logements) ; en dessous
+= au cas par cas, jamais d'optimisation prématurée.
 ANCV / chèques-vacances (direct seul, option par logement) : convention
 + commission ~2,5 % + remboursement 2-4 sem ; jamais imposé au client,
 jamais sur OTA ; provisionné au relevé (ligne dédiée).
@@ -299,6 +308,10 @@ faux avis, jamais de double saisie calendrier (ICS ou stop-sell).
 Avis ≥4,8 : enquête privée J+1 (≥4★ = lien public, <4★ = rattrapage +
 geste, humain si >20 €), pré-réponse IA 1-tap, livret vidéo QR, trouvés
 (photo + 15 € envoi), boutons Arrivée/Départ/Nuit calme.
+E-réputation (veille hebdo, humain seul) : alerte si note <4★ (Google/OTA),
+réponse <48 h (factuelle, jamais d'émotion, jamais 2 rounds) ; jamais de
+faux avis, jamais d'achat d'avis, jamais de suppression demandée (sauf
+contenu illicite, signalement plateforme).
 
 Pilotage mensuel : RevPAR, prix moyen, occupation, marge/séjour,
 CA extras/séjour, 12 mois + N-1. Rapprochement CSV (alerte >2 %),
