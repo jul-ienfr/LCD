@@ -238,6 +238,9 @@ Médiation consommation L.612-1 (pro, obligatoire) : médiateur désigné
 (~200-400 €/an, nommé au go-live, coordonnées sur factures + site +
 contrat PWA) ; réclamation écrite d'abord, saisine <12 mois si échec ;
 jamais de clause abusive R.212-1 (médiation payante imposée = interdite).
+Registre des réclamations (1/logement, DGCCRF) : toute réclamation écrite
+= entrée datée + réponse <30 j (humaine, tracée) → médiation si échec ;
+revue trimestrielle (top causes → standard MAJ).
 CFE : due dès la 2e année par logement (exonération 1re année,
 ~200-500 €/an, vérifiée avec l'expert-comptable) ; provisionnée au
 prévisionnel, jamais une surprise.

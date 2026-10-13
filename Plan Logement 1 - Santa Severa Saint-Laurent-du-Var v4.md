@@ -192,6 +192,27 @@ Occupants : capacité max affichée = ferme (personne sup refusée si non
 déclarée, facturée au tarif affiché si annoncée) ; sous-location interdite
 (clause + contrôle EDL, résiliation pour manquement grave) ; perte clés =
 forfait 80-150 € (serrurier + EDL, jamais d'oral).
+Cession de séjour (voyageur → tiers) : autorisée si identités du
+cessionnaire au J-2 (questionnaire + fiche de police refaite, validation
+1-tap, jamais de frais cachés) ; refusée si capacité dépassée ou profil
+incompatible copro (animaux, fêtes) ; jamais de sous-location déguisée
+(prix identique, contrat initial maintenu + avenant).
+Tabac / odeurs : intérieur strictement non-fumeur (balcon si copro OK,
+jamais de mégots au sol) ; Minut = preuve (dB + tabac, jamais d'audio) ;
+frais de remise en état sur justificatifs seuls (blanchisserie +
+désodorisation, jamais d'amende forfaitaire) ; mention annonce +
+règlement + questionnaire J-2.
+ANCV / chèques-vacances (direct seul, option par logement) : convention
++ commission ~2,5 % + remboursement 2-4 sem ; jamais imposé au client,
+jamais sur OTA ; provisionné au relevé (ligne dédiée).
+Labels (jamais bloquants, par logement) : Clé Verte (argument copro +
+mairie, audit ~500 €/an), Gîtes de France / Clévacances (confiance FR,
+commission/adhésion affichée), GreenGo (écoresponsable, 0 €) ; 1 label
+min/logement à 10 logements.
+Cartes cadeaux / coffrets (Wonderbox & co) : refusés (tiers payeur opaque,
+commission 20-30 %, dates imposées, avis non maîtrisés) ; alternative =
+carte cadeau maison (montant libre, valable 12 mois, direct seul,
+remboursable jamais d'avoir imposé).
 
 Arrivée autonome standard (FULL/PILOTAGE/KIT) : consigne envoyée J-2
 (PIN/fenêtre + code boîte + photo porte + parking + poubelles) ; fallback

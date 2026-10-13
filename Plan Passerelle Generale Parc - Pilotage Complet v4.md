@@ -187,7 +187,10 @@ Pentest : WAN direct `:8123/:4000/:8050/8090-8100/:8060` refusé, seuls
 UDP WG + 443 ouverts. Conformité : CGV + contrat e-signé, taxe auto,
 n° enregistrement + DPE par annonce, registre RGPD, pièces 10 ans,
 mandats archivés jamais purgés, logs IA = hash + métadonnées, EU AI Act
-tracé, anti prompt-injection. Résidence EU.
+tracé, anti prompt-injection. Résidence EU. Site vitrine : mentions
+légales L.111-1 (identité + SIRET + contact + médiateur) + bandeau cookies
+(refus = zéro traceur, jamais de mur) ; prospection B2B = intérêt légitime
+(opt-out 1-clic), B2C = opt-in seul, jamais d'achat de base.
 
 ## §P10 Phases G0→G5 + backlog
 
