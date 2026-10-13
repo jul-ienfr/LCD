@@ -242,5 +242,7 @@ LTV/CAC ≥3). Tableau 1 page, 12 mois glissants.
 Continuité (bus factor) : coffre successoral (accès vault + runbook
 reprise + contacts expert-comptable/assureur, scellé, testé 1x/an) ;
 2e personne formée (runbook 2 pages + drill) avant le 3e client actif ;
+1er salarié = DUERP obligatoire (document unique, dès l'embauche, revu
+1x/an + à chaque accident) + visite médicale + affichage obligatoire ;
 doc « indisponible 48 h » (qui fait quoi : astreinte, ménage, reversement
 reporté, message type). Sans 2e personne = pas de FULL au-delà de 2 biens.

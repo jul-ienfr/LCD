@@ -206,9 +206,12 @@ bridage, bruit, fuite, incendie. Moteurs lab stdlib, aucun abonnement,
 aucun SaaS intermédiaire obligatoire.
 
 `versions.lock` committé. Revue mensuelle (EOL, quotas, CVE). MAJ
-fenêtrées + backup avant + test PIN sans WAN après. OPEX logiciel : 0 €
-strict à ~1-3,2 €/mois/logement (UE + Jev). Coûts LLM/Jev au dashboard,
-alerte >5 €.
+fenêtrées + backup avant + test PIN sans WAN après. WAN box : fibre/ADSL
++ clé 4G failover partagée (~10 €/mois, active si WAN down >5 min,
+quota 5 Go, alerte conso) — jamais de PIN distant sans WAN de secours
+le jour d'arrivée ; Starlink = option zone blanche (devis, jamais par
+défaut). OPEX logiciel : 0 € strict à ~1-3,2 €/mois/logement (UE + Jev).
+Coûts LLM/Jev au dashboard, alerte >5 €.
 
 Batterie lab verte exigée avant commit (tenue : 1125 OK / 0 KO). DoD par
 phase (5 items, tous cochés ou phase non close) : doc plan MAJ + batterie
@@ -265,6 +268,12 @@ facturant au réel, grille affichée, jamais de planning imposé.
 Fermeture / hivernage (vide >30 j) : box ON, hors-gel 12 °C, VMC auto,
 passage presta mensuel 25 €, EDL d'inoccupation horodaté ; remise en
 service = checklist 1 h + photos.
+Force majeure / catastrophe (inondation, tempête, fermeture admin) :
+ordre = sécurité (évacuation + 112) → relogement proposé (frais à qui de
+droit selon assurance) → report (avoir 12 mois) puis remboursement au
+prorata si report impossible ; jamais de rétention abusive ; activation
+perte d'exploitation (assureur <48 h, dossier photos + EDL + résas
+annulées) ; décision = humain seul, tracée, jamais auto.
 Annuaire ≥2 actifs/métier/zone RC vérifiée, alerte si <2. Sinistres :
 dossier auto + dispatch + compte à rebours + suivi + clôture compta.
 

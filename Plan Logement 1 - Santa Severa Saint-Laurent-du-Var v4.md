@@ -95,9 +95,11 @@ affiché dans le logement + PDF au contrat PWA ; défaut = go-live bloqué.
    de FULL) ; photos + mesures + commerces locaux.
 2. **Contrat** : mandat écrit + CGV (FULL/PILOTAGE) ou vente + maintenance
    (KIT). RC pro à jour côté nous, RC prestas vérifiée (dispatch bloqué si
-   expirée). Fonds tagués. Forfait acté. Login client créé (dashboard
-   `dash-proprio` : SES logements seuls, §S3.1), nominatif, 2FA
-   admin/gestionnaire.
+   expirée). Fonds tagués. Forfait acté. Équipement sécurité enfants +
+   allergènes vérifié (lit parapluie aux normes + chaise haute + caches
+   prises + housses anti-acariens, lessive hypoallergénique, mention
+   annonce). Login client créé (dashboard `dash-proprio` : SES logements
+   seuls, §S3.1), nominatif, 2FA admin/gestionnaire.
 3. **Pack** : box préparée (image vitrine), ids créés, tarifs + extras
    saisis, prestas rattachés, langues, règlement adapté à SA copro, fiche
    mini-bar imprimée.
@@ -206,10 +208,38 @@ piles, produits) + inventaire annuel QR. Boucle qualité : score ménage +
 avis + incidents → revue mensuelle (top 3 causes → standard MAJ → batterie
 si logicielle) ; post-mortem écrit si récidive ou coût >200 €.
 
-Fiabilisation : Minut dB seuls (~150 €, RGPD) + CO2 (~35 €) + clé (~30 €).
+Feu / barbecue / cheminée : interdits sauf équipement dédié validé à la
+visite (barbecue gaz fixe + extincteur + distance façade, jamais de
+charbon sur balcon copro) ; détecteurs fumée + CO + extincteur vérifiés
+trimestriellement, plan d'évacuation affiché (sortie + extincteur +
+coupure gaz/élec), mention règlement + annonce. Feu = P1 (évacuation
+d'abord, 112, jamais de remise en location sans expertise).
+Nuisibles (punaises N°1) : housses anti-punaises dès l'équipement +
+inspection lampe UV à chaque intermédiaire 14 j+ ; signalement = P1
+(désinsectisation 200-400 € sous 48 h, relogement à nos frais, geste,
+linge à 60 °C + housse neuve, avis géré humain seul) ; coût = charge
+exploitation (FULL) ou refacturé si faute voyageur prouvée (photos EDL).
 Vols : retard >30 min = pré-chauffe décalée + message. Carnet tranquillité
 /trimestre (bruit + 22h-8h + interventions = anti-litige syndic). Budget
 vitrine ~1 100-1 200 € + capteurs → amorti ~3-4 mois à 60 % occ.
+
+Acompte / solde direct (Stripe/Swikly, jamais d'oral) : acompte 25-30 %
+à la résa, solde J-30 auto (relance J-35/J-32, défaut = annulation +
+remise en vente, jamais de séjour sans solde) ; OTA = leurs échéanciers,
+on ne duplique pas. Remboursement sous 7 j sur le moyen d'origine.
+Événements Côte d'Azur (calendrier annuel, revu en janvier) : Festival
+Cannes ×3-5, Grand Prix Monaco ×3-4, Carnaval Nice ×2, été ×1,5-2 ; min-stay events
+4-7 j, jamais sous plancher, validation 1-tap ; hors events = remplissage
+classique. Linge : dotation 3 jeux/logement, blanchisserie externe (devis
+annuel, RABC ou équivalent affiché) vs interne (lave-linge + sèche-linge,
+coût/eau/élec suivi) — arbitrage chiffré à l'onboarding, jamais d'oral.
+Home staging / shooting (option onboarding 150-300 €) : mise en valeur +
+photos pro + titres/descriptions SEO par langue ; refonte si note <4,7
+(photos <12 mois, jamais de photos trompeuses L.121-1).
+Acquisition directe (objectif : part direct >30 % à 10 logements) :
+fiche Google Business par logement + lien avis post-séjour (J+30/J+180
+−10 % direct) + site vitrine + UTM `?src=` tracé ; jamais d'achat de
+faux avis, jamais de double saisie calendrier (ICS ou stop-sell).
 
 Avis ≥4,8 : enquête privée J+1 (≥4★ = lien public, <4★ = rattrapage +
 geste, humain si >20 €), pré-réponse IA 1-tap, livret vidéo QR, trouvés
