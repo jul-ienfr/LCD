@@ -1,7 +1,6 @@
-// Page pilotage hote : bandeau + cartes logements + 14 actions 1-tap.
+// Page pilotage hôte : hero KPIs + cartes logements + 14 actions 1-tap.
 // Rendu serveur (SSR) : lisible et ACTIONNABLE sans JavaScript.
 // Les formulaires POSTent en natif vers les Server Actions.
-// Navigation non-instantanée assumée : données gateway à la requête.
 export const instant = false;
 import { gwGet, ACTIONS, type ActionId } from "@/lib/gateway";
 import { LIBELLES_ACTION, t, type Langue } from "@/lib/i18n";
@@ -80,9 +79,16 @@ export default async function Page({
 }) {
   const sp = await searchParams;
   const lang: Langue = languePage(sp);
-  // Page dynamique (instant=false) : pas de Suspense nécessaire, le HTML
-  // est rendu à la requête avec les données gateway (sans-JS : complet).
   return <Pilotage lang={lang} />;
+}
+
+function maxPrix(prix: [string, number | string][]): number {
+  let m = 0;
+  for (const [, p] of prix) {
+    const n = Number(p);
+    if (Number.isFinite(n) && n > m) m = n;
+  }
+  return m || 1;
 }
 
 async function Pilotage({ lang }: { lang: Langue }) {
@@ -96,6 +102,10 @@ async function Pilotage({ lang }: { lang: Langue }) {
   }
   const logements = ap?.logements || [];
   const joignables = logements.filter((l) => !l.stale).length;
+  const todosOuverts = logements.reduce(
+    (n, l) => n + (l.todos || []).filter((x) => x.statut !== "fait").length,
+    0,
+  );
   const refBase = (ap?.generated_at || new Date().toISOString())
     .replace(/[:.\-+]/g, "")
     .replace("T", "-")
@@ -104,79 +114,187 @@ async function Pilotage({ lang }: { lang: Langue }) {
 
   if (!ap)
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950">
-        <h1 className="text-xl font-bold">Passerelle injoignable</h1>
-        <p className="mt-2 text-sm">
-          Vérifiez <code>LCD_GATEWAY_URL</code> (défaut 127.0.0.1:8443) ou le
-          mode démo.
-        </p>
-        {erreur && <p className="mt-2 text-xs text-red-600">Détail : {erreur}</p>}
+      <div className="flex flex-col gap-4">
+        <Onglets lang={lang} ici="/" />
+        <div className="carte border-[var(--danger)] p-6" role="alert">
+          <h1 className="text-xl font-extrabold">Passerelle injoignable</h1>
+          <p className="mt-2 text-sm text-[var(--encre-douce)]">
+            Vérifiez <code>LCD_GATEWAY_URL</code> (défaut 127.0.0.1:8443) ou le
+            mode démo.
+          </p>
+          {erreur && <p className="mt-2 text-xs text-[var(--danger)]">Détail : {erreur}</p>}
+        </div>
       </div>
     );
 
   return (
-    <div className="flex flex-col gap-4">
-      <Onglets lang={lang} />
-      <section className="rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 p-5 text-white shadow">
-        <h1 className="text-2xl font-bold">{t("pilotage", lang)} — {t("titre", lang)}</h1>
-        <p className="mt-1 text-sm text-teal-50">
-          {logements.length} logement(s) · {joignables} {t("joignables", lang)} ·
-          fan-out {ap.fanout_ms ?? "?"} ms · {met?.ecritures ?? 0} écriture(s) relayée(s) /{" "}
-          {met?.ecritures_refusees ?? 0} refus(s)
-        </p>
+    <div className="flex flex-col gap-5">
+      <Onglets lang={lang} ici="/" />
+
+      <section className="hero" aria-label={t("pilotage", lang)}>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
+              {t("titre", lang)}
+            </p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
+              {t("pilotage", lang)}
+            </h1>
+          </div>
+          <span className="badge" style={{ background: "rgb(255 255 255 / .18)", color: "#fff" }}>
+            <span aria-hidden>●</span> {joignables}/{logements.length} {t("joignables", lang)}
+          </span>
+        </div>
+        <div className="kpis mt-5">
+          <div className="kpi">
+            <div className="kpi-valeur">{logements.length}</div>
+            <div className="kpi-etiquette">{t("kpi_logements", lang)}</div>
+          </div>
+          <div className="kpi">
+            <div className="kpi-valeur">{todosOuverts}</div>
+            <div className="kpi-etiquette">{t("kpi_todos", lang)}</div>
+          </div>
+          <div className="kpi">
+            <div className="kpi-valeur">
+              {met?.ecritures ?? 0}
+              <span className="text-sm font-semibold opacity-80">
+                {" "}/ {met?.ecritures_refusees ?? 0} {t("kpi_refus", lang)}
+              </span>
+            </div>
+            <div className="kpi-etiquette">{t("kpi_ecritures", lang)}</div>
+          </div>
+          <div className="kpi">
+            <div className="kpi-valeur">
+              {ap.fanout_ms ?? "—"}
+              <span className="text-sm font-semibold opacity-80"> ms</span>
+            </div>
+            <div className="kpi-etiquette">{t("kpi_fanout", lang)}</div>
+          </div>
+        </div>
       </section>
 
       {logements.map((r) => {
         const lid = String(r.logement_id || "?");
         const stale = !!r.stale;
+        const prix = r.prix_7j || [];
+        const plafond = maxPrix(prix);
+        const todos = (r.todos || []).filter((x) => x.statut !== "fait");
         return (
-          <section key={`${r.box_id}-${lid}`} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex flex-wrap items-baseline gap-2">
-              <h2 className="text-lg font-semibold">{r.nom || lid}</h2>
-              <span className="text-xs text-zinc-500">{lid} · {r.box_id}</span>
-              {stale ? (
-                <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
-                  {t("ecritures_off", lang)}
+          <section key={`${r.box_id}-${lid}`} className="carte p-5 md:p-6" aria-label={r.nom || lid}>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-xl font-extrabold tracking-tight">{r.nom || lid}</h2>
+              <span className="text-xs text-[var(--encre-faine)]">{lid} · {r.box_id}</span>
+              <span className="ml-auto flex flex-wrap gap-1.5">
+                {stale ? (
+                  <span className="badge badge-danger">{t("ecritures_off", lang)}</span>
+                ) : (
+                  <span className="badge badge-ok">● {t("joignables", lang)}</span>
+                )}
+                <span className={`badge ${r.copro_verifiee ? "badge-accent" : "badge-alerte"}`}>
+                  {t("copro", lang)} : {r.copro_verifiee ? t("oui", lang) : t("non_bloquee", lang)}
                 </span>
-              ) : (
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                  {t("joignables", lang)}
+                <span className={`badge ${r.ha_vivante ? "badge-accent" : "badge-alerte"}`}>
+                  HA : {r.ha_vivante ? t("ha_vivante", lang) : t("ha_morte", lang)}
                 </span>
-              )}
+              </span>
             </div>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Journal : {r.journal_total ?? 0} entrées · Occupation J+30 :{" "}
-              {String(r.occupation?.occ_j30 ?? "—")} · Routage : {r.routage_primaire || "—"} ·
-              HA : {r.ha_vivante ? "vivante" : "injoignable"} · Copro :{" "}
-              {r.copro_verifiee ? "oui" : "non (BLOQUÉE)"}
-            </p>
+
+            <dl className="mt-4 grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
+              <div className="rounded-xl bg-[var(--surface-2)] p-3">
+                <dt className="text-xs text-[var(--encre-faine)]">{t("kpi_journal", lang)}</dt>
+                <dd className="mt-0.5 text-lg font-bold tabular-nums">{r.journal_total ?? 0}</dd>
+              </div>
+              <div className="rounded-xl bg-[var(--surface-2)] p-3">
+                <dt className="text-xs text-[var(--encre-faine)]">{t("kpi_occupation", lang)}</dt>
+                <dd className="mt-0.5 text-lg font-bold tabular-nums">{String(r.occupation?.occ_j30 ?? "—")}</dd>
+              </div>
+              <div className="rounded-xl bg-[var(--surface-2)] p-3">
+                <dt className="text-xs text-[var(--encre-faine)]">{t("kpi_routage", lang)}</dt>
+                <dd className="mt-0.5 truncate text-lg font-bold">{r.routage_primaire || "—"}</dd>
+              </div>
+              <div className="rounded-xl bg-[var(--surface-2)] p-3">
+                <dt className="text-xs text-[var(--encre-faine)]">{t("kpi_todos", lang)}</dt>
+                <dd className="mt-0.5 text-lg font-bold tabular-nums">{todos.length}</dd>
+              </div>
+            </dl>
+
+            {prix.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold text-[var(--encre-faine)]">
+                  {t("prix_7j", lang)} · {String(prix[0][1])} € {t("aujourd_hui", lang)}
+                </p>
+                <div className="prix-7j" role="img" aria-label={`${t("prix_7j", lang)} : ${prix.map((p) => String(p[1])).join(", ")}`}>
+                  {prix.map(([jour, p], i) => (
+                    <span
+                      key={`${jour}-${i}`}
+                      title={`${jour} : ${String(p)} €`}
+                      style={{ height: `${Math.max(8, Math.round((Number(p) / plafond) * 100))}%` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {(r.alertes || []).length > 0 && (
-              <ul className="mt-2 list-disc pl-5 text-sm text-amber-700 dark:text-amber-300">
-                {r.alertes!.map((a, i) => <li key={i}>{a}</li>)}
+              <ul className="mt-3 flex flex-col gap-1.5" role="list" aria-label={t("alertes", lang)}>
+                {r.alertes!.map((a, i) => (
+                  <li key={i} className="rounded-xl bg-[var(--alerte-douce)] px-3 py-2 text-sm text-[var(--alerte)]">
+                    ⚠ {a}
+                  </li>
+                ))}
               </ul>
             )}
+
+            {todos.length > 0 && (
+              <div className="table-defilante mt-3 border border-[var(--bordure)]">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>{t("th_dossier", lang)}</th>
+                      <th>{t("th_statut", lang)}</th>
+                      <th>{t("th_echeance", lang)}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {todos.slice(0, 8).map((x, i) => (
+                      <tr key={i}>
+                        <td>{x.dossier || "—"}</td>
+                        <td>{x.statut || "—"}</td>
+                        <td className="tabular-nums">{x.deadline || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {stale ? (
-              <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+              <p className="mt-4 rounded-xl bg-[var(--danger-douce)] p-3 text-sm text-[var(--danger)]" role="status">
                 {t("ecritures_off", lang)}
               </p>
             ) : (
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                {ACTIONS.map((a) => (
-                  <FormulaireAction
-                    key={a.id}
-                    actionId={a.id}
-                    libelle={L(a.id)}
-                    champs={[...a.champs]}
-                    exemples={EXEMPLES}
-                    boxId={String(r.box_id || "")}
-                    logementId={lid}
-                    refBase={`${refBase}-${lid}`}
-                    humains={HUMAINS}
-                    envoyer={t("envoyer", lang)}
-                    choisirQui={t("qui", lang)}
-                  />
-                ))}
-              </div>
+              <>
+                <h3 className="mt-5 text-sm font-bold uppercase tracking-wide text-[var(--encre-faine)]">
+                  {t("actions_1tap", lang)}
+                </h3>
+                <div className="mt-2 grid gap-3 lg:grid-cols-2">
+                  {ACTIONS.map((a) => (
+                    <FormulaireAction
+                      key={a.id}
+                      actionId={a.id}
+                      libelle={L(a.id)}
+                      champs={[...a.champs]}
+                      exemples={EXEMPLES}
+                      boxId={String(r.box_id || "")}
+                      logementId={lid}
+                      refBase={`${refBase}-${lid}`}
+                      humains={HUMAINS}
+                      envoyer={t("envoyer", lang)}
+                      choisirQui={t("qui", lang)}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </section>
         );

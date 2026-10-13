@@ -83,6 +83,8 @@ export async function calculerSimulateur(
     qui: String(formData.get("qui") || "").trim(),
     entite_id: String(formData.get("entite_id") || "").trim(),
   };
+  const forfait = String(formData.get("forfait") || "").trim();
+  if (forfait) corps.forfait = forfait;
   for (const k of ["adr", "occupation_pct", "nuits_an", "commission_pct", "plateforme_pct"]) {
     const v = String(formData.get(k) || "").trim();
     if (v !== "") corps[k] = Number(v);

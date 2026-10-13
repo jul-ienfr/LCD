@@ -12,6 +12,17 @@ describe("i18n 5 langues", () => {
     for (const cle of ["titre", "pilotage", "voyageur", "proprio", "commercial"])
       for (const l of LANGUES) expect(t(cle, l)).not.toMatch(/^\[.+\]$/);
   });
+  it("refonte 2026 : KPIs + parcours complets en 5 langues", () => {
+    for (const cle of [
+      "kpi_logements", "kpi_todos", "kpi_ecritures", "kpi_fanout",
+      "kpi_journal", "kpi_occupation", "kpi_routage",
+      "voyageur_bienvenue", "par_nuit", "extras_titre", "incident_titre",
+      "releve_titre", "releve_brut", "releve_net", "releve_canaux",
+      "pipeline_titre", "prospect_titre", "simulateur_titre",
+      "th_dossier", "th_statut", "th_echeance", "actions_1tap",
+    ])
+      for (const l of LANGUES) expect(t(cle, l)).not.toMatch(/^\[.+\]$/);
+  });
   it("clé inconnue = [clé] visible (jamais de silence)", () => {
     expect(t("cle_xyz_absente", "fr")).toBe("[cle_xyz_absente]");
   });

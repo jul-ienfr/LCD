@@ -1,7 +1,6 @@
-// Page voyageur : mon séjour (devis public via hôte-relay), commander des
-// extras, déclarer un incident. Tout fonctionne SANS JavaScript.
-// Le voyageur n'a pas de compte : l'hôte relaye avec SON `qui` (tracé),
-// la ref voyageur voyage dans `data` — jamais d'écriture anonyme.
+// Page voyageur : mon séjour — hero logement + extras + incident.
+// Tout fonctionne SANS JavaScript. Le voyageur n'a pas de compte :
+// l'hôte relaye avec SON `qui` (tracé), la ref voyageur voyage dans `data`.
 export const instant = false;
 import { gwGet } from "@/lib/gateway";
 import { t, type Langue } from "@/lib/i18n";
@@ -34,45 +33,64 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
   const boxId = carte?.box_id || "box-lab";
   const exemples: Record<string, string> = { ref_resa: "", extras: "linge-lit:1,parking:1", arrivee: "2027-11-10", motif: "dégât des eaux", description: "" };
   const refVoyageur = `WEB-VOY-${logement.toUpperCase()}`;
+  const prixJour = carte?.prix_7j?.[0]?.[1];
 
   return (
-    <div className="flex flex-col gap-4">
-      <Onglets lang={lang} />
-      <section className="rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 p-5 text-white shadow">
-        <h1 className="text-2xl font-bold">{t("voyageur", lang)} — {carte?.nom || logement}</h1>
-        <p className="mt-1 text-sm text-sky-50">
-          {(carte?.prix_7j || []).length > 0
-            ? `Prix du jour : ${String(carte!.prix_7j![0][1])} €`
-            : "Prix : nous consulter"}
+    <div className="flex flex-col gap-5">
+      <Onglets lang={lang} ici="/voyageur" />
+
+      <section className="hero hero-voyageur" aria-label={t("voyageur", lang)}>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
+          {t("voyageur_bienvenue", lang)}
+        </p>
+        <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
+          {carte?.nom || logement}
+        </h1>
+        <p className="mt-2 text-lg font-semibold tabular-nums">
+          {prixJour !== undefined ? `${String(prixJour)} € ${t("par_nuit", lang)}` : t("prix_consulter", lang)}
         </p>
       </section>
 
-      <form method="get" action="/voyageur" className="flex items-center gap-2 text-sm">
+      <form method="get" action="/voyageur" className="carte flex flex-wrap items-center gap-2 p-3 text-sm">
         <input type="hidden" name="lang" value={lang} />
-        <label>Logement :{" "}
-          <select name="logement" defaultValue={logement} className="rounded-full border border-zinc-300 px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-900">
+        <label className="font-medium">
+          {t("choisir_logement", lang)}{" "}
+          <select name="logement" defaultValue={logement} className="champ mt-1 w-auto">
             {(ap?.logements || []).map((l) => (
               <option key={l.logement_id} value={String(l.logement_id)}>{l.nom || l.logement_id}</option>
             ))}
           </select>
         </label>
-        <button type="submit" className="rounded-full border border-zinc-300 px-3 py-1.5">OK</button>
+        <button type="submit" className="bouton bouton-secondaire mt-auto px-4 py-2">OK</button>
       </form>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="font-semibold">Commander des extras</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Relayé par l&apos;hôte, tracé au journal. Format : id:qte,id:qte.</p>
-        <div className="mt-3">
-          <FormulaireAction actionId="commande_extras" libelle="Commander" champs={["ref_resa", "extras", "arrivee"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
-        </div>
-      </section>
+      <div className="grid gap-5 md:grid-cols-2">
+        <section className="carte p-5 md:p-6" aria-label={t("extras_titre", lang)}>
+          <div className="flex items-center gap-3">
+            <span aria-hidden className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent-douce)] text-xl">✦</span>
+            <div>
+              <h2 className="text-lg font-extrabold">{t("extras_titre", lang)}</h2>
+              <p className="text-sm text-[var(--encre-douce)]">{t("extras_sous", lang)}</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <FormulaireAction actionId="commande_extras" libelle={t("extras_commander", lang)} champs={["ref_resa", "extras", "arrivee"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
+          </div>
+        </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="font-semibold">Déclarer un incident</h2>
-        <div className="mt-3">
-          <FormulaireAction actionId="sinistre_declarer" libelle="Déclarer" champs={["motif", "description"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
-        </div>
-      </section>
+        <section className="carte p-5 md:p-6" aria-label={t("incident_titre", lang)}>
+          <div className="flex items-center gap-3">
+            <span aria-hidden className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--alerte-douce)] text-xl">⚠</span>
+            <div>
+              <h2 className="text-lg font-extrabold">{t("incident_titre", lang)}</h2>
+              <p className="text-sm text-[var(--encre-douce)]">{t("incident_sous", lang)}</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <FormulaireAction actionId="sinistre_declarer" libelle={t("incident_declarer", lang)} champs={["motif", "description"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
