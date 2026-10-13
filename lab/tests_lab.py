@@ -426,6 +426,28 @@ check("traversee dossier bloquee (nom mission seul)",
       code in (400, 404), f"HTTP {code} {trav}")
 
 print("== 10. inventaire biens QR/NFC + alertes + stats (P6-4 §5.6-bis) ==")
+# Rejouabilite (AVANT le §10, au point d'usage) : le moteur inventaire est un
+# ETAT qui accumule entre les runs (TEST-INV-* + T58-* + TRANSFERT sur log2).
+# Sans purge, un run precedent laisse EQUI-LV-001 ecrase (upsert sans
+# derniere_utilisation) et les dormants deviennent vides. On retire les
+# lignes TEST-*/T58-* des DEUX fixtures — jamais `git checkout` (l'etat
+# commite peut lui-meme etre sale).
+_PURGE10 = os.path.join(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))), "lab", "inventaire.lab")
+for _f10 in ("log1/biens.yaml", "log2/biens.yaml"):
+    _p10 = os.path.join(_PURGE10, _f10)
+    if os.path.isfile(_p10):
+        with open(_p10, encoding="utf-8") as _fh10:
+            _lignes10 = _fh10.read().splitlines()
+        _garde10, _saute10 = [], 0
+        for _ln10 in _lignes10:
+            if _ln10.startswith("  - qr: "):
+                _saute10 = any(_t10 in _ln10 for _t10 in
+                               ("TEST-INV-", "TEST-TRANSFERT", "T58-"))
+            if not _saute10:
+                _garde10.append(_ln10)
+        with open(_p10, "w", encoding="utf-8") as _fh10:
+            _fh10.write("\n".join(_garde10) + "\n")
 code, bi = get("inventaire", "/biens?" + urllib.parse.urlencode(
     {"logement_id": "log1"}))
 total_biens = bi.get("total") if isinstance(bi, dict) else None
@@ -444,9 +466,15 @@ check("fiche TV + inactivite_jours",
 code, al = get("inventaire", "/alertes?" + urllib.parse.urlencode(
     {"logement_id": "log1"}))
 al = al if isinstance(al, dict) else {}
+# EQUI-LV-001 = le dormant de REFERENCE du seed (derniere_utilisation
+# 2026-03-01 > 90 j). Les biens TEST-INV-* crees par le §10 lui-meme
+# (derniere_utilisation = aujourd'hui) ne doivent PAS etre dormants :
+# on l'exige explicitement pour coincer toute regression du calcul.
 check("dormant >90 j = EQUI-LV-001",
       code == 200 and "EQUI-LV-001"
-      in [a.get("qr") for a in al.get("dormants", [])],
+      in [a.get("qr") for a in al.get("dormants", [])]
+      and not [a.get("qr") for a in al.get("dormants", [])
+               if str(a.get("qr") or "").startswith("TEST-")],
       f"HTTP {code} dormants={al.get('dormants')}")
 check("remplacement etat<=2 = EQUI-TV-001",
       code == 200 and "EQUI-TV-001"
@@ -491,7 +519,9 @@ code, bc = post("inventaire", "/bien", {"logement_id": "log1", "qr": tqr,
 check("creation bien 201", code == 201
       and isinstance(bc, dict) and bc.get("cree") is True,
       f"HTTP {code} {bc}")
-
+# Le §58 purge les TEST-INV-* des fixtures AVANT de tester les dormants :
+# le bien qu'on vient de creer (derniere_utilisation = aujourd'hui via
+# /utilisation ci-dessous) ne doit JAMAIS apparaitre en dormant.
 code, ut = post("inventaire", "/utilisation", {"logement_id": "log1",
                                                "qr": tqr, "laver": True,
                                                "qui": "moteur-dispatch"})
@@ -4493,7 +4523,7 @@ check("HA sensor.log1_prix_nuit == pivot J (push pricing)",
       code == 200 and isinstance(capt, dict)
       and int(float(capt.get("state", -1))) == (pivot_j or -2),
       f"HTTP {code} {capt}")
-_ref40 = "LAB-PUSH40"
+_ref40 = f"LAB-PUSH-{int(time.time()) % 100000}"
 code, br40 = post("booking", "/resa",
                   {"logement_id": "log1", "debut": "2027-06-01",
                    "fin": "2027-06-03", "voyageurs": 2,
@@ -4537,13 +4567,24 @@ check("decision journal : LAB-LOOP41 trace dashboard_hote (boucle fermee)",
 
 print()
 print("== 42. recorder : historique prix archive et lisible (lab/P1-10/P2-7) ==")
+# Le recorder HA VRAI committe par batch SQLITE (delai variable, quelques
+# secondes a >1 min selon la charge du conteneur). On pousse une valeur
+# fraiche via PUT /api/states, puis on poll history jusqu'au commit.
+# Budget 120 s (12 x 10 s) : 60 s etait trop juste quand HA digere le
+# demarrage + les events J-2/J-1 en parallele. La fenetre de lecture est
+# RECALCULEE a chaque essai : sinon `fin` fige au debut + 120 s de polls =
+# requete "end_time dans le passe" que le recorder peut repondre partielle.
 hist_ok = False
 if ha_pret and pivot_j is not None:
-    debut = time.strftime("%Y-%m-%dT%H:%M:%S+00:00",
-                          time.gmtime(time.time() - 1800))
-    fin = time.strftime("%Y-%m-%dT%H:%M:%S+00:00",
-                        time.gmtime())
-    for _ in range(6):
+    code, _ = ha_post_ha("/api/states/sensor.log1_prix_nuit",
+                         {"state": str(pivot_j),
+                          "attributes": {"unit_of_measurement": "EUR",
+                                         "friendly_name": "log1_prix_nuit"}})
+    for _ in range(12):
+        debut = time.strftime("%Y-%m-%dT%H:%M:%S+00:00",
+                              time.gmtime(time.time() - 1800))
+        fin = time.strftime("%Y-%m-%dT%H:%M:%S+00:00",
+                            time.gmtime())
         code, hist = ha_get("/api/history/period/"
                             + urllib.parse.quote(debut, safe="") + "?"
                             + urllib.parse.urlencode(
@@ -4556,8 +4597,21 @@ if ha_pret and pivot_j is not None:
             hist_ok = True
             break
         time.sleep(10)
+    if not hist_ok:
+        # Diagnostic : le KO dit QUOI (HTTP ? states vues ?) au lieu d'un
+        # laconique "pivot_j=85". Le recorder HA committe par batch SQLITE :
+        # sous charge (demarrage + events J-2/J-1 en parallele), 120 s
+        # peuvent ne pas suffire sur une machine chargee.
+        diag_hist = (sorted({str(e.get("state")) for g in
+                             (hist if isinstance(hist, list) else [])
+                             for e in g})[:8]
+                     if isinstance(hist, list) else str(hist)[:120])
+        diag_msg = (f"pivot_j={pivot_j} (commit recorder) "
+                    f"dernier_history_http={code} states={diag_hist}")
+    else:
+        diag_msg = f"pivot_j={pivot_j} (commit recorder)"
 check("history : sensor.log1_prix_nuit archive (graphe Vue Prix)",
-      hist_ok, f"pivot_j={pivot_j} (commit recorder)")
+      hist_ok, diag_msg)
 
 print()
 print("== 43. recette P7-9 : composeur 63 usages + determinisme + 5 langues (lab/P7-9) ==")
@@ -4611,7 +4665,9 @@ check("recette : m1 5 langues verbatim preserve (UTF-8, jamais traduit)",
 
 print()
 print("== 44. sejour temoin zero-touch : devis->J-2->J-1->checkout->avis->menage (lab/P8-2) ==")
-REF_Z = "LAB-ZERO44"
+# Rejouabilite : ref unique par run (le booking persiste dans le volume ;
+# un 2e run avec la meme ref recoit `deja_enregistree` 200, pas 201).
+REF_Z = f"LAB-ZERO-{int(time.time()) % 100000}"
 ZT = []
 code, dvz = post("booking", "/devis", {"logement_id": "log1",
                                        "debut": "2027-09-10",
@@ -4829,7 +4885,8 @@ check("zero-touch : 0 intervention corrective (que des 1-tap prevues)",
 
 print()
 print("== 45. sejour incident + offline-first : degat->dispatch->debit->avis2 + HA down/up (lab/P8-1/P8-4) ==")
-REF_I = "LAB-INC45"
+# Rejouabilite : ref unique par run (idem §44).
+REF_I = f"LAB-INC-{int(time.time()) % 100000}"
 code, bri = post("booking", "/resa", {"logement_id": "log1",
                                       "debut": "2027-10-05",
                                       "fin": "2027-10-07",
@@ -6213,12 +6270,11 @@ check("57 : photos = nids de fichiers lab (0 coordonnee reelle)",
 # ==================================================================== #
 print()
 print("== 58. passerelle parc : vue biens fusionnee + transferts (6bis-c) ==")
-# Rejouabilite : les TEST-INV-* des sections precedentes sont dans le meme
-# registre. On le remet a zero AVANT de creer notre bien dedie (idem §56/§57).
+# Rejouabilité : purge DEJA FAITE au §10 (point d'usage des dormants).
+# Ici on garantit seulement le QR unique du run (le 409 "déjà présent"
+# prouverait la protection moteur, pas le dossier).
 REPO58 = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-subprocess.run(["git", "checkout", "--", "lab/inventaire.lab"],
-               cwd=REPO58, capture_output=True, timeout=60)
-QR_T = "TEST-TRANSFERT-58"
+QR_T = f"T58-{int(time.time()) % 100000}"
 code58, c58 = post("inventaire", "/bien",
                    {"logement_id": "log1", "qr": QR_T, "qui": "personne_01",
                     "categorie": "linge", "label": "Plaid transfert 58",
@@ -6321,14 +6377,16 @@ c58, r58 = post("passerelle", "/parc/biens/transfert",
 check("58 : re-transfert vers un logement qui a deja le bien = 409",
       c58 == 409 and "déjà" in str(r58.get("erreur", "")), f"HTTP {c58}")
 
-# e) RBAC : ni operateur, ni compte machine, ni qui auto
+# e) RBAC : ni operateur, ni compte machine, ni qui auto. On utilise un QR
+# STABLE (jamais transfere) : le QR_T du run a deja ete transfere en (c),
+# donc ces appels repondraient 409 "deja present" au lieu du 403/400 attendu.
 c58, r58 = post("passerelle", "/parc/biens/transfert",
-                {"qr": "LINGE-DRAP-001", "de": "log1", "vers": "log2",
+                {"qr": "LINGE-DRAP-001", "de": "log1", "vers": "log3",
                  "qui": "personne_03", "confirmer": True, "ref": "TRANS-58-C"})
 check("58 : operateur ne peut pas transferer (admin seul)",
       c58 in (403, 409), f"HTTP {c58}")
 c58, r58 = post("passerelle", "/parc/biens/transfert",
-                {"qr": "LINGE-DRAP-001", "de": "log1", "vers": "log2",
+                {"qr": "LINGE-DRAP-001", "de": "log1", "vers": "log3",
                  "qui": "passerelle_parc", "confirmer": True,
                  "ref": "TRANS-58-D"})
 check("58 : compte machine ne peut pas transferer",
