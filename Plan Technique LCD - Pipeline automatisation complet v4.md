@@ -234,6 +234,17 @@ CGV direct + CGU plateformes (CGU > propres). Contrat voyageur PWA 30 s +
 règlement copro-aligné + mentions annonces. Factur-X B2B / PDF B2C,
 registre national + taxe NCA + DPE. Classement Atout France en option.
 Comptes créés à la signature (invitation scopée, login → dashboard §S3.1).
+Médiation consommation L.612-1 (pro, obligatoire) : médiateur désigné
+(~200-400 €/an, nommé au go-live, coordonnées sur factures + site +
+contrat PWA) ; réclamation écrite d'abord, saisine <12 mois si échec ;
+jamais de clause abusive R.212-1 (médiation payante imposée = interdite).
+CFE : due dès la 2e année par logement (exonération 1re année,
+~200-500 €/an, vérifiée avec l'expert-comptable) ; provisionnée au
+prévisionnel, jamais une surprise.
+Vente du bien / fin anticipée : transfert mandat au notaire (box = meuble,
+reprise ou cession chiffrée), préavis acquéreur 3 mois, dernier relevé +
+reversement soldé J+5, révocations + purge 90 j ; jamais de mandat
+transféré sans accord écrit des 3 parties.
 
 Caution : Airbnb = AirCover + 14 j (caution hors plateforme INTERDITE) ;
 Booking = collecte séparée déclarée (VCC = séjour seul) ; Abritel =

@@ -89,6 +89,7 @@
 - [ ] P10-8 RC pro + carte G Hoguet (CCI + garantie GALIAN/SOCAF + RCP, ~1-2 k€/an, 2-3 mois — bloquant mandat tiers payant) + assurances mandats — EXTERNE (bloquant avant P10-6)
 - [ ] P10-9 Benchmark (10 appels mystères initiaux + 5/an, tableau comparatif trimestriel — méthode cahier Logement §L4) — EXTERNE
 - [ ] P10-10 Modèle éco revu (point mort, BFR, coûts fixes — socle §S8, revue trimestrielle)
+- [ ] P10-11 Dépôt marque INPI (nom + logo, ~200 €, avant le 3e client) + formation continue (1/an min : ménage, accueil, pricing — socle §S8)
 
 ## Prochaines actions (ordre)
 

@@ -166,7 +166,10 @@ service, migration P2/P3, backup/restore, pannes WG, vol box, fuite token,
 perte vault — testés en lab 2x/an. PRA : RPO 15 min / RTO 2 h, cold
 standby + test semestriel, failover central hôte lecture + bandeau.
 `/health` + `/ready` + `/metrics` Prometheus. Alertes : box down >10 min,
-outbox >50, rapprochement >2 %. Versions épinglées, SBOM minimal, veille
+outbox >50, rapprochement >2 %. Auth : `/login` rate-limitée (5 tentatives
+/15 min/IP + CAPTCHA, verrouillage + alerte, journal `auth_tentative`) ;
+2FA obligatoire staff (super_admin/admin/gestionnaire/comptable), jamais
+de session sans expiry. Versions épinglées, SBOM minimal, veille
 CVE mensuelle, MAJ manuelles + snapshot + rollback, jamais d'OTA auto.
 Calendrier EOL suivi (revue mensuelle, tableau : composant + version +
 fin de support + prochaine MAJ — Python, HA, Next.js, Caddy, Proxmox,

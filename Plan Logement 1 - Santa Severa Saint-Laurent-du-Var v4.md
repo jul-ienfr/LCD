@@ -98,8 +98,14 @@ affiché dans le logement + PDF au contrat PWA ; défaut = go-live bloqué.
    expirée). Fonds tagués. Forfait acté. Équipement sécurité enfants +
    allergènes vérifié (lit parapluie aux normes + chaise haute + caches
    prises + housses anti-acariens, lessive hypoallergénique, mention
-   annonce). Login client créé (dashboard `dash-proprio` : SES logements
-   seuls, §S3.1), nominatif, 2FA admin/gestionnaire.
+   annonce). Literie standard (matelas ferme ≤8 ans + protège imperméable,
+   oreillers 1x/an, couettes 4 saisons, 3 jeux linge). Trousse secours
+   (pansements + Doliprane scellé + notice, DLC 1x/an). Login client créé
+   (dashboard `dash-proprio` : SES logements seuls, §S3.1), nominatif, 2FA
+   admin/gestionnaire. Voisinage : lettre de présentation aux voisins
+   (activité + contact + horaires, dès le go-live) + pouvoir AG client =
+   jamais de vote sans mandat écrit (représentation 30 €/AG si demandée,
+   jamais d'engagement sans consigne).
 3. **Pack** : box préparée (image vitrine), ids créés, tarifs + extras
    saisis, prestas rattachés, langues, règlement adapté à SA copro, fiche
    mini-bar imprimée.
@@ -182,6 +188,10 @@ remboursée −1 nuit ; non-remb = −10 % à la résa, 0 remboursé. No-show =
 dû intégral, EDL non fait = caution tenue 48 h. Remboursement sous 7 j
 sur le moyen d'origine, jamais d'avoir imposé. Litige = dossier preuves
 + médiation plateforme d'abord, jamais de débit sans justificatifs.
+Occupants : capacité max affichée = ferme (personne sup refusée si non
+déclarée, facturée au tarif affiché si annoncée) ; sous-location interdite
+(clause + contrôle EDL, résiliation pour manquement grave) ; perte clés =
+forfait 80-150 € (serrurier + EDL, jamais d'oral).
 
 Arrivée autonome standard (FULL/PILOTAGE/KIT) : consigne envoyée J-2
 (PIN/fenêtre + code boîte + photo porte + parking + poubelles) ; fallback
