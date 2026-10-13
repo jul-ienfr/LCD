@@ -1,0 +1,17 @@
+# lab/vps-sim/boxes-sim.yaml — registre des box du FAUX VPS (lecture seule).
+#
+# Même forme que le registre lab : `logements` = liste de {id, nom} (la
+# gateway fait `l.get("id")` — une liste de strings CRASHERAIT au boot,
+# constaté en sim le 2026-10-13). 1 box + 1 moteur (booking-direct) : le
+# fan-out est NON VIDE (booking répond), le reste est dégradé (dit, jamais
+# inventé) — c'est exactement ce que la batterie §72 vérifie.
+boxes:
+  - box_id: box-sim
+    site: "faux VPS local (simulation)"
+    description: "gateway + booking-direct (fan-out partiel, degrade dit)"
+    qui_relay: passerelle_parc
+    logements:
+      - id: log1
+        nom: "Log1 Santa Severa (sim)"
+    endpoints:
+      booking: "http://booking-direct:8095"

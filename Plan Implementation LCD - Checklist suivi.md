@@ -10,7 +10,7 @@
 > `Plan Logement 1 - Santa Severa Saint-Laurent-du-Var v2.md` (pilote + gabarit pack),
 > `Plan Technique LCD - Adaptation SaaS v1.md` (deltas multi-tenants).
 
-**Progression globale (MAJ manuelle) :** `73 / ~143` tâches.
+**Progression globale (MAJ manuelle) :** `75 / ~143` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 5/14
 - Phase 2 PMS/synchro/pricing : 15/16
@@ -20,7 +20,7 @@
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 20/20 ✔
 - Phase 8 Recette / go-live : 8/12
-- Phase 9 Hébergement SaaS 3 phases : 2/12
+- Phase 9 Hébergement SaaS 3 phases : 3/13
 - Phase 10 Offre SaaS + 1er client tiers : 1/8
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
@@ -216,7 +216,8 @@ Forfaits : FULL-SERVICE (box + pilotage + ménage, commission ~20 %) / PILOTAGE
 (abo/logement/mois, client garde son ménage) / KIT (vente unique + maintenance).
 log1/log2 = vitrines + bancs d'essai.
 
-- [ ] P10-1 Grille tarifaire 3 forfaits écrite (prix, inclus/exclus, engagement, SLA ménage/incident) + mandat de gestion type + CGV entité
+- [x] P10-1 Grille tarifaire 3 forfaits écrite (tranché 2026-10-13 : FULL 25 % + ménage 110 € / PILOTAGE 149 €/mois / KIT 890 € + 240 €/an, voir Passerelle v2 §0) — reste : mandat de gestion type + CGV entité
+- [x] P9-13 Faux VPS Docker (lab/vps-sim : Caddy TLS interne + gateway + booking, script test-vps.ps1 7/7 OK, batterie §72 verte) (fait, 2026-10-13)
 - [ ] P10-2 Pack box client standardisé par forfait (FULL : pack complet ; PILOTAGE : box légère ; KIT : box + doc) + chiffrage pack + délai install
 - [ ] P10-3 Checklist onboarding client (visite → pack → install → WireGuard → registre → `box_id`/`logement_id` → go-live) issue du gabarit log1 v2
 - [ ] P10-4 Isolation tenant validée : RBAC par client/entité (`acces.yaml`), registres isolés par logement, portail proprio par logement, export-compta par entité

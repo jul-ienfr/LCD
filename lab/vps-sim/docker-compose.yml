@@ -1,0 +1,101 @@
+# lab/vps-sim/docker-compose.yml — faux VPS LCD (simulation locale, 0 €).
+#
+# Usage :
+#   cd lab/vps-sim
+#   docker compose up -d --build
+#   powershell ../vps-sim/test-vps.ps1   (ou bash test-vps.sh)
+#   docker compose down -v
+#
+# Ce que ça simule : Caddy (TLS interne + 2 origines parc.test/api.test) +
+# gateway-parc réelle (même image que le lab, registres lab) + 1 moteur
+# (booking-direct, pour un fan-out non vide). PAS simulé : Authelia/MFA,
+# WireGuard, Let's Encrypt, DNS réel (voir Caddyfile, différences dites).
+#
+# Ports hôte : 4433 (parc.test) + 4443 (api.test). Le socle (:8090-8100,
+# :8123, :4000, :8050, :8060) n'est JAMAIS publié — même règle qu'en prod.
+# Résolution sans toucher au fichier hosts (droits admin) : le script utilise
+# `curl --resolve parc.test:4433:127.0.0.1` (SNI conservé, TLS validé -k).
+
+name: lcd-vps-sim
+
+services:
+  gateway-parc:
+    build:
+      context: ../..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/passerelle-parc/gateway.py
+        CONFIG: lab/lab-config/passerelle-parc.yaml
+    # La gateway n'accepte PAS --logements (cf. CMD Dockerfile.moteur) :
+    # on écrase la commande SANS ce flag (même config, mêmes registres).
+    command: >
+      sh -c "python3 /opt/lcd/custom/passerelle-parc/gateway.py
+      --config /opt/lcd/config.yaml --serve"
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8443"
+      LCD_STATE_DIR: /opt/lcd/state
+    volumes:
+      - vps-sim-state:/opt/lcd/state
+      - ../logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      # Registre SIM (1 box + booking-direct) — pas le registre lab complet :
+      # le faux VPS prouve le dégradé dit (fan-out partiel), pas le full lab.
+      - ./boxes-sim.yaml:/opt/lcd/lab-config/passerelle-parc-boxes.yaml:ro
+      - ../parc-registre:/opt/lcd/parc-registre
+      - ../../custom/acces.yaml:/opt/lcd/acces.yaml:ro
+      - ../docs.lab:/opt/lcd/docs:ro
+      - ../lab-config/passerelle-parc-llm.yaml:/opt/lcd/lab-config/passerelle-parc-llm.yaml:ro
+      # i18n/CRM : pas de yaml dédié (catalogues + prospects dans
+      # custom/ + parc-registre déjà montés) — rien à monter ici.
+    expose:
+      - "8443"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8443/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  booking-direct:
+    build:
+      context: ../..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/booking-direct/booking_direct.py
+        CONFIG: lab/lab-config/booking-direct.yaml
+    command: >
+      sh -c "python3 /opt/lcd/custom/booking-direct/booking_direct.py
+      --config /opt/lcd/config.yaml --serve"
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8095"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+    volumes:
+      - vps-sim-booking:/opt/lcd/state
+      - ../logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      - ../secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+    expose:
+      - "8095"
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      # 4433 = parc.test (opérateur), 4443 = api.test (front/Vercel P1).
+      # Deux ports hôte car UN seul :443 ne peut servir 2 origines SNI
+      # distinctes derrière le même Caddy en sim locale (pas de DNS réel).
+      - "4433:443"
+      - "4443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - vps-sim-caddy-data:/data
+      - vps-sim-caddy-config:/config
+    depends_on:
+      gateway-parc:
+        condition: service_healthy
+
+volumes:
+  vps-sim-state:
+  vps-sim-booking:
+  vps-sim-caddy-data:
+  vps-sim-caddy-config:

@@ -8107,6 +8107,44 @@ c71, r71 = post("passerelle", "/v1/simulateur",
 check("71 : POST /v1/simulateur forfait inconnu = 422", c71 == 422,
       f"HTTP {c71}")
 
+print("== 72. faux VPS sim : Caddy TLS + 2 origines + socle ferme ==")
+# Relecture des fichiers sim (jamais de docker requis ici) : le script
+# `test-vps.ps1` prouve le RUNTIME (7/7 OK le 2026-10-13) ; ici on fige la
+# CONFIG (ports, TLS interne, registres, pas d'Authelia cachée).
+_simdir = os.path.join(REPO, "lab", "vps-sim")
+_sim_caddy = open(os.path.join(_simdir, "Caddyfile"),
+                  encoding="utf-8").read()
+_sim_compose = open(os.path.join(_simdir, "docker-compose.yml"),
+                    encoding="utf-8").read()
+_sim_boxes = open(os.path.join(_simdir, "boxes-sim.yaml"),
+                  encoding="utf-8").read()
+check("72 : sim Caddy 2 origines TLS interne (parc.test + api.test)",
+      "https://parc.test" in _sim_caddy
+      and "https://api.test" in _sim_caddy
+      and _sim_caddy.count("tls internal") >= 2, "origines/TLS")
+check("72 : sim Caddy zero Authelia deguisee (dite, pas simulee)",
+      "forward_auth authelia" not in _sim_caddy.lower()
+      and "pas d'Authelia" in _sim_caddy, "MFA couverte par G3")
+check("72 : sim compose publie 4433+4443 seuls (socle en expose)",
+      '"4433:443"' in _sim_compose and '"4443:443"' in _sim_compose
+      and "8443:8443" not in _sim_compose
+      and not [p for p in (":8090", ":8123", ":4000", ":8050", ":8060")
+               if p + ":" in _sim_compose or p + '"' in _sim_compose],
+      "ports sim")
+check("72 : sim boxes = {id, nom} (jamais de strings, crash boot constate)",
+      "- id: log1" in _sim_boxes
+      and "logements: [log1]" not in _sim_boxes, "registre sim")
+check("72 : sim gateway SANS flag --logements (Dockerfile refuse, constate)",
+      "--logements /opt/lcd" not in _sim_compose
+      and "--config /opt/lcd/config.yaml --serve" in _sim_compose,
+      "commande sim")
+check("72 : script test-vps.ps1 present (7 checks runtime : TLS, statut,"
+      " metrics, POST, ports, HSTS, secrets)",
+      os.path.isfile(os.path.join(_simdir, "test-vps.ps1"))
+      and "RESULTAT : faux VPS OK" in open(
+          os.path.join(_simdir, "test-vps.ps1"),
+          encoding="utf-8").read())
+
 
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")

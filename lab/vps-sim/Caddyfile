@@ -1,0 +1,54 @@
+# lab/vps-sim/Caddyfile — FAUX VPS local (simulation, jamais de prod).
+#
+# Rejoue la face Caddy du Caddyfile réel (`custom/passerelle-parc/Caddyfile`)
+# en LOCAL : `tls internal` (CA auto-signée, pas de Let's Encrypt, pas de
+# DNS réel) + `parc.test` / `api.test` résolus côté client via
+# `curl --resolve <hôte>:<port>:127.0.0.1` (zéro modif du fichier hosts,
+# qui exige des droits admin — le script `test-vps.ps1` fait ainsi).
+#
+# Différences assumées vs prod (dites, jamais cachées) :
+#   - pas d'Authelia (le faux VPS teste TLS + reverse-proxy + allowlist,
+#     pas le MFA — le MFA est couvert par la batterie G3 sur les artefacts) ;
+#   - pas de WireGuard (tout est sur le réseau docker interne) ;
+#   - certificats `tls internal` (le navigateur/curl doit accepter la CA
+#     locale ou passer `-k` — le script `test-vps.sh` utilise `-k`) ;
+#   - ports du socle TOUJOURS interdits ici aussi (§1 intangible).
+{
+	email admin@example.local
+	# Pas de cloud ACME en sim : CA interne, zéro appel réseau sortant.
+}
+
+(entetes_sim) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+	header Cache-Control "no-store"
+}
+
+# Face opérateur (miroir `parc.<domaine>`) → page parc + lectures.
+https://parc.test {
+	tls internal
+	import entetes_sim
+
+	reverse_proxy gateway-parc:8443 {
+		header_up X-Forwarded-Proto https
+		header_up -Authorization
+	}
+}
+
+# Face API P1 (miroir `api.<domaine>`) → Vercel/front → gateway.
+# En sim, le front `web/` local pointe LCD_GATEWAY_URL=https://api.test:4443.
+https://api.test {
+	tls internal
+	import entetes_sim
+
+	reverse_proxy gateway-parc:8443 {
+		header_up X-Forwarded-Proto https
+		header_up -Authorization
+	}
+}

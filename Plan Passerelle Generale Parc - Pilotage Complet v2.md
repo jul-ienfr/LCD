@@ -19,13 +19,22 @@ tout ce qui y est validé devient le standard vendu aux clients.
 (agences, notaires), propriétaires Airbnb « fatigués ». Pas d'attente du go-live
 perso pour prospecter : le CRM (§14.5 v1) tourne dès G2.
 
-**3 forfaits (figé) :**
+**3 forfaits (tranché 2026-10-13, positionnement milieu-premium azuréen —
+étude marché interne : médiane Côte d'Azur ~25 %, pilotage humain 149-179 €,
+kit posé 790-1 190 €, ménage T2-T3 80-160 € ; à valider par 10 appels
+mystères Nice/Cannes/Antibes/St-Laurent avant diffusion externe) :**
 
-| Forfait | Contenu | Prix indicatif (à trancher) |
+| Forfait | Contenu | Prix tranché (TTC, assiette = brut encaissé hors taxe séjour) |
 |---|---|---|
-| FULL-SERVICE | Box installée + pilotage complet + ménage + maintenance + reversement | Commission ~20 % du brut |
-| PILOTAGE | Pilotage (prix, planning, incidents, compta) ; le client garde son ménage | Abonnement €/logement/mois |
-| KIT | Box + logiciel + doc + support ; le client se pilote | Vente unique + maintenance €/an |
+| FULL-SERVICE | Box installée + pilotage complet + ménage + maintenance + reversement J+7 | **25 % du brut** + ménage 110 € refacturé voyageur ; mini 149 €/mois ; entrée 290 € (box offerte si 12 mois) ; 22 % dès 3 lots |
+| PILOTAGE | Pilotage (prix, planning, incidents, compta) ; le client garde son ménage | **149 €/logement/mois** (129 € dès 3 lots) ; mise en route 190 € ; engagement 3 mois puis libre |
+| KIT | Box + logiciel + doc + support ; le client se pilote | **890 € posé** + **240 €/an** maintenance ; 790 € si client PILOTAGE/FULL ; an 1 offerte si bascule FULL sous 6 mois |
+
+Mécanique déjà appliquée en code (`mandats.py FORFAITS` + `journal_revenus`
++ `simulateur(forfait=)`, batterie §71) : KIT/PILOTAGE = 0 commission sur
+le brut (vente/abo hors relevé), FULL = commission %. Ménage 110 €
+unique T2-T3 (coût cible 75-85 €, marge contrôle ~30 € ; 130 € si T3
+>65 m² ou 6 voyageurs, 140 € haute saison Cannes).
 
 Un client peut mixer (ex. FULL sur 2 biens, PILOTAGE sur 1). Montée en gamme
 KIT → PILOTAGE → FULL sans réinstallation (flags + mandat, même box).
@@ -184,7 +193,12 @@ logements) ; réévaluation Postgres managé seulement si multi-writer réel
 - **Tests + CI** : `vitest` (`npm test`, 5 tests : 5 langues, priorité
   `?lang=`, 14 actions libellées) ; `.github/workflows/ci.yml` (web :
   lint+test+build Node 24 ; batterie lab sur Docker, 100 % verte exigée).
-- **Batterie 1113 OK / 0 KO** (commit ci-dessous).
+- **Faux VPS Docker** (`lab/vps-sim/`, 2026-10-13) : Caddy TLS interne
+  (`parc.test:4433` + `api.test:4443`) + gateway réelle + booking-direct ;
+  `test-vps.ps1` 7/7 OK (health, statut, metrics, POST relayé, Caddy seul
+  publié, HSTS, 0 secret) ; batterie **§72** (6 checks config). Différences
+  dites : pas d'Authelia/MFA (couvert G3), pas de WireGuard, pas de LE/DNS.
+- **Batterie 1119 OK / 0 KO** (commit ci-dessous).
 
 ## §4. Phases G0→G5 relues SaaS (réoriente v1 §8)
 
