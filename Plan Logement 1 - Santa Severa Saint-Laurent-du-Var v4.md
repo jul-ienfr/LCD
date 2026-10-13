@@ -75,6 +75,11 @@ rappel J-1 15h ; sans réponse = kit standard, accès jamais bloqué),
 extras payés d'avance (Stripe/Swikly tagué), guide PWA 5 langues (20 phrases
 critiques validées humain), contrat voyageur PWA 30 s (PDF horodaté),
 mémoire opt-in révocable purge 24 mois, WG FULL/PILOTAGE (KIT à la demande).
+Fiche de police (R.611-42, étrangers hors UE) : remplie à l'arrivée
+(questionnaire J-2 + PWA, 1 fiche/personne : nom, prénoms, date/lieu
+naissance, nationalité, domicile, mobile), conservée 6 mois puis purge
+auto, jamais de copie passeport stockée (Airbnb vérifie l'identité —
+nous = fiche seule). Défaut = rappel J+1, jamais de blocage d'arrivée.
 Permis de louer (si commune l'instaure, ex Nice programme) : dossier +
 visite + autorisation affichés avant go-live, renouvellement suivi au
 registre ; sans permis là où exigé = pas de mise en ligne.
@@ -123,6 +128,16 @@ ménage intermédiaire inclus 14 j+ (60 € sinon) ; contrat + EDL complets
 réelles au-delà de 28 j (relevé Linky, forfait €/j affiché d'avance).
 Positionnement : remplissage creux hiver, jamais au détriment du
 court-séjour haute saison (arbitrage prix affiché, validation 1-tap).
+
+Hors saisonnière (refus ou orientation, jamais de bail déguisé) : bail
+mobilité 1-10 mois (étudiant/mission, logement meublé, loyer encadré si
+zone tendue — mandat dédié, pas le mandat LCD) ; relocation entreprises
+(convention B2B, facturation mensuelle, pas de commission %) ; tournage /
+shooting (forfait jour + EDL renforcé + assurance pro du client exigée,
+jamais de tarif nuitée) ; au-delà de 90 j sans cadre = refusé.
+Assurance annulation voyageur : proposée au tunnel direct (facultative,
+assureur référencé, commission affichée), jamais imposée, jamais
+condition d'accès ; OTA = leurs propres assurances, on ne duplique pas.
 
 Extras : kit bienvenue OFFERT (~3-5 €, fixe) ; mini-bar soft PAYANT (8-10
 refs, ~35 € stock, marge ~7-12 €/séjour ; alcool = licence à emporter

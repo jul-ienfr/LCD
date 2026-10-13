@@ -86,7 +86,11 @@ l'IR = nue seule, meublé <10 % sinon 422 + bascule IS ; seuils 15 k€ /
 obligatoire. E-facture : export Chorus Pro/PDP. Rapprochement >2 % →
 file humaine. Expert-comptable par entité (référencé au mandat, relecture
 annuelle régimes + seuils) : simulateur et jauges = indicatifs, jamais un
-avis fiscal.
+avis fiscal. Vigilance LCB-FT (TRACFIN) : comptes dédiés par client +
+origine des fonds vérifiée au mandat (pièce d'identité + RIB au nom du
+mandant) ; opération atypique (montant incohérent, fractionnement,
+tiers payeur) = gel + déclaration si soupçon, jamais d'espèces >1 000 € ;
+renvoi expert-comptable pour le déclaratif, jamais d'improvisation.
 
 ## §P6 CRUD + PMS (sans réinventer)
 

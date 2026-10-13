@@ -86,7 +86,7 @@
 - [x] P10-5 Facturation par forfait (`FORFAITS` + `journal_revenus` + simulateur + §71)
 - [ ] P10-6 1er client signé (FULL ou PILOTAGE) + install + go-live + retour 30 j — EXTERNE
 - [x] P10-7 Kit démo (visite + dashboard + simulateur)
-- [ ] P10-8 RC pro + assurances mandats — EXTERNE (bloquant avant P10-6)
+- [ ] P10-8 RC pro + carte G Hoguet (CCI + garantie GALIAN/SOCAF + RCP, ~1-2 k€/an, 2-3 mois — bloquant mandat tiers payant) + assurances mandats — EXTERNE (bloquant avant P10-6)
 - [ ] P10-9 Benchmark (10 appels mystères initiaux + 5/an, tableau comparatif trimestriel — méthode cahier Logement §L4) — EXTERNE
 - [ ] P10-10 Modèle éco revu (point mort, BFR, coûts fixes — socle §S8, revue trimestrielle)
 

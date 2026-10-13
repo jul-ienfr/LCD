@@ -238,6 +238,12 @@ caution OU Damage Protection (jamais cumul) ; direct = hold 500-800 €
 (Swikly/Stripe/TPE, jamais dans le prix). Fonds tagués par logement,
 jamais communs. Retenue = justificatifs seuls (photos + dB + factures),
 jamais punitive.
+Chargebacks / contestations paiement (Stripe/Swikly, 180 j CB) : dossier
+preuve prêt (contrat PWA signé + EDL photos + messages + facture) ;
+réponse <7 j (alerte dashboard dès notification) ; provision 1 mois
+d'encaissements directs ; hold > capture (jamais de débit sans
+justificatifs) ; récidive même voyageur = blacklist + refus direct
+(OTA seule, prépayée).
 Impayés / recouvrement : extra impayé = relance J+3/J+7 (brouillon humain)
 puis débit caution si motif + justificatifs, sinon créance ; abo client
 impayé = rappel J+5, mise en demeure J+15, suspension pilotage J+30

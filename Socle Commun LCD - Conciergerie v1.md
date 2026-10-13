@@ -41,9 +41,13 @@ puis diffusion externe.
   pas de débat). Intervention hors garantie facturée.
 
 Règles : 1 logement = 1 box = 1 mandat actif. Jamais de pilotage sans
-mandat signé. Montée en gamme KIT → PILOTAGE → FULL sans réinstallation
-(flags + mandat, même box). Mix possible (FULL sur 2 biens, PILOTAGE sur 1).
-Anciens % (15/20-25/30 %) ne sont plus vendus.
+mandat signé. **Carte G / Loi Hoguet (gestion pour tiers, FULL/PILOTAGE) :
+carte pro CCI + garantie financière (GALIAN/SOCAF) + RCP — coût
+~1 000-2 000 €/an, délai ~2-3 mois ; jamais de mandat tiers payant sans
+carte (biens propres seuls en attendant).** Montée en gamme KIT →
+PILOTAGE → FULL sans réinstallation (flags + mandat, même box). Mix
+possible (FULL sur 2 biens, PILOTAGE sur 1). Anciens % (15/20-25/30 %)
+ne sont plus vendus.
 
 ## §S2 Architecture cible
 
