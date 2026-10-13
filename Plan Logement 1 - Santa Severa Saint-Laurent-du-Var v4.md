@@ -104,6 +104,15 @@ photos avant/après (FULL/PILOTAGE). Score 1-5 + temps vs 3 h ; sans photos
 (PILOTAGE) = alerte. Intermédiaire 7 j+ : 60 € (offert dès 14 j si
 remplissage).
 
+Moyen séjour (7-90 j, digital nomads / mission / relogement) : durée min
+paramétrable par saison (creux 7 j, standard 2-3 j, pics 3-4 j) ; remise
+dégressive affichée (7 j+ −10 %, 28 j+ −20 %, jamais sous plancher) ;
+ménage intermédiaire inclus 14 j+ (60 € sinon) ; contrat + EDL complets
+(même standard, pas de bail meublé déguisé <90 j sans cadre) ; charges
+réelles au-delà de 28 j (relevé Linky, forfait €/j affiché d'avance).
+Positionnement : remplissage creux hiver, jamais au détriment du
+court-séjour haute saison (arbitrage prix affiché, validation 1-tap).
+
 Extras : kit bienvenue OFFERT (~3-5 €, fixe) ; mini-bar soft PAYANT (8-10
 refs, ~35 € stock, marge ~7-12 €/séjour ; alcool = licence à emporter
 seule). Late 14 h 40-60 €, early 12 h 30 €, aéroport 25-35 €, courses 25 €
@@ -112,9 +121,22 @@ consigne 15 €, déco 49 €. Potentiel +250-400 €/mois à 60 % occ, extras
 calmes seuls (copro). Télétravail hors saison : pack 20-30 €, visio +10 €.
 Conciergerie = partenariats à commission seuls (VTC 20-30 %, voiture/vélo
 15-20 %, chef 15 %, massage/baby 15-20 %, pressing 15 € + tickets,
-resto/plage 10 % côté pro, excursions 10-15 %, accueil option 25-30 €).
+resto/plage 10 % côté pro, excursions 10-15 %).
+Accueil physique option 25-30 € (FULL/PILOTAGE, jamais systématique) :
+presta assuré de la zone, créneau 30 min (remise clés + tour logement +
+consignes tri), photo horodatée = preuve, commandé d'avance (cut-off J-1
+18h), annulation <24 h = dû. Hors créneau = boîte à clés / Nuki, jamais
+d'attente improvisée.
 Jamais : accueil systématique, alcool sans licence, fêtes,
 transport/garde direct, fonds sans séquestre. Potentiel +150-250 €/mois.
+
+Seniors / PMR (option, jamais promis sans visite) : visite = checklist
+accessibilité (plain-pied ou ascenseur, douche vs baignoire, seuils <2 cm,
+lit ≥140 cm ferme, WC surélevé si besoin, éclairage nuit, barres si
+posées). Si compatible : mention annonce « adapté PMR partiel : … »
+(détail exact, jamais « accessible » seul), voix satellite proposée,
+accueil physique recommandé. Si incompatible : on le dit au prospect,
+jamais de réservation senior forcée.
 
 Pilotage revenus : trou 1-2 nuits −20 % (jamais sous plancher) ; creux
 J+30 <30 % = 1 nuit min ; pics = 3-4 nuits + sam/mer. Flex pivot (J-7) /

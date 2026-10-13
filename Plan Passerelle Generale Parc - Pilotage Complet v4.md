@@ -91,7 +91,12 @@ générale groupée (dry-run → diff → confirmer → rollback, snapshot).
 Annonces : fiches centralisées + `POST /v1/publier` (`brouillon → prêt →
 publié-manuel → synchronisé`), calendrier via ics-sync pull 15 min,
 `GET /v1/calendrier-parc`, `GET /v1/export-ota` vers channel agréé dès
->10 unités. Biens : `/stats + /alertes` (dormants >90 j, garanties <30 j).
+>10 unités (Booking = Connectivity API, 4-12 sem, commission contrat
+Extranet ; Airbnb = pas d'API publique, ICS + reco manuelle ; Abritel =
+API partenaire sur dossier). Décision : à 8 logements actifs on chiffre
+(abo + % vs temps manuel) ; à 10 on migre. En attendant : ICS pull 15 min
++ stop-sell same-day + reco 1-tap. Biens : `/stats + /alertes` (dormants
+>90 j, garanties <30 j).
 
 ## §P7 IA / routage
 
@@ -171,9 +176,13 @@ Caddy TLS, IdP, mTLS, vault, pentest + §§21/26. G4 (4 j) : outbox/stale,
 `/etat-parc`, `/metrics`, digest, backup + restore, édition config-llm,
 runbooks + §§25/29/30. G5 (2 sem) : go-live log1 puis log2, LAB-ZERO44 +
 LAB-INC45 supervisés, coût <7 €/mois en P1/P2.
-Backlog (jamais bloquant v1) : messagerie unifiée, push, rapports
-programmés, PWA hôte, NL/PT, multi-devises, prévisionnel 90 j, journal
-hash-chaîné. Chaque item = 1 flag + 1 dossier + batterie.
+Backlog (jamais bloquant v1) : messagerie unifiée (1 boîte tous canaux +
+brouillons IA, envoi humain), push (PWA + SMS fallback), rapports
+programmés (hebdo/mensuel PDF par entité), PWA hôte (pilotage mobile
+offline-first), NL/PT, multi-devises EUR/CHF/GBP (taux BCE/j),
+prévisionnel 90 j (occupation + CA + charges projetés, bornes réelles,
+jamais de promesse), journal hash-chaîné (immuabilité prouvable,
+vérification 1 commande). Chaque item = 1 flag + 1 dossier + batterie.
 
 Tailles : gateway ~700-850 lignes stdlib, agent ~200-250, YAML ~200,
 `i18n` ~150-250/langue, `deploy-vps.sh` ~150-200, batteries +~350.

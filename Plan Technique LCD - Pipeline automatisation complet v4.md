@@ -230,10 +230,15 @@ dossier auto + dispatch + compte à rebours + suivi + clôture compta.
 Fiscalité : LMNP 1 SIREN = N logements indépendants, plafonds micro
 cumulés. Jauges 15 000 € / 77 700 € + 120 j, alertes 80 %/100 %.
 Simulateur micro vs réel + export 1-clic, clôture le 5. Factures + OCR
-→ `docs/logN/compta/`, file basse confiance. RGPD : registre,
-consentements par séjour, purge (24 mois / 90 j / 0 j audio), effacement
-sur demande, revente/croisement interdits. Compta 1 dossier chiffré/client,
-backups chiffrés par client.
+→ `docs/logN/compta/`, file basse confiance.
+DAC7 : plateformes = déclarantes (revenus vendeurs → fisc 1x/an, elles
+transmettent) ; nous = conservation 10 ans des relevés + exported
+payouts par SIREN pour contrôle. E-facture : export Chorus Pro / PDP
+`GET /v1/export-compta?entite=&format=facturx` dès G2bis (obligation ETI
+en vigueur 09/2026, généralisation par paliers — veille active).
+RGPD : registre, consentements par séjour, purge (24 mois / 90 j /
+0 j audio), effacement sur demande, revente/croisement interdits. Compta
+1 dossier chiffré/client, backups chiffrés par client.
 
 ## Annexe T-A — État réel (2026-10-13)
 
