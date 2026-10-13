@@ -144,6 +144,38 @@ non-remb −10 % / flex+ +15 % pics. Late <2 h gratuit si pas de rotation
 sinon 50 % d'avance. Retour direct J+30/J+180 si 4★+ (−10 % code perso).
 Animaux 25-35 € si copro OK + caution majorée.
 
+Politique d'annulation (affichée avant paiement, identique OTA + direct) :
+flex = pivot, annulation J-7 remboursée −10 % frais ; standard = J-14
+remboursée −1 nuit ; non-remb = −10 % à la résa, 0 remboursé. No-show =
+dû intégral, EDL non fait = caution tenue 48 h. Remboursement sous 7 j
+sur le moyen d'origine, jamais d'avoir imposé. Litige = dossier preuves
++ médiation plateforme d'abord, jamais de débit sans justificatifs.
+
+Arrivée autonome standard (FULL/PILOTAGE/KIT) : consigne envoyée J-2
+(PIN/fenêtre + code boîte + photo porte + parking + poubelles) ; fallback
+= clé physique Master Lock (code tournant, changé par séjour) ; preuve =
+1re ouverture logguée (Nuki) ou photo EDL <2 h (boîte) ; retard >30 min =
+pré-chauffe décalée + message ; sans nouvelles J+1 12h = appel + visite
+si silence 24 h (sécurité, pas surveillance).
+
+Fidélité + parrainage + apporteurs : retour direct −10 % (J+30/J+180 si
+4★+) ; parrainage = 100 € au parrain (avoir ou virement) + entrée −50 €
+au filleul, versés après 3 mois mandat actif ; apporteurs (agences,
+notaires, syndics) = 1 mois de commission FULL ou 150 € PILOTAGE/KIT,
+après signature + go-live, convention écrite, jamais d'espèces.
+Benchmark : 10 appels mystères initiaux (grille : commission, abo, entrée,
+ménage, SLA, avis Google ≥4,5) puis 5/an ; tableau comparatif revu
+trimestriel, jamais de prix copié (positionnement milieu-premium assumé).
+
+Maintenance préventive + consommables (FULL : inclus pilotage, pièces au
+réel ; PILOTAGE : plan fourni, exécution devis ; KIT : plan + doc) :
+trimestriel = détecteurs + piles + joints + filtres + flexible + siphons ;
+annuel = DPE veille + chauffe-eau + clim + serrure + extincteur +
+VMC + toiture/copro signalée au syndic. Stocks seuils (kit, linge, ampoules,
+piles, produits) + inventaire annuel QR. Boucle qualité : score ménage +
+avis + incidents → revue mensuelle (top 3 causes → standard MAJ → batterie
+si logicielle) ; post-mortem écrit si récidive ou coût >200 €.
+
 Fiabilisation : Minut dB seuls (~150 €, RGPD) + CO2 (~35 €) + clé (~30 €).
 Vols : retard >30 min = pré-chauffe décalée + message. Carnet tranquillité
 /trimestre (bruit + 22h-8h + interventions = anti-litige syndic). Budget

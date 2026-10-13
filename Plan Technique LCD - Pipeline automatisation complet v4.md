@@ -223,7 +223,14 @@ Booking = collecte séparée déclarée (VCC = séjour seul) ; Abritel =
 caution OU Damage Protection (jamais cumul) ; direct = hold 500-800 €
 (Swikly/Stripe/TPE, jamais dans le prix). Fonds tagués par logement,
 jamais communs. Retenue = justificatifs seuls (photos + dB + factures),
-jamais punitive. RC pro + expiry, transport/enfants = prestas assurés.
+jamais punitive.
+Impayés / recouvrement : extra impayé = relance J+3/J+7 (brouillon humain)
+puis débit caution si motif + justificatifs, sinon créance ; abo client
+impayé = rappel J+5, mise en demeure J+15, suspension pilotage J+30
+(calendriers rendus, box locale active, jamais de sabotage), recouvrement
+amiable puis injonction si >500 €. Tout est tracé, jamais de coupure
+sauvage d'un séjour en cours. RC pro + expiry, transport/enfants =
+prestas assurés.
 Annuaire ≥2 actifs/métier/zone RC vérifiée, alerte si <2. Sinistres :
 dossier auto + dispatch + compte à rebours + suivi + clôture compta.
 

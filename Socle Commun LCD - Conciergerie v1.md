@@ -171,6 +171,16 @@ Seuils (uniques, tous cahiers) :
 - Marque blanche côté voyageur/presta : 0 fuite stack, jamais d'IP en dur.
 - Offline-first : box autonome sans WAN (PIN, guide, scénarios). Test
   offline 2 h exigible.
+- **Surréservation (overbooking) = INTERDITE.** Jamais 2 voyageurs sur les
+  mêmes dates, même avec relogement prévu. Filet : anti-double-résa +
+  stop-sell same-day + arbitrage <60 s ; chevauchement avéré = critique +
+  blocage sortant + relogement à nos frais + geste, jamais l'inverse.
+- **Sortie client (offboarding) = procédure, pas une rupture.** Préavis
+  1 mois (FULL/PILOTAGE, 3 mois année 1 si box offerte) ; reprise box si
+  <12 mois au choix client ; transfert OTA + calendrier + guide + photos
+  au client (export 1-clic) ; révocation logins + WG + lien magique ;
+  purge PII 90 j, archivage mandat + compta 10 ans ; clôture + reversement
+  soldé J+5. Checklist `actif → préavis → transfert → clôturé` au registre.
 
 ## §S6 Glossaire
 
@@ -191,3 +201,22 @@ mandats jamais purgés. Horloges `chrony`, tolérance ±5 min (`401
 clock_skew`). Outbox cap 500/box (financier jamais évincé, alerte >50).
 Fan-out p95 <2 s (≤5 box) / <4 s (≤20 box), cache-hit <500 ms,
 kill-switch <5 s. 5 langues v1 : FR/EN/ES/IT/DE (NL/PT = backlog).
+
+## §S8 SLA affichables + modèle éco (figés)
+
+SLA (mesurés, publiés au portail proprio) : SAV voyageur <15 min 8h-22h
+(logé) ; incident critique (fuite, serrure, panne chauffe) = qualif <1 h,
+intervention <4 h zone ; dispatch ménage = assigné J-1 18h ; prix 1-tap =
+appliqué <2 h ouvrées ; clôture compta le 5 ; reversement J+5 ; réponse
+commerciale <24 h ouvrées. Indispo plane >2 h = bandeau + central hôte
+lecture + geste FULL (1 nuit ménage offerte si séjour impacté).
+Support : hotline (appel + PWA) 8h-22h 7j/7 FULL/PILOTAGE ; KIT = doc +
+hotline heures ouvrées. Escalade : opérateur → super_admin → astreinte
+(tour 1 sem, 2 personnes min, prime affichée). Tout incident = ticket +
+post-mortem si récidive (cause → standard MAJ → batterie).
+
+Modèle éco (interne, revu trimestriel) : coûts fixes ~5 €/mois (P3) +
+~1-3 €/logement IA + temps (ménage 3 h, rotation 3 h, astreinte) ;
+point mort ≈ 3-5 FULL (ou 8-10 PILOTAGE) en P1/P2 ; BFR = 1 mois de
+reversements + stocks ; jamais de dette pour croître (1 client = 1 box
+payée d'avance ou entrée).
