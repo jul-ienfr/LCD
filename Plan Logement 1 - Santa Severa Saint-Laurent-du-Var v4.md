@@ -90,9 +90,11 @@ affiché dans le logement + PDF au contrat PWA ; défaut = go-live bloqué.
 ## §L3 Onboarding 7 étapes — identique par client
 
 1. **Visite (45 min)** : règlement + PV (sinon stop) ; DPE/détecteurs/
-   assurance (sinon prérequis devis) ; extras-compatible (frigo, kits,
-   bruit, serrure Nuki) ; ≥2 prestas/métier critique à ~10 km (sinon pas
-   de FULL) ; photos + mesures + commerces locaux.
+   assurance (sinon prérequis devis) ; DPE E min (F/G = refusé sans devis
+   travaux : G interdit en touristique au 01/01/2028, F puis E jusqu'en
+   2034 — jamais de mandat sur une passoire sans plan) ; extras-compatible
+   (frigo, kits, bruit, serrure Nuki) ; ≥2 prestas/métier critique à
+   ~10 km (sinon pas de FULL) ; photos + mesures + commerces locaux.
 2. **Contrat** : mandat écrit + CGV (FULL/PILOTAGE) ou vente + maintenance
    (KIT). RC pro à jour côté nous, RC prestas vérifiée (dispatch bloqué si
    expirée). Fonds tagués. Forfait acté. Équipement sécurité enfants +
@@ -250,6 +252,15 @@ inspection lampe UV à chaque intermédiaire 14 j+ ; signalement = P1
 (désinsectisation 200-400 € sous 48 h, relogement à nos frais, geste,
 linge à 60 °C + housse neuve, avis géré humain seul) ; coût = charge
 exploitation (FULL) ou refacturé si faute voyageur prouvée (photos EDL).
+Décès voyageur (P1, protocole affiché runbook) : ne rien toucher, 15/112,
+prévenir famille via plateforme (jamais de contact direct sans accord
+autorités), gel du logement (pas de remise en location sans mainlevée),
+dossier assureur + protection juridique ; accompagnement humain, jamais
+de communication publique.
+Canicule / plan chaleur (>35 °C) : volets fermés inter-séjours, clim
+bridée 26 °C min (jamais coupée en occupé), consigne hydratation au
+message J-1, ventilateur de secours en stock ; pic conso suivi (ZLinky),
+jamais de coupure à distance en occupé.
 Vols : retard >30 min = pré-chauffe décalée + message. Carnet tranquillité
 /trimestre (bruit + 22h-8h + interventions = anti-litige syndic). Budget
 vitrine ~1 100-1 200 € + capteurs → amorti ~3-4 mois à 60 % occ.

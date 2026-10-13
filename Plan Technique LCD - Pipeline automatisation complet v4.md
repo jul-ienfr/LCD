@@ -248,6 +248,14 @@ Vente du bien / fin anticipée : transfert mandat au notaire (box = meuble,
 reprise ou cession chiffrée), préavis acquéreur 3 mois, dernier relevé +
 reversement soldé J+5, révocations + purge 90 j ; jamais de mandat
 transféré sans accord écrit des 3 parties.
+Refus de quitter / squat post-checkout : relance → mise en demeure →
+huissier (jamais de force, jamais de coupure eau/élec/codes en occupé) ;
+relogement du suivant à nos frais + geste ; dossier plateforme + protection
+juridique ; jamais de négociation d'occupation sans écrit.
+Protection juridique (~300-500 €/an, obligatoire dès le 1er mandat tiers) :
+litiges voyageurs / plateformes / voisins / copro ; activée <48 h
+(dossier photos + EDL + contrat + messages) ; jamais sans PJ au-delà de
+2 biens tiers.
 
 Caution : Airbnb = AirCover + 14 j (caution hors plateforme INTERDITE) ;
 Booking = collecte séparée déclarée (VCC = séjour seul) ; Abritel =

@@ -169,7 +169,10 @@ standby + test semestriel, failover central hôte lecture + bandeau.
 outbox >50, rapprochement >2 %. Auth : `/login` rate-limitée (5 tentatives
 /15 min/IP + CAPTCHA, verrouillage + alerte, journal `auth_tentative`) ;
 2FA obligatoire staff (super_admin/admin/gestionnaire/comptable), jamais
-de session sans expiry. Versions épinglées, SBOM minimal, veille
+de session sans expiry. Anti-phishing humain : jamais de lien de paiement
+par SMS sauf tunnel Stripe/Swikly déclaré au contrat ; faux « votre
+caution » = P2 (alerte + plainte plateforme) ; formation phishing 1x/an ;
+cyber-assurance dès 5 logements. Versions épinglées, SBOM minimal, veille
 CVE mensuelle, MAJ manuelles + snapshot + rollback, jamais d'OTA auto.
 Calendrier EOL suivi (revue mensuelle, tableau : composant + version +
 fin de support + prochaine MAJ — Python, HA, Next.js, Caddy, Proxmox,
