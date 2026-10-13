@@ -1,0 +1,76 @@
+# Passerelle parc — VPS public. Caddy v2, face utilisateur.
+#
+# INTANGIBLE (plan §1 + §13) : ne JAMAIS publier les ports du socle.
+# Interdits ici, et nulle part ailleurs sur ce VPS :
+#   :8123 Home Assistant | :4000 llm-proxy | :8050 llm-router-ui |
+#   :8090-8100 moteurs | :8060 dashboard-hote
+# Ils restent joignables UNIQUEMENT depuis le réseau WireGuard (box → VPS),
+# cf. boxes.yaml : les endpoints pointent en 10.99.0.0/24, jamais en 127.0.0.1.
+# Test de non-régression : lab/tests_lab.py §52 interdit qu'un de ces numéros
+# réapparaisse dans ce fichier.
+#
+# Rien n'est en clair dans ce fichier : tous les secrets vivent dans
+# /etc/lcd/vault (chiffré age, §7), monté au démarrage par deploy-vps.sh.
+
+{
+	# Contact ACME (Let's Encrypt). Mettre l'email du super_admin réel.
+	email {$ADMIN_EMAIL:admin@example.local}
+	# Pas de TLS interne sur le réseau WireGuard : c'est mTLS moteur à moteur
+	# (boxes.yaml, G3 avec step-ca) — on ne double pas le chiffrement.
+}
+
+(entetes_communs) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+	# Pas de cache sur la page parc : les prix bougent (TTL 90 s côté gateway).
+	header Cache-Control "no-store"
+}
+
+# ---------------------------------------------------------------------------
+# Face utilisateur : UNE seule origine publique, derrière Authelia.
+# ---------------------------------------------------------------------------
+https://parc.{$ZONE} {
+	import entetes_communs
+
+	# Authentification AVANT tout rendu (401 sans session valide).
+	# `copy_headers` ne sert qu'à journaliser : la gateway refait SON contrôle
+	# RBAC sur chaque écriture (§4) — elle ne fait jamais confiance à l'en-tête.
+	forward_auth authelia:9091 {
+		uri /api/verify?auth=basic&trusted_uris=https://parc.{$ZONE}/v1/action
+		copy_headers Remote-User Remote-Groups Remote-Name
+	}
+
+	reverse_proxy gateway-parc:8443 {
+		header_up X-Forwarded-Proto https
+		# Le parc n'a pas de session applicative : pas de cookie côté gateway.
+		header_up -Authorization
+	}
+}
+
+# ---------------------------------------------------------------------------
+# Tout le reste du trafic WAN : fermé. Pas de bloc `http://` de repli, pas de
+# bloc "santé", pas de bloc debug. Caddy répond le minimum sur :80 (redirection
+# HTTPS automatique) puis laisse tomber.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# G3+ (mTLS, quand step-ca sera déployé) : écouteur INTERNE sur l'IP
+# WireGuard du VPS, réservé aux boxes. À décommenter et restreindre, jamais à
+# publier en WAN — le pare-feu (ufw/nftables) doit déjà bloquer :8090-8100/8443
+# venant d'ailleurs. Le lab valide l'absence d'exposition (§52).
+#
+# https://10.99.0.1 {
+# 	tls /etc/lcd/vault/mtls/cert.pem /etc/lcd/vault/mtls/key.pem
+# 	client_auth {
+# 		mode require_and_verify
+# 		trusted_ca_cert_file /etc/lcd/vault/mtls/ca.pem
+# 		verifier mtls
+# 	}
+# 	reverse_proxy gateway-parc:8443
+# }

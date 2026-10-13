@@ -1,0 +1,65 @@
+# custom/passerelle-parc/config.yaml — config passerelle parc LECTURE SEULE.
+# MVP G0/G1 (plan §3) : fan-out lecture + cache 2 niveaux + dégradé stale.
+# Zéro écriture ici : G2 ajoutera POST /v1/action (allowlist + préconditions).
+# Chemins runtime (plan §13.3) : tout sous custom/passerelle-parc/state/ (gitignoré).
+# Pas de secret dans ce fichier (0 clé, 0 token, 0 IP publique).
+
+http_port: 8443
+
+# Compte machine annoncé au journal decision (matrice acces.yaml). Le moteur
+# refuse `qui` inconnu (RBAC) : voir custom/acces.yaml -> passerelle_parc.
+qui: "passerelle_parc"
+
+# Registre des box (obligatoire pour /ready).
+boxes: "boxes.yaml"
+
+# RBAC écritures G2 : custom/acces.yaml (pré-filtre gateway ; les moteurs
+# revérifient de leur côté — on ne remplace jamais leur contrôle).
+# Chemin relatif AU DOSSIER DE CE FICHIER (custom/passerelle-parc/), pas au
+# répertoire courant : `../acces.yaml` = custom/acces.yaml.
+acces: "../acces.yaml"
+
+# Révoquations runtime du moteur decision (custom/decision-engine/decision.py
+# `_lire_revocations`), montées en lecture seule. Absent = aucune révocation.
+# Cache 10 s côté gateway (`_revocations`) : une révocation met au plus 10 s
+# à prendre effet sur les écritures relayées.
+revocations: "state/decision/acces-revocations.json"
+rbac_cache_s: 10
+
+# Cache : TTL mémoire/disque (= cache_apercu_ttl, PAS le cache LLM 24 h §15).
+cache_ttl_s: 90
+# Au-delà, la carte est marquée « box injoignable, données du HH:MM » (jamais
+# de page blanche, dégradé carte par carte — §5).
+stale_apres_s: 180
+
+# Fan-out parallèle (§12.2) : 4 à ≤5 box, 8 au-delà. timeout par appel 8 s.
+fanout_workers: 4
+fanout_timeout_s: 8
+
+# Runtime gitignoré (couvert par `custom/*/state/` du .gitignore). En lab :
+# écrasé par LCD_STATE_DIR=/opt/lcd/state (volume dédié, docker-compose.yml).
+state_dir: "./state"
+
+# Registre des logements pour le CRUD `/parc/*` (§6bis). Chemin relatif AU
+# DOSSIER DE CE FICHIER (custom/passerelle-parc/), pas au répertoire courant :
+# `../logements.yaml` = custom/logements.yaml. Snapshots horodatés AVANT chaque
+# écriture, dans state/parc/snapshots/ (rollback, jamais de purge dure).
+logements: "../logements.yaml"
+
+# Registre des FICHES ANNONCE OTA pour `/parc/annonces/*` + `/export-ota`
+# (§6bis-b). Parcours séparé de `logements` : une fiche annonce porte du contenu
+# éditorial (titres, descriptions multilingues, photos, règles) et son propre
+# cycle de vie (brouillon → pret → publie_manuel → synchronise), alors que
+# `logements.yaml` est relu tel quel par les moteurs — on ne mélange pas les
+# deux fichiers. Snapshots dans state/parc/snapshots-annonces/.
+annonces: "annonces.yaml"
+
+# Registres G2bis-a (§3bis) : entités juridiques + mandats logement↔entité.
+# Séparés de `logements.yaml` (imposé aux moteurs) comme `annonces.yaml` : ce
+# sont des fichiers à nous, éditables et versionnés sans casser les moteurs.
+# Snapshots dans state/parc/snapshots-entites/ et snapshots-mandats/.
+# Le second étant le SECRET le plus dangereux du lot (RIB d'un client tiers),
+# toute valeur ressemblant à un IBAN ou un numéro de compte est REFUSÉE à
+# l'écriture : on ne garde qu'une référence `env:`/`vault:`.
+entites: "entites.yaml"
+mandats: "mandats.yaml"

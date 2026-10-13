@@ -1,0 +1,49 @@
+# lab/lab-config/passerelle-parc.yaml — config LAB passerelle parc :8443 (G0/G1/G2).
+# Copie de custom/passerelle-parc/config.yaml, calquée sur les services docker du
+# lab (noms de service = hôtes). WireGuard/Caddy/vault = G3, PAS en lab MVP.
+# Aucun secret ici : lab = valeurs docker-network seules.
+
+http_port: 8443
+qui: "passerelle_parc"
+boxes: "/opt/lcd/lab-config/passerelle-parc-boxes.yaml"
+acces: "/opt/lcd/acces.yaml"
+# Révoquations runtime écrites par decision (decision_log_dir=/opt/lcd/logs,
+# volume `ics-logs`) — montées en lecture seule côté passerelle.
+revocations: "/opt/lcd/decision-logs/acces-revocations.json"
+rbac_cache_s: 10
+cache_ttl_s: 90
+stale_apres_s: 180
+fanout_workers: 4
+fanout_timeout_s: 8
+state_dir: "/opt/lcd/state"
+# Registre des logements pour le CRUD `/parc/*` (§6bis). Répertoire monté en
+# LECTURE-ECRITURE par docker-compose (`./parc-registre:/opt/lcd/parc-registre`)
+# — copie lab dédiée, jamais le `logements.yaml` partagé par les moteurs (lu
+# en :ro). Dossier plutôt que fichier : `os.replace` reste atomique.
+logements: "/opt/lcd/parc-registre/locations.yaml"
+# Fiches annonce OTA (§6bis-b) : même dossier monté en LECTURE-ECRITURE, fichier
+# distinct du registre logements (contenu éditorial + cycle de vie propres).
+# `locations.modele.yaml` / `annonces.modele.yaml` sont recopiés en tête de §56
+# et §57 pour que la batterie soit re-jouable à l'identique.
+annonces: "/opt/lcd/parc-registre/annonces.yaml"
+# Registres G2bis-a (§3bis) : même dossier monté en LECTURE-ECRITURE. Le lab
+# porte 1 entité (nom propre) et 1 mandat `propre`, plus un modèle de mandat
+# tiers commenté — aucun RIB, aucune référence réelle.
+entites: "/opt/lcd/parc-registre/entites.yaml"
+mandats: "/opt/lcd/parc-registre/mandats.yaml"
+# Documents de mandat servis par le portail propriétaire (§17 / G2bis-b) :
+# racine DÉDIÉE, montée en lecture seule (`./docs.lab:/opt/lcd/docs:ro`).
+# Le portail LIT dans cette racine, il n'y dépose rien : un dépôt reste un
+# geste humain (vault / archive chiffrée), hors périmètre passerelle.
+# Chemin en config et non dans le code, comme tout ce qui change par site.
+docs_dir: "/opt/lcd/docs"
+# G4-a (§14, §16.2) : budget fan-out + seuils d'alerte. Le budget est en CONFIG
+# et non dans le code : un SLO qu'on ne peut pas discuter sans redéployer n'est
+# pas un SLA. Les seuils restent les défauts de `seuils.py` — ne rien mettre ici
+# pour les garder, et un `seuils:` vide n'écrase donc rien.
+fanout_budget_ms: 2000
+seuils:
+  box_down_s: 600
+  outbox_alerte: 50
+  outbox_plafond: 500
+  rapprochement_pct: 2.0

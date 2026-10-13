@@ -1,0 +1,11 @@
+# lab/lab-config/box-nord/agent-box-nord.yaml — config AGENT box nord (G4-b).
+# L'agent tourne SUR la box nord (service docker `agent-nord` au lab) : il lit
+# les moteurs LOCAUX nord et pousse vers la passerelle :8443.
+box_id: "box-nord"
+logements: "log3"
+pricing_url: "http://pricing-nord:8191"
+decision_url: "http://decision-nord:8192"
+passerelle_url: "http://gateway-parc:8443"
+# File d attente hors-ligne : volume DEDIE monte sur /opt/lcd/outbox (jamais
+# dans le state des moteurs — une file n est pas un etat moteur).
+outbox_dir: "/opt/lcd/outbox/box-nord"

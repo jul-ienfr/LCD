@@ -686,14 +686,24 @@ def lire_logements(path):
         return {}
     logts = {}
     cur = None
-    section = None  # pricing | copro | features | menage | None
+    section = None  # pricing | copro | features | menage | mentions | None
+    dans_logements = False
     for brute in lignes:
         ligne = brute.split("#", 1)[0].rstrip("\n")
         if not ligne.strip():
             continue
         indent = len(ligne) - len(ligne.lstrip(" "))
         prop = ligne.strip()
-        if indent == 2 and prop in ("log1:", "log2:", "log3:"):
+        if indent == 0:
+            # `global:` puis `logements:` : seule cette derniere ouvre des
+            # blocs de logement. Une liste DURE d'ids (`log1/log2/log3`) avait
+            # pour effet de faire disparaitre silencieusement un logement mal
+            # nomme (logtmp, log10, santa-severa...) de TOUTES les décisions.
+            dans_logements = (prop.rstrip(":") == "logements")
+            cur = None
+            section = None
+            continue
+        if indent == 2 and dans_logements and prop.endswith(":"):
             cur = prop[:-1]
             logts[cur] = {"nom": cur, "commune": "", "prix_base": 110,
                           "prix_min": 75, "prix_max": 290,
@@ -708,7 +718,7 @@ def lire_logements(path):
         if cur is None:
             continue
         if indent == 4 and prop in ("pricing:", "copro:", "features:",
-                                    "menage:"):
+                                    "menage:", "mentions:"):
             section = prop[:-1]
             continue
         if indent == 4 and prop.endswith(":"):
@@ -746,6 +756,12 @@ def lire_logements(path):
                     logts[cur]["menage_montant"] = v
                 elif k == "facturation" and v:
                     logts[cur]["menage_facturation"] = v
+            elif section == "mentions":
+                # §6bis-b : mentions légales de l'annonce (numero_declaration,
+                # dpe, classement). Une clé valant "" reste « manquante », ce
+                # qui est exactement le comportement voulu : on renseigne quand
+                # on a le document, jamais avant.
+                logts[cur].setdefault("mentions", {})[k] = v
             elif section == "features":
                 logts[cur]["features"][k] = (v == "true")
     return logts
@@ -1400,18 +1416,25 @@ class Moteur:
         if logement_id not in self.logts:
             return 404, {"erreur": f"logement inconnu: {logement_id}"}
         log = self.logts.get(logement_id, {})
+        # Les 3 mentions administratives ci-dessous etaient cablees a False :
+        # `mise_en_ligne_ok` etait donc TOUJOURS faux, ce qui bloquait
+        # definitivement `POST /publier` de la passerelle (§6bis-b) sans qu'aucun
+        # humain puisse jamais lever le blocage. Elles deviennent renseignables
+        # depuis `mentions:` du logement — defaut False (sur, rien d'inventé).
+        mts = log.get("mentions") or {}
         mentions = [
             {"id": "numero_declaration",
              "label": "N° déclaration mairie (toutes annonces)",
-             "renseigne": False,
+             "renseigne": bool(str(mts.get("numero_declaration", "") or "")
+                               .strip()),
              "action": "Cerfa 14004*04 en mairie, saisir le n° reçu"},
             {"id": "dpe",
              "label": "DPE < 10 ans (classe + dépenses)",
-             "renseigne": False,
+             "renseigne": bool(str(mts.get("dpe", "") or "").strip()),
              "action": "diagnostiqueur, afficher classe A-G"},
             {"id": "classement",
              "label": "Classement Atout France (défaut : non classé)",
-             "renseigne": False,
+             "renseigne": bool(str(mts.get("classement", "") or "").strip()),
              "action": "visite Office de Tourisme ou rester non classé"},
             {"id": "capacite",
              "label": f"Capacité max ({log.get('occupants_max', '?')} pers.)",

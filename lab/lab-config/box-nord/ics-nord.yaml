@@ -1,0 +1,17 @@
+# lab/lab-config/box-nord/ics-nord.yaml — config ics-sync box NORD :8190.
+# Format PLAT (niveau 0) exigé par charger_yaml() — pas de clé englobante.
+http_port: 8190
+poll_minutes: 15
+delai_humain_minutes: 15
+stop_sell_heure_limite: "18:00"
+ha_url: ""
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+secrets_yaml: "/opt/lcd/secrets.yaml"
+logements: [log3]
+canaux_ota: [airbnb, booking, abritel, expedia]
+ordre_arbitrage: [direct, airbnb, booking, abritel]
+commission_direct: 0.00
+commission_airbnb: 0.15
+commission_booking: 0.17
+commission_abritel: 0.10

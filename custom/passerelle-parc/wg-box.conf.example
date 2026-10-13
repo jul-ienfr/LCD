@@ -1,0 +1,29 @@
+# Côté BOX (log1/log2) : client WireGuard vers le hub VPS.
+#
+# Généré par `deploy-vps.sh wg-key <box_id>` et déposé sur la box par canal
+# chiffré (age). La clé privée de la box NE SORT JAMAIS du vault : le script
+# n'écrit que le fichier de conf, jamais une clé sur la sortie standard.
+# Ce fichier versionné est un EXEMPLE (placeholders) — §7 intouchable.
+
+[Interface]
+Address = __LCD_WG_BOX_IP__/32
+PrivateKey = __LCD_WG_BOX_PRIVKEY__
+DNS = 10.99.0.1          # résolution par le hub (pas de DNS public en dur)
+MTU = 1380
+
+[Peer]
+# IP publique (domaine, pas IP en dur : §16.3) ou IP WireGuard du VPS.
+Endpoint = vps.{$ZONE}:51820
+PublicKey = __LCD_WG_HUB_PUBKEY__
+# /32 : la box ne voit QUE le VPS. Aucun routage vers Internet par le tunnel
+# (la box garde son NAT local pour OTA/SMS upstream).
+AllowedIPs = 10.99.0.1/32
+PersistentKeepalive = 25
+
+# ---------------------------------------------------------------------------
+# La box n'expose RIEN sur le tunnel (0.0.0.0 interdit) : les moteurs écoutent
+# sur 127.0.0.1 et la gateway de la box écoute l'IP WireGuard uniquement.
+# Vérification post-déploiement :
+#   ss -tlnp | grep -c 0.0.0.0    -> doit rester 0
+#   wg show                        -> handshake < 2 min
+# ---------------------------------------------------------------------------

@@ -67,6 +67,13 @@ logements:
     zones: [santa_severa, nice_ouest]
     zone_defaut: santa_severa
     moteur_direct: maison              # LAB : tunnel maison testé ici
+    # Mentions légales lues par `decision /mentions-annonce` (§6bis-b).
+    # log1 = COMPLET (le cycle brouillon→pret est testable dans §57) ;
+    # log2 = NON renseigné = `publiable: false` (cas bloquant, aussi testé).
+    mentions:
+      numero_declaration: "LAB-DECL-06560-2025"
+      dpe: "C"
+      classement: "non_classe_nc"
 
   log2:
     nom: "Logement 2 (LAB)"
@@ -99,7 +106,11 @@ logements:
       sinistre_auto: false
       compta_auto: true
       traca_intervenants: true
-      inventaire_biens: false
+      # LAB SEUL : log2 porte l'inventaire des biens pour que §58 (6bis-c) puisse
+      # tester un transfert INTER-logements reel. Le cas « flag off » est
+      # desormais porte par le bloc `logtmp:` en bas de fichier (hors topologie
+      # passerelle, donc aucun comptage de logement n'en depend).
+      inventaire_biens: true
       annuaire_presta: true
       mode_auto_saison: false
       events_auto: true
@@ -118,3 +129,22 @@ logements:
     zones: []
     zone_defaut: null
     moteur_direct: maison
+
+# --- LAB SEUL : cas « inventaire des biens DESACTIVE » ------------------------
+# Bloc VOLONTAIREMENT hors de `lab/lab-config/passerelle-parc-boxes.yaml` : la
+# passerelle ignore ce logement, donc aucun comptage de logements (page,
+# calendrier, export-ota, biens) n'en depend. Il existe pour que P6-4 (§473)
+# et §58 continuent de prouver que le moteur repond 503 + code metier
+# `inventaire_off` — distinct d'une panne — sur un logement sans le flag.
+  logtmp:
+    nom: "Temoins flag off (hors box)"
+    commune: "Lab"
+    logement_id: logtmp
+    surface_m2: 20
+    capacite: 1
+    copro:
+      verifiee: true
+      meuble_entier: true
+    features:
+      inventaire_biens: false
+      annuaire_presta: true

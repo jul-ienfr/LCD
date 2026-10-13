@@ -1,0 +1,41 @@
+global:
+  devise: EUR
+  langue_hote: fr
+  langues_socle: [fr, en, es, it, de]
+  prix_min: 75
+  prix_max: 290
+  menage_montant_defaut: 110
+
+logements:
+  log1:
+    nom: "Santa Severa (LAB)"
+    commune: "Saint-Laurent-du-Var"
+    logement_id: log1
+    surface_m2: 65
+    capacite: 5
+    pricing:
+      prix_min: 75
+      prix_max: 290
+    copro:
+      verifiee: true
+      meuble_entier: true
+    features:
+      smart_lock: true
+      voix: true
+    statut: actif
+  log2:
+    nom: "Nice Gambetta (LAB)"
+    commune: "Nice"
+    logement_id: log2
+    surface_m2: 38
+    capacite: 3
+    pricing:
+      prix_min: 75
+      prix_max: 290
+    copro:
+      verifiee: true
+      meuble_entier: false
+    features:
+      smart_lock: false
+      voix: false
+    statut: actif

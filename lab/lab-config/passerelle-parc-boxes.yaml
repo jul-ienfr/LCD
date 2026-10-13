@@ -1,0 +1,65 @@
+# lab/lab-config/passerelle-parc-boxes.yaml — boxes LAB pour la passerelle :8443.
+# Copie de custom/passerelle-parc/boxes.yaml, hôtes = noms de service docker du lab.
+# Identique en forme à une box réelle : 1 box + N logements + endpoints + qui_relay.
+# G3 ajoutera wg_ip/mtls_cn/vault — pas au lab (réseau docker).
+
+boxes:
+  - box_id: box-lab
+    site: lab
+    description: "box lab — moteurs dockerisés (batterie §§48-49)"
+    logements:
+      - id: log1
+        nom: "Log1 Santa Severa (lab)"
+      - id: log2
+        nom: "Log2 futur (lab)"
+    endpoints:
+      pricing: "http://pricing:8091"
+      decision: "http://decision:8092"
+      # Le service docker du lab s'appelle `dispatch-presta` (pas `dispatch`) :
+      # un nom d'hôte non résolu = carte `stale` = écritures désactivées, donc
+      # aucune action ménage/sinistre ne part (constaté le 2026-10-09 : toute
+      # la page de pilotage arrivait sans formulaire).
+      dispatch: "http://dispatch-presta:8096"
+      router: "http://llm-router-ui:8050"
+      homeassistant: "http://homeassistant:8123"
+      booking: "http://booking-direct:8095"
+      compta: "http://compta:8100"
+      caution: "http://caution:8094"
+      ics: "http://ics-sync:8090"
+      facturation: "http://facturation:8093"
+      extras: "http://extras:8098"
+      # §6bis-c : biens (inventaire :8097) + consommables (stocks :8099).
+      inventaire: "http://inventaire:8097"
+      stocks: "http://stocks:8099"
+    qui_relay: "passerelle_parc"
+
+  # --- box NORD (G4-b, lab) : 2e box RÉELLE pour prouver l'offline cross-box.
+  # Mêmes moteurs (ics-sync/pricing/decision), hôtes = services docker `*-nord`
+  # (ports 8190-8192), registre logements dédié. log3 n'existe QUE sur cette
+  # box : un conflit split-brain se prouve en arrêtant la box nord et en
+  # écrivant le même prix des deux côtés, pas en simulant.
+  - box_id: box-nord
+    site: nord
+    description: "box nord lab — 2e box G4-b (offline cross-box + split-brain)"
+    logements:
+      - id: log3
+        nom: "Log3 Nord (lab)"
+    endpoints:
+      pricing: "http://pricing-nord:8191"
+      decision: "http://decision-nord:8192"
+      # G4-b : `dispatch` est MUTUALISE au lab (1 seul service
+      # `dispatch-presta:8096` pour les 2 boxes). Au reel, chaque box a le
+      # sien : la carte stale reste PAR CARTE (un moteur partage coupe = 3
+      # cartes stale, §53 le prouve), jamais globale.
+      dispatch: "http://dispatch-presta:8096"
+      router: "http://llm-router-ui:8050"
+      homeassistant: "http://homeassistant:8123"
+      booking: "http://booking-direct:8095"
+      compta: "http://compta:8100"
+      caution: "http://caution:8094"
+      ics: "http://ics-sync-nord:8190"
+      facturation: "http://facturation:8093"
+      extras: "http://extras:8098"
+      inventaire: "http://inventaire:8097"
+      stocks: "http://stocks:8099"
+    qui_relay: "passerelle_parc"

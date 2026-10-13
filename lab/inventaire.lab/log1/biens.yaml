@@ -179,3 +179,13 @@ biens:
     utilisations_nb: 1
     derniere_utilisation: 2026-10-09
     etat: 1
+  - qr: TEST-TRANSFERT-58
+    logement: log1
+    categorie: linge
+    label: Plaid transfert 58
+    date_achat: 2024-03-01
+    prix_achat: 40
+    lavages_nb: 0
+    utilisations_nb: 0
+    derniere_utilisation: 2026-09-15
+    etat: 4

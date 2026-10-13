@@ -1,0 +1,68 @@
+# custom/passerelle-parc/annonces.yaml — fiches annonce du parc (plan §6bis-b).
+#
+# Fichier ÉCRIT par la passerelle (`PUT /parc/annonces/{id}`,
+# `POST /parc/annonces/{id}/publier`, `/marquer-publie`, `/synchroniser`).
+# Format à nous (contrairement à `logements.yaml`, que les moteurs relisent) :
+#   - un bloc par `logement_id`, sous `annonces:` ;
+#   - les descriptions multilingues sont en bloc replié (`>-`), donc un texte
+#     long reste lisible ET dans un `git diff` ;
+#   - une clé non modélisée (ex. `note_interne:`) est reportée telle quelle
+#     lors d'une écriture : on ne perd jamais une ligne qu'on n'écrit pas.
+#
+# Toute écriture = snapshot horodaté + `tmp + os.replace` (repli en place si la
+# cible est un bind-mount fichier, cf. `annonces.py`).
+#
+# Cycle de vie (jamais d'écriture OTA automatique sans humain) :
+#   brouillon → pret → publie_manuel → synchronise
+#   (tout état) → archive
+#   - `pret`      : le dossier de publication est complet (checklist verte) ;
+#   - `publie_manuel` : un HUMAIN a publié sur le portail (canaux + preuve
+#     tracés) — c'est le geste qui vaut publication ;
+#   - `synchronise`  : un connecteur agréé a repris la fiche (aucun channel
+#     manager 2-voies en v1, §6bis).
+#
+# Contenu volontairement VIDE (titres factuels, descriptions à écrire) : le
+# checklist de `/publier` bloque tant qu'un humain n'a pas rédigé les textes.
+global:
+  langue_defaut: fr
+  langues: [fr, en, es, it, de]
+  photos_min: 6
+
+annonces:
+  log1:
+    logement_id: log1
+    titre: "Santa Severa — location meublée à Saint-Laurent-du-Var"
+    descriptions:
+      fr: >-
+        Logement meublé de 65 m², jusqu'à 5 personnes, à Saint-Laurent-du-Var.
+        Description à rédiger par un humain avant publication.
+      en: >-
+        Furnished 65 m² flat for up to 5 guests in Saint-Laurent-du-Var.
+        Description to be written by a human before publication.
+    photos: []
+    equipements: []
+    regles:
+      arrivee: "16:00"
+      depart: "10:00"
+      nuitee_min: 2
+      animaux: false
+      fumeur: false
+      evenements: false
+    geoloc:
+      lat: null
+      lon: null
+    statut: brouillon
+  log2:
+    logement_id: log2
+    titre: "Logement 2 — fiche à compléter"
+    descriptions: {}
+    photos: []
+    equipements: []
+    regles:
+      arrivee: "16:00"
+      depart: "10:00"
+      nuitee_min: 2
+    geoloc:
+      lat: null
+      lon: null
+    statut: brouillon

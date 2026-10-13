@@ -30,6 +30,14 @@ logements:
       prix_min: 75
       prix_max: 290
       mode_gestion_defaut: equilibre
+    # --- Mentions légales de l'annonce (decision /mentions-annonce, §6bis-b) ---
+    # Renseignables depuis ici (défaut = manquant, donc publication refusée).
+    # `numero_declaration` et `dpe` sont exigés par la loi pour toute annonce ;
+    # `classement` peut rester vide (« non classé » est une valeur légale).
+    mentions:
+      numero_declaration: ""
+      dpe: ""
+      classement: ""
     # --- Copropriété art. 8/9 (§12.1) : tout changement = MAJ + régénération docs ---
     copro:
       verifiee: false                    # passer à true après accord écrit syndic + Cerfa

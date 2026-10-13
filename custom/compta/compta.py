@@ -590,7 +590,8 @@ class Compta:
                 "alerte": alerte}
 
     # --- GET /finances : CA/charges/net + jauges + 120 j ---
-    def finances(self, logement_id, annee="", classement="non_classe"):
+    def finances(self, logement_id, annee="", classement="non_classe",
+                 mois=""):
         log = self._log(logement_id)
         if not log["existe"]:
             return 404, {"erreur": f"logement inconnu: {logement_id}"}
@@ -603,11 +604,25 @@ class Compta:
         if classement not in CLASSEMENTS:
             return 400, {"erreur": "classement parmi : "
                                    + ", ".join(CLASSEMENTS)}
-        tot = self._totaux(logement_id, an)
+        # `mois` (1-12) = filtre ADDITIF (§3bis, G2bis-b) : le relevé
+        # propriétaire est MENSUEL, or `_totaux` savait déjà filtrer par mois
+        # sans que la route le permette. Absent/vide = bilan annuel, exactement
+        # comme avant : aucun appelant existant ne change de comportement.
+        mo = 0
+        if str(mois or "").strip():
+            try:
+                mo = int(str(mois).strip())
+            except ValueError:
+                return 400, {"erreur": "mois 1-12"}
+            if not 1 <= mo <= 12:
+                return 400, {"erreur": "mois 1-12"}
+        tot = self._totaux(logement_id, an, mo)
         rap = self._lire_json(os.path.join(
             self.state_dir, "compta", logement_id, str(an),
             "rapprochement.json"), {"file": []})
         return 200, {"logement_id": logement_id, "annee": an,
+                     "mois": mo or None,
+                     "periode": (f"{an}-{mo:02d}" if mo else str(an)),
                      "classement": classement, **tot,
                      "jauge_ca": self._jauge(tot["ca"],
                                              self.plafonds[classement]),
@@ -768,7 +783,8 @@ class Handler(BaseHTTPRequestHandler):
             code, obj = eng.finances(logement_id,
                                      qs.get("annee", [""])[0],
                                      qs.get("classement",
-                                            ["non_classe"])[0])
+                                             ["non_classe"])[0],
+                                     qs.get("mois", [""])[0])
             return self._json(code, obj)
         if url.path == "/simulateur":
             logement_id = qs.get("logement_id", [""])[0]
