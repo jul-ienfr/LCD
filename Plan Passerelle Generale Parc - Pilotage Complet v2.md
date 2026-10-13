@@ -134,6 +134,33 @@ conciergerie complète (§14), routage IA (§15), deltas audit (§16), i18n (§1
    facture/relevé par tenant justes, compteurs IA isolés, onboarding →
    `actif` avec dossier complet, résiliation → solde + archives).
 
+## §6. Base de données V2 — SQLite dès le départ (ADR-006, figé)
+
+Choix tranché (détail : `docs/decisions-parc/2026/ADR-006-sqlite.md`) :
+**SQLite stdlib, 1 fichier `parc.db` (WAL + `foreign_keys=ON`), 0 €.**
+Postgres/MySQL écartés en V2 (serveur à administrer, 0 gain sous ~50
+logements) ; réévaluation Postgres managé seulement si multi-writer réel
+(P6+). Boxes : moteurs YAML/JSONL inchangés (migration box = G6+ si besoin).
+
+- **Schéma v1** (`custom/passerelle-parc/stockage.py`, ~330 lignes stdlib) :
+  `entites, clients_tiers, logements, boxes, box_logements, mandats,
+  prospects, offres, annonces, config_llm, idempotence (ref 24 h), journal
+  append-only` ; `entite_id` + `client_tiers_ref` partout (FK + index,
+  cross-tenant impossible) ; `PRAGMA user_version` + migrations rejouables ;
+  journal jamais d'UPDATE/DELETE sauf purge RGPD tracée.
+- **Migration YAML → SQLite** : `--migrer` idempotent (si base vide :
+  importe les registres ; sinon stop) ; `--export` (dump YAML, dépannage
+  éditeur toujours possible) ; `--check` (`integrity_check` + FK).
+- **Hébergement** : P1/P2 = `parc.db` sur volume persistant VM Oracle
+  (backup chiffré quotidien hors site + test restore) ; P3 = même fichier
+  sur VPS (`VACUUM INTO` hebdo + snapshot) ; taille : quelques Mo pour
+  10-20 logements.
+- **Secrets** : jamais en base (refs `env:`/`vault:` seules) ; base au repos
+  sur volume chiffré (pas de SQLCipher : dépendance externe interdite).
+- **Batterie lab §69** : schéma à jour + migration rejouable 2x + import
+  idempotent + journal append-only + FK entité inconnue refusée +
+  `integrity_check` OK + schéma sans colonne secret + ADR-006 versionné.
+
 ## §4. Phases G0→G5 relues SaaS (réoriente v1 §8)
 
 G0/G1/G2/G2bis/G4/G5 inchangés (v1 §8) + : G2 inclut CRM commercial (§14.5,

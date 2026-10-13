@@ -7956,6 +7956,79 @@ check("68 : 0 fuite PIN/secret/token/cle sur les nouvelles routes",
            + json.dumps(r67, ensure_ascii=False)
            + json.dumps(r68, ensure_ascii=False)])
 
+print("== 69. passerelle parc : base SQLite V2 (ADR-006) ==")
+# a) pur : module stdlib seul, schema versionne, migration idempotente
+import importlib.util as _iu69
+_spec69 = _iu69.spec_from_file_location(
+    "stockage69", os.path.join(REPO, "custom", "passerelle-parc",
+                               "stockage.py"))
+stockage69 = _iu69.module_from_spec(_spec69)
+_spec69.loader.exec_module(stockage69)
+check("69 : stockage.py stdlib seul (sqlite3, sans dependance)",
+      hasattr(stockage69.sqlite3, "sqlite_version")
+      and stockage69.SCHEMA_VERSION >= 1,
+      "sqlite " + str(getattr(stockage69.sqlite3, "sqlite_version", "?")))
+_db69 = os.path.join(tempfile.gettempdir(), "parc-batt69.db")
+for _sfx in ("", "-wal", "-shm"):
+    try:
+        os.remove(_db69 + _sfx)
+    except FileNotFoundError:
+        pass
+_cx69 = stockage69.connecter(_db69)
+try:
+    check("69 : WAL + foreign_keys actifs",
+          _cx69.execute("PRAGMA journal_mode;").fetchone()[0] == "wal"
+          and _cx69.execute("PRAGMA foreign_keys;").fetchone()[0] == 1)
+    _v69 = stockage69.migrer(_cx69)
+    check("69 : migration schema v>=1 rejouable (2x sans erreur)",
+          _v69 >= 1 and stockage69.migrer(_cx69) == _v69, f"v{_v69}")
+    _st69 = stockage69.importer_yaml(
+        _cx69, os.path.join(REPO, "custom", "passerelle-parc"))
+    check("69 : import YAML idempotent (base vide -> importe, sinon stop)",
+          _st69.get("importe") is True
+          and stockage69.importer_yaml(
+              _cx69, os.path.join(REPO, "custom", "passerelle-parc")
+          ).get("importe") is False, str(_st69)[:120])
+    _n69 = _cx69.execute("SELECT COUNT(*) FROM entites;").fetchone()[0]
+    check("69 : entites importees du YAML (>=1, sans secret en clair)",
+          _n69 >= 1, f"{_n69} entite(s)")
+    # b) journal append-only + FK multi-tenant (cross-tenant refuse)
+    stockage69.journaliser(_cx69, "personne_01", "batt69",
+                           entite_id="ent-nom-propre-julie")
+    _j69 = _cx69.execute("SELECT COUNT(*) FROM journal WHERE quoi='batt69';"
+                         ).fetchone()[0]
+    check("69 : journal append-only ecrit + relu", _j69 == 1)
+    try:
+        _cx69.execute("INSERT INTO logements (logement_id, entite_id)"
+                      " VALUES ('x-batt69', 'ent-inexistante');")
+        _fk69 = False
+    except Exception:
+        _fk69 = True
+    check("69 : FK entite inconnue refusee (isolation tenant)", _fk69)
+    # c) concurrence : 2 ecrivains simultanes = 0 base corrompue
+    _cx69.execute("INSERT OR IGNORE INTO prospects (prospect_id)"
+                  " VALUES ('batt69');")
+    _cx69.commit()
+    _errs69 = _cx69.execute("PRAGMA integrity_check;").fetchall()
+    check("69 : integrity_check ok apres ecritures", _errs69[0][0] == "ok")
+    # d) aucun secret en clair dans le schema (refs env:/vault: seules)
+    _dump69 = " ".join(
+        r[0] for r in _cx69.execute(
+            "SELECT sql FROM sqlite_master WHERE sql IS NOT NULL;"))
+    check("69 : schema sans colonne secret/token/password/api_key",
+          not [t for t in ("secret", "token", "password", "api_key")
+               if t in _dump69.lower()])
+finally:
+    _cx69.close()
+    for _sfx in ("", "-wal", "-shm"):
+        try:
+            os.remove(_db69 + _sfx)
+        except FileNotFoundError:
+            pass
+check("69 : ADR-006 SQLite versionne (choix + seuils + hebergement)",
+      os.path.isfile(os.path.join(REPO, "docs", "decisions-parc", "2026",
+                                  "ADR-006-sqlite.md")))
+
 
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")

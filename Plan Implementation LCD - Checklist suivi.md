@@ -10,7 +10,7 @@
 > `Plan Logement 1 - Santa Severa Saint-Laurent-du-Var v2.md` (pilote + gabarit pack),
 > `Plan Technique LCD - Adaptation SaaS v1.md` (deltas multi-tenants).
 
-**Progression globale (MAJ manuelle) :** `70 / ~140` tâches.
+**Progression globale (MAJ manuelle) :** `70 / ~141` tâches.
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 5/14
 - Phase 2 PMS/synchro/pricing : 15/16
@@ -20,7 +20,7 @@
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 20/20 ✔
 - Phase 8 Recette / go-live : 8/12
-- Phase 9 Hébergement SaaS 3 phases : 0/9
+- Phase 9 Hébergement SaaS 3 phases : 0/10
 - Phase 10 Offre SaaS + 1er client tiers : 0/8
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
@@ -206,6 +206,7 @@ changer `LCD_GATEWAY_URL` + bloc Caddy + service systemd, rien à réécrire.
 - [ ] P9-7 Sauvegarde control plane : snapshot registres quotidien chiffré hors site (même règle que P1-1 boxes) + test restauration
 - [ ] P9-8 Durcissement WAN control plane : gateway jamais exposée sans TLS+auth, rate-limit écritures, audit `qui` (déjà en lab, à valider en prod)
 - [ ] P9-9 Revue coûts trimestrielle : rester en P1 tant que seuils verts ; P3 rentabilisée dès ~3-5 logements abonnés
+- [ ] P9-10 Base SQLite V2 (ADR-006) : `stockage.py` (schéma v1 + `--migrer` idempotent + `--export` + `--check`) + `parc.db` WAL sur volume persistant + backup chiffré quotidien + batterie lab §69 verte + Postgres réévalué seulement si ~50 logements
 
 ## Phase 10 — Offre SaaS + 1er client tiers
 
