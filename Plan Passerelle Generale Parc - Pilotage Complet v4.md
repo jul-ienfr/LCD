@@ -159,6 +159,18 @@ standby + test semestriel, failover central hôte lecture + bandeau.
 `/health` + `/ready` + `/metrics` Prometheus. Alertes : box down >10 min,
 outbox >50, rapprochement >2 %. Versions épinglées, SBOM minimal, veille
 CVE mensuelle, MAJ manuelles + snapshot + rollback, jamais d'OTA auto.
+Calendrier EOL suivi (revue mensuelle, tableau : composant + version +
+fin de support + prochaine MAJ — Python, HA, Next.js, Caddy, Proxmox,
+Z2M). CI : lint + test + build + batterie + `gitleaks` (secrets) +
+`npm audit`/`pip audit` (CVE, seuil = 0 critique). Rétention `parc.db` :
+`evenements` 2 ans chauds puis archive chiffrée, `prix_cache` 90 j,
+`quotas_llm` 13 mois, jamais de purge mandats/facturation (10 ans).
+`VACUUM INTO` hebdo + contrôle taille (alerte >500 Mo).
+Panne longue box (>24 h, FULL été) : bascule calendrier OTA en manuel +
+ménage replanifié + voyageur prévenu + relogement à nos frais si séjour
+compromis + geste ; box morte = remplacement <72 h (stock 1 box avance
+dès 3 clients). Rotation secrets : alertes J-30/J-7/J+0, blocage écritures
+au-delà de J+14 (lecture seule + bandeau), jamais de rotation silencieuse.
 Pentest : WAN direct `:8123/:4000/:8050/8090-8100/:8060` refusé, seuls
 UDP WG + 443 ouverts. Conformité : CGV + contrat e-signé, taxe auto,
 n° enregistrement + DPE par annonce, registre RGPD, pièces 10 ans,

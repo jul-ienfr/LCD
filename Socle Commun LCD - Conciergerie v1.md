@@ -215,8 +215,27 @@ hotline heures ouvrées. Escalade : opérateur → super_admin → astreinte
 (tour 1 sem, 2 personnes min, prime affichée). Tout incident = ticket +
 post-mortem si récidive (cause → standard MAJ → batterie).
 
+Échelle gravité (unique, tous cahiers) : P1 critique (sécurité, serrure,
+fuite, double-résa, plane down) = qualif <1 h + astreinte + post-mortem
+systématique ; P2 majeur (ménage en retard, prix bloqué, incident copro) =
+qualif <4 h ouvrées + ticket + revue si récidive ; P3 mineur (coquille,
+question, amélioration) = <48 h ouvrées, batch hebdo. Responsable par
+défaut : opérateur (P2/P3), super_admin (P1).
+
 Modèle éco (interne, revu trimestriel) : coûts fixes ~5 €/mois (P3) +
 ~1-3 €/logement IA + temps (ménage 3 h, rotation 3 h, astreinte) ;
 point mort ≈ 3-5 FULL (ou 8-10 PILOTAGE) en P1/P2 ; BFR = 1 mois de
 reversements + stocks ; jamais de dette pour croître (1 client = 1 box
 payée d'avance ou entrée).
+
+KPIs pilotage mensuel (revue le 10) : CA, marge/séjour, occupation,
+RevPAR (déjà §L4) + NPS proprio/voyageur trimestriel (cible ≥50),
+churn annuel (<10 %), CAC vs LTV (CAC = coût kit démo + visites + 10
+appels / clients signés ; LTV = marge annuelle × durée moyenne ; cible
+LTV/CAC ≥3). Tableau 1 page, 12 mois glissants.
+
+Continuité (bus factor) : coffre successoral (accès vault + runbook
+reprise + contacts expert-comptable/assureur, scellé, testé 1x/an) ;
+2e personne formée (runbook 2 pages + drill) avant le 3e client actif ;
+doc « indisponible 48 h » (qui fait quoi : astreinte, ménage, reversement
+reporté, message type). Sans 2e personne = pas de FULL au-delà de 2 biens.

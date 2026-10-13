@@ -162,7 +162,12 @@ App `web/` Next.js (build + lint verts) derrière `:8443`. 5 langues +
 maternelle auto (glossaire + badge). PWA (offline guide + QR fallback),
 sans-JS OK lecture. Thème par marque (dark/light, mobile-first, a11y).
 0 nom de stack côté voyageur/presta. Hôte FR, ménage FR + pictos, guest =
-langue résa.
+langue résa. Budgets front (mesurés en CI, build bloqué si dépassés) :
+LCP <2,5 s, JS <200 Ko/page, PWA offline <1 s, images <150 Ko (AVIF/WebP).
+Charge par box (N100 cible) : 1 box = 1-3 logements max (HA + moteurs
+~1,5 Go RAM) ; au-delà = 2e box ou logement `cloud`. Stockage preuves :
+quota 5 Go/logement (photos EDL + vidéos), éviction oldest-first après
+90 j (originaux basse-def gardés 1 an), alerte 80 %.
 
 Login → dashboard plugin (§S3.1) : super_admin (`dash-super`, « voir
 comme » + `/systeme` + secrets), admin (`dash-admin`, sans secrets),
@@ -205,10 +210,19 @@ fenêtrées + backup avant + test PIN sans WAN après. OPEX logiciel : 0 €
 strict à ~1-3,2 €/mois/logement (UE + Jev). Coûts LLM/Jev au dashboard,
 alerte >5 €.
 
-Batterie lab verte exigée avant commit (tenue : 1125 OK / 0 KO). 1 séjour
+Batterie lab verte exigée avant commit (tenue : 1125 OK / 0 KO). DoD par
+phase (5 items, tous cochés ou phase non close) : doc plan MAJ + batterie
+verte + runbook daté + test offline/rotation concerné + tag. 1 séjour
 témoin zéro-touch par phase. Drill trimestriel + version papier. Runbook
 2 pages (rotation ~3 h) + incidents (fuite, bruit, serrure, net,
 double-résa, trouvés). Maintenance calendaire + tests mensuels 1-tap.
+Tableau dernier-test / prochain-test par runbook (revue mensuelle, retard
+>30 j = P2). Restore chronométré sur VM réelle 1x/semestre (RTO cible 2 h,
+mesuré + daté, écart = P2).
+Qualité données (entrée + mensuel) : SIREN/SIRET vérifié (API INSEE au
+mandat), IBAN vérifié (clé + BIC), doublons prospects (tel + mail,
+fusion manuelle seule), annonces (n° + DPE + photos <12 mois). Rapport
+mensuel : doublons, champs vides, exports rejetés (Chorus/PDP).
 
 ## §T7 Juridique FR par client (matrice, pas de conseil)
 
