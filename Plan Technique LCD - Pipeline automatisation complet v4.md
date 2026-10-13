@@ -156,7 +156,7 @@ révocation checkout. Logs 90 j (texte + zone), audio 0 j, voyageurs
 24 mois / présence 90 j. 100 % local possible. Mentions guide + règlement
 + QR consentement.
 
-## §T5 Front web/ (7 dashboards plugins, §S3)
+## §T5 Front web/ (8 dashboards plugins, §S3)
 
 App `web/` Next.js (build + lint verts) derrière `:8443`. 5 langues +
 maternelle auto (glossaire + badge). PWA (offline guide + QR fallback),
@@ -164,22 +164,24 @@ sans-JS OK lecture. Thème par marque (dark/light, mobile-first, a11y).
 0 nom de stack côté voyageur/presta. Hôte FR, ménage FR + pictos, guest =
 langue résa.
 
-Hôte : 14 actions (planning, accès/PIN, prix + modes, énergie,
-incidents/sinistres, supervision, finances, messages, clôture…).
-Voyageur : WiFi <3 s, guide QR par pièce, parler/écrire, extras, départ
-zéro friction, SAV <15 min 8h-22h. Propriétaire : ses logements (CA/
-charges/net, travaux >seuil, exports périmètre). Commercial : simulateur,
-offres, pipeline CRM, fiche PDF. Auth nominative, scopes par tenant,
-sessions à expiry auto.
+Login → dashboard plugin (§S3.1) : super_admin (`dash-super`, « voir
+comme » + `/systeme` + secrets), admin (`dash-admin`, sans secrets),
+opérateur (`dash-operateur`, 14 actions : planning, accès/PIN, prix +
+modes, énergie, incidents/sinistres, supervision, finances, messages,
+clôture…), comptable (`dash-comptable`, Finances + exports seuls),
+client tiers (`dash-proprio` : CA/charges/net, travaux >seuil, exports
+périmètre), presta (`dash-presta` : mission + pointage + photos),
+voyageur (`dash-voyageur` : WiFi <3 s, guide QR, parler/écrire, extras,
+départ zéro friction, SAV <15 min 8h-22h), commercial (`dash-commercial` :
+simulateur, offres, pipeline CRM, fiche PDF). Auth nominative, scopes par
+tenant, sessions à expiry auto.
 
-Dashboards : hôte 7 onglets (Planning, Accès, Prix, Énergie, Incidents,
-Supervision, Finances) ; **opérateur multi-clients** (arrivées <18 h,
-todos, incidents critiques, prix à valider, litiges/cautions, seuils IA) ;
-ménage 3 onglets (todos + deadline check-in −2 h, checklist bloquante,
-stocks) ; guest kiosk (WallPanel, QR backup) ; système (hôte seul).
-Lovelace YAML versionné ; front lit les mêmes APIs. Switcher
-`logement_actif`, bandeau offline. Recette : mobile + offline 2 h +
-1 séjour témoin zéro-touch (hors ménage).
+Dashboards HA (compat box) : hôte 7 onglets (Planning, Accès, Prix,
+Énergie, Incidents, Supervision, Finances) ; ménage 3 onglets (todos +
+deadline check-in −2 h, checklist bloquante, stocks) ; guest kiosk
+(WallPanel, QR backup). Lovelace YAML versionné ; front lit les mêmes
+APIs. Switcher `logement_actif`, bandeau offline. Recette : mobile +
+offline 2 h + 1 séjour témoin zéro-touch (hors ménage).
 
 Preuves : EDL PWA photos horodatées par pièce + vidéo optionnelle
 (anti-galerie >24 h, EXIF, comparatif, clôture bloquée si manquantes).

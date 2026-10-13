@@ -110,23 +110,33 @@ Compteurs par logement → ligne « IA/voix » refacturée (FULL incluse
 jusqu'au seuil, PILOTAGE/KIT dès le 1er token). Kill-switch par entité.
 6 interdits non configurables (grisés + 403).
 
-## §P8 Front SaaS — 7 dashboards plugins (§S3)
+## §P8 Front SaaS — 8 dashboards plugins (§S3)
 
 Login unique → rôle → dashboard plugin (§S3.1). 1 plugin = 1 dossier + 1
 `dashboard.yaml` (rôles, routes, APIs allowlist, flags, version, i18n) +
 1 batterie. Cœur jamais touché (gateway, auth, RBAC). Plugin désactivé =
 404 + journal. Chargeur strict au démarrage (rôles connus, APIs allowlist,
 flags existants, i18n 5 langues complètes — sinon refus + log).
-Opérateur (plugin `dash-operateur`) : vue parc + cartes (alertes d'abord), planning dry-run,
-dispatch (validation humaine, clôture 409 si incomplet), prix 1-tap,
-incidents (signalement → qualif → assignation → preuves → facturation →
-avis), `/etat-parc`, `/metrics`. Proprio client (plugin `dash-proprio`) : SES logements seuls,
-relevés PDF dans sa langue, versements tracés, documents. Jamais
-`/systeme`, jamais PIN complet. Presta (plugin `dash-presta`) : PWA mission seule, cache-first,
-offline = guide + urgences. Voyageur (plugin `dash-voyageur`) : lien magique (128 bits + HMAC,
-J-2 15h → checkout +12h, révocable, purge 90 j), WiFi/QR/guide + écritures
-bornées (incident photos, extras, départ tardif, checkout, EDL). PIN en
-fenêtre seule, 4 derniers en log.
+
+- Super_admin (plugin `dash-super`) : vue groupe + sélecteur « voir comme »
+  (§S3.3) + `/systeme` + secrets/rotation. Admin (`dash-admin`) : idem sans
+  secrets.
+- Opérateur (plugin `dash-operateur`) : vue parc + cartes (alertes d'abord),
+  planning dry-run, dispatch (validation humaine, clôture 409 si incomplet),
+  prix 1-tap, incidents (signalement → qualif → assignation → preuves →
+  facturation → avis), `/etat-parc`, `/metrics`.
+- Comptable (plugin `dash-comptable`) : Finances + exports mono-SIREN seuls.
+- Proprio client (plugin `dash-proprio`) : SES logements seuls, relevés PDF
+  dans sa langue, versements tracés, documents. Jamais `/systeme`, jamais
+  PIN complet.
+- Presta (plugin `dash-presta`) : PWA mission seule, cache-first,
+  offline = guide + urgences.
+- Commercial (plugin `dash-commercial`) : pipeline 8 étapes, simulateur,
+  offres, fiche PDF. Jamais prix/coûts.
+- Voyageur (plugin `dash-voyageur`) : lien magique (128 bits + HMAC,
+  J-2 15h → checkout +12h, révocable, purge 90 j), WiFi/QR/guide + écritures
+  bornées (incident photos, extras, départ tardif, checkout, EDL). PIN en
+  fenêtre seule, 4 derniers en log.
 
 Design : HTML sans JS côté parc, PWA cache-first terrain, WCAG 2.2 AA +
 sombre, lazy cartes (alertes d'abord), journal 200/page, `ETag` +

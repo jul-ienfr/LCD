@@ -49,7 +49,7 @@ Anciens % (15/20-25/30 %) ne sont plus vendus.
 ```text
 [Voyageur/Proprio/Opérateur — navigateur/PWA, 5 langues]
   v HTTPS :443 (Caddy TLS auto, forward_auth humains / mTLS machines)
-[Front web/ — 7 dashboards plugins + PWA séjour]
+[Front web/ — 8 dashboards plugins + PWA séjour]
   v HTTPS interne (LCD_GATEWAY_URL)
 [Gateway passerelle-parc :8443 — stdlib, fan-out, cache, journal, vault]
   ^--- box-initiated seul (WireGuard hub-and-spoke, keepalive 25s)
@@ -62,7 +62,7 @@ fan-out, cache horodaté, allowlist 1-tap, audit central. Jamais décideur.
 Plane down → box autonome + `:8060` local. Box offline → cache stale +
 `last_seen`.
 
-## §S3 Multi-tenant — login, 7 dashboards, plugins
+## §S3 Multi-tenant — login, 8 dashboards, plugins
 
 Tout est keyé `(entite_id, logement_id, box_id)`. Sans `entite_id`, la
 gateway rejette en 422 (sauf bascule lab). Taggage gateway-side en v1
