@@ -49,7 +49,7 @@ Anciens % (15/20-25/30 %) ne sont plus vendus.
 ```text
 [Voyageur/Proprio/Opérateur — navigateur/PWA, 5 langues]
   v HTTPS :443 (Caddy TLS auto, forward_auth humains / mTLS machines)
-[Front web/ — 4 parcours + PWA séjour]
+[Front web/ — 7 dashboards plugins + PWA séjour]
   v HTTPS interne (LCD_GATEWAY_URL)
 [Gateway passerelle-parc :8443 — stdlib, fan-out, cache, journal, vault]
   ^--- box-initiated seul (WireGuard hub-and-spoke, keepalive 25s)
@@ -62,19 +62,66 @@ fan-out, cache horodaté, allowlist 1-tap, audit central. Jamais décideur.
 Plane down → box autonome + `:8060` local. Box offline → cache stale +
 `last_seen`.
 
-## §S3 Multi-tenant
+## §S3 Multi-tenant — login, 7 dashboards, plugins
 
 Tout est keyé `(entite_id, logement_id, box_id)`. Sans `entite_id`, la
 gateway rejette en 422 (sauf bascule lab). Taggage gateway-side en v1
 (zéro modif moteur).
 
-Rôles (RBAC `acces.yaml`, 2FA super_admin/admin/gestionnaire/comptable) :
-super_admin (tout + secrets) ; admin (tout sauf secrets) ; opérateur
-(planning, ménage, incidents, prix 1-tap, périmètre opéré) ; comptable
-(Finances + exports seuls) ; client tiers (`client_tiers_ref + entite_id`,
-SES logements seuls + relevés, jamais `/systeme`, jamais PIN complet,
-jamais autres clients) ; presta (PWA mission seule) ; voyageur (lien
-magique, sans compte) ; commercial (prospects + simulateur + offres seuls).
+### §S3.1 Login par rôle — 1 login = 1 dashboard
+
+Un seul point d'entrée (`/login`, IdP + 2FA). Le login détermine le rôle,
+le rôle détermine le dashboard ET le périmètre. 1 compte nominatif par
+personne (sauf kiosk guest + lien magique voyageur, sans compte).
+Révocation auto : fin mission (presta), checkout +12 h (voyageur),
+résiliation (client), `expire_le` dépassé (tous). `POST /v1/acces-revoquer`
+(jamais soi-même, jamais super_admin).
+
+| Login | Rôle | Dashboard | Périmètre | 2FA |
+|---|---|---|---|---|
+| super_admin | super_admin | Tous les dashboards (§S3.2) + `/systeme` + secrets/rotation | Tout, tous clients | Oui |
+| admin | admin | Tous sauf secrets | Tout, tous clients | Oui |
+| opérateur | gestionnaire/opérateur | Parc opéré : planning, ménage, incidents, prix 1-tap | Logements opérés | Oui |
+| comptable | gestionnaire/comptable | Finances + exports seuls | Périmètre opéré | Oui |
+| client tiers | propriétaire | SES logements : relevés, versements, documents | `entite_id` + `logements:[...]` | Non |
+| presta | prestataire | PWA mission seule : todos, pointage, photos, clôture | Mission + fenêtre | Non |
+| commercial | commercial | Prospects + simulateur + offres seuls | Ses prospects | Non |
+| voyageur | voyageur | PWA séjour seule (lien magique, sans compte) | Son séjour | Non |
+
+Jamais : client tiers sur `/systeme`, PIN complet hors opérateur,
+autres clients, prix/coûts pour le commercial, HA direct pour le presta.
+
+### §S3.2 Dashboards plugins — modifiables sans toucher au cœur
+
+Chaque dashboard = **1 plugin** : 1 dossier + 1 manifeste + 1 batterie.
+Ajouter/retirer/modifier un dashboard = ajouter/retirer/modifier son
+dossier, jamais le cœur (gateway, auth, RBAC). Plugin désactivé = route
+404 + entrée au journal, jamais d'erreur muette.
+
+Manifeste (`dashboard.yaml` par plugin) : `id`, `roles: [...]`,
+`routes: [...]`, `apis: [...]` (allowlist relais), `flags: [...]`
+(feature-flags requis), `version`, `i18n_prefixe`. Le chargeur vérifie à
+chaque démarrage : rôles connus, APIs dans l'allowlist globale, flags
+existants, clés i18n complètes 5 langues — sinon refus + log (jamais de
+demi-chargement).
+
+Plugins v1 (7) : `dash-super` (vue groupe + sélecteur « voir comme »
+§S3.3 + `/systeme` + secrets) ; `dash-admin` (idem sans secrets) ;
+`dash-operateur` (tournée, incidents, dispatch, prix 1-tap, kanban) ;
+`dash-comptable` (Finances + exports mono-SIREN) ; `dash-proprio`
+(relevés, versements, documents) ; `dash-presta` (PWA mission) ;
+`dash-voyageur` (PWA séjour) ; `dash-commercial` (pipeline, simulateur,
+offres). Marque blanche par plugin (`{{marque}}`, thémage par client).
+
+### §S3.3 Super_admin voit tous les dashboards (« voir comme »)
+
+Le super_admin (puis l'admin, sauf secrets) ouvre n'importe quel dashboard
+en mode « voir comme » : sélecteur rôle + utilisateur + logement, bandeau
+permanent « vue simulée — actions tracées comme super_admin », chaque
+écriture loggée `{qui_reel, vu_comme, quoi}`. Jamais de simulation de
+secrets (le contenu secret reste masqué même en « voir comme »).
+Usage : support client, recette plugin, formation. Audit : journal des
+« voir comme » 90 j, relecture mensuelle.
 
 Isolation : filtres `?entite=&mode=propre|mandat_tiers&client=` partout.
 403 si hors périmètre, 404 identique 403/404 côté voyageur

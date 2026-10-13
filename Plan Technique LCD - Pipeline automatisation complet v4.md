@@ -64,13 +64,15 @@ Clés : `entite_id` (facturant) + `client_tiers_ref` (vide = vitrine) +
 triplet. Aucune compta mutualisée, aucun dashboard croisé, support
 multi-marques par tag.
 
-RBAC 5 rôles : `super_admin`/`admin` (vous seuls, secrets = super seul),
-`gestionnaire` (logX opérés, pas `/systeme`/secrets), `proprietaire` (ses
-logX : Planning/Prix/Finances/Incidents lecture), `prestataires`
-(mission/fenêtre : PWA + pointage + photos + facture), `voyageur` (PWA
-séjour, session révoquée + purge). Source `acces.yaml` (1 entrée/personne :
-rôle, sous-rôle, logements, expiry). Onboarding auto à la signature +
-révocation auto. Journal qui/quand/quoi 90 j, forçage = motif loggué.
+Login par rôle → dashboard plugin (§S3.1) : super_admin/admin (vous
+seuls, secrets = super seul + « voir comme » §S3.3), opérateur (logX
+opérés, pas `/systeme`/secrets), comptable (Finances + exports seuls),
+client tiers (ses logX : Planning/Prix/Finances/Incidents lecture),
+presta (mission/fenêtre : PWA + pointage + photos + facture), voyageur
+(PWA séjour, session révoquée + purge), commercial (prospects/simulateur/
+offres seuls). Source `acces.yaml` (1 entrée/personne : rôle, sous-rôle,
+logements, expiry). Onboarding auto à la signature + révocation auto.
+Journal qui/quand/quoi 90 j, forçage = motif loggué.
 
 Marque blanche jour 1 : tout vient de `branding.yaml` (marque, logo,
 couleurs, domaine, contacts, mentions, langues). PWA thémée, messages
@@ -154,7 +156,7 @@ révocation checkout. Logs 90 j (texte + zone), audio 0 j, voyageurs
 24 mois / présence 90 j. 100 % local possible. Mentions guide + règlement
 + QR consentement.
 
-## §T5 Front web/ (4 parcours)
+## §T5 Front web/ (7 dashboards plugins, §S3)
 
 App `web/` Next.js (build + lint verts) derrière `:8443`. 5 langues +
 maternelle auto (glossaire + badge). PWA (offline guide + QR fallback),
@@ -212,7 +214,7 @@ Mandat écrit par proprio (périmètre, forfait, seuils, durée, rémunération)
 CGV direct + CGU plateformes (CGU > propres). Contrat voyageur PWA 30 s +
 règlement copro-aligné + mentions annonces. Factur-X B2B / PDF B2C,
 registre national + taxe NCA + DPE. Classement Atout France en option.
-Comptes 5 rôles à la signature (invitation scopée).
+Comptes créés à la signature (invitation scopée, login → dashboard §S3.1).
 
 Caution : Airbnb = AirCover + 14 j (caution hors plateforme INTERDITE) ;
 Booking = collecte séparée déclarée (VCC = séjour seul) ; Abritel =

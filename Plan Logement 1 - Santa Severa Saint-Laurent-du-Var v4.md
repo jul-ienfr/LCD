@@ -79,8 +79,9 @@ mémoire opt-in révocable purge 24 mois, WG FULL/PILOTAGE (KIT à la demande).
    de FULL) ; photos + mesures + commerces locaux.
 2. **Contrat** : mandat écrit + CGV (FULL/PILOTAGE) ou vente + maintenance
    (KIT). RC pro à jour côté nous, RC prestas vérifiée (dispatch bloqué si
-   expirée). Fonds tagués. Forfait acté. Compte proprio scopé (SES
-   logements seuls), nominatif, 2FA admin/gestionnaire.
+   expirée). Fonds tagués. Forfait acté. Login client créé (dashboard
+   `dash-proprio` : SES logements seuls, §S3.1), nominatif, 2FA
+   admin/gestionnaire.
 3. **Pack** : box préparée (image vitrine), ids créés, tarifs + extras
    saisis, prestas rattachés, langues, règlement adapté à SA copro, fiche
    mini-bar imprimée.
