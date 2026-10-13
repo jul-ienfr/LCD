@@ -141,7 +141,8 @@ conciergerie complète (§14), routage IA (§15), deltas audit (§16), i18n (§1
    les démos clients : lien démo périmé 24h, données fictives).
 5. Batterie lab : ajouter **§31 multi-tenant SaaS** (cross-tenant → 403,
    facture/relevé par tenant justes, compteurs IA isolés, onboarding →
-   `actif` avec dossier complet, résiliation → solde + archives).
+   `actif` avec dossier complet, résiliation → solde + archives) — FAIT sous
+   n° **§73** (P10-4, verte 2026-10-13).
 
 ## §6. Base de données V2 — SQLite dès le départ (ADR-006, figé)
 
@@ -198,7 +199,19 @@ logements) ; réévaluation Postgres managé seulement si multi-writer réel
   `test-vps.ps1` 7/7 OK (health, statut, metrics, POST relayé, Caddy seul
   publié, HSTS, 0 secret) ; batterie **§72** (6 checks config). Différences
   dites : pas d'Authelia/MFA (couvert G3), pas de WireGuard, pas de LE/DNS.
-- **Batterie 1119 OK / 0 KO** (commit ci-dessous).
+- **Isolation multi-tenant P10-4** : export-compta entité inconnue = 404,
+  portail `?client=` hors déclaration = 403 anti-énumération, sans `qui` =
+  400 ; batterie **§73** (6 checks, verte 2026-10-13).
+- **Docs ops P9** (`docs/ops/`) : `procedure-p1-mise-en-service.md`
+  (checklist 0 € : lab, VM Oracle, Caddy, DNS, Vercel, WireGuard, tests) ;
+  `procedure-migration-p2-p3.md` (seuils `/v1/statut`, matrice, cutovers,
+  rollbacks <30 min) ; `procedure-backup-restore.md` (VACUUM INTO + age
+  quotidien vers Oracle+R2, restore trimestriel isolé, runbooks).
+- **Docs juridiques P10-1** (`docs/templates/`, modèles internes —
+  relecture juriste OBLIGATOIRE) : `mandat_gestion_locative_courte_duree.md`
+  (~15 articles + checklist 8 pièces + grille) ;
+  `cgv_conciergerie_proprietaires.md` (~10 articles, R.212-1 respecté).
+- **Batterie 1125 OK / 0 KO** (commit ci-dessous).
 
 ## §4. Phases G0→G5 relues SaaS (réoriente v1 §8)
 

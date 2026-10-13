@@ -14,6 +14,9 @@
 #   deploy-vps.sh wg-key <box_id> <ip_box>    # clés box + peer hub (chiffré)
 #   deploy-vps.sh rotate wg <box_id> <ip_box> # re-clé une box existante
 #   deploy-vps.sh authelia-users              # squelette utilisateurs
+#   deploy-vps.sh backup                      # snapshot parc.db + registres (chiffré age)
+#   deploy-vps.sh restore <archive.age>       # restauration backup (machine isolée)
+#   deploy-vps.sh statut                      # compteurs bascule P1/P2/P3 (cron 5 min)
 #   deploy-vps.sh check                       # relecture de sûreté
 #
 # Aucune commande réseau ici : la box récupère sa conf par canal chiffré.
@@ -215,6 +218,80 @@ cmd_authelia_users() {
 }
 
 # =============================================================================
+cmd_backup() {
+    # P9-7 : snapshot control plane (parc.db + registres YAML), chiffré age,
+    # hors site. `VACUUM INTO` = copie cohérente même base ouverte (jamais de
+    # cp à chaud d'un SQLite WAL). Rétention : 7 j / 4 sem / 12 mois (par
+    # préfixe jour/sem/mois). Aucun secret en clair : tout est déjà en refs.
+    avoir sqlite3 "apt install sqlite3"
+    avoir age "apt install age"
+    vault_pret
+    BASE="${LCD_PARC_DB:-/var/lib/lcd/parc.db}"
+    REG="${LCD_REGISTRE_DIR:-/var/lib/lcd/registre}"
+    DEST="${LCD_BACKUP_DIR:-/var/lib/lcd/backups}"
+    mkdir -p "$DEST"
+    STAMP="$(date -u +%Y-%m-%dT%H%M%SZ)"
+    TMP="$(mktemp -d)"
+    if [ -f "$BASE" ]; then
+        sqlite3 "$BASE" "VACUUM INTO '$TMP/parc.db';"
+    else
+        warn "base absente (${BASE}) — snapshot registres seuls"
+    fi
+    [ -d "$REG" ] && cp -r "$REG" "$TMP/registre" || true
+    (cd "$TMP" && tar -cf - .) \
+        | age -r "$(cat "${VAULT_DIR}/${AGE_PUBLIC}")" \
+        -o "$DEST/parc-$STAMP.tar.age"
+    chmod 600 "$DEST/parc-$STAMP.tar.age"
+    rm -rf "$TMP"
+    log "backup : $DEST/parc-$STAMP.tar.age"
+    warn "pousse hors site (Object Storage + R2) + teste le restore (trimestriel)."
+}
+
+# =============================================================================
+cmd_restore() {
+    # Restauration sur machine ISOLÉE (jamais sur la prod en marche) : déchiffre
+    # (clé age HORS VPS), contrôle, puis l'opérateur recopie à la main.
+    [ $# -eq 1 ] || fini "usage: deploy-vps.sh restore <archive.age>"
+    avoir age "apt install age"
+    [ -f "${VAULT_DIR}/${AGE_KEY}" ] \
+        || fini "clé age absente — restaure la clé hors-ligne d'abord"
+    TMP="$(mktemp -d)"
+    age -d -i "${VAULT_DIR}/${AGE_KEY}" -o "$TMP/restore.tar" "$1"
+    mkdir -p "$TMP/out" && tar -xf "$TMP/restore.tar" -C "$TMP/out"
+    [ -f "$TMP/out/parc.db" ] \
+        && sqlite3 "$TMP/out/parc.db" "PRAGMA integrity_check;" \
+        || log "pas de parc.db (registres seuls)"
+    log "contenu vérifié sous $TMP/out — recopie MANUELLE vers la cible"
+    warn "ne redémarre la gateway qu'après contrôle des registres."
+}
+
+# =============================================================================
+cmd_statut() {
+    # P9-3 : compteurs bascule lus par GET /v1/statut (`state/parc/statut.json`).
+    # Cron 5 min (systemd timer). Bande Vercel = saisie opérateur (dashboard
+    # Vercel, Go/mois) ; CPU/RAM/disque = mesures locales ; jamais inventé :
+    # absent = clé absente (la gateway rend `mesure: false`).
+    OUT="${LCD_STATUT_JSON:-/var/lib/lcd/state/parc/statut.json}"
+    mkdir -p "$(dirname "$OUT")"
+    CPU="$(awk '{u=$2+$4; t=$2+$4+$5; print (t>0)?int(100*u/t):0}' \
+        /proc/stat | head -1)"
+    MEM="$(free | awk '/Mem:/{print int(100*$3/$2)}')"
+    DISK="$(df /var/lib/lcd 2>/dev/null | awk 'NR==2{gsub(/%/,"",$5); print $5}')"
+    DISK="${DISK:-$(df / | awk 'NR==2{gsub(/%/,"",$5); print $5}')}"
+    VERCEL="${LCD_VERCEL_GO_MOIS:-}"
+    TMP="$OUT.tmp"
+    {
+        printf '{"vm_cpu_pct": %s, "vm_ram_pct": %s, "vm_disque_pct": %s' \
+            "${CPU:-0}" "${MEM:-0}" "${DISK:-0}"
+        [ -n "$VERCEL" ] && printf ', "vercel_bande_go_mois": %s' "$VERCEL"
+        printf ', "mesure_le": "%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    } > "$TMP"
+    mv "$TMP" "$OUT"
+    chmod 600 "$OUT"
+    log "statut : $OUT (cpu=${CPU}% ram=${MEM}% disque=${DISK}% vercel=${VERCEL:-n/a})"
+}
+
+# =============================================================================
 cmd_check() {
     code=0
     [ -d "${VAULT_DIR}" ] || { warn "manquant : ${VAULT_DIR}"; code=1; }
@@ -249,6 +326,9 @@ case "${1:-}" in
     wg-key)         shift; cmd_wg_key "$@" ;;
     rotate)         shift; cmd_rotate "$@" ;;
     authelia-users) shift; cmd_authelia_users ;;
+    backup)         shift; cmd_backup ;;
+    restore)        shift; cmd_restore "$@" ;;
+    statut)         shift; cmd_statut ;;
     check)          shift; cmd_check ;;
     -h|--help|help) usage 0 ;;
     "")             usage 2 ;;

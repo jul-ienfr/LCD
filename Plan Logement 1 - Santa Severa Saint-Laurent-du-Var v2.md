@@ -16,13 +16,13 @@ Log1 = vitrine commerciale + banc d'essai : visite client sur place, photos/avis
 
 **Clients tiers visés dès le départ.** Propriétaires Côte d'Azur (Saint-Laurent-du-Var, Nice ouest, Sophia Antipolis) avec un T2–T3 meublé en copropriété classique, qui louent ou veulent louer en courte durée mais ne veulent pas gérer : calendriers, messages, ménage, extras, conformité mairie/taxe. Pas d'hôtellerie, pas de découpage à la chambre, pas de fêtes — même filtre copro que log1.
 
-**3 forfaits (offre cible).**
+**3 forfaits (tranché 2026-10-13, voir Passerelle v2 §0 pour l'étude marché).**
 
-| Forfait | Contenu | Prix cible | Pour qui |
+| Forfait | Contenu | Prix tranché | Pour qui |
 |---|---|---|---|
-| **FULL-SERVICE — commission ~20 % du CA** | Box sur place + pilotage complet (calendriers, pricing, messages, extras, conciergerie séjour) + ménage/linge gérés + conformité (Cerfa, taxe, contrat voyageur) + supervision | ~20 % CA encaissé | Proprio qui veut zéro gestion |
-| **PILOTAGE — abonnement / logement / mois** | Box + pilotage (idem FULL sans ménage) : le client garde son ménage / ses prestas, on lui envoie les todos + contrôle qualité (score ménage, photos) | Abonnement fixe / logement / mois (montant à trancher, §12) | Proprio déjà équipé en ménage |
-| **KIT — vente unique + maintenance** | Box + logiciel + support : on installe, on configure, on forme, puis le client est autonome. Supervision NON incluse (option maintenance à trancher) | Vente unique (matériel + install + config) + maintenance annuelle optionnelle | Proprio autonome / bricoleur |
+| **FULL-SERVICE — 25 % du brut** | Box sur place + pilotage complet (calendriers, pricing, messages, extras, conciergerie séjour) + ménage/linge gérés + conformité (Cerfa, taxe, contrat voyageur) + supervision | 25 % brut encaissé HT + ménage 110 € refacturé voyageur ; mini 149 €/mois ; entrée 290 € | Proprio qui veut zéro gestion |
+| **PILOTAGE — 149 €/mois** | Box + pilotage (idem FULL sans ménage) : le client garde son ménage / ses prestas, on lui envoie les todos + contrôle qualité (score ménage, photos) | 149 €/logement/mois (129 € dès 3 lots) ; mise en route 190 € | Proprio déjà équipé en ménage |
+| **KIT — 890 € + 240 €/an** | Box + logiciel + support : on installe, on configure, on forme, puis le client est autonome. Supervision NON incluse | Vente 890 € posé + maintenance 240 €/an | Proprio autonome / bricoleur |
 
 **Ce plan = le « pack client ».** Chaque vente = même onboarding en 4 temps : **visite → pack box → install → config → go-live**. Checklist réutilisable au §0-bis. Écart au gabarit = devis séparé, jamais du gratuit.
 
@@ -30,7 +30,19 @@ Log1 = vitrine commerciale + banc d'essai : visite client sur place, photos/avis
 
 ---
 
-### §0-bis. Pack client type — ce qu'on installe chez un tiers
+### §0-bis. Pack client type — ce qu'on installe chez un tiers (P10-2)
+
+**Chiffrage pack par forfait (matériel indicatif, prix d'achat constatés 2025-2026 : mini-PC ~180 €, Nuki ~280 €, Minut ~150 €, sondes/QR/stocks ~100 €, main d'œuvre install ½ j).**
+
+| Forfait | Contenu box | Prix box client | Délai install |
+|---|---|---|---|
+| **FULL-SERVICE** | Pack complet : mini-PC + Nuki + Minut + 2 sondes CO2 + clé secours + clayette mini-bar + QR + kit bienvenue + stocks initiaux + runbook papier | **~890 €** matériel + pose incluse dans l'entrée 290 € (surcoût facturé au réel si logement >T3) | ½ journée (J+7 après visite si pack en stock) |
+| **PILOTAGE** | Box légère : mini-PC + Nuki + 1 sonde CO2 + QR + runbook (sans Minut, sans mini-bar — le client gère son ménage) | **~640 €** matériel + mise en route 190 € | ½ journée (J+7) |
+| **KIT** | Box + doc : mini-PC + Nuki + QR + guide autonome + formation 1 h (pas de WireGuard permanent, pas de supervision) | **890 €** posé (marge incluse) + maintenance 240 €/an | ½ journée + formation (J+7) |
+
+Écart au pack (logement >T3, 2e serrure, câblage spécifique) = devis séparé, jamais du gratuit. Tout le matériel reste propriété du client après paiement (FULL/PILOTAGE : box reprise si résiliation <12 mois, au choix du client).
+
+**Box sur place (matériel + fonctions, identique log1 sauf variantes ci-dessous).**
 
 **Box sur place (matériel + fonctions, identique log1 sauf variantes ci-dessous).**
 - **Booking-direct** : parcours réservation en direct (sans commission OTA) — questionnaire pré-arrivée J-2 (lien PWA + PIN, 3 min : arrivée + préférences + extras + contrat), paiement extras (Stripe Payment Link / Swikly), cut-off J-1 18h.
@@ -46,9 +58,10 @@ Log1 = vitrine commerciale + banc d'essai : visite client sur place, photos/avis
 - **PILOTAGE = supervision pilotage seul.** Box connectée, mêmes calendriers/messages/pricing/extras, mais ménage fait par le client : il reçoit les todos datées + doit envoyer photos ; sans photos = alerte qualité. Pas de dispatch ménage, pas de gestion sinistre sur place sans devis.
 - **KIT = sans supervision.** Box autonome sur place, pas de paire WireGuard permanente (intervention à la demande, à distance ou sur place, facturée sauf maintenance souscrite). Client autonome sur calendriers/messages après formation. Support = doc + hotline, pas d'astreinte.
 
-**Checklist onboarding réutilisable (copier-coller par client).**
+**Checklist onboarding réutilisable (copier-coller par client) — P10-3.**
+Chaque étape est datée au registre (`box_id` / `logement_id`, forfait, prestas de zone, dates install/go-live) ; sans entrée registre = pas de support.
 1. [ ] **Visite** (45 min) : copro autorise ? (règlement + AG — cf. §2), DPE/diagnostics OK ? (cf. §7), logement « extras-compatible » ? (frigo, place kit bébé/plage, bruit), photos avant, zone prestas couverte ? (≥2 par métier critique sinon alerte — cf. §10-bis).
-2. [ ] **Contrat** : mandat écrit de gestion saisonnière (FULL/PILOTAGE) ou bon de vente + maintenance (KIT), RC pro conciergerie à jour côté nous, RC pro prestas vérifiée, choix forfait + prix actés, fonds via Stripe/Swikly tagué par logement.
+2. [ ] **Contrat** : mandat écrit de gestion saisonnière (FULL/PILOTAGE — voir `docs/templates/mandat_gestion_locative_courte_duree.md`, relecture juriste obligatoire) ou bon de vente + maintenance (KIT) ; CGV conciergerie remises (`docs/templates/cgv_conciergerie_proprietaires.md`) ; RC pro conciergerie à jour côté nous, RC pro prestas vérifiée, choix forfait + prix actés, fonds via Stripe/Swikly tagué par logement.
 3. [ ] **Pack box** : box préparée (même image que log1), `box_id` / `logement_id` créés au registre, tarifs/extras du client saisis, prestas de zone rattachés, langues activées.
 4. [ ] **Install** (½ journée) : pose box + Minut + CO2 + clé secours, clayette mini-bar + QR + fiche prix, kit bienvenue + stocks initiaux, runbook papier plastifié dans logement, photos install.
 5. [ ] **Config** : paire WireGuard + entrée registre (FULL/PILOTAGE ; KIT = à la demande), calendriers OTA connectés, questionnaire J-2 + Stripe/Swikly tagué logement, PWA/guide aux couleurs du logement, règlement intérieur adapté copro du client.

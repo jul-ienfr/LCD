@@ -8145,6 +8145,36 @@ check("72 : script test-vps.ps1 present (7 checks runtime : TLS, statut,"
           os.path.join(_simdir, "test-vps.ps1"),
           encoding="utf-8").read())
 
+print("== 73. passerelle parc : isolation multi-tenant SaaS (P10-4) ==")
+# Un compte client_tiers ne voit QUE ses logements (portail), l'export-compta
+# d'une entité inconnue = 404 (jamais tout le parc), et le filtre ?client=
+# sur un client non déclaré = 403 (anti-énumération de la clientèle).
+c73, r73 = get("passerelle", "/export-compta?entite=ent-inexistante")
+check("73 : export-compta entite inconnue = 404 (jamais tout le parc)",
+      c73 == 404, f"HTTP {c73}")
+# personne_05 = proprietaire client-lab-01 : un ?client= hors declaration
+# = 403 anti-enumeration (un exploitant/super_admin passe, c'est voulu).
+c73, r73 = get("passerelle",
+               "/parc/portail?qui=personne_05&client=client-inexistant")
+check("73 : portail proprio ?client= non declare = 403 anti-enumeration",
+      c73 == 403, f"HTTP {c73}")
+c73, r73 = get("passerelle",
+               "/parc/portail?qui=personne_05&client=client-lab-01")
+check("73 : portail proprio ?client= declare = 200 + gardes>=1",
+      c73 == 200 and (r73.get("filtres") or {}).get("gardes", 0) >= 1,
+      f"HTTP {c73}")
+c73, r73 = get("passerelle", "/parc/portail/log1")
+check("73 : portail sans qui = 400 (compte humain obligatoire)",
+      c73 == 400, f"HTTP {c73}")
+c73, r73 = get("passerelle", "/export-compta")
+check("73 : export-compta sans filtre = 200 + par_entite + lecture seule",
+      c73 == 200 and r73.get("lecture_seule") is True
+      and isinstance(r73.get("par_entite"), dict), f"HTTP {c73}")
+check("73 : 0 fuite PIN/secret/token/cle sur les routes tenant",
+      not [t for t in ('"pin"', '"secret"', '"token"', '"password"',
+                       '"api_key"', "Bearer", "LCD_HA_")
+           if t in json.dumps(r73, ensure_ascii=False)])
+
 
 if ECHECS:
     print(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
