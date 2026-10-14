@@ -134,20 +134,13 @@ def lire_logements(path):
         if not ligne.strip():
             continue
         indent = len(ligne) - len(ligne.lstrip(" "))
-        if indent == 2 and ligne.strip() == "log1:":
-            cur = "log1"
+        if indent == 2 and ligne.strip().endswith(":"):
+            cur = ligne.strip()[:-1]
+            # G4-b : box nord (log3) comme tout autre id — le parseur historique
+            # ne connaissait que log1/log2 et AVALAIT log3 en silence (le
+            # moteur demarrait « sans logement », donc refusait tout PUT /prix).
             logts[cur] = {"prix_base": 110, "prix_min": 75, "prix_max": 290,
                           "mode_gestion_defaut": "equilibre"}
-            in_pricing = False
-            continue
-        if indent == 2 and ligne.strip() == "log2:":
-            cur = "log2"
-            logts[cur] = {"prix_base": 90, "prix_min": 75, "prix_max": 290,
-                          "mode_gestion_defaut": "equilibre"}
-            in_pricing = False
-            continue
-        if cur and indent == 2 and ligne.strip().endswith(":"):
-            cur = None  # autre section de même niveau (log2 géré ci-dessus, etc.)
             in_pricing = False
             continue
         if cur is None:
@@ -527,6 +520,24 @@ class Handler(BaseHTTPRequestHandler):
                                     "reco_ota_1tap": r["reco_ota_1tap"],
                                     "grille_7j": [(g["date"], g["pivot"], g["prix_canal"])
                                                   for g in r["grille"]]})
+        if url.path == "/appliques":
+            # G4-b (§16.2) : les prix APPLIQUES (PUT /prix mémorisés), lus par
+            # l'agent box pour nourrir `/ingest`. Lecture seule ; sans `date`,
+            # on rend les 7 derniers jours (un conflit split-brain se tranche
+            # sur le récent, pas sur l'historique complet).
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id:
+                return self._json(400, {"erreur": "logement_id requis"})
+            try:
+                n = max(1, min(int(qs.get("jours", ["7"])[0]), 62))
+            except (TypeError, ValueError):
+                n = 7
+            lignes = [{"date": d, **v} for (l, d), v
+                      in sorted(eng.prix_appliques.items())
+                      if l == logement_id][-n:]
+            return self._json(200, {"logement_id": logement_id,
+                                    "appliques": lignes,
+                                    "lecture_seule": True})
         return self._json(404, {"erreur": "inconnu"})
 
     def do_PUT(self):

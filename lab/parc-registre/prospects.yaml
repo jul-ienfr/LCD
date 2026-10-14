@@ -1,0 +1,10 @@
+# custom/passerelle-parc/prospects.yaml — CRM prospection (§14.5, G6).
+# Versionné, SANS PII bancaire : contact = référence (email/tél de démarchage
+# pro), jamais IBAN/RIB. Rétention prospects 3 ans (§16.3), purge tracée.
+# Pipeline : suspect → contacte → visite → simulateur → offre → mandat →
+# onboardé → actif. Relances J+3/J+7/J+15 = brouillons seuls (envoi humain).
+# Onboarding gagné = POST /parc/mandats (checklist brouillon → pret → actif).
+
+version: 1
+
+prospects:

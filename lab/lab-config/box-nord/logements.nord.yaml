@@ -1,0 +1,72 @@
+# lab/lab-config/box-nord/logements.nord.yaml — COPIE de lab, box NORD.
+# 1 box = 1 logement : log3 (log1+log2 restent sur box-lab). Les 2 log1+log2
+# sur box-lab et log3 sur box-nord gardent TOUS les comptages existants à 2+1.
+# Données fictives de lab.
+global:
+  devise: EUR
+  langue_hote: fr
+  langues_socle: [fr]
+  prix_min: 75
+  prix_max: 290
+  hold_caution_min: 500
+  hold_caution_max: 800
+  ics_poll_minutes: 15
+  menage_montant_defaut: 100
+  llm_proxy: "http://llm-stub:4000"
+  ui_routage: "http://lab-ui:8050"
+
+logements:
+  log3:
+    nom: "Logement 3 Nord (LAB)"
+    commune: "Cagnes-sur-Mer"
+    logement_id: log3
+    surface_m2: 50
+    capacite: 4
+    vue_mer: false
+    pricing:
+      prix_base: 100
+      prix_min: 75
+      prix_max: 290
+      mode_gestion_defaut: equilibre
+    copro:
+      verifiee: true                     # LAB SEUL — réel reste false (BLOQUÉ)
+      meuble_entier: true
+      chambres_separees: false
+      fetes: false
+      heures_calmes: "22h-8h"
+      occupants_max: 4
+      animaux: false
+      non_fumeur: true
+      taxe_sejour_majoration: 0.10
+    features:
+      smart_lock: false
+      voix: false
+      clim_ir: false
+      extras_upsell: false
+      etat_lieux_auto: true
+      sinistre_auto: false
+      compta_auto: true
+      traca_intervenants: true
+      inventaire_biens: true
+      annuaire_presta: true
+      mode_auto_saison: false
+      events_auto: true
+      memoire_voyageur: true
+      vitrines_gratuites: false
+      guide_vivant: false
+      wallpanel: false
+      qr_pieces: false
+      questionnaire: false
+      avis_j1: false
+      crm_retour: false
+      geoloc_voyageur: false
+    menage:
+      montant: 100
+      facturation: supplement
+    zones: []
+    zone_defaut: null
+    moteur_direct: maison
+    mentions:
+      numero_declaration: "LAB-DECL-06800-2026"
+      dpe: "B"
+      classement: "non_classe_nc"

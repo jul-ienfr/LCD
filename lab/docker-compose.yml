@@ -446,6 +446,219 @@ services:
       timeout: 5s
       retries: 5
 
+  # --- box NORD (G4-b) : 2e box RÉELLE, pas un stub. Mêmes images génériques,
+  # moteurs PROPRES (ics-sync-nord :8190, pricing-nord :8191, decision-nord
+  # :8192), états SÉPARÉS (volumes *-nord), registre logements DÉDIÉ.
+  # Les services partagés (compta, booking, dispatch...) restent mutualisés :
+  # une vraie box aurait tout en local, mais l'entité du conflit split-brain
+  # (§16.2) est le PRIX, donc seuls ics/pricing/decision sont dédoublés.
+  ics-sync-nord:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/ics-sync/ics_sync.py
+        CONFIG: lab/lab-config/box-nord/ics-nord.yaml
+    ports: ["8190:8190"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8190"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+    volumes:
+      - ics-nord-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./lab-config/box-nord/logements.nord.yaml:/opt/lcd/logements.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+    command: >
+      sh -c "python3 /opt/lcd/custom/ics-sync/ics_sync.py
+      --config /opt/lcd/config.yaml"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8190/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  pricing-nord:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/pricing-engine/pricing_engine.py
+        CONFIG: lab/lab-config/box-nord/pricing-nord.yaml
+    ports: ["8191:8191"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8191"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+      LCD_ICS_SYNC_URL: http://ics-sync-nord:8190
+    volumes:
+      - pricing-nord-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./lab-config/box-nord/logements.nord.yaml:/opt/lcd/logements.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+    depends_on:
+      ics-sync-nord:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8191/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  decision-nord:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/decision-engine/decision.py
+        CONFIG: lab/lab-config/box-nord/decision-nord.yaml
+    ports: ["8192:8192"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8192"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      LCD_ICS_SYNC_URL: http://ics-sync-nord:8190
+      LCD_PRICING_URL: http://pricing-nord:8191
+    volumes:
+      - decision-nord-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./lab-config/box-nord/logements.nord.yaml:/opt/lcd/logements.yaml:ro
+      - ../custom/acces.yaml:/opt/lcd/acces.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+      - ./branding.lab.yaml:/opt/lcd/branding.yaml:ro
+      - ./memoire.lab/:/opt/lcd/memoire
+    command: >
+      sh -c "python3 /opt/lcd/custom/decision-engine/decision.py
+      --config /opt/lcd/config.yaml
+      --logements /opt/lcd/logements.yaml
+      --acces /opt/lcd/acces.yaml
+      --branding /opt/lcd/branding.yaml
+      --memoire /opt/lcd/memoire/voyageurs.lab.yaml --serve"
+    depends_on:
+      ics-sync-nord:
+        condition: service_healthy
+      pricing-nord:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8192/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # Agent box NORD (G4-b) : tourne SUR la box nord, lit les moteurs LOCAUX
+  # (pricing-nord :8191 / decision-nord :8192) et pousse vers la passerelle
+  # :8443 (`POST /ingest` + heartbeat, boucle 60 s). File outbox persistante
+  # (volume dédié, jamais jetée) : passerelle coupée = fichiers qui
+  # s'accumulent, passerelle revenue = rejeu idempotent (§16.2).
+  agent-nord:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/passerelle-parc/agent_box.py
+        CONFIG: lab/lab-config/box-nord/agent-box-nord.yaml
+    environment:
+      LCD_STATE_DIR: /opt/lcd/state
+    volumes:
+      - agent-nord-outbox:/opt/lcd/outbox
+      - ./lab-config/box-nord/agent-box-nord.yaml:/opt/lcd/agent-box.yaml:ro
+    # L'agent écrit sa file DANS son volume : il doit pouvoir le créer.
+    # (Les moteurs tournent en `lcd`, mais eux reçoivent des volumes que
+    # l'image a déjà créés + chown au build — ici le chemin est nouveau.)
+    user: "0:0"
+    command: >
+      sh -c "python3 /opt/lcd/custom/passerelle-parc/agent_box.py
+      --config /opt/lcd/agent-box.yaml --serve"
+    depends_on:
+      pricing-nord:
+        condition: service_healthy
+      decision-nord:
+        condition: service_healthy
+      gateway-parc:
+        condition: service_healthy
+  # (prix/journal/etat/todos/routes) + cache 2 niveaux + stale horodaté.
+  # 0 écriture : jamais de PIN/secret/action (POST /v1/action = G2).
+  # Registre box = lab/lab-config/passerelle-parc-boxes.yaml (0 secret).
+  gateway-parc:
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/passerelle-parc/gateway.py
+        CONFIG: lab/lab-config/passerelle-parc.yaml
+    ports: ["8443:8443"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8443"
+      LCD_STATE_DIR: /opt/lcd/state
+    volumes:
+      - passerelle-state:/opt/lcd/state
+      - ./logements.lab.yaml:/opt/lcd/logements.yaml:ro
+      # (G4-b) Registre des box : la copie LAB déclare box-lab + box-nord.
+      # Monté en LECTURE seule : le registre est versionné, on l'édite au
+      # dépôt, jamais depuis le conteneur.
+      - ./lab-config/passerelle-parc-boxes.yaml:/opt/lcd/lab-config/passerelle-parc-boxes.yaml:ro
+      # Registre ECRIT par le CRUD `/parc/*` (§6bis) — répertoire DÉDIÉ au test,
+      # monté en LECTURE-ECRITURE. Ce n'est PAS `logements.yaml` : celui-là est
+      # lu par les moteurs, on n'écrit jamais dans une source partagée.
+      # Répertoire (et pas fichier) pour que `tmp + os.replace` reste ATOMIQUE :
+      # sur un fichier bind-monté, os.replace est refusé (EBUSY).
+      - ./parc-registre:/opt/lcd/parc-registre
+      - ../custom/acces.yaml:/opt/lcd/acces.yaml:ro
+      # Révoquations runtime de decision (volume `ics-logs`) en LECTURE SEULE :
+      # une révocation bloque les écritures relayées sous `rbac_cache_s` (10 s).
+      - ics-logs:/opt/lcd/decision-logs:ro
+      # Documents de mandat du portail propriétaire (§17/G2bis-b) : racine
+      # DÉDIÉE, montée en LECTURE SEULE (le portail sert, il ne dépose
+      # rien). Le test écrit côté hôte ; le conteneur lit via le bind.
+      - ./docs.lab:/opt/lcd/docs:ro
+      # Routage IA/LLM (§15) : copie lab versionnée, lecture seule.
+      - ./lab-config/passerelle-parc-llm.yaml:/opt/lcd/lab-config/passerelle-parc-llm.yaml:ro
+      # i18n 5 langues (§17) : catalogues versionnés, lecture seule.
+      - ../custom/passerelle-parc/i18n:/opt/lcd/custom/passerelle-parc/i18n:ro
+    command: >
+      sh -c "python3 /opt/lcd/custom/passerelle-parc/gateway.py
+      --config /opt/lcd/config.yaml --serve"
+    depends_on:
+      pricing:
+        condition: service_healthy
+      decision:
+        condition: service_healthy
+      pricing-nord:
+        condition: service_healthy
+      decision-nord:
+        condition: service_healthy
+      dispatch-presta:
+        condition: service_healthy
+      llm-router-ui:
+        condition: service_healthy
+      booking-direct:
+        condition: service_healthy
+      compta:
+        condition: service_healthy
+      caution:
+        condition: service_healthy
+      ics-sync:
+        condition: service_healthy
+      facturation:
+        condition: service_healthy
+      extras:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+        "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8443/health',timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
   # Box HA virtuelle (lab) : Home Assistant conteneur + provisionnement headless.
   # Boucles prouvées §40 (moteurs→HA : events/sensors/calendar) + §41
   # (HA→moteur : script → rest_command → decision, qui=dashboard_hote).
@@ -482,6 +695,10 @@ volumes:
   ics-state:
   pricing-state:
   decision-state:
+  ics-nord-state:
+  pricing-nord-state:
+  decision-nord-state:
+  agent-nord-outbox:
   facturation-state:
   caution-state:
   booking-state:
@@ -491,4 +708,5 @@ volumes:
   stocks-state:
   compta-state:
   router-state:
+  passerelle-state:
   ics-logs:

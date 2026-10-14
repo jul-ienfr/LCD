@@ -1,0 +1,13 @@
+# i18n FR — passerelle parc (§17). `clé: texte`, pluriels one/other, {{variables}}.
+titre_page: "LCD — Passerelle parc — pilotage"
+bandeau_joint: "{{n_up}} joignable(s) · {{n_stale}} injoignable(s)"
+ecritures_desactivees: "Écritures désactivées : box injoignable."
+nuit_one: "1 nuit"
+nuit_other: "{{n}} nuits"
+erreur_perimetre: "hors périmètre"
+erreur_qui: "qui humain obligatoire"
+releve_titre: "Relevé propriétaire"
+offre_titre: "Offre de gestion"
+simulateur_note: "À titre indicatif — à valider avec l'expert-comptable."
+effacement_confirme: "Données effacées et purge tracée."
+degrade_sans_ia: "IA indisponible — file humain."

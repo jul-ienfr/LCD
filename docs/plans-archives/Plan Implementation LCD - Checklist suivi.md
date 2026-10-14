@@ -1,11 +1,16 @@
-# Plan Implementation LCD — Checklist suivi (v2.5, 2026-10-06)
+# Plan Implementation LCD — Checklist suivi (v2.5, 2026-10-06 ; v3 SaaS 2026-10-13)
 
 > Fichier de pilotage chantier. Cocher au fur et à mesure (`- [x]`).
 > Ne jamais committer `secrets.yaml`, `custom/branding.yaml` client, `docs/logN/`, backups.
 > Contrainte : 0 € logiciel (open source / fork / maison). Seul le matériel s'achète.
 > Référence fonctionnelle : `Plan Technique LCD - Pipeline automatisation complet.md` (v2.5).
+> Vision SaaS (v3, 2026-10-13) : conciergerie multi-logements/multi-clients, 3 forfaits
+> (FULL-SERVICE / PILOTAGE / KIT), clients tiers dès le départ, log1/log2 = vitrines.
+> Références SaaS : `Plan Passerelle Generale Parc - Pilotage Complet v2.md` (control plane),
+> `Plan Logement 1 - Santa Severa Saint-Laurent-du-Var v2.md` (pilote + gabarit pack),
+> `Plan Technique LCD - Adaptation SaaS v1.md` (deltas multi-tenants).
 
-**Progression globale (MAJ manuelle) :** `70 / ~120` tâches.
+**Progression globale (MAJ manuelle) :** `88 / ~144` tâches (P9-13 ajoutée).
 - Phase 0 Commandes : 0/8
 - Phase 1 Socle : 5/14
 - Phase 2 PMS/synchro/pricing : 15/16
@@ -15,6 +20,8 @@
 - Phase 6 Exploitation : 22/22 ✔
 - Phase 7 Voix + LLM/Jev : 20/20 ✔
 - Phase 8 Recette / go-live : 8/12
+- Phase 9 Hébergement SaaS 3 phases : 12/14 (reste : exécutions réelles P9-1→P9-8 + P9-10 déjà fait)
+- Phase 10 Offre SaaS + 1er client tiers : 6/8 (reste : P10-6 1er client + P10-8 RC pro — externes)
 
 Règle : 1 phase = 1 commit git tagué (`v2.5-phaseN`). Recette §9 Phase 8 = go/no-go mise en location.
 
@@ -182,6 +189,42 @@ Dépendances : Wyoming/Whisper-small/Piper/openWakeWord, gateway `:4000` apport�
 - [x] P8-10 Maintenance trimestrielle : codes, revue pricing, backup-restore test, rotation WiFi vérifiée — PARTIEL lab 2026-10-09 : dry-run batterie lab §46 (revue pricing 7 j dans [75,290] + QR WiFi régénéré via J-2 + 14 volumes state sauvegardables listés + journal 90 j non vide) verte (reste box : backup-restore réel + rotation WiFi `secrets.yaml` + revue codes)
 - [ ] P8-11 Maintenance annuelle : piles, audit, 4G failover ? (~30 € clé + SIM prépayée)
 - [x] P8-12 Cloner log2 (light) : même socle, `verifiee: false` + défaut sûr max jusqu'au wizard copro complet — PARTIEL lab 2026-10-08 : prod `verifiee: false` (log1+log2) + light (serrure/voix/extras/vitrines off) + bornes intactes + porte décision unitaire (events J-2 → 403 BLOQUÉE, wizard requis) + batterie lab §38 verte (lab `verifiee: true` = exception ; clone réel = box)
+
+---
+
+## Phase 9 — Hébergement SaaS 3 phases (0 € → VPS, bascule sans réécriture)
+
+Principe : démarrer à 0 €/mois, basculer seulement sur seuils mesurés. Bascule =
+changer `LCD_GATEWAY_URL` + bloc Caddy + service systemd, rien à réécrire.
+
+- [x] P9-1 P1 ZÉRO EURO : procédure `docs/ops/procedure-p1-mise-en-service.md` (checklist : lab vps-sim, VM Oracle Always Free, deploy-vps.sh init/check, Caddy, DNS Cloudflare, Vercel `LCD_GATEWAY_URL`, WireGuard 1ère box, tests 4 parcours) — reste : exécution réelle sur comptes
+- [x] P9-2 P1 : bloc Caddy `api.<domaine>` ACTIF en config (`custom/passerelle-parc/Caddyfile`) + procédure tests bout-en-bout (P1 §8) — reste : exécution réelle
+- [x] P9-3 Compteurs bascule en place dès J1 : `deploy-vps.sh statut` (cron 5 min → `state/parc/statut.json` : CPU/RAM/disque + bande Vercel saisie, jamais inventé) + `GET /v1/statut` + seuils lus en procédure migration §0 — reste : pose cron sur VM
+- [x] P9-4 P2 PRÊTE (tout Oracle, 0 €) : procédure `docs/ops/procedure-migration-p2-p3.md` §3 (`next start` systemd + Caddy 2 blocs + cutover DNS + rollback <30 min) — reste : exécution si Vercel bloque
+- [x] P9-5 P3 PRÊTE (VPS payant ~5 €/mois) : procédure migration §4 (VACUUM INTO + import + re-pair WireGuard + cutover + rollback <30 min) — reste : exécution si VM saturée
+- [x] P9-6 Test bascule P1→P2 à blanc : procédure migration §3 (tests via `--resolve` sans cutover + 4 parcours + écriture 1-tap d'essai) + faux VPS lab/vps-sim vert (équivalent local) — reste : exécution sur VM
+- [x] P9-7 Sauvegarde control plane : `deploy-vps.sh backup/restore/statut` (VACUUM INTO + age, jamais de cp à chaud) + `docs/ops/procedure-backup-restore.md` (quotidien 03h UTC vers Oracle Object Storage + R2, GFS 7j/4s/12m, restore trimestriel isolé, runbooks base KO/VM perdue/clé age) — reste : pose timer systemd + test restore réel
+- [x] P9-8 Durcissement WAN control plane : procédure P1 §2 (ufw/fail2ban, 443+51820/udp seuls, gateway jamais sans TLS+auth) + `deploy-vps.sh check` vert avant/après chaque bascule + rate-limit/audit `qui` (lab, à valider en prod) — reste : exécution réelle
+- [x] P9-9 Revue coûts trimestrielle : matrice décision rester/bascule (procédure migration §1) + P3 rentabilisée dès ~3-5 logements — processus documenté, 1ère revue à J+90 P1
+- [ ] P9-10 Base SQLite V2 (ADR-006) : `stockage.py` (schéma v1 + `--migrer` idempotent + `--export` + `--check`) + `parc.db` WAL sur volume persistant + backup chiffré quotidien + batterie lab §69 verte + Postgres réévalué seulement si ~50 logements
+- [x] P9-11 Bascule mesurée P1/P2/P3 : `GET /v1/statut` (phase + seuils + état, 0 secret) + Caddy `api.<domaine>` actif P1 + batterie lab §70 verte (fait, 2026-10-13)
+- [x] P9-12 Front PWA + CI : `manifest.ts` + icônes SVG + `vitest` 5 tests verts + `.github/workflows/ci.yml` (lint+test+build+batterie) (fait, 2026-10-13)
+
+## Phase 10 — Offre SaaS + 1er client tiers
+
+Forfaits (tranché 2026-10-13) : FULL-SERVICE 25 % + ménage 110 €
+/ PILOTAGE 149 €/mois / KIT 890 € + 240 €/an.
+log1/log2 = vitrines + bancs d'essai.
+
+- [x] P10-1 Grille tarifaire 3 forfaits écrite (tranché 2026-10-13 : FULL 25 % + ménage 110 € / PILOTAGE 149 €/mois / KIT 890 € + 240 €/an, voir Passerelle v2 §0) + mandat type (`docs/templates/mandat_gestion_locative_courte_duree.md`, ~15 articles + checklist 8 pièces) + CGV entité (`docs/templates/cgv_conciergerie_proprietaires.md`, ~10 articles, R.212-1) — modèles internes, relecture juriste OBLIGATOIRE avant usage
+- [x] P9-13 Faux VPS Docker (lab/vps-sim : Caddy TLS interne + gateway + booking, script test-vps.ps1 7/7 OK, batterie §72 verte) (fait, 2026-10-13)
+- [x] P10-2 Pack box client standardisé par forfait (Logement v2 §0-bis : FULL pack complet ~890 € / PILOTAGE box légère ~640 € + mise en route 190 € / KIT 890 € posé + 240 €/an, ½ journée, J+7, écarts sur devis) (fait, 2026-10-13)
+- [x] P10-3 Checklist onboarding client (Logement v2 §0-bis : visite → contrat (mandat type + CGV) → pack → install → config → conformité → go-live, entrée registre obligatoire) (fait, 2026-10-13)
+- [x] P10-4 Isolation tenant validée : RBAC par client/entité (`acces.yaml`), registres isolés par logement, portail proprio par logement (404 entité inconnue, 403 ?client= hors déclaration, 400 sans qui), export-compta par entité + batterie §73 verte (fait, 2026-10-13)
+- [x] P10-5 Facturation par tenant : compteurs par logement (nuits, extras, coûts IA) + facture mensuelle (facturation existante) + relances — forfaits appliqués : `FORFAITS` kit/pilotage/full enum bloquante, relevés KIT/PILOTAGE = 0 commission, FULL = commission %, simulateur `forfait=` (422 si inconnu) + batterie §71 verte (fait, 2026-10-13)
+- [ ] P10-6 1er client tiers signé (cible : 1 logement FULL ou PILOTAGE) + install + go-live + retour 30 j
+- [x] P10-7 Kit démo : visite vitrine log1 (Logement v2 §1, Santa Severa) + dashboard opérateur multi-clients (page pilotage + `/parc/portail` + lien démo 24 h marque blanche §52 v1) + argumentaire simulateur (`/v1/simulateur` : OFFRE-*, commission par forfait, 422 si inconnu) (fait, 2026-10-13)
+- [ ] P10-8 RC pro conciergerie + assurances mandats tiers (jamais de gestion pour tiers sans couverture)
 
 ---
 

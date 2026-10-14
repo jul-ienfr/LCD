@@ -1,0 +1,91 @@
+# custom/passerelle-parc/mandats.yaml — rattachement logement ↔ entité (§3bis, G2bis).
+# Versionné, SANS aucun secret : RIB = référence vault:, le mandat signé vit dans
+# `docs/logN/` (archives chiffrées, conservation 10 ans, jamais de purge).
+#
+# Un mandat = qui exploite le logement, pour qui, et selon quelles règles.
+# `mode`: `propre` (bien du super-admin, 0 commission) ou `mandat_tiers`
+# (convention signée, commission %, reversement, circuit caution, assurance,
+# échéance). Cycle de vie : brouillon → pret → actif → suspendu → actif,
+# puis `resolie` (reversement soldé + motif) et `archive` (super_admin seul).
+#
+# La `checklist` est le dossier d'onboarding tiers (§3bis) : mandat signé
+# e-signature tactile, EDL entrée, inventaire `:8097/scan`, photos, RIB,
+# attestation d'assurance, n° d'enregistrement national, DPE.
+
+version: 1
+
+mandats:
+  log2:
+    logement_id: "log2"
+    entite_id: "ent-lab-portail"
+    mode: "mandat_tiers"
+    client_tiers_ref: "client-lab-01"
+    client_tiers_nom: "Client Lab 01"
+    commission_pct: 20
+    menage_a_charge: "proprio"
+    reversement: "mensuel_J+5"
+    depot_garantie_circuit: "passerelle"
+    assurance_ref: "vault:client-lab-01/assurance"
+    echeance: 2027-12-31
+    statut: "actif"
+    cree_le: 2026-10-13T07:37:50Z
+    cree_par: "personne_02"
+    maj_le: 2026-10-13T07:37:50Z
+    checklist:
+      mandat_signe: true
+      edl_entree: true
+      inventaire_scan: true
+      photos: true
+      rib_ref: true
+      attestation_assurance: true
+    pret_par: "personne_02"
+    pret_le: 2026-10-13T07:37:50Z
+    actif_par: "personne_02"
+    actif_le: 2026-10-13T07:37:50Z
+    motif: "litige reversement en cours"
+    suspendu_par: "personne_02"
+    suspendu_le: 2026-10-13T07:37:50Z
+    actif_par: "personne_02"
+    actif_le: 2026-10-13T07:37:51Z
+  log1:
+    entite_id: ent-nom-propre-julie
+    mode: propre
+    client_tiers_ref: ""
+    client_tiers_nom: ""
+    commission_pct: 0
+    menage_a_charge: proprio
+    reversement: mensuel_J+5
+    depot_garantie_circuit: passerelle
+    assurance_ref: "env:ASSURANCE_MRH"
+    mandat_signe_le: ""
+    echeance: ""
+    statut: actif
+    cree_le: ""
+    cree_par: ""
+    maj_le: ""
+
+# Modèle de mandat tiers (à décommenter au 1er client, §3bis).
+# En colonne 0 À DESSEIN : un commentaire à 2 espaces serait attaché au bloc
+# ci-dessus (`registre_liste._blocs`) et donc effacé à sa réécriture.
+# log2:
+#   entite_id: ent-sci-santa-severa
+#   mode: mandat_tiers
+#   client_tiers_ref: "client-01"
+#   client_tiers_nom: "Client Exemple"
+#   commission_pct: 25
+#   menage_a_charge: proprio
+#   reversement: mensuel_J+5
+#   depot_garantie_circuit: passerelle
+#   assurance_ref: "vault:client-01/assurance-pno"
+#   mandat_signe_le: ""
+#   echeance: ""
+#   statut: brouillon
+#   checklist:
+#     mandat_signe: false
+#     edl_entree: false
+#     inventaire_scan: false
+#     photos: false
+#     rib_ref: false
+#     attestation_assurance: false
+#     enregistrement_national: false
+#     dpe: false

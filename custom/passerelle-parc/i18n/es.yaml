@@ -1,0 +1,13 @@
+# i18n ES — pasarela (§17). Cadenas humanas revisadas.
+titre_page: "LCD — Pasarela del parque — pilotaje"
+bandeau_joint: "{{n_up}} accesible(s) · {{n_stale}} inaccesible(s)"
+ecritures_desactivees: "Escrituras desactivadas: caja inaccesible."
+nuit_one: "1 noche"
+nuit_other: "{{n}} noches"
+erreur_perimetre: "fuera de perímetro"
+erreur_qui: "qui humano obligatorio"
+releve_titre: "Extracto del propietario"
+offre_titre: "Oferta de gestión"
+simulateur_note: "A título indicativo — validar con el contable."
+effacement_confirme: "Datos borrados y purga registrada."
+degrade_sans_ia: "IA no disponible — cola humana."

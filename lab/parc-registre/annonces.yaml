@@ -1,0 +1,63 @@
+# lab/parc-registre/annonces.yaml — fiches annonce LAB (plan §6bis-b).
+# Copie dédiée : jamais le `annonces.yaml` réel de custom/passerelle-parc (les
+# tests écrivent dedans). Réinitialisé depuis `annonces.modele.yaml` en tête de
+# §57 (batterie re-jouable à l'identique).
+
+global:
+  langue_defaut: fr
+  langues: [fr, en, es, it, de]
+  photos_min: 6
+
+annonces:
+  log1:
+    logement_id: "log1"
+    titre: "Santa Severa (LAB) — T3 terrasse plein sud"
+    statut: "synchronise"
+    publie_le: 2026-10-13T07:37:48Z
+    publie_par: "personne_01"
+    canaux: [airbnb, direct, booking]
+    preuve: "extranet booking"
+    maj_le: 2026-10-13T07:37:48Z
+    descriptions:
+      fr: >-
+        Magnifique T3 avec terrasse face a la mer, 2 chambres, 65 m2,
+        jusqu'a 5 personnes. A deux pas du marche provencal et des plages.
+        Fiche de test LAB : contenu fictif, jamais publie.
+      en: >-
+        Superb 3-room flat with a sea-facing terrace, 2 bedrooms, 65 sqm,
+        up to 5 guests. Two steps from the provencal market and the beaches.
+        LAB test listing: fictional content, never published.
+    photos: ["p1.jpg", "p2.jpg", "p3.jpg", "p4.jpg", "p5.jpg", "p6.jpg", "p7.jpg"]
+    equipements: ["wifi", "parking", "climatisation", "lave_linge", "lave_vaisselle", "terrasse"]
+    regles:
+      arrivee: "17:00"
+      depart: "10:00"
+      nuitee_min: 3
+    geoloc:
+      lat: 43.65
+      lon: 7.19
+  log2:
+    logement_id: "log2"
+    titre: "Nice Gambetta (LAB) — studio 2 personnes pour tests"
+    statut: "archive"
+    descriptions:
+      fr: >-
+        Studio meuble de 38 m2 a Nice, jusqu'a 3 personnes, ideal pour un
+        sejour court. Fiche de test LAB : contenu fictif, jamais publie.
+      en: >-
+        Furnished 38 sqm studio in Nice, up to 3 guests, ideal for a short
+        stay. LAB test listing: fictional content, never published.
+    photos: ["photo-11.jpg", "photo-12.jpg", "photo-13.jpg", "photo-14.jpg", "photo-15.jpg", "photo-16.jpg"]
+    equipements: ["wifi", "climatisation"]
+    regles:
+      arrivee: "15:00"
+      depart: "11:00"
+      nuitee_min: 1
+      animaux: true
+      fumeur: false
+      evenements: false
+    geoloc:
+      lat: 43.70
+      lon: 7.26
+    archive_par: "personne_01"
+    archive_le: 2026-10-13T07:37:49Z

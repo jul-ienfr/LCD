@@ -1,0 +1,15 @@
+# LCD — versions épinglées (plan §14.1). Mises à jour MANUELLES avec snapshot
+# + `docker load` rollback, jamais d'OTA auto. Veille CVE mensuelle.
+python: "3.12-slim"
+caddy: "2.8"
+authentik: "2024.10"
+homeassistant: "stable"
+zigbee2mqtt: "1.39"
+openthread_border_router: "2.x"
+wireguard: "kernel"
+step_ca: "0.27"
+age: "1.1"
+llm_jev_one_system: "jev-1.13"
+llm_fast: "mimo-v2.6-flash"
+llm_strong: "muse-spark-1.3-contributor"
+llm_local: "qwen2.5-7b-instruct"

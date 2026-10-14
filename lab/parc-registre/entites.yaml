@@ -1,0 +1,58 @@
+# custom/passerelle-parc/entites.yaml — entités juridiques du parc (§3bis, G2bis).
+# Versionné, SANS aucun secret : les IBAN sont des REFERENCES env:/vault:,
+# jamais un numéro en clair (le dépôt finirait dans chaque image docker).
+#
+# Une entité = qui détient les biens. Chaque logement du parc est rattaché à
+# UNE entité par `mandats.yaml`. Nature, régime et TVA sont des enums fermés
+# (`entites.py`) : une typo = erreur comptable silencieuse.
+#
+# Les régimes et seuils sont RAPPELÉS à titre indicatif (plan §3bis : « ceci
+# n'est pas un avis fiscal ») — le calcul reste chez l'expert-comptable.
+
+version: 1
+
+entites:
+  ent-lab-portail:
+    entite_id: "ent-lab-portail"
+    libelle: "SCI Portail"
+    nature: "sci_is"
+    regime: "is_2065"
+    tva: "non"
+    iban_ref: "env:ENT_PORTAL_IBAN"
+    cree_le: 2026-10-13T07:37:50Z
+    cree_par: "personne_02"
+    maj_le: 2026-10-13T07:37:50Z
+  ent-nom-propre-julie:
+    libelle: "Julie — nom propre"
+    nature: nom_propre
+    siren: ""                             # vide : nom propre sans SIRET
+    regime: micro_bic_non_classe
+    tva: non
+    exercice: "01-01/31-12"
+    expert_comptable_ref: ""
+    pdp_ref: ""                           # plateforme de facturation e-facture (§13.8)
+    iban_ref: "env:ENT_NP_IBAN"           # référence, JAMAIS le numéro
+    titulaire: personne_01
+    statut: active
+    cree_le: ""
+    cree_par: ""
+    maj_le: ""
+
+# Modèle : à décommenter/adapter au 1er bien tiers (§3bis, onboarding).
+# Les commentaires de modèle sont en colonne 0 À DESSEIN : à 2 espaces ils
+# seraient attachés au bloc ci-dessus (règle de `registre_liste._blocs`) et
+# donc effacés à la première réécriture du bloc.
+# ent-sci-santa-severa:
+#   libelle: "SCI Santa Severa"
+#   nature: sci_is
+#   siren: ""                          # 9 chiffres obligatoires pour une société
+#   regime: is_2065
+#   tva: option
+#   exercice: "01-01/31-12"
+#   expert_comptable_ref: ""
+#   pdp_ref: ""
+#   iban_ref: "env:ENT_SCI_IBAN"
+#   titulaire: personne_01
+#   statut: active
+#   seuils_perso:
+#     plafond: 77700                   # dérogatoire, à justifier par le comptable

@@ -12,14 +12,14 @@ personnes:
   - id: personne_01
     role: super_admin
     sous_role: super_admin
-    logements: [log1, log2]
+    logements: [log1, log2, log3]            # G4-b : log3 vit sur box-nord
     expire_le: null                       # permanent, rotation secrets seule super_admin
     mfa: false                            # P6-20 : activer 2FA box HA puis true
 
   - id: personne_02
     role: super_admin
     sous_role: admin                      # bras droit : tout sauf secrets + exports multi-clients
-    logements: [log1, log2]
+    logements: [log1, log2, log3]         # G4-b : log3 vit sur box-nord
     expire_le: null
     mfa: false                            # P6-20 : activer 2FA box HA puis true
 
@@ -40,7 +40,15 @@ personnes:
   - id: personne_05
     role: proprietaire
     sous_role: proprio_logement           # client tiers : SES logements seuls
-    logements: [log1]
+    logements: [log1, log2]
+    clients_ref: [client-lab-01]          # §3bis G2bis-b : les clients pour
+                                          # lesquels ce compte parle. Absent
+                                          # partout ailleurs. Le lien au mandat
+                                          # prime sur `logements` : avoir log1
+                                          # dans son perimetre ne donne AUCUN
+                                          # droit sur l'argent du client de
+                                          # log1 — cf. §60, qui teste EXACTEMENT
+                                          # ce cas (403 sur le mandat propre).
     expire_le: null
     mfa: false                            # optionnel (PWA/hote, jamais /systeme)
 
@@ -60,11 +68,31 @@ personnes:
     expire_le: null                       # fin mission auto (dispatch §12.4-bis)
     mfa: false                            # PWA mission seule, jamais HA direct
 
+  - id: commercial_01
+    role: gestionnaire
+    sous_role: commercial                # §14.5/G6 : prospects + simulateur +
+                                         # offres SEULS, jamais prix/coûts/
+                                         # autres clients, qui=commercial_01
+                                         # tracé, révocable ici
+    logements: []
+    expire_le: null
+    mfa: false
+
   - id: dashboard_hote
     role: gestionnaire
     sous_role: dashboard                 # COMPTE MACHINE dashboard hôte (LAN seul, P2-9 :
                                           # scripts HA renvoi J-2/J-1 + forçage via rest_command,
                                           # jamais un humain ; tracé tel quel au journal)
-    logements: [log1, log2]
+    logements: [log1, log2, log3]        # G4-b : log3 vit sur box-nord
     expire_le: null                       # révoquer ici si dashboard compromis (POST /acces-revoquer)
+    mfa: false                            # machine LAN, jamais de MFA simulée (hors MFA_EXIGEE)
+
+  - id: passerelle_parc
+    role: gestionnaire
+    sous_role: dashboard                 # COMPTE MACHINE passerelle parc :8443 (G0/G1) :
+                                          # fan-out LECTURE SEULE (/reco-ota /journal /etat
+                                          # /todos /routes) vers les moteurs, jamais un humain,
+                                          # jamais d'écriture ; tracé tel quel au journal
+    logements: [log1, log2, log3]        # G4-b : log3 vit sur box-nord
+    expire_le: null                       # révoquer ici si passerelle compromise (POST /acces-revoquer)
     mfa: false                            # machine LAN, jamais de MFA simulée (hors MFA_EXIGEE)

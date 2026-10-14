@@ -1,0 +1,12 @@
+# lab/lab-config/box-nord/decision-nord.yaml — config decision box NORD.
+# Mêmes clés que lab-config/decision-engine.yaml, hôtes = services nord (suffixe -nord).
+ha_url: ""
+ics_sync_url: "http://ics-sync-nord:8190"
+pricing_url: "http://pricing-nord:8191"
+http_port: 8192
+state_dir: "/opt/lcd/state"
+decision_log_dir: "/opt/lcd/logs"
+commission_direct: 0.00
+commission_airbnb: 0.15
+commission_booking: 0.17
+commission_abritel: 0.10

@@ -1,0 +1,56 @@
+# custom/passerelle-parc/boxes.yaml — registre passerelle parc (versionné, 0 secret).
+# Plan §3 : implémente « futures box = autre URL + qui dédié » (lab/lab-config/dashboard.yaml).
+# 1 box = 1+ logements + endpoints moteurs de CETTE box (LAN/box interne) + `qui_relay`
+# (compte machine tracé au journal decision.logX.jsonl, cf. custom/acces.yaml).
+# G0/G1 = lecture seule (/reco-ota, /journal, /etat, /todos, /routes) ;
+# G2 = écritures 1-tap (POST /v1/action) vers `booking` (/resa, /confirmer),
+#      `pricing` (PUT /prix, direct seul) et `dispatch` (/mission).
+# Box sans moteur (logement cloud) : `endpoints: {}` = carte « sans box ».
+# JAMAIS de secret ici : wg_pubkey, tokens, IP publiques = VPS/vault (G3).
+
+boxes:
+  # ---- LAB (docker compose lab/) : 1 box, 2 logements ---------------------- #
+  - box_id: box-lab
+    site: lab
+    description: "box lab — moteurs dockerisés (tests §§48-50)"
+    logements:
+      - id: log1
+        nom: "Log1 Santa Severa"
+      - id: log2
+        nom: "Log2 (léger)"
+    endpoints:
+      pricing: "http://pricing:8091"
+      decision: "http://decision:8092"
+      dispatch: "http://dispatch:8096"
+      router: "http://llm-router-ui:8050"
+      homeassistant: "http://homeassistant:8123"
+      booking: "http://booking-direct:8095"
+      compta: "http://compta:8100"
+      caution: "http://caution:8094"
+      ics: "http://ics-sync:8090"
+      facturation: "http://facturation:8093"
+      extras: "http://extras:8098"
+      # §6bis-c : biens (inventaire) + consommables (stocks). Un endpoint absent
+      # de cette liste = ligne `erreurs[]` dans /parc/biens, PAS une liste vide
+      # qui ressemblerait à « 0 problème ».
+      inventaire: "http://inventaire:8097"
+      stocks: "http://stocks:8099"
+    qui_relay: "passerelle_parc"
+
+# ---- TEMPLATE box réelle (à copier par box, G3) ----------------------------- #
+# Champs VPS/WG/mTLS (wg_ip, wg_pubkey_ref, mtls_cn, vault) = G3, PAS en MVP.
+# - box_id: box-log1
+#   site: "site-A"
+#   logements:
+#     - id: log1
+#       nom: "Santa Severa"
+#   endpoints:
+#     pricing: "http://10.99.0.2:8091"
+#     decision: "http://10.99.0.2:8092"
+#     dispatch: "http://10.99.0.2:8096"
+#     router: "http://10.99.0.2:8050"
+#     homeassistant: "http://10.99.0.2:8123"
+#     booking: "http://10.99.0.2:8095"
+#     compta: "http://10.99.0.2:8100"
+#     caution: "http://10.99.0.2:8094"
+#   qui_relay: "passerelle_box-log1"

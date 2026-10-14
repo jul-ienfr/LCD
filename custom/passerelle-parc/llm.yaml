@@ -1,0 +1,148 @@
+# custom/passerelle-parc/llm.yaml — routage IA / LLM / Jev / One System (§15).
+# Versionné, SANS AUCUNE CLÉ : providers, modèles, fallbacks, seuils, budgets,
+# résidence. Les clés/tokens vivent dans /etc/lcd/vault/llm/* (jamais ici,
+# jamais en log, jamais au LLM). Édition via POST /v1/config-llm
+# (dry-run → diff → confirmer → rollback, snapshots horodatés).
+# Héritage 3 niveaux (§16.3) : global → entité → logement. Un override entité
+# `cloud-optin` n'est actif que si l'entité l'a coché (opt-in explicite).
+# Dernier maillon de chaque fallback = degrade_sans_IA (template statique +
+# file humain, jamais d'erreur silencieuse).
+
+global:
+  defaut_residence: "EU-seul"
+  seuil_confidence: 0.7
+  cache_llm_ttl_h: 24
+  kill_global: false
+
+usages:
+  messagerie_brouillon:
+    provider_primary: "gateway-4000"
+    modele_primary: "lcd-chat-fast"
+    fallback: ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 1
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 200
+    quota_tokens_j: 50000
+  avis_reponse:
+    provider_primary: "gateway-4000"
+    modele_primary: "lcd-chat-strong"
+    fallback: ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 1
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 100
+    quota_tokens_j: 25000
+  motif_prix:
+    provider_primary: "gateway-4000"
+    modele_primary: "lcd-chat-strong"
+    fallback: ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 1
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 200
+    quota_tokens_j: 50000
+  resume_digest:
+    provider_primary: "ollama-local"
+    modele_primary: "qwen2.5-7b-instruct"
+    fallback: ["jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 1
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 100
+    quota_tokens_j: 25000
+  aide_dispatch:
+    provider_primary: "gateway-4000"
+    modele_primary: "lcd-chat-fast"
+    fallback: ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 1
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 100
+    quota_tokens_j: 25000
+  aide_calendrier:
+    provider_primary: "gateway-4000"
+    modele_primary: "lcd-chat-fast"
+    fallback: ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 1
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 100
+    quota_tokens_j: 25000
+  simulateur_explication:
+    provider_primary: "gateway-4000"
+    modele_primary: "lcd-chat-fast"
+    fallback: ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 1
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 100
+    quota_tokens_j: 25000
+  faq_voyageur:
+    provider_primary: "ollama-local"
+    modele_primary: "qwen2.5-7b-instruct"
+    fallback: ["jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 1
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 300
+    quota_tokens_j: 80000
+  transcription_locale:
+    provider_primary: "ollama-local"
+    modele_primary: "qwen2.5-7b-instruct"
+    fallback: ["jev-one-system/jev-1.13", "degrade_sans_IA"]
+    one_system_modele: "jev-1.13"
+    temperature: 0.2
+    max_tokens: 250
+    timeout_s: 8
+    retry: 0
+    cooldown_s: 30
+    seuil_confidence: 0.7
+    quota_req_j: 300
+    quota_tokens_j: 80000
+
+# Interdits durs NON configurables (§15) : case grisée + 403 loggé si tentative.
+interdits:
+  - "ouverture_serrure_vanne_portail"
+  - "generation_pin_ouverture_auto"
+  - "envoi_message_avis_auto"
+  - "ecriture_ota_auto"
+  - "decision_compta_cloture_payout_seule"
+  - "discrimination"
+
+# Overrides par entité / logement (héritage §16.3). Vide par défaut : le global
+# s'applique. Un override `cloud-optin` exige la case entité cochée.
+entites: {}
+logements: {}

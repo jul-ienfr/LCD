@@ -29,10 +29,35 @@ custom/*/state/
 lab/*state*/
 lab/secrets.lab.yaml
 lab/*.log
+# Registres lab ÉCRITS par le CRUD /parc/* et /parc/annonces/* (copies dédiées,
+# jamais logements.yaml). Les modèles (locations.modele.yaml, annonces.modele.yaml)
+# sont VERSIONNÉS : ils servent de référence remise à zéro en tête de §56/§57.
+# Les snapshots horodatés vivent dans le volume passerelle-state, pas ici.
+lab/parc-registre/*.yaml
+!lab/parc-registre/locations.yaml
+!lab/parc-registre/locations.modele.yaml
+!lab/parc-registre/annonces.yaml
+!lab/parc-registre/annonces.modele.yaml
+!lab/parc-registre/entites.yaml
+!lab/parc-registre/entites.modele.yaml
+!lab/parc-registre/mandats.yaml
+!lab/parc-registre/mandats.modele.yaml
+!lab/parc-registre/prospects.yaml
+!lab/parc-registre/prospects.modele.yaml
 state-test-*/
+# Ancien emplacement racine (passerelle-parc avant résolution par config) :
+/state/
 *.pid
 __pycache__/
 *.pyc
+
+# Frontend web/ (Next.js, déployable Vercel — jamais commité : build + deps
+# + lock local + types générés ; CI = `npm ci` reproductible)
+web/node_modules/
+web/.next/
+web/out/
+web/package-lock.json
+web/next-env.d.ts
 
 # OS / éditeurs
 .DS_Store

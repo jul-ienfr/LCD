@@ -1,0 +1,41 @@
+# VPS = hub WireGuard. Les boxes sont des spokes.
+#
+# Aucune clé réelle dans ce fichier : `deploy-vps.sh wg-key <box_id>` remplit
+# `PrivateKey` et le `PublicKey` de chaque peer depuis /etc/lcd/vault (age).
+# Un `git diff` sur ce fichier ne doit JAMAIS montrer de clé (§7, intouchable).
+
+[Interface]
+# IP du VPS sur le tunnel. 10.99.0.0/24 = sous-résau LCD (jamais de conflit
+# avec 10.0.0.0/8 du client : on documente, on ne devine pas).
+Address = 10.99.0.1/24
+ListenPort = 51820
+# <REMPLI_PAR deploy-vps.sh wg-key hub>
+PrivateKey = __LCD_WG_HUB_PRIVKEY__
+
+# MTU volontairement basse (chemin typique box → VPS = PPPoE + fibre + 4G) :
+# 1380 évite la fragmentation sur les tunnels 4G/LTE. 1420 si tout passe en
+# fibre mesuré (voir `ping -M do -s` depuis la box).
+MTU = 1380
+
+# ---------------------------------------------------------------------------
+# Un bloc [Peer] par box. Ajouter une box = `deploy-vps.sh wg-key box-log2`
+# puis coller ici le bloc généré (idempotent : relancer écrase le même contenu).
+# ---------------------------------------------------------------------------
+
+# box-log1 — logements log1 (et log2 si la 2e box n'est pas encore là)
+[Peer]
+# <REMPLI_PAR deploy-vps.sh wg-key box-log1>
+PublicKey = __LCD_WG_BOX_LOG1_PUBKEY__
+# /32 STRICT : pas de routage large. Le VPS ne relaie jamais le trafic d'une box
+# vers une autre par le tunnel (§1 : source de vérité = chaque box).
+AllowedIPs = 10.99.0.2/32
+# Keepalive court : une box derrière une 4G NAT ne reçoit rien sinon.
+PersistentKeepalive = 25
+
+# box-log2 — SQUELEttE (à activer seulement si un 2e site réel existe).
+# Décommenter APRÈS `deploy-vps.sh wg-key box-log2` ; ne jamais laisser un peer
+# sans clé en production.
+# [Peer]
+# PublicKey = __LCD_WG_BOX_LOG2_PUBKEY__
+# AllowedIPs = 10.99.0.3/32
+# PersistentKeepalive = 25
