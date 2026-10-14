@@ -238,6 +238,10 @@ Médiation consommation L.612-1 (pro, obligatoire) : médiateur désigné
 (~200-400 €/an, nommé au go-live, coordonnées sur factures + site +
 contrat PWA) ; réclamation écrite d'abord, saisine <12 mois si échec ;
 jamais de clause abusive R.212-1 (médiation payante imposée = interdite).
+ODR + rétractation voyageur (droit UE, perdu des archives v1 → réintégré) :
+lien plateforme ODR `ec.europa.eu/consumers/odr` sur site + contrat PWA
+(obligatoire pro) ; mention L.221-28 12° au contrat/CGV (hébergement à date
+= pas de rétractation 14 j — à écrire, sinon le voyageur l'invoque).
 Registre des réclamations (1/logement, DGCCRF) : toute réclamation écrite
 = entrée datée + réponse <30 j (humaine, tracée) → médiation si échec ;
 revue trimestrielle (top causes → standard MAJ).
@@ -335,8 +339,16 @@ payouts par SIREN pour contrôle. E-facture : export Chorus Pro / PDP
 `GET /v1/export-compta?entite=&format=facturx` dès G2bis (obligation ETI
 en vigueur 09/2026, généralisation par paliers — veille active).
 RGPD : registre, consentements par séjour, purge (24 mois / 90 j /
-0 j audio), effacement sur demande, revente/croisement interdits. Compta
-1 dossier chiffré/client, backups chiffrés par client.
+0 j audio), effacement sur demande, revente/croisement interdits. Données
+sensibles J-2 (allergies, PMR, santé) : consentement explicite à part,
+jamais réutilisées en marketing, purge checkout+30 j (jamais 90 j).
+Compta 1 dossier chiffré/client, backups chiffrés par client.
+DAS2 / RBE (échéances, renvoi comptable) : DAS2 = honoraires versés
+>1 200 €/bénéficiaire/an (mai N+1) ; RBE = bénéficiaires effectifs au
+Guichet Unique ; jamais d'oubli (sanctions). Factures B2B art. 441-10 :
+mentions (40 € forfaitaire + 3× BCE + échéance), numérotation continue,
+jamais de trou. APL (jalon, si bail classique un jour) : décence + DPE +
+loyer de référence — jamais de dossier APL en saisonnière.
 
 ## Annexe T-A — État réel (2026-10-13)
 
