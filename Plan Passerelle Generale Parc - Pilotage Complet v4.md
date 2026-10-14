@@ -104,7 +104,10 @@ publié-manuel → synchronisé`), calendrier via ics-sync pull 15 min,
 Extranet ; Airbnb = pas d'API publique, ICS + reco manuelle ; Abritel =
 API partenaire sur dossier). Décision : à 8 logements actifs on chiffre
 (abo + % vs temps manuel) ; à 10 on migre. En attendant : ICS pull 15 min
-+ stop-sell same-day + reco 1-tap. Biens : `/stats + /alertes` (dormants
++ stop-sell same-day + reco 1-tap. Suspension OTA (plan B) : contre-enquête
+<48 h (dossier preuves), bascule direct + autres OTA, jamais de recréation
+sauvage ; anti-dépendance = aucun canal >60 % du CA (alerte dashboard),
+direct >30 % à 10 logements. Biens : `/stats + /alertes` (dormants
 >90 j, garanties <30 j).
 
 ## §P7 IA / routage

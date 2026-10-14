@@ -311,6 +311,10 @@ demeure, jamais de pénalité occulte.
 Convention-cadre presta (signée avant la 1re mission, modèle en templates) :
 missions, SLA, tarifs indexés, assurance, non-sollicitation, résiliation
 30 j ; sans convention = pas de dispatch, jamais d'exception.
+Gros travaux client (suivi, jamais de pilotage sans DO) : DO du client
+vérifiée avant travaux ; devis + réception écrite avec réserves ;
+retenue de garantie 5 % (1 an) ; photos avant/pendant/après au dossier ;
+jamais d'avance de notre part, jamais de réception tacite.
 GLI / Visale (jalon, si un jour un bail classique) : GLI ~3-5 % loyers vs
 Visale gratuit <30 ans — exiger l'une avant toute signature hors LCD ;
 jamais de bail classique sans garantie.

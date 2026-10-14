@@ -51,6 +51,9 @@ d'exception.** Montée en gamme KIT →
 PILOTAGE → FULL sans réinstallation (flags + mandat, même box). Mix
 possible (FULL sur 2 biens, PILOTAGE sur 1). Anciens % (15/20-25/30 %)
 ne sont plus vendus.
+Indexation annuelle : ILAT à date anniversaire du mandat (jamais
+rétroactive, préavis 1 mois, droit de résiliation) ; jamais de gel
+pluriannuel sans clause.
 
 ## §S2 Architecture cible
 

@@ -255,7 +255,9 @@ après vacance >7 j.
 Règles occupants : mineur seul = refusé (jamais d'arrivée sans adulte
 présent, pièce d'identité du responsable au J-2) ; animaux = carnet de
 vaccination + puce exigés au J-2 (défaut = refus, jamais de négociation
-sur place) ; énergie = usage raisonnable (seuil kWh/nuit affiché au
+sur place) ; **chiens guides / assistance = refus interdit (loi 2005-102,
+amende), sans supplément, sans caution majorée — jamais confondus avec
+« animaux »** ; énergie = usage raisonnable (seuil kWh/nuit affiché au
 contrat, dépassement refacturé au réel Linky, jamais de coupure en
 occupé).
 Score voyageur / watchlist interne (3 niveaux, critères objectifs seuls —
@@ -270,6 +272,10 @@ Arrivée autonome standard (FULL/PILOTAGE/KIT) : consigne envoyée J-2
 1re ouverture logguée (Nuki) ou photo EDL <2 h (boîte) ; retard >30 min =
 pré-chauffe décalée + message ; sans nouvelles J+1 12h = appel + visite
 si silence 24 h (sécurité, pas surveillance).
+Registre des clés (doctrine, inventaire à chaque rotation) : N clés
+numérotées (qui/quoi/quand au registre), double scellé chez le client ou
+au coffre, jamais de clé non tracée, jamais de copie sans inscription ;
+perte = changement barillet <48 h + information assureur.
 
 Fidélité + parrainage + apporteurs : retour direct −10 % (J+30/J+180 si
 4★+) ; parrainage = 100 € au parrain (avoir ou virement) + entrée −50 €
