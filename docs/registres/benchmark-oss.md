@@ -11,14 +11,14 @@
 - Enseignement LCD : modèle planning + grille tarifs/saisons + ICS à imiter fonctionnellement ; ne pas copier le code (GPL + stack PHP vs Next.js/Python stdlib).
 
 ### QloApps (fork PrestaShop)
-- Licence OSL-3.0, fork PrestaShop 1.6, code GitHub QloApps/QloApps.
+- Licence **AFL-3.0 (Academic Free License, vérifiée web 2026-10-14 — pas OSL-3.0)**, fork PrestaShop 1.6, code GitHub QloApps/QloApps. Licence permissive type PrestaShop : pas de copyleft réseau contraignant.
 - Fonctions : booking engine + front-desk + créateur site, chambres=produits, dispo temps réel, paiement partiel, extras, multi-hôtel/langue/devise, modules channel-manager.
 - Enseignement LCD : candidat sérieux pour `moteur_direct` Phase 1 (T-01) : moteur résa direct éprouvé vs réécrire `booking:8095` maison. À évaluer : poids PrestaShop vs besoin minimal + multi-tenant `entite_id` + allowlist 1-tap absents d'origine.
-- Verdict : PILOTE possible en lab (docker isolé), jamais de fork copié dans repo sans audit OSL-3.0 (copyleft réseau faible mais contraignant).
+- Verdict : PILOTE possible en lab (docker isolé), contrainte licence ALLÉGÉE (AFL-3.0 permissive — attribution + conservation de licence, audit avant tout fork dans le repo tout de même).
 
 ### Vik Booking (Joomla/WordPress)
 - Core Lite GPLv2+ sur WordPress.org, versions Pro/Joomla commerciales mais GPL (zip ~99 €+), pas de repo public complet.
-- Channel Manager séparé commercial (~149 €+) : Booking/Expedia/Airbnb via XML + iCal.
+- Channel Manager séparé commercial (**~249 €/an licence 1 domaine, vérifié web 2026-10-14**, core VikBooking requis en plus, hors TVA) : 2-way API (pas juste iCal) Airbnb + Booking.com + Expedia, Google Hotels, Vrbo, 100+ OTAs — dispo + tarifs/rate plans + restrictions (min stay, closed) + résas re-poussées.
 - Enseignement LCD : confirme stratégie v1 ICS pull 15 min seul (suffit 1-5 lots) + Won't Channel API 2-way maison (T-03). Si 2-way un jour : acheter Vik Channel Manager plutôt que réécrire.
 - Verdict : ne pas réécrire un channel manager ; ICS d'abord, Vik en option P10+.
 
@@ -43,7 +43,7 @@
 - `FutureTense/keymaster` : intégration HA HACS, PIN temporaires par slot, plages dates, sync iCal Airbnb/Vrbo, auto-expire checkout, notifs par slot. Idéal Z-Wave (Schlage/Yale/Kwikset).
 - Nuki : Smart Lock + Keypad + Bridge/Web API/MQTT, intégration HA officielle, gestion PIN via Web/Bridge.
 - Enseignement LCD : SEUL code à récupérer tel quel (T-02) : KeyMaster si serrure Z-Wave, ou automatisations Nuki si Nuki. Les deux sont MIT/GPL compatibles usage interne + jamais de PIN en clair (REQ R-02).
-- Verdict : RÉCUPÉRER (HACS/automatisations), adapter slots 1-10 PIN séjour + purge checkout.
+- Verdict : RÉCUPÉRER (HACS/automatisations), adapter slots 1-10 PIN séjour + purge checkout. Réserve 2026-10-14 : KeyMaster HACS = Z-Wave (`zwave_js`) ; si log1 = Nuki Matter/Thread, reprendre le PATTERN (slots + auto-expire + purge) via automatisations Nuki, pas le module brut.
 
 ### Scripts ics-sync DIY (MIT)
 - Dozens de syncs iCal Airbnb↔Booking↔direct, sensibilité double-résa.
@@ -55,8 +55,8 @@
 
 ## 2. Verdict global récupérer vs réécrire
 
-- RÉCUPÉRER tel quel : KeyMaster (ou patterns Nuki) pour PIN séjour ; catalogues i18n/outillage e-facture si MIT/Apache.
-- PILOTER en lab avant choix : QloApps comme `moteur_direct` Phase 1 (T-01) ; ERPNext+Hospitality si compta native requise (T-04).
-- ACHETER plutôt que réécrire : Vik Channel Manager si 2-way OTA un jour (T-03).
+- RÉCUPÉRER tel quel : KeyMaster si Z-Wave, sinon patterns Nuki adaptés (T-02, réserve 2026-10-14) pour PIN séjour ; catalogues i18n/outillage e-facture si MIT/Apache.
+- PILOTER en lab avant choix : QloApps comme `moteur_direct` Phase 1 (T-01, AFL-3.0 permissive vérifiée — pilote allégé juridiquement, audit avant fork) ; ERPNext+Hospitality si compta native requise (T-04).
+- ACHETER plutôt que réécrire : Vik Channel Manager (~249 €/an) si 2-way OTA un jour (T-03).
 - RÉÉCRIRE maison (déjà fait en lab) : gateway `:8443` + outbox idempotente + WG + SQLite parc.db + pricing clamp + ICS anti-double-résa + front 8 dashboards — aucun OSS ne fait ce tout (offline-first box + multi-tenant FR + 1-tap tracé).
-- NE JAMAIS copier-coller : HotelDruid/QloApps/Vik/ERPNext/Odoo (GPL/OSL) dans repo privé/client sans audit — inspiration fonctionnelle seule (R-09).
+- NE JAMAIS copier-coller : HotelDruid/Vik/ERPNext/Odoo (GPL) dans repo privé/client sans audit — inspiration fonctionnelle seule (R-09). QloApps = AFL-3.0 permissive : reprise possible avec attribution + conservation de licence, audit avant fork.
