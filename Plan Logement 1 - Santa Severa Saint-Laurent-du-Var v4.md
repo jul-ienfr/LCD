@@ -194,7 +194,11 @@ chiffre) ; dossier preuves en parallèle (EDL + messages + factures).
 Pilotage revenus : trou 1-2 nuits −20 % (jamais sous plancher) ; creux
 J+30 <30 % = 1 nuit min ; pics = 3-4 nuits + sam/mer. Flex pivot (J-7) /
 non-remb −10 % / flex+ +15 % pics. Late <2 h gratuit si pas de rotation
-sinon 50 % d'avance. Retour direct J+30/J+180 si 4★+ (−10 % code perso).
+sinon 50 % d'avance. Late/early auto (règle déterministe, accord immédiat
+au tunnel) : si pas de rotation J+1 (late) / J-1 (early) = accord auto au
+prix affiché, jamais d'attente 1-tap ; sinon demande + validation 1-tap.
+Gap-night auto : 1 nuit orpheline coincée entre 2 résas = −X % auto
+(bornes + validation 1-tap, jamais sous plancher). Retour direct J+30/J+180 si 4★+ (−10 % code perso).
 Animaux 25-35 € si copro OK + caution majorée.
 
 Politique d'annulation (affichée avant paiement, identique OTA + direct) :
@@ -350,7 +354,9 @@ annuel, RABC ou équivalent affiché) vs interne (lave-linge + sèche-linge,
 coût/eau/élec suivi) — arbitrage chiffré à l'onboarding, jamais d'oral.
 Home staging / shooting (option onboarding 150-300 €) : mise en valeur +
 photos pro + titres/descriptions SEO par langue ; refonte si note <4,7
-(photos <12 mois, jamais de photos trompeuses L.121-1).
+(photos <12 mois, jamais de photos trompeuses L.121-1). Multivariate
+(backlog) : 2-3 variantes titre/photo A/B par annonce, rotation 1x/mois,
+gagnante = taux clic + conversion, jamais de promesse mensongère.
 Acquisition directe (objectif : part direct >30 % à 10 logements) :
 fiche Google Business par logement + lien avis post-séjour (J+30/J+180
 −10 % direct) + site vitrine + UTM `?src=` tracé ; jamais d'achat de

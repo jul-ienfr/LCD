@@ -146,7 +146,10 @@ flags existants, i18n 5 langues complètes — sinon refus + log).
 - Opérateur (plugin `dash-operateur`) : vue parc + cartes (alertes d'abord),
   planning dry-run, dispatch (validation humaine, clôture 409 si incomplet),
   prix 1-tap, incidents (signalement → qualif → assignation → preuves →
-  facturation → avis), `/etat-parc`, `/metrics`.
+  facturation → avis), `/etat-parc`, `/metrics`. Pace hebdo + pick-up
+  (revenue management) : résas J+30/J+60/J+90 vs objectif par logement,
+  alerte décrochage <80 % ; jamais de promesse, jamais d'auto-baisse sans
+  validation.
 - Comptable (plugin `dash-comptable`) : Finances + exports mono-SIREN seuls.
   Agenda fiscal/social SAS (la SAS ne s'oublie pas) : IS, TVA, CFE SAS, RBE,
   dépôt des comptes → échéancier + alertes J-30/J-7 ; jamais d'échéance

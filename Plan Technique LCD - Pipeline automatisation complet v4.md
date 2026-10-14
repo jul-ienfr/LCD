@@ -285,13 +285,18 @@ jamais communs. Retenue = justificatifs seuls (photos + dB + factures),
 jamais punitive. Damage waiver en option (à trancher, benchmark chiffré) :
 Superhog ou équivalent (payé par le voyageur, 0 friction) vs hold
 Swikly/Stripe (friction + impayés possibles) — décision tracée au mandat
-(coût voyageur vs friction vs sinistres), jamais les deux cumulés.
+(coût voyageur vs friction vs sinistres), jamais les deux cumulés. Test A/B
+waiver vs hold (3 mois, décision chiffrée) : conversion direct + friction
+carte + sinistres réels → gagnant au mandat suivant, jamais d'avis sans
+chiffres.
 Chargebacks / contestations paiement (Stripe/Swikly, 180 j CB) : dossier
 preuve prêt (contrat PWA signé + EDL photos + messages + facture) ;
 réponse <7 j (alerte dashboard dès notification) ; provision 1 mois
 d'encaissements directs ; hold > capture (jamais de débit sans
 justificatifs) ; récidive même voyageur = blacklist + refus direct
-(OTA seule, prépayée).
+(OTA seule, prépayée). Chargeback 1-tap (au-delà de 20 lots) : template
+pré-rempli (contrat + EDL + messages + facture) + envoi 1-clic, jamais de
+dossier manuel ; en dessous = réponse <7 j manuelle, jamais de retard.
 Impayés / recouvrement : extra impayé = relance J+3/J+7 (brouillon humain)
 puis débit caution si motif + justificatifs, sinon créance ; abo client
 impayé = rappel J+5, mise en demeure J+15, suspension pilotage J+30
