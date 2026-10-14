@@ -260,6 +260,11 @@ amende), sans supplément, sans caution majorée — jamais confondus avec
 « animaux »** ; énergie = usage raisonnable (seuil kWh/nuit affiché au
 contrat, dépassement refacturé au réel Linky, jamais de coupure en
 occupé).
+Vérification d'identité voyageur (standard pro, jamais discriminatoire) :
+J-2 = pièce via service (Superhog/Autohost ou équivalent, coût provisionné)
+OU contrôle manuel renforcé (pièce + selfie + cohérence résa) ; défaut =
+caution majorée + EDL renforcé + acompte 50 %, jamais de blocage sans motif
+tracé, jamais de conservation au-delà de checkout+30 j.
 Score voyageur / watchlist interne (3 niveaux, critères objectifs seuls —
 historique séjours + EDL + paiement, jamais d'origine/nom, art. 225-1) :
 5★ = prioritaire liste d'attente + geste ; standard = normal ; à risque =
@@ -289,6 +294,9 @@ après signature + go-live, convention écrite, jamais d'espèces.
 Benchmark : 10 appels mystères initiaux (grille : commission, abo, entrée,
 ménage, SLA, avis Google ≥4,5) puis 5/an ; tableau comparatif revu
 trimestriel, jamais de prix copié (positionnement milieu-premium assumé).
+Veille comp-set data (lecture seule 1x/trimestre) : AirDNA/PriceLabs ou
+équivalent (ADR/occupation concurrents zone) → arbitrage prix 1-tap ;
+jamais de prix copié, jamais d'abonnement sans ROI tracé.
 Validation proprio 1-tap (devis/travaux/dépenses >seuil mandat) : devis →
 notif dashboard + SMS → OK/refus <48 h → relance J+2 ; sans réponse = on ne
 fait pas (sauf urgence P1, régularisation <24 h) ; jamais d'accord tacite,

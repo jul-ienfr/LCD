@@ -282,7 +282,10 @@ Booking = collecte séparée déclarée (VCC = séjour seul) ; Abritel =
 caution OU Damage Protection (jamais cumul) ; direct = hold 500-800 €
 (Swikly/Stripe/TPE, jamais dans le prix). Fonds tagués par logement,
 jamais communs. Retenue = justificatifs seuls (photos + dB + factures),
-jamais punitive.
+jamais punitive. Damage waiver en option (à trancher, benchmark chiffré) :
+Superhog ou équivalent (payé par le voyageur, 0 friction) vs hold
+Swikly/Stripe (friction + impayés possibles) — décision tracée au mandat
+(coût voyageur vs friction vs sinistres), jamais les deux cumulés.
 Chargebacks / contestations paiement (Stripe/Swikly, 180 j CB) : dossier
 preuve prêt (contrat PWA signé + EDL photos + messages + facture) ;
 réponse <7 j (alerte dashboard dès notification) ; provision 1 mois

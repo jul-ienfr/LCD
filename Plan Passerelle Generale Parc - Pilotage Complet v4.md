@@ -102,7 +102,10 @@ publié-manuel → synchronisé`), calendrier via ics-sync pull 15 min,
 `GET /v1/calendrier-parc`, `GET /v1/export-ota` vers channel agréé dès
 >10 unités (Booking = Connectivity API, 4-12 sem, commission contrat
 Extranet ; Airbnb = pas d'API publique, ICS + reco manuelle ; Abritel =
-API partenaire sur dossier). Décision : à 8 logements actifs on chiffre
+API partenaire sur dossier). PMS français plan B chiffré : Smily (FR, APIs
+officielles) vs Hostaway vs maison — réévaluation à 5 lots (pas 10),
+jamais de lock-in sans export testé (calendriers + tarifs + voyageurs +
+docs, restore prouvé). Décision : à 8 logements actifs on chiffre
 (abo + % vs temps manuel) ; à 10 on migre. En attendant : ICS pull 15 min
 + stop-sell same-day + reco 1-tap. Bouton stop commercial global 1-clic
 (crise majeure, kill-switch) : tous canaux + direct fermés, réouverture
@@ -237,9 +240,10 @@ compta multi-entités + Chorus + §24. G3 (1 sem) : provision P1, WG hub,
 Caddy TLS, IdP, mTLS, vault, pentest + §§21/26. G4 (4 j) : outbox/stale,
 `/etat-parc`, `/metrics`, digest, backup + restore, édition config-llm,
 runbooks + §§25/29/30. G5 (2 sem) : go-live log1 puis log2, LAB-ZERO44 +
-LAB-INC45 supervisés, coût <7 €/mois en P1/P2.
-Backlog (jamais bloquant v1) : messagerie unifiée (1 boîte tous canaux +
-brouillons IA, envoi humain), push/SMS (règle : P1 = SMS + push, P2 = push
+LAB-INC45 supervisés, coût <7 €/mois en P1/P2. Messagerie unifiée = G5
+(pas backlog) : 1 boîte tous canaux (OTA + direct + SMS) + brouillons IA +
+envoi humain, standard pro ; jamais d'envoi auto sans validation.
+Backlog (jamais bloquant v1) : push/SMS (règle : P1 = SMS + push, P2 = push
 seul, 22h-8h = jamais sauf P1 ; SMS fallback si push non lu <15 min),
 rapports programmés (hebdo/mensuel PDF par entité), PWA hôte (pilotage
 mobile offline-first), NL/PT, multi-devises EUR/CHF/GBP (taux BCE/j),

@@ -230,8 +230,12 @@ commerciale <24 h ouvrées. Indispo plane >2 h = bandeau + central hôte
 lecture + geste FULL (1 nuit ménage offerte si séjour impacté).
 Support : hotline (appel + PWA) 8h-22h 7j/7 FULL/PILOTAGE ; KIT = doc +
 hotline heures ouvrées. Escalade : opérateur → super_admin → astreinte
-(tour 1 sem, 2 personnes min, prime affichée). Tout incident = ticket +
-post-mortem si récidive (cause → standard MAJ → batterie).
+(tour 1 sem, 2 personnes min, prime affichée). Astreinte externalisée
+overflow (24/7, au-delà de N lots ou en congés) : partenariat décroché
+nuit/week-end (script + escalade + `ref` obligatoire, jamais d'appel sans
+`ref`) — coût provisionné au modèle éco, jamais une surprise. Tout
+incident = ticket + post-mortem si récidive (cause → standard MAJ →
+batterie).
 
 Échelle gravité (unique, tous cahiers) : P1 critique (sécurité, serrure,
 fuite, double-résa, plane down) = qualif <1 h + astreinte + post-mortem
