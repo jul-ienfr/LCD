@@ -120,7 +120,9 @@ affiché dans le logement + PDF au contrat PWA ; défaut = go-live bloqué.
 7. **Go-live** : n° + DPE sur annonces, 1 résa test bout en bout
    (questionnaire → extra → todo → enquête J+1), drill ménage 3 h, doc
    remise, date au registre. Jalon : pas de 2e FULL avant 1 mois vitrine
-   sans incident copro.
+   sans incident copro. Remise solennelle (émotion, pas admin) : photos
+   avant/après + 1re résa test + livret d'accueil proprio + appel J+7 +
+   bilan J+30 ; jamais de go-live silencieux.
 
 ## §L4 Exploitation — standard cible
 
@@ -129,6 +131,9 @@ double-résa, trouvés). Drill trimestriel. Checkout : réassort + seuils +
 photos avant/après (FULL/PILOTAGE). Score 1-5 + temps vs 3 h ; sans photos
 (PILOTAGE) = alerte. Intermédiaire 7 j+ : 60 € (offert dès 14 j si
 remplissage).
+Ménage intermédiaire 7 j+ (séjours longs, date certaine) : fréquence selon
+préférences mémoire (fréquence + heure + pendant absence si possible),
+60 € (offert dès 14 j si remplissage) ; planifié auto, jamais improvisé.
 
 Moyen séjour (7-90 j, digital nomads / mission / relogement) : durée min
 paramétrable par saison (creux 7 j, standard 2-3 j, pics 3-4 j) ; remise
@@ -288,7 +293,10 @@ perte = changement barillet <48 h + information assureur.
 Voyageur sans smartphone (fallback systématique, jamais de bloqué) : kit
 papier (plan + codes + consignes, dans la boîte Master Lock) + consigne
 SMS (PIN + adresse + n° hôte) ; accueil physique commandé si ni
-smartphone ni SMS (cut-off J-1 18h, §L4 accueil).
+smartphone ni SMS (cut-off J-1 18h). Kit nuit 22h-6h (arrivée tardive /
+départ matinal) : consigne silencieuse (entrée discrète + éclairage +
+stationnement nuit), jamais d'appel sauf P1 ; message adapté à l'heure
+déclarée.
 
 Fidélité + parrainage + apporteurs : retour direct −10 % (J+30/J+180 si
 4★+) ; parrainage = 100 € au parrain (avoir ou virement) + entrée −50 €
@@ -305,6 +313,13 @@ Validation proprio 1-tap (devis/travaux/dépenses >seuil mandat) : devis →
 notif dashboard + SMS → OK/refus <48 h → relance J+2 ; sans réponse = on ne
 fait pas (sauf urgence P1, régularisation <24 h) ; jamais d'accord tacite,
 jamais de validation hors SAS (email/tél = retapée au journal).
+Digest proprio hebdo (jamais de silence >7 j) : occupation + CA +
+incidents + avis + photo du mois (auto) ; mensuel détaillé J+5 (relevé).
+Revue annuelle patrimoniale (fidélise 5 ans) : rendement net réel vs
+objectif + travaux conseillés chiffrés + arbitrage micro/réel/revente avec
+comptable ; offerte FULL, 150 € PILOTAGE ; jamais sans écrit.
+Parrainage proprio→proprio (meilleur canal) : 1 mois de commission offert
+ou 200 €, après 3 mois mandat filleul actif, convention, jamais d'espèces.
 
 Maintenance préventive + consommables (FULL : inclus pilotage, pièces au
 réel ; PILOTAGE : plan fourni, exécution devis ; KIT : plan + doc) :
@@ -365,6 +380,13 @@ faux avis, jamais de double saisie calendrier (ICS ou stop-sell).
 Avis ≥4,8 : enquête privée J+1 (≥4★ = lien public, <4★ = rattrapage +
 geste, humain si >20 €), pré-réponse IA 1-tap, livret vidéo QR, trouvés
 (photo + 15 € envoi), boutons Arrivée/Départ/Nuit calme.
+Check-out guidé 1-tap (2 min, sans friction) : photos pièces + poubelles +
+vaisselle + code rendu = EDL de sortie auto + reçu immédiat ; dossier
+retenue sous 48 h ou mainlevée auto, jamais de retenue surprise.
+Carnet d'adresses maison (vécu, pas vendu) : plage, resto, marché,
+pharmacie, urgences — testés, jamais sponsorisés ; revu 1x/an par logement.
+3e séjour (fidélité émotionnelle) : surclassement ou panier local + mot
+manuscrit (~15 €) ; jamais promis d'avance, jamais systématique sans marge.
 E-réputation (veille hebdo, humain seul) : alerte si note <4★ (Google/OTA),
 réponse <48 h (factuelle, jamais d'émotion, jamais 2 rounds) ; jamais de
 faux avis, jamais d'achat d'avis, jamais de suppression demandée (sauf

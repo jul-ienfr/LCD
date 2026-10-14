@@ -155,8 +155,8 @@ flags existants, i18n 5 langues complètes — sinon refus + log).
   dépôt des comptes → échéancier + alertes J-30/J-7 ; jamais d'échéance
   surprise.
 - Proprio client (plugin `dash-proprio`) : SES logements seuls, relevés PDF
-  dans sa langue, versements tracés, documents. Jamais `/systeme`, jamais
-  PIN complet.
+  dans sa langue, versements tracés, documents + digest hebdo auto.
+  Jamais `/systeme`, jamais PIN complet.
 - Presta (plugin `dash-presta`) : PWA mission seule, cache-first,
   offline = guide + urgences ; outbox locale (pointage + photos + clôture
   en file, sync auto au retour réseau, jamais de perte de preuve, conflit =

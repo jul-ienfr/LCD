@@ -23,6 +23,9 @@ multi-tenant dès le premier jour. Pas de version mono-logement à migrer.
 Assiette FULL = brut encaissé hors taxe de séjour. TTC/HT + assiette
 obligatoires sur tout devis. Grille interne jusqu'aux 10 appels mystères,
 puis diffusion externe.
+Objectif de rendement au mandat (cible suivie, jamais garantie) :
+fourchette nette convenue (ex. 4-6 %) + suivi trimestriel vs réel + plan
+d'écart ; sans cible, pas de satisfaction mesurable.
 
 - **FULL-SERVICE — 25 % du brut HT + ménage 110 €/rotation refacturé
   voyageur.** Box posée + pilotage complet (planning, prix, messaging,
@@ -219,6 +222,8 @@ mandats jamais purgés. Horloges `chrony`, tolérance ±5 min (`401
 clock_skew`). Outbox cap 500/box (financier jamais évincé, alerte >50).
 Fan-out p95 <2 s (≤5 box) / <4 s (≤20 box), cache-hit <500 ms,
 kill-switch <5 s. 5 langues v1 : FR/EN/ES/IT/DE (NL/PT = backlog).
+Charte anti-spam (opposable aux deux clients) : max 1 SMS/j non-P1,
+22h-8h = P1 seul, opt-out 1-clic partout, jamais de promo déguisée.
 
 ## §S8 SLA affichables + modèle éco (figés)
 
@@ -235,7 +240,9 @@ overflow (24/7, au-delà de N lots ou en congés) : partenariat décroché
 nuit/week-end (script + escalade + `ref` obligatoire, jamais d'appel sans
 `ref`) — coût provisionné au modèle éco, jamais une surprise. Tout
 incident = ticket + post-mortem si récidive (cause → standard MAJ →
-batterie).
+batterie). Politique « on répare d'abord » (culture, les deux clients) :
+tout incident avéré = excuse <4 h + geste proportionné sans attendre la
+réclamation ; jamais de « c'est la faute de… », jamais de geste marchandé.
 
 Échelle gravité (unique, tous cahiers) : P1 critique (sécurité, serrure,
 fuite, double-résa, plane down) = qualif <1 h + astreinte + post-mortem
