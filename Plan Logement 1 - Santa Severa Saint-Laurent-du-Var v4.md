@@ -258,6 +258,11 @@ vaccination + puce exigés au J-2 (défaut = refus, jamais de négociation
 sur place) ; énergie = usage raisonnable (seuil kWh/nuit affiché au
 contrat, dépassement refacturé au réel Linky, jamais de coupure en
 occupé).
+Score voyageur / watchlist interne (3 niveaux, critères objectifs seuls —
+historique séjours + EDL + paiement, jamais d'origine/nom, art. 225-1) :
+5★ = prioritaire liste d'attente + geste ; standard = normal ; à risque =
+caution majorée + EDL renforcé + acompte 50 % ; blacklist chargebacks =
+refus direct (OTA prépayée seule).
 
 Arrivée autonome standard (FULL/PILOTAGE/KIT) : consigne envoyée J-2
 (PIN/fenêtre + code boîte + photo porte + parking + poubelles) ; fallback
@@ -283,6 +288,9 @@ VMC + toiture/copro signalée au syndic. Stocks seuils (kit, linge, ampoules,
 piles, produits) + inventaire annuel QR. Boucle qualité : score ménage +
 avis + incidents → revue mensuelle (top 3 causes → standard MAJ → batterie
 si logicielle) ; post-mortem écrit si récidive ou coût >200 €.
+Local de stockage (dès 5 logements) : cave/box loué ~30-50 €/mois
+(inventaire + accès prestas tracé, jamais chez soi sans limite) ; coût
+provisionné au modèle éco (§S8), jamais une surprise.
 
 Feu / barbecue / cheminée : interdits sauf équipement dédié validé à la
 visite (barbecue gaz fixe + extincteur + distance façade, jamais de

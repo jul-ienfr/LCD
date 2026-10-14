@@ -90,6 +90,7 @@
 - [ ] P10-9 Benchmark (10 appels mystères initiaux + 5/an, tableau comparatif trimestriel — méthode cahier Logement §L4) — EXTERNE
 - [ ] P10-10 Modèle éco revu (point mort, BFR, coûts fixes — socle §S8, revue trimestrielle)
 - [ ] P10-11 Dépôt marque INPI (nom + logo, ~200 €, avant le 3e client) + formation continue (1/an min : ménage, accueil, pricing — socle §S8)
+- [ ] P10-12 AG SAS annuelle (revues trimestrielles §S8 = base du PV, dépôt des comptes <6 mois après clôture) — EXTERNE
 
 ## Prochaines actions (ordre)
 

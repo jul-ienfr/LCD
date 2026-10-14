@@ -165,7 +165,10 @@ fuite FR en page EN.
 service, migration P2/P3, backup/restore, pannes WG, vol box, fuite token,
 perte vault — testés en lab 2x/an. PRA : RPO 15 min / RTO 2 h, cold
 standby + test semestriel, failover central hôte lecture + bandeau.
-`/health` + `/ready` + `/metrics` Prometheus. Alertes : box down >10 min,
+`/health` + `/ready` + `/metrics` Prometheus. Observabilité staff : logs
+structurés + `ref` bout-en-bout (gateway → box → dashboard) + alerte erreur
+applicative <5 min (Sentry self-hosted OU fichier + grep cron — jamais de
+debug silencieux). Alertes : box down >10 min,
 outbox >50, rapprochement >2 %. Auth : `/login` rate-limitée (5 tentatives
 /15 min/IP + CAPTCHA, verrouillage + alerte, journal `auth_tentative`) ;
 2FA obligatoire staff (super_admin/admin/gestionnaire/comptable), jamais

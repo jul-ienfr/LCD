@@ -331,8 +331,12 @@ cumulés. Jauges 15 000 € / 77 700 € + 120 j, alertes 80 %/100 %.
 Taxe foncière (client, mais intégrée au rendement) : saisie au mandat +
 au simulateur (jamais de rentabilité affichée sans TF) + rappel annuel
 au relevé (provision mensuelle conseillée, jamais d'avance de notre part).
-Simulateur micro vs réel + export 1-clic, clôture le 5. Factures + OCR
-→ `docs/logN/compta/`, file basse confiance.
+Simulateur micro vs réel + export 1-clic, clôture le 5. Réel = amortissements
+par composant (gros-œuvre 50 ans / toiture 25 ans / agencement 10-15 ans /
+mobilier 5-10 ans, barème comptable au mandat) ; alerte revente : réforme
+15/02/2025 = amortissements réintégrés dans la plus-value (le « passez au
+réel » se paie à la revente — jamais conseillé sans comptable + projection
+revente). Factures + OCR → `docs/logN/compta/`, file basse confiance.
 DAC7 : plateformes = déclarantes (revenus vendeurs → fisc 1x/an, elles
 transmettent) ; nous = conservation 10 ans des relevés + exported
 payouts par SIREN pour contrôle. E-facture : export Chorus Pro / PDP
