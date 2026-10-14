@@ -22,7 +22,9 @@ multi-tenant dès le premier jour. Pas de version mono-logement à migrer.
 
 Assiette FULL = brut encaissé hors taxe de séjour. TTC/HT + assiette
 obligatoires sur tout devis. Grille interne jusqu'aux 10 appels mystères,
-puis diffusion externe.
+puis diffusion externe. Rythme prévisible affiché (la confiance) :
+voyageur = J-2/J-1/J+1 ; proprio = lundi 9h + J+5 + J+30 ; 1 ligne au
+contrat/PWA, jamais de client qui doit demander.
 Objectif de rendement au mandat (cible suivie, jamais garantie) :
 fourchette nette convenue (ex. 4-6 %) + suivi trimestriel vs réel + plan
 d'écart ; sans cible, pas de satisfaction mesurable.
@@ -242,7 +244,8 @@ nuit/week-end (script + escalade + `ref` obligatoire, jamais d'appel sans
 incident = ticket + post-mortem si récidive (cause → standard MAJ →
 batterie). Politique « on répare d'abord » (culture, les deux clients) :
 tout incident avéré = excuse <4 h + geste proportionné sans attendre la
-réclamation ; jamais de « c'est la faute de… », jamais de geste marchandé.
+réclamation ; jamais de « c'est la faute de… », jamais de geste marchandé. Grille gestes affichée (P1 = nuit offerte ou
+geste + suivi J+1 ; P2 = extra offert), jamais d'arbitraire.
 
 Échelle gravité (unique, tous cahiers) : P1 critique (sécurité, serrure,
 fuite, double-résa, plane down) = qualif <1 h + astreinte + post-mortem

@@ -70,8 +70,9 @@ devis. FULL = supervision complète. PILOTAGE = pilotage seul (todos +
 photos/score, pas de dispatch, pas de sinistre sur place sans devis).
 KIT = autonome (intervention à la demande, facturée hors maintenance).
 
-Fonctions communes : questionnaire J-2 (PWA + PIN, 3 min, cut-off J-1 18h,
-rappel J-1 15h ; sans réponse = kit standard, accès jamais bloqué),
+Fonctions communes : questionnaire J-2 pré-rempli 30 s (OTA → PWA :
+dates/nom/langue/nb repris, reste = heure d'arrivée + extras, cut-off J-1
+18h, rappel J-1 15h ; sans réponse = kit standard, accès jamais bloqué),
 extras payés d'avance (Stripe/Swikly tagué), guide PWA 5 langues (20 phrases
 critiques validées humain), contrat voyageur PWA 30 s (PDF horodaté),
 mémoire opt-in révocable purge 24 mois, WG FULL/PILOTAGE (KIT à la demande).
@@ -281,11 +282,18 @@ caution majorée + EDL renforcé + acompte 50 % ; blacklist chargebacks =
 refus direct (OTA prépayée seule).
 
 Arrivée autonome standard (FULL/PILOTAGE/KIT) : consigne envoyée J-2
-(PIN/fenêtre + code boîte + photo porte + parking + poubelles) ; fallback
-= clé physique Master Lock (code tournant, changé par séjour) ; preuve =
-1re ouverture logguée (Nuki) ou photo EDL <2 h (boîte) ; retard >30 min =
-pré-chauffe décalée + message ; sans nouvelles J+1 12h = appel + visite
-si silence 24 h (sécurité, pas surveillance).
+(PIN/fenêtre + code boîte + vidéo porte 20 s + parking + poubelles) ;
+QR WiFi + code porte sur le même écran (imprimable 1-tap) + fallback SMS
+auto si PWA non ouverte à J-1 18h ; fallback = clé physique Master Lock
+(code tournant, changé par séjour) ; preuve = 1re ouverture logguée (Nuki
+→ « bonne installation » auto + pré-chauffe coupée, jamais de message à
+écrire) ou photo EDL <2 h (boîte) ; retard >30 min = pré-chauffe décalée
++ message ; sans nouvelles J+1 12h = appel + visite si silence 24 h
+(sécurité, pas surveillance).
+Anticipation J-1 (zéro demande, effet 10/10) : gabarits par logement
+(canicule >35 °C / pluie / event local / rue bruyante : consigne + objet
+secours localisé — ventilateur, parapluie, boules Quies) ; jamais de
+message générique, jamais sans objet concret.
 Registre des clés (doctrine, inventaire à chaque rotation) : N clés
 numérotées (qui/quoi/quand au registre), double scellé chez le client ou
 au coffre, jamais de clé non tracée, jamais de copie sans inscription ;
@@ -314,10 +322,21 @@ notif dashboard + SMS → OK/refus <48 h → relance J+2 ; sans réponse = on ne
 fait pas (sauf urgence P1, régularisation <24 h) ; jamais d'accord tacite,
 jamais de validation hors SAS (email/tél = retapée au journal).
 Digest proprio hebdo (jamais de silence >7 j) : occupation + CA +
-incidents + avis + photo du mois (auto) ; mensuel détaillé J+5 (relevé).
+incidents + avis + photo du mois (auto) ; mensuel détaillé J+5 (relevé
+1 page 30 s : brut − commissions − ménage − plateforme − taxe = net +
+graphe 12 mois + vs objectif, jamais 3 pages comptables) + net estimé J+20
+(fourchette, jamais promesse).
 Revue annuelle patrimoniale (fidélise 5 ans) : rendement net réel vs
 objectif + travaux conseillés chiffrés + arbitrage micro/réel/revente avec
-comptable ; offerte FULL, 150 € PILOTAGE ; jamais sans écrit.
+comptable ; offerte FULL, 150 € PILOTAGE ; jamais sans écrit. Se termine
+par 3 scénarios chiffrés (tenir / améliorer / vendre, avec comptable) ;
+jamais de conseil patrimonial sans chiffres.
+Appel après 3 premiers séjours (le bien est aimé) : verbatim voyageurs +
+plan d'amélioration ; jamais de silence après le démarrage.
+Appel avant relevé si problème (jamais de découverte sur le chiffre) :
+on appelle, on explique, on montre le dossier, on propose le plan.
+Mois creux expliqué (pédagogie, jamais « c'est la saison ») : pace + prix
++ events + plan d'action ; jamais de mois vide sans explication.
 Parrainage proprio→proprio (meilleur canal) : 1 mois de commission offert
 ou 200 €, après 3 mois mandat filleul actif, convention, jamais d'espèces.
 
@@ -380,9 +399,16 @@ faux avis, jamais de double saisie calendrier (ICS ou stop-sell).
 Avis ≥4,8 : enquête privée J+1 (≥4★ = lien public, <4★ = rattrapage +
 geste, humain si >20 €), pré-réponse IA 1-tap, livret vidéo QR, trouvés
 (photo + 15 € envoi), boutons Arrivée/Départ/Nuit calme.
+Fil incident unique visible voyageur (jamais 2 messages pour 1 incident) :
+1 fil par incident (`ref` + statut + geste, SMS + PWA + appel regroupés),
+suivi J+1 « c'est bien réparé ? » ; jamais de fil parallèle, jamais sans
+`ref` visible.
 Check-out guidé 1-tap (2 min, sans friction) : photos pièces + poubelles +
 vaisselle + code rendu = EDL de sortie auto + reçu immédiat ; dossier
 retenue sous 48 h ou mainlevée auto, jamais de retenue surprise.
+Objet oublié détecté avant appel : photos EDL vs inventaire → « votre
+chargeur est resté, on vous l'envoie ? » (15 € forfait, jamais d'attente
+de réclamation).
 Carnet d'adresses maison (vécu, pas vendu) : plage, resto, marché,
 pharmacie, urgences — testés, jamais sponsorisés ; revu 1x/an par logement.
 3e séjour (fidélité émotionnelle) : surclassement ou panier local + mot
