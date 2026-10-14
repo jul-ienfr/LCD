@@ -276,6 +276,10 @@ Registre des clés (doctrine, inventaire à chaque rotation) : N clés
 numérotées (qui/quoi/quand au registre), double scellé chez le client ou
 au coffre, jamais de clé non tracée, jamais de copie sans inscription ;
 perte = changement barillet <48 h + information assureur.
+Voyageur sans smartphone (fallback systématique, jamais de bloqué) : kit
+papier (plan + codes + consignes, dans la boîte Master Lock) + consigne
+SMS (PIN + adresse + n° hôte) ; accueil physique commandé si ni
+smartphone ni SMS (cut-off J-1 18h, §L4 accueil).
 
 Fidélité + parrainage + apporteurs : retour direct −10 % (J+30/J+180 si
 4★+) ; parrainage = 100 € au parrain (avoir ou virement) + entrée −50 €

@@ -147,7 +147,9 @@ flags existants, i18n 5 langues complètes — sinon refus + log).
   dans sa langue, versements tracés, documents. Jamais `/systeme`, jamais
   PIN complet.
 - Presta (plugin `dash-presta`) : PWA mission seule, cache-first,
-  offline = guide + urgences.
+  offline = guide + urgences ; outbox locale (pointage + photos + clôture
+  en file, sync auto au retour réseau, jamais de perte de preuve, conflit =
+  humain seul).
 - Commercial (plugin `dash-commercial`) : pipeline 8 étapes, simulateur,
   offres, fiche PDF. Jamais prix/coûts.
 - Voyageur (plugin `dash-voyageur`) : lien magique (128 bits + HMAC,
@@ -168,6 +170,10 @@ fuite FR en page EN.
 service, migration P2/P3, backup/restore, pannes WG, vol box, fuite token,
 perte vault — testés en lab 2x/an. PRA : RPO 15 min / RTO 2 h, cold
 standby + test semestriel, failover central hôte lecture + bandeau.
+Procédure dégradée plane down (validations 1-tap impossibles) : SMS
+validant au super_admin (prix/geste/dispatch, format `OK <ref>`) +
+régularisation tracée au retour (<24 h, `{sms, qui, heure}` au journal),
+jamais de validation orale non tracée, jamais deux dégradées sans revue.
 `/health` + `/ready` + `/metrics` Prometheus. Observabilité staff : logs
 structurés + `ref` bout-en-bout (gateway → box → dashboard) + alerte erreur
 applicative <5 min (Sentry self-hosted OU fichier + grep cron — jamais de
@@ -216,9 +222,10 @@ Caddy TLS, IdP, mTLS, vault, pentest + §§21/26. G4 (4 j) : outbox/stale,
 runbooks + §§25/29/30. G5 (2 sem) : go-live log1 puis log2, LAB-ZERO44 +
 LAB-INC45 supervisés, coût <7 €/mois en P1/P2.
 Backlog (jamais bloquant v1) : messagerie unifiée (1 boîte tous canaux +
-brouillons IA, envoi humain), push (PWA + SMS fallback), rapports
-programmés (hebdo/mensuel PDF par entité), PWA hôte (pilotage mobile
-offline-first), NL/PT, multi-devises EUR/CHF/GBP (taux BCE/j),
+brouillons IA, envoi humain), push/SMS (règle : P1 = SMS + push, P2 = push
+seul, 22h-8h = jamais sauf P1 ; SMS fallback si push non lu <15 min),
+rapports programmés (hebdo/mensuel PDF par entité), PWA hôte (pilotage
+mobile offline-first), NL/PT, multi-devises EUR/CHF/GBP (taux BCE/j),
 prévisionnel 90 j (occupation + CA + charges projetés, bornes réelles,
 jamais de promesse), journal hash-chaîné (immuabilité prouvable,
 vérification 1 commande), liste d'attente (dates complètes = file +

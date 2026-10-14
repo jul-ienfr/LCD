@@ -132,7 +132,8 @@ permanent « vue simulée — actions tracées comme super_admin », chaque
 écriture loggée `{qui_reel, vu_comme, quoi}`. Jamais de simulation de
 secrets (le contenu secret reste masqué même en « voir comme »).
 Usage : support client, recette plugin, formation. Audit : journal des
-« voir comme » 90 j, relecture mensuelle.
+« voir comme » 90 j, relecture mensuelle + alerte usage anormal (nuit,
+volume, hors support ouvert — notif super_admin <1 h).
 
 Isolation : filtres `?entite=&mode=propre|mandat_tiers&client=` partout.
 403 si hors périmètre, 404 identique 403/404 côté voyageur
