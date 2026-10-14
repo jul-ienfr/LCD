@@ -104,7 +104,9 @@ publié-manuel → synchronisé`), calendrier via ics-sync pull 15 min,
 Extranet ; Airbnb = pas d'API publique, ICS + reco manuelle ; Abritel =
 API partenaire sur dossier). Décision : à 8 logements actifs on chiffre
 (abo + % vs temps manuel) ; à 10 on migre. En attendant : ICS pull 15 min
-+ stop-sell same-day + reco 1-tap. Suspension OTA (plan B) : contre-enquête
++ stop-sell same-day + reco 1-tap. Bouton stop commercial global 1-clic
+(crise majeure, kill-switch) : tous canaux + direct fermés, réouverture
+progressive par lot, tracée ; jamais sans motif loggué. Suspension OTA (plan B) : contre-enquête
 <48 h (dossier preuves), bascule direct + autres OTA, jamais de recréation
 sauvage ; anti-dépendance = aucun canal >60 % du CA (alerte dashboard),
 direct >30 % à 10 logements. Biens : `/stats + /alertes` (dormants
@@ -143,6 +145,9 @@ flags existants, i18n 5 langues complètes — sinon refus + log).
   prix 1-tap, incidents (signalement → qualif → assignation → preuves →
   facturation → avis), `/etat-parc`, `/metrics`.
 - Comptable (plugin `dash-comptable`) : Finances + exports mono-SIREN seuls.
+  Agenda fiscal/social SAS (la SAS ne s'oublie pas) : IS, TVA, CFE SAS, RBE,
+  dépôt des comptes → échéancier + alertes J-30/J-7 ; jamais d'échéance
+  surprise.
 - Proprio client (plugin `dash-proprio`) : SES logements seuls, relevés PDF
   dans sa langue, versements tracés, documents. Jamais `/systeme`, jamais
   PIN complet.
@@ -154,14 +159,19 @@ flags existants, i18n 5 langues complètes — sinon refus + log).
   offres, fiche PDF. Jamais prix/coûts.
 - Voyageur (plugin `dash-voyageur`) : lien magique (128 bits + HMAC,
   J-2 15h → checkout +12h, révocable, purge 90 j), WiFi/QR/guide + écritures
-  bornées (incident photos, extras, départ tardif, checkout, EDL). PIN en
-  fenêtre seule, 4 derniers en log.
+  bornées (incident photos, extras, départ tardif, checkout, EDL) +
+  facture/reçu 1-clic (lien lecture seule 90 j post-checkout, puis purge).
+  PIN en fenêtre seule, 4 derniers en log.
 - Recherche globale par `ref` (l'index du point unique) : coller un `ref`
   UUIDv7 → retrouve le dossier (résa, ticket, facture, journal) tous
   périmètres autorisés, 404 sinon (jamais de fuite inter-client).
 - Tickets support SAS (file unique, jamais de demande SMS/WhatsApp non
   tracée) : bug / demande client / question → file + SLA (P1 <4 h,
   P2 <48 h) + clôture motif tracé ; jamais de ticket sans `ref`.
+- Messagerie interne 3 fils (jamais de WhatsApp/SMS perso, tout au journal
+  avec `ref`) : fil proprio↔opérateur (par logement), fil presta↔opérateur
+  (par mission), fil voyageur↔opérateur (par résa) ; pièces + décisions
+  tracées, jamais d'accord oral.
 
 Design : HTML sans JS côté parc, PWA cache-first terrain, WCAG 2.2 AA +
 sombre, lazy cartes (alertes d'abord), journal 200/page, `ETag` +

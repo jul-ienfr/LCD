@@ -89,7 +89,10 @@ résiliation (client), `expire_le` dépassé (tous). `POST /v1/acces-revoquer`
 (jamais soi-même, jamais super_admin). Délégation / absence (continuité,
 jamais de partage de compte) : opérateur absent = délégation 1-tap
 (périmètre + `expire_le` court, retour auto, tracée `{qui, à_qui, fin}`) ;
-jamais de compte partagé, jamais de délégation sans expiry.
+jamais de compte partagé, jamais de délégation sans expiry. Double validation
+financière (4 yeux, fonds tiers) : reversement proprio + remboursement voyageur
++ débit caution >300 € + geste >50 € = 2 validations (opérateur + admin,
+log dual `{maker, checker}`) ; jamais de flux sortant seul au-delà des seuils.
 
 | Login | Rôle | Dashboard | Périmètre | 2FA |
 |---|---|---|---|---|

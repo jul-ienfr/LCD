@@ -289,6 +289,10 @@ après signature + go-live, convention écrite, jamais d'espèces.
 Benchmark : 10 appels mystères initiaux (grille : commission, abo, entrée,
 ménage, SLA, avis Google ≥4,5) puis 5/an ; tableau comparatif revu
 trimestriel, jamais de prix copié (positionnement milieu-premium assumé).
+Validation proprio 1-tap (devis/travaux/dépenses >seuil mandat) : devis →
+notif dashboard + SMS → OK/refus <48 h → relance J+2 ; sans réponse = on ne
+fait pas (sauf urgence P1, régularisation <24 h) ; jamais d'accord tacite,
+jamais de validation hors SAS (email/tél = retapée au journal).
 
 Maintenance préventive + consommables (FULL : inclus pilotage, pièces au
 réel ; PILOTAGE : plan fourni, exécution devis ; KIT : plan + doc) :
