@@ -251,7 +251,10 @@ prévisionnel, jamais une surprise.
 Vente du bien / fin anticipée : transfert mandat au notaire (box = meuble,
 reprise ou cession chiffrée), préavis acquéreur 3 mois, dernier relevé +
 reversement soldé J+5, révocations + purge 90 j ; jamais de mandat
-transféré sans accord écrit des 3 parties.
+transféré sans accord écrit des 3 parties. Kit de sortie (portabilité,
+jamais un litige) : à la résiliation = export complet 1-clic (relevés,
+factures, EDL, docs) sous 30 j, puis purge ; jamais de rétention
+documentaire après sortie.
 Refus de quitter / squat post-checkout : relance → mise en demeure →
 huissier (jamais de force, jamais de coupure eau/élec/codes en occupé) ;
 relogement du suivant à nos frais + geste ; dossier plateforme + protection

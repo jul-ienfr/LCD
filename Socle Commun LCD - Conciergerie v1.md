@@ -86,7 +86,10 @@ le rôle détermine le dashboard ET le périmètre. 1 compte nominatif par
 personne (sauf kiosk guest + lien magique voyageur, sans compte).
 Révocation auto : fin mission (presta), checkout +12 h (voyageur),
 résiliation (client), `expire_le` dépassé (tous). `POST /v1/acces-revoquer`
-(jamais soi-même, jamais super_admin).
+(jamais soi-même, jamais super_admin). Délégation / absence (continuité,
+jamais de partage de compte) : opérateur absent = délégation 1-tap
+(périmètre + `expire_le` court, retour auto, tracée `{qui, à_qui, fin}`) ;
+jamais de compte partagé, jamais de délégation sans expiry.
 
 | Login | Rôle | Dashboard | Périmètre | 2FA |
 |---|---|---|---|---|

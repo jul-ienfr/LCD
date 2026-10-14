@@ -156,6 +156,12 @@ flags existants, i18n 5 langues complètes — sinon refus + log).
   J-2 15h → checkout +12h, révocable, purge 90 j), WiFi/QR/guide + écritures
   bornées (incident photos, extras, départ tardif, checkout, EDL). PIN en
   fenêtre seule, 4 derniers en log.
+- Recherche globale par `ref` (l'index du point unique) : coller un `ref`
+  UUIDv7 → retrouve le dossier (résa, ticket, facture, journal) tous
+  périmètres autorisés, 404 sinon (jamais de fuite inter-client).
+- Tickets support SAS (file unique, jamais de demande SMS/WhatsApp non
+  tracée) : bug / demande client / question → file + SLA (P1 <4 h,
+  P2 <48 h) + clôture motif tracé ; jamais de ticket sans `ref`.
 
 Design : HTML sans JS côté parc, PWA cache-first terrain, WCAG 2.2 AA +
 sombre, lazy cartes (alertes d'abord), journal 200/page, `ETag` +
@@ -181,7 +187,8 @@ debug silencieux). Alertes : box down >10 min,
 outbox >50, rapprochement >2 %. Auth : `/login` rate-limitée (5 tentatives
 /15 min/IP + CAPTCHA, verrouillage + alerte, journal `auth_tentative`) ;
 2FA obligatoire staff (super_admin/admin/gestionnaire/comptable), jamais
-de session sans expiry. Anti-phishing humain : jamais de lien de paiement
+de session sans expiry. Sessions staff : liste actives + révocation par
+appareil + alerte nouvelle connexion (jamais de session fantôme). Anti-phishing humain : jamais de lien de paiement
 par SMS sauf tunnel Stripe/Swikly déclaré au contrat ; faux « votre
 caution » = P2 (alerte + plainte plateforme) ; formation phishing 1x/an ;
 cyber-assurance dès 5 logements. Vishing : jamais de code/PIN par
