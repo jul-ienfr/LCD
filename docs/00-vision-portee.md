@@ -15,7 +15,7 @@ Jamais de test direct chez un client. Multi-tenant dès J1.
 
 Inclus : socle DRY, contrats gateway-boxes-front (§20), passerelle `:8443`
 v5, logement v5, technique box v5, exécution v6 (G0→G5 + RACI + risques +
-budgets + DoD), glossaire, registres.
+budgets + DoD), glossaire, registres + bac-a-sable pre-deploiement S9 (REQ-S-004).
 Exclus (plan-only) : tout code, toute VM réelle, tout mandat tiers payant
 sans carte G (bloquant P10-8).
 

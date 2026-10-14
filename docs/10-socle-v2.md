@@ -287,3 +287,38 @@ formation continue 1/an min (ménage, accueil, pricing, sécurité) ;
 accident) + visite médicale + affichage obligatoire ;
 doc « indisponible 48 h » (qui fait quoi). Sans 2e personne = pas de FULL
 au-delà de 2 biens.
+
+## §S9 Bac-à-sable pré-déploiement — faux jeu complet comme prod, test global local (REQ-S-004)
+
+Principe : le lab Docker local FAIT OFFICE de bac-à-sable avant déploiement
+définitif. Mêmes images génériques transférables, mêmes ports, mêmes volumes
+que la box — seule la config/logements/secrets change. Réseau docker interne,
+jamais WAN. 0 € logiciel (`python:slim`, stdlib seule). Teardown 1 commande
+(`docker compose down -v`). Détail d'exploitation : `lab/README.md` seul fait
+foi (renvoi, jamais copié ici).
+
+Jeu de données faux complet, comme en production (versionné, marqué LAB,
+jamais de PII réelle, jamais de secrets réels, jamais publié/envoyé) :
+faux super_admin + admin + gestionnaires (opérateur/comptable/commercial) +
+faux proprios (propre + mandat tiers) + faux prestas + faux voyageurs +
+faux logements (log1 FULL, log2 light, logtmp hors box flag off) +
+fausses entités/mandats/prospects/annonces/locations + fausse mémoire opt-in
+(hash seul) + fausse base `parc.db` SQLite WAL + registres YAML lab
+(`logements.lab.yaml`, `acces.yaml`, `parc-registre/`, `prestataires.lab/`,
+`extras.lab/`, `inventaire.lab/` seed 5 biens, `stocks.lab/`) + faux VPS
+`lab/vps-sim` (Caddy TLS local) + HA virtuelle `:8123` éphémère. Marquage
+`LAB-*`/`TEST-*`, assertions batterie en `>=` jamais `==`, reset via
+`git checkout -- <fixtures>` + `down -v`.
+
+Test global local, 1 commande (`docker compose up -d --build` puis
+`python3 tests_lab.py`) : toutes fonctions/options/configs/paramètres —
+matrice rôles × 8 dashboards × flags `logements.lab.yaml` × bornes §S7 ×
+gate go/no-go — via séjour témoin zéro-touch + séjour incident + offline
+2 h + restore. Batterie verte exigée avant G1/G2 (§60 DoD). Vitrines 7 j
+(§S0) + jamais de test direct client inchangés.
+
+Machines virtuelles : Docker suffit en lab dev (conteneurs = VMs légères
+isolées, locales, directes). Pas de VirtualBox/VMware requis. Sous Windows :
+Docker Desktop + backend WSL2. Proxmox = box réelle P1-box (§T1/§60),
+jamais requis pour le bac-à-sable. Autre solution si Docker indisponible :
+LXC équivalent, même contrats §20.

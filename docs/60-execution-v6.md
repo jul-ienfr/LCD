@@ -77,6 +77,7 @@ Seuils P1→P2 / P2→P3 : §S4 seuls font foi (jamais recopiés ici).
 
 ### Phase 8 — Recette / go-live (box requise pour la fin)
 - [x] P8-1→P8-7/10/12 Formation, bornes prix, maintenance dry-run, clone log2 — lab
+- [ ] P8-9 Bac-a-sable pre-deploiement vert (REQ-S-004) : faux jeu complet LAB + test global local 1 commande + seed reset OK — bloquant avant G1/G2
 - [ ] P8-8 Go-live log1 → tag + changelog
 - [ ] P8-11 Maintenance annuelle (piles, audit, 4G failover ~30 €)
 
