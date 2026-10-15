@@ -43,3 +43,8 @@
   INCHANGÉE — présentation seule observée, jamais algo serveur) —
   EXÉCUTION BLOQUÉE sur comptes lab PROPRES PriceLabs + Beyond (action
   opérateur), 0 code touché.
+- R-03 upsell 2026-10-15 : préparation `r03-upsell-prep.md` (Duve+Enso,
+  S01-S06, F01-F05, matrix, ancrée `extras-upsell` cut-off J-1 18h +
+  paiement d'avance + geste humain INCHANGÉS — timing/présentation seuls
+  observés) — EXÉCUTION BLOQUÉE sur comptes lab PROPRES Duve + Enso
+  (action opérateur), 0 code touché.
