@@ -53,3 +53,9 @@
   bornes/403 + src JSONL INCHANGÉS — funnel/promo/reprise seuls observés,
   objectif direct >30 % §L4) — EXÉCUTION BLOQUÉE sur comptes lab PROPRES
   Lodgify + Smoobu (action opérateur), 0 code touché.
+- R-07 dispatch 2026-10-15 : préparation `r07-dispatch-prep.md`
+  (Breezeway+Turno, S01-S06, F01-F05, matrix, ancrée `dispatch-presta`
+  proposition seule jamais auto + mission 1-tap + 409 preuves/score <3,5
+  INCHANGÉS — checklist/score/dispatch seuls observés) — EXÉCUTION
+  BLOQUÉE sur comptes lab PROPRES Breezeway + Turno (action opérateur),
+  0 code touché.
