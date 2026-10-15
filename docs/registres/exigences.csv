@@ -22,3 +22,4 @@ REQ-L-001,Copro verifiee false = BLOQUEE mise en ligne,logements.yaml + L1,copro
 REQ-L-002,Onboarding 7 etapes + checklist 8 items mandat tiers,Plan L §L3,mandats.yaml checklist,logX onboarding,batterie onboarding,dash-operateur,a-valider-v2
 REQ-E-001,DoD 5 items + tag git par phase close,00-vision §00.7,docs/,global,batterie 1125 OK/0 KO tenue,dash-super,a-valider-v2
 REQ-S-004,Bac-a-sable pre-deploiement faux jeu complet + test global local 1 commande,Socle S9,lab docker box-lab + vps-sim + HA virtuelle,logements.lab.yaml + fixtures LAB-*,batterie tests_lab.py verte + seed reset,tous,a-valider-v2
+REQ-S-005,Radar REA 5 teardowns/an clean-room lab seul 0 code pompe,Socle v1 S10,lab isole VM sans secrets,global,1 fiche/cible comportement+preuves+limites + journal cibles,tous,a-valider-v2

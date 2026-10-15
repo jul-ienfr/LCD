@@ -4,7 +4,7 @@
 > Règle : ce qui est ici n'est dupliqué nulle part. Les cahiers renvoient
 > ici par `§S*`. En cas de contradiction, ce socle l'emporte.
 > Ton : direct, normatif. 0 € logiciel (stdlib Python + open source).
-> Addendum 2026-10-15 : §S9 radar REA ajouté (docs seuls, 0 code prod).
+> Addendum 2026-10-15 : §S10 radar REA ajouté (docs seuls, 0 code prod).
 
 ## §S0 Vision produit
 
@@ -276,7 +276,7 @@ formation continue 1/an min (ménage, accueil, pricing, sécurité) ;
 doc « indisponible 48 h » (qui fait quoi : astreinte, ménage, reversement
 reporté, message type). Sans 2e personne = pas de FULL au-delà de 2 biens.
 
-## §S9 Radar concurrentiel — teardowns REA (lab seul, clean-room)
+## §S10 Radar concurrentiel — teardowns REA (lab seul, clean-room)
 
 REA = `morluto/rea` (MIT, MCP local, `npx rea-agents setup`, Node
 22/24/26). Radar seul : voir une fonction aimée → comprendre côté

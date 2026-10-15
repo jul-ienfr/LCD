@@ -2,7 +2,7 @@
 
 > `morluto/rea` (MIT, MCP local, `npx rea-agents setup`, Node 22/24/26).
 > Radar seul : voir → comprendre côté client → rebuild maison.
-> Règle socle §S9 : clean-room, lab seul, docs seuls, 0 code pompé.
+> Règle socle §S10 : clean-room, lab seul, docs seuls, 0 code pompé.
 > 1 cible = 1 fiche → 1 spec maison → 7 j vitrine log1 si retenue.
 > Chaque fiche finit par « limites ». Sans limites = supposition.
 
