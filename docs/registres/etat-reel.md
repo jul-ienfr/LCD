@@ -17,5 +17,7 @@
   §P8/§T5/§L4 + 60 header réduits aux renvois DRY, audit complet 10/30/40/50/00/20/60 fait,
   0 duplication fonctionnelle hors archives, 0 code touché. Gel proposé : `plan-v2.0-saas`.
 - Radar REA 2026-10-15 : socle v1 §S10 clean-room lab seul + P10-9b 5 teardowns/an +
-  registre `teardowns-rea.md` R-01..R-08 (À FAIRE) + renvoi benchmark-oss, 0 code pompé.
+  registre `teardowns-rea.md` R-01..R-08 (protocoles 7 étapes + preuves +
+  mapping + limites posés, exécution lab en attente) + renvoi benchmark-oss,
+  0 code pompé.
   À reporter en socle-v2 §S10 au prochain gel (v2 gelé `plan-v2.0-saas` non rouvert ici).
