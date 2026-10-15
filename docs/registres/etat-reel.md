@@ -32,3 +32,9 @@
   14 PMS + 13 pricing/direct + 17 ops, R-09..R-19 proposés ancrés 17 modules
   `custom/*` vérifiés) + ordre exécution P1/P2/P3, exécutions lab en attente,
   0 code touché.
+- R-01 lab 2026-10-15 : VM REA PRÊTE (conteneur `rea-lab` node:24-slim, user
+  `realab`, réseau `rea-isole`, volume `rea-notes` seul, ports aucun, 0 secret
+  LCD vérifié, node v24.22.0, rea-agents 6.5.0) + préparation `r01-inbox-prep.md`
+  (scope Guesty+Hospitable, 15 sources, S01-S06, F01-F05, matrix, plan reviews,
+  journal template) — EXÉCUTION BLOQUÉE sur comptes lab PROPRES Guesty +
+  Hospitable + vérification CGU (action opérateur), 0 code touché.

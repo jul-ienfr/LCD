@@ -1,0 +1,52 @@
+# lab/rea/docker-compose.rea.yml — conteneur REA isolé (radar concurrentiel).
+# Usage (MACHINE HÔTE, jamais depuis le lab LCD) :
+#   cd lab/rea && docker compose -f docker-compose.rea.yml up -d --build
+#   docker exec -it rea-lab npx rea-agents setup   # si pas fait au build
+#   docker exec -it rea-lab bash                    # session d'observation
+#   cd .. && docker compose -f rea/docker-compose.rea.yml down -v   # teardown
+#
+# ISOLATION GARANTIE PAR CE FICHIER :
+# - réseau rea-isole DÉDIÉ (pas le réseau lcd-lab, pas d'accès aux conteneurs LCD)
+# - AUCUN volume LCD monté (pas de secrets.yaml, branding.yaml, docs/logN/)
+# - AUCUN port box/prod mappé (:8123/:4000/:8050/8090-8100/:8060 absents)
+# - WAN sortant seul (pour observer les cibles légalement installées)
+# - teardown = down -v (volumes runtime supprimés, 0 trace)
+
+name: rea-lab
+
+services:
+  rea:
+    build:
+      context: ../..
+      dockerfile: lab/rea/Dockerfile.rea
+    container_name: rea-lab
+    hostname: rea-lab
+    networks:
+      - rea-isole
+    # Pas de ports publiés : on entre par `docker exec`, jamais par le réseau.
+    ports: []
+    volumes:
+      # Notes d'observation (comportement seul) — persiste entre runs, supprimé au teardown.
+      # JAMAIS de montage du repo, JAMAIS de secrets, JAMAIS de docs/logN/.
+      - rea-notes:/home/realab/notes
+    environment:
+      # Marqueur anti-confusion : ce conteneur n'est PAS le lab LCD.
+      REA_ISOLATED: "1"
+      LCD_FORBIDDEN: "aucun secret LCD ici — voir runbook-setup-lab-rea.md"
+    command: ["sleep", "infinity"]
+    healthcheck:
+      test: ["CMD", "node", "--version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  rea-isole:
+    name: rea-isole
+    driver: bridge
+    # Pas de lien vers le réseau lcd-lab : isolation au niveau Docker.
+    internal: false  # WAN sortant requis pour observer les cibles (comptes lab propres)
+
+volumes:
+  rea-notes:
+    name: rea-notes

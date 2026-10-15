@@ -1,0 +1,30 @@
+# lab/rea/Dockerfile.rea — conteneur REA isolé (radar concurrentiel, lab seul).
+# Norme : socle v1 §S10 (clean-room) + runbook-setup-lab-rea.md §1.
+# ISOLATION : aucun volume LCD, aucun secret, aucun accès box/prod/plane.
+# Réseau : rea-isole (dédié) — WAN sortant seul pour observer les cibles.
+# Interdits codés en dur : pas de montage secrets.yaml/branding.yaml/docs/logN/,
+# pas de token X-LCD-Box, pas de PIN, pas d'accès WG/prod, pas de ports
+# :8123/:4000/:8050/8090-8100/:8060 routés vers ce conteneur.
+
+FROM node:24-slim
+
+# rea-agents : Node 22.19+ / 24.11+ / 26+ (runbook §1). Image 24-slim = OK.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      python3 git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Utilisateur non-root (jamais de root inutile, même en lab).
+RUN useradd -m -s /bin/bash realab
+USER realab
+WORKDIR /home/realab
+
+# Setup REA (MCP local) — exécuté au build pour figer la version.
+# Si le registre npm est injoignable au build, le setup se fait au 1er run (voir compose).
+RUN npm install -g rea-agents 2>/dev/null || echo "rea-agents: setup au 1er run (npm injoignable au build)"
+
+# Dossier de travail : journal + notes d'observation (comportement seul).
+# Rien n'est commité depuis ici : la fiche remonte en docs/registres/teardowns-rea.md
+# sur la MACHINE HÔTE, jamais depuis le conteneur.
+RUN mkdir -p /home/realab/notes
+
+CMD ["sleep", "infinity"]
