@@ -180,7 +180,28 @@
   UTM `?src=` tracé comment.
 - Rebuild : promo retour J+30/J+180 auto + reprise abandon →
   `booking-direct`. Objectif : direct >30 % à 10 logements (§L4).
-- Statut : À FAIRE.
+- Protocole posé 2026-10-15 (lab seul, exécution À FAIRE) :
+  1. VM lab isolée + compte lab propre + journal des cibles rempli
+     avant toute observation.
+  2. Observer funnel : étapes résa directe (recherche → fiche → panier →
+     paiement), frictions visibles, mobile-first ?
+  3. Noter codes promo : création, règles, cumul, tracking `?src=` —
+     comparer à notre promo retour J+30/J+180.
+  4. Noter acompte/solde : échéancier, relances, cut-off, lien avec
+     caution `streetsides` (`:8094`) chez nous.
+  5. Noter reprise abandon : relance observée (délai/canal) ? Différence
+     avec R-03 upsell (panier extras vs résa entière).
+  6. Noter SEO/direct : pages publiques, avis affichés, preuve sociale —
+     comparer à notre objectif direct >30 % §L4.
+  7. Captures = comportement seul (pas de dump, pas de clés).
+- Preuves à collecter : screenshots funnel + promo + acompte/solde,
+  tableau étapes/frictions, wording preuve sociale.
+- Mapping rebuild maison : funnel + promo retour + reprise abandon →
+  `booking-direct` (`:8095`), UTM tracé, 1-tap humaine, jamais d'envoi
+  auto, jamais de scraping.
+- Limites attendues (à remplir) : backend/taux réels invisibles,
+  SEO non mesurable en lab, conversion sans volume non prouvée.
+- Statut : À FAIRE (protocole posé, exécution lab en attente).
 
 ## R-07 QA ménage photo-IA — PRIORITÉ 3
 
