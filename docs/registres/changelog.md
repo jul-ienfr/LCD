@@ -7,3 +7,7 @@
 - `plan-v5.0-gel : 2026-10-14 : réécriture complète v5/v6 (00 + 10-socle-v2 DRY + 20-architecture-contrats + 30-passerelle-v5 + 40-logement-v5 + 50-technique-box-v5 + 60-execution-v6 G0→G5+RACI+budgets+DoD + registres) — remplace v4/v5 comme normatif, R1-R6 actives, 0 code touché.`
 - `maj-oss-2026-10-14 : 2026-10-14 : vérif web OSS (QloApps AFL-3.0 pas OSL, Vik ~249 €/an 2-way API, réserve KeyMaster Z-Wave vs Nuki) → benchmark-oss.md + T-01/T-02/T-03 corrigés, R-09 précisée, 0 code touché.`
 - `maj-sandbox-2026-10-14 : 2026-10-14 : bac-a-sable pre-deploiement norme (S9 + REQ-S-004 + R-11 + P8-9) cale sur lab Docker existant, 0 code touche.`
+- `maj-saas-vues-2026-10-15 : 2026-10-15 : SaaS parfait §S3 (S3.4 exigences communes + S3.5 fiches V1-V8 voyageur/proprio/operateur/presta/super-admin/comptable/commercial) + 30 §P8 + 50 §T5 reduits aux renvois DRY + REQ-S-003-V1..V8 tracees — memes fichiers, 0 code touche.`
+- `maj-saas-tout-2026-10-15 : 2026-10-15 : TOUT dans memes fichiers : 20 §20.7 contrat plugin dashboard.yaml + 40 §L4 renvoi vues + 00 normatif v2 en vigueur 9/10 + etat-reel MAJ — 0 code touche.`
+- `maj-dry-2026-10-15 : 2026-10-15 : audit DRY : 40 §L4 + onboarding + validation + temps pointe + 60 header reduits aux renvois §S3.5 — 0 duplication fonctionnelle restante hors archives, 0 code touche.`
+- `maj-audit-10-2026-10-15 : 2026-10-15 : relecture complete 10/30/40/50/00/20/60 : header v2 2026-10-15 + REQ-V5/V6 separees + §20.7 dans REQ-S-003 + S6 glossaire + coquilles — 10/10, gel propose plan-v2.0-saas, 0 code touche.`

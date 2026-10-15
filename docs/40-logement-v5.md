@@ -1,11 +1,11 @@
 # 40 — Logement v5 (vitrine + gabarit client)
 
-> Statut : v5 du 2026-10-14. Remplace `Plan Logement 1 - Santa Severa Saint-Laurent-du-Var v4.md`.
+> Statut : v5 du 2026-10-15 (renvois DRY §S3.5). Remplace `Plan Logement 1 - Santa Severa Saint-Laurent-du-Var v4.md`.
 > Socle `§S*` seul fait foi pour vision/forfaits/archi/tenant/hébergement/intangibles/bornes/SLA (R1).
 > Contrats gateway-boxes-front : `docs/20-architecture-contrats.md` + YAML réels font foi (R4).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/`.
 > Exigences : `REQ-L-001/002` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md`.
-> TODO vivants seuls : `registres/a-trancher.md` (T-05 copro log1/log2, T-06 carte G). Annexe L-A v4 gelée (R5).
+> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-08 TRANCHÉS 2026-10-14). Annexe L-A v4 gelée (R5).
 
 ## §L1 Bien vitrine — Santa Severa (REQ-L-001)
 
@@ -55,9 +55,18 @@ pas de support. Prix clients : §S1 seul fait foi (jamais recopié ici).
 
 | Forfait | Pack |
 |---|---|
-| FULL | mini-PC + Nuki + Minut + 2 sondes CO2 + clé + mini-bar + QR + kit + stocks + runbook |
-| PILOTAGE | mini-PC + Nuki + 1 sonde CO2 + QR + runbook (sans Minut/mini-bar) |
-| KIT | mini-PC + Nuki + QR + guide + formation 1 h |
+| FULL | mini-PC + serrure catalogue T-02 (Nuki défaut) + Minut + 2 sondes CO2 + clé + mini-bar + QR + kit + stocks + runbook |
+| PILOTAGE | mini-PC + serrure catalogue T-02 (Nuki défaut) + 1 sonde CO2 + QR + runbook (sans Minut/mini-bar) |
+| KIT | mini-PC + serrure catalogue T-02 (Nuki défaut) + QR + guide + formation 1 h |
+
+Serrures — catalogue ouvert TRANCHÉ T-02 2026-10-14 : proprio libre de son choix,
+migration par flag `smart_lock` sans réécriture. Défaut recommandé : Nuki Go +
+Keypad 2.0 Home Set Basic 209 € (choix log1). Alternative si proprio veut :
+Z-Wave Yale/Schlage + KeyMaster (slots 1-10, auto-expire + purge). Gimdow/Tuya =
+bidouille documentée seule. Détail : `docs/decision-serrure-acces.md` + benchmark
+KeyMaster (réserve Z-Wave vs Nuki Matter/Thread : reprendre le PATTERN slots +
+auto-expire + purge via automatisations Nuki). Packs §L2 ci-dessus = « Nuki défaut »,
+échangeable par devis séparé, jamais gratuit hors pack.
 
 Base coûts 2025-2026 : mini-PC ~180 €, Nuki ~280 €, Minut ~150 €, sondes/QR/stocks ~100 €,
 ½ j main d'œuvre. >T3, 2e serrure, câblage = devis. FULL = supervision complète. PILOTAGE =
@@ -81,10 +90,14 @@ Diagnostics obligatoires avant go-live : DPE + CREP (plomb, si bâti <1949) + ER
 
 ## §L3 Onboarding 7 étapes — identique par client (REQ-L-002)
 
+Copro `verifiee:false` = mise en ligne BLOQUÉE (REQ-L-001 inchangée). Double mode onboarding —
+T-05 TRANCHÉ 2026-10-14 : phase test = attente (log1/log2 vitrines) ; ensuite, pour tout nouveau
+logement, option lancement immédiat OU attente, au choix tracé au mandat.
+
 1. **Visite (45 min)** : règlement + PV (sinon stop) ; DPE/détecteurs/assurance (sinon prérequis
    devis) ; DPE E min (F/G = refusé sans devis travaux : G interdit en touristique au 01/01/2028,
    F puis E jusqu'en 2034 — jamais de mandat sur une passoire sans plan) ; extras-compatible
-   (frigo, kits, bruit, serrure Nuki) ; ≥2 prestas/métier critique à ~10 km (sinon pas de FULL) ;
+   (frigo, kits, bruit, serrure catalogue T-02 — Nuki défaut, proprio libre) ; ≥2 prestas/métier critique à ~10 km (sinon pas de FULL) ;
    photos + mesures + commerces locaux.
 2. **Contrat** : mandat écrit + CGV (FULL/PILOTAGE) ou vente + maintenance (KIT). RC pro à jour
    côté nous, RC prestas vérifiée (dispatch bloqué si expirée). Fonds tagués. Forfait acté (§S1).
@@ -92,7 +105,7 @@ Diagnostics obligatoires avant go-live : DPE + CREP (plomb, si bâti <1949) + ER
    caches prises + housses anti-acariens, lessive hypoallergénique, mention annonce). Literie
    standard (matelas ferme ≤8 ans + protège imperméable, oreillers 1x/an, couettes 4 saisons,
    3 jeux linge). Trousse secours (pansements + Doliprane scellé + notice, DLC 1x/an). Login
-   client créé (dashboard `dash-proprio` : SES logements seuls, §S3.1), nominatif, 2FA
+   client créé (voir §S3.1 + fiche V2 §S3.5, jamais re-décrit ici), nominatif, 2FA
    admin/gestionnaire. Voisinage : lettre de présentation aux voisins (activité + contact +
    horaires, dès le go-live) + pouvoir AG client = jamais de vote sans mandat écrit
    (représentation 30 €/AG si demandée, jamais d'engagement sans consigne).
@@ -110,7 +123,15 @@ Diagnostics obligatoires avant go-live : DPE + CREP (plomb, si bâti <1949) + ER
 
 Checklist mandat tiers (8 items, `mandats.yaml`) : voir §20.3 + `registres/etat-reel.md`.
 
-## §L4 Exploitation — standard cible
+## §L4 Exploitation — standard cible (vues SaaS : §S3.5 seul fait foi)
+
+Outillage par étape (jamais re-décrit ici, renvoi DRY R1) : arrivée +
+séjour + extras + incident + départ = `dash-voyageur` V1 ; relevé J+5 +
+digest + validation devis = `dash-proprio` V2 ; planning + dispatch +
+incidents + prix 1-tap + clôture = `dash-operateur` V3 ; mission +
+pointage + photos + clôture 409 = `dash-presta` V4 ; pilotage +
+voir-comme = `dash-super/admin` V5/V6 ; compta + Chorus = `dash-comptable`
+V7 ; pipeline + simulateur = `dash-commercial` V8.
 
 Ménage runbook 3 h (6 étapes + incidents : fuite, bruit, serrure, net, double-résa, trouvés).
 Drill trimestriel. Checkout : réassort + seuils + photos avant/après (FULL/PILOTAGE). Score 1-5 +
@@ -147,7 +168,7 @@ Conciergerie = partenariats à commission seuls (VTC 20-30 %, voiture/vélo 15-2
 massage/baby 15-20 %, pressing 15 € + tickets, resto/plage 10 % côté pro, excursions 10-15 %).
 Grille prestas affichée (révisée 1x/an, indexée, jamais d'oral) : ménage 3 h + linge, dépannage
 (forfait déplacement + /h par métier), astreinte nuit/week-end ; devis >200 € systématique,
-validation 1-tap ; temps pointé = temps facturé (PWA), écart >20 % = 409 + revue.
+validation 1-tap ; temps pointé = temps facturé (voir fiche V4 §S3.5), écart >20 % = 409 + revue.
 Accueil physique option 25-30 € (FULL/PILOTAGE, jamais systématique) : presta assuré de la zone,
 créneau 30 min (remise clés + tour logement + consignes tri), photo horodatée = preuve, commandé
 d'avance (cut-off J-1 18h), annulation <24 h = dû. Hors créneau = boîte à clés / Nuki, jamais
@@ -233,7 +254,8 @@ Score voyageur / watchlist interne (3 niveaux, critères objectifs seuls — his
 standard = normal ; à risque = caution majorée + EDL renforcé + acompte 50 % ; blacklist
 chargebacks = refus direct (OTA prépayée seule).
 
-Arrivée autonome standard (FULL/PILOTAGE/KIT) : consigne envoyée J-2 (PIN/fenêtre + code boîte +
+Arrivée autonome standard (FULL/PILOTAGE/KIT, outillage : fiche V1 §S3.5,
+jamais re-décrit ici) : consigne envoyée J-2 (PIN/fenêtre + code boîte +
 vidéo porte 20 s + parking + poubelles) ; QR WiFi + code porte sur le même écran (imprimable
 1-tap) + fallback SMS auto si PWA non ouverte à J-1 18h ; fallback = clé physique Master Lock
 (code tournant, changé par séjour) ; preuve = 1re ouverture logguée (Nuki → « bonne installation »
@@ -261,12 +283,12 @@ Google ≥4,5) puis 5/an ; tableau comparatif revu trimestriel, jamais de prix c
 milieu-premium assumé).
 Veille comp-set data (lecture seule 1x/trimestre) : AirDNA/PriceLabs ou équivalent (ADR/occupation
 concurrents zone) → arbitrage prix 1-tap ; jamais de prix copié, jamais d'abonnement sans ROI tracé.
-Validation proprio 1-tap (devis/travaux/dépenses >seuil mandat) : devis → notif dashboard + SMS →
+Validation proprio 1-tap (devis/travaux/dépenses >seuil mandat, voir fiche
+V2 §S3.5, jamais re-décrite ici) : devis → notif dashboard + SMS →
 OK/refus <48 h → relance J+2 ; sans réponse = on ne fait pas (sauf urgence P1, régularisation
 <24 h) ; jamais d'accord tacite, jamais de validation hors SAS (email/tél = retapée au journal).
-Digest proprio hebdo (jamais de silence >7 j) : occupation + CA + incidents + avis + photo du mois
-(auto) ; mensuel détaillé J+5 (relevé 1 page 30 s : brut − commissions − ménage − plateforme −
-taxe = net + graphe 12 mois + vs objectif, jamais 3 pages comptables) + net estimé J+20
+Digest proprio hebdo (voir fiche V2 §S3.5) : occupation + CA + incidents + avis + photo du mois
+(auto) ; mensuel détaillé J+5 (voir fiche V2 §S3.5) + net estimé J+20
 (fourchette, jamais promesse).
 Revue annuelle patrimoniale (fidélise 5 ans) : rendement net réel vs objectif + travaux conseillés
 chiffrés + arbitrage micro/réel/revente avec comptable ; offerte FULL, 150 € PILOTAGE ; jamais

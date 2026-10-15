@@ -1,11 +1,12 @@
 # 10 — Socle commun v2 (source DRY, fait foi)
 
-> Statut : v2 du 2026-10-14. Remplace `Socle Commun LCD - Conciergerie v1.md`
-> comme référence unique. Les cahiers 30/40/50/60 renvoient ici par `§S*`
+> Statut : v2 du 2026-10-15 (SaaS parfait : §S3.4 + §S3.5 V1-V8). Remplace
+> `Socle Commun LCD - Conciergerie v1.md` comme référence unique.
+> Les cahiers 30/40/50/60 renvoient ici par `§S*`
 > et ne dupliquent rien (R1). Contrats gateway-boxes-front : voir §20
 > (`docs/20-architecture-contrats.md` + YAML réels, R4).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/gateway.py`, moteurs.
-> Exigences tracées : `docs/registres/exigences.csv` (REQ-S-xxx).
+> Exigences tracées : `docs/registres/exigences.csv` (REQ-S-xxx + REQ-S-003-V1..V8).
 > État réel : `docs/registres/etat-reel.md`. TODO : `docs/registres/a-trancher.md`.
 
 ## §S0 Vision produit (REQ-S-001)
@@ -85,11 +86,12 @@ fan-out, cache horodaté, allowlist 1-tap, audit central. Jamais décideur.
 Plane down → box autonome + `:8060` local. Box offline → cache stale +
 `last_seen`. (REQ-P-001/002/003, ADR-001/002/003, §20.1/20.4.)
 
-## §S3 Multi-tenant — login, 8 dashboards, plugins (REQ-S-003)
+## §S3 Multi-tenant — login, 8 dashboards SaaS, plugins (REQ-S-003)
 
 Tout est keyé `(entite_id, logement_id, box_id)`. Sans `entite_id`, la
 gateway rejette en 422 (sauf bascule lab). Taggage gateway-side en v1
 (zéro modif moteur). Contrats + registres réels : §20.2/20.3.
+30 §P8 + 50 §T5 RENVOIENT ici, ne dupliquent rien (R1).
 
 ### §S3.1 Login par rôle — 1 login = 1 dashboard
 
@@ -109,7 +111,7 @@ seul au-delà des seuils. Source périmètres : `custom/acces.yaml` (§20.3).
 
 | Login | Rôle | Dashboard | Périmètre | 2FA |
 |---|---|---|---|---|
-| super_admin | super_admin | Tous les dashboards (§S3.2) + `/systeme` + secrets/rotation | Tout, tous clients | Oui |
+| super_admin | super_admin | Tous les dashboards (§S3.5) + `/systeme` + secrets/rotation | Tout, tous clients | Oui |
 | admin | admin | Tous sauf secrets | Tout, tous clients | Oui |
 | opérateur | gestionnaire/opérateur | Parc opéré : planning, ménage, incidents, prix 1-tap | Logements opérés | Oui |
 | comptable | gestionnaire/comptable | Finances + exports seuls | Périmètre opéré | Oui |
@@ -136,14 +138,10 @@ chaque démarrage : rôles connus, APIs dans l'allowlist globale, flags
 existants, clés i18n complètes 5 langues — sinon refus + log (jamais de
 demi-chargement).
 
-Plugins v1 (8) : `dash-super` (vue groupe + sélecteur « voir comme »
-§S3.3 + `/systeme` + secrets) ; `dash-admin` (idem sans secrets) ;
-`dash-operateur` (tournée, incidents, dispatch, prix 1-tap, kanban) ;
-`dash-comptable` (Finances + exports mono-SIREN) ; `dash-proprio`
-(relevés, versements, documents) ; `dash-presta` (PWA mission) ;
-`dash-voyageur` (PWA séjour) ; `dash-commercial` (pipeline, simulateur,
-offres). Marque blanche par plugin (`{{marque}}`, thémage par client).
-Détail par dashboard : voir 30-passerelle-v5 §P8 (renvoi).
+Plugins v1 (8) : `dash-super` ; `dash-admin` ; `dash-operateur` ;
+`dash-comptable` ; `dash-proprio` ; `dash-presta` ; `dash-voyageur` ;
+`dash-commercial`. Marque blanche par plugin (`{{marque}}`, thémage par
+client). Fiches fonctionnelles : §S3.5 seul fait foi.
 
 ### §S3.3 Super_admin voit tous les dashboards (« voir comme »)
 
@@ -166,6 +164,96 @@ Consolidation = lecture seule.
 Pipeline commercial (8 étapes, strict) : `suspect → contacte → visite →
 simulateur → offre → mandat → onboarde → actif`. Relances J+3/J+7/J+15 en
 brouillons seuls.
+
+### §S3.4 Exigences communes à toutes les vues (SaaS 2027)
+
+1. Auth nominative + sessions à expiry + révocation 1-tap. Rate-limit
+`/login` 5/15 min/IP + CAPTCHA + alerte. 2FA staff obligatoire.
+2. Langues : `?lang > profil > Accept-Language > entité > fr`. Socle
+FR/EN/ES/IT/DE relu humain. IA = brouillon validé seul, jamais sur libellé
+422/403 bloquant. 0 clé i18n manquante (batterie CI).
+3. Marque blanche : `{{marque}}`, logo, couleurs, domaine, contacts,
+mentions, langues lus depuis `branding.yaml`. 0 fuite « LCD / Home
+Assistant / IP » côté voyageur/presta/proprio. Recette : changer branding
+→ re-thème sans code + grep 0 fuite.
+4. Offline : PWA cache-first terrain (`dash-presta`, `dash-voyageur`,
+guide + urgences lisibles sans WAN). Outbox locale, sync auto, conflit =
+humain seul. Box down → cache stale + `last_seen` + bandeau.
+5. Traçabilité : toute écriture = `POST /v1/action` allowlist 14,
+`qui=<humain>`, `ref` UUIDv7 idempotent 24 h, double log gateway + box.
+PIN complet jamais affiché (fenêtre seule + 4 derniers en log).
+6. Perf budgets mesurés CI : LCP <2,5 s, JS <200 Ko/page, PWA offline <1 s,
+images <150 Ko. Fan-out p95 <2 s (≤5 box) / <4 s (≤20 box).
+7. Anti-spam opposable : max 1 SMS/j non-P1, 22h-8h = P1 seul, opt-out
+1-clic partout, jamais de promo déguisée.
+
+### §S3.5 Fiches vues — gestion intégrale (font foi, jamais recopiées)
+
+**V1 `dash-voyageur` — PWA séjour (sans compte, lien magique 128 bits +
+HMAC, J-2 15h → checkout +12h, révocable, purge 90 j).**
+Objectif : zéro friction, zéro appel sauf P1. SLA : SAV <15 min 8h-22h.
+Sections : Accueil (WiFi QR <3 s + code porte fenêtre limitée + horaires +
+urgence + QR parler/écrire) ; Guide (QR par pièce/appareil, tri, LV/LL,
+clim bornée, bruit 22h-8h) ; Extras (catalogue, payé d'avance tagué,
+cut-off J-1 18h) ; Incident (1 fil par incident `ref` + photos, jamais 2
+fils) ; Départ (checklist 2 min 1-tap : photos + poubelles + vaisselle +
+code rendu = EDL sortie + reçu immédiat). Écritures bornées seules :
+incident, extra, départ tardif, checkout, EDL. Facture/reçu 1-clic lecture
+seule 90 j. PIN en fenêtre seule. Fallback sans smartphone : kit papier +
+SMS + boîte Master Lock. Batterie : séjour témoin zéro-touch + offline 2 h.
+
+**V2 `dash-proprio` — client tiers (SES logements seuls, `entite_id` +
+`logements:[...]`, lien mandat prime).**
+Objectif : confiance sans appeler. Rythme : digest auto lundi 9h + J+5 +
+J+30, jamais de silence >7 j. Sections : Relevé mensuel 1 page 30 s
+(brut − commission − ménage − plateforme − taxe = net + graphe 12 mois +
+vs objectif) ; Versements tracés J+5 ; Documents (mandat, EDL 13 mois,
+factures, taxe, DPE) ; Validation 1-tap devis/travaux >seuil <48 h
+(sans réponse = on ne fait pas, sauf P1 + régularisation <24 h) ;
+Revue annuelle (tenir / améliorer / vendre, avec comptable). Jamais
+`/systeme`, jamais PIN complet, jamais autres clients. Exports périmètre
+seul. Batterie : 403 hors périmètre + relevé J+5.
+
+**V3 `dash-operateur` — gestionnaire quotidien (14 actions).**
+Objectif : 1 écran = journée tenue. Sections : Parc (alertes P1 d'abord) ;
+Planning (dry-run, pace J+30/J+60/J+90 vs objectif, alerte <80 %) ;
+Accès/PIN (fenêtre seule, santé push, révocation départ+30 min) ;
+Prix 1-tap (pivot + K_*, bornes, modes remplissage/équilibre/revenu,
+appliqué <2 h ouvrées) ; Énergie (ZLinky + conso anormale) ;
+Incidents (P1 <1 h / P2 <4 h / P3 <48 h : signalement→qualif→assignation→
+preuves→facturation→avis + post-mortem si récidive) ; Dispatch (score
+prix×note×dispo×délai, zone + RC valide, clôture 409 si preuves/écart
+>20 %) ; Supervision (WAN, LQI, Thread, MQTT, backup, outbox, batteries) ;
+Messages (brouillons IA + envoi humain, jamais d'envoi auto) ; Clôture
+(compta le 5). Batterie : clôture 409 + prix hors bornes 422.
+
+**V4 `dash-presta` — PWA mission (cache-first, fenêtre mission).**
+Sections : Mission (todos + deadline check-in −2 h) ; Pointage
+arrivée/départ (horodatage + opt-in géoloc ponctuelle) ; Photos AVANT/APRÈS
+obligatoires par pièce (+ vidéo optionnelle) ; Clôture bloquante si
+manquantes. Temps pointé = temps facturé, écart >20 % = revue. Offline =
+guide + urgences + file locale, sync auto. Jamais HA direct, jamais fiche
+mémoire voyageur (todo seule). Batterie : clôture sans photo = 409.
+
+**V5 `dash-super` / V6 `dash-admin` — pilotage groupe.**
+Vue groupe multi-entités + sélecteur « voir comme » (§S3.3) + `/systeme`
+(santé, versions.lock, CVE, backups, rotation secrets J-30/J-7, WG, vault)
++ secrets/rotation pour super seul. Filtres `?entite=&mode=&client=`.
+Recherche globale par `ref` → dossier (résa, ticket, facture, journal).
+Batterie : secrets jamais simulés + journal voir-comme 90 j.
+
+**V7 `dash-comptable` — Finances mono-SIREN seuls.**
+Sections : Finances par entité (CA, charges, net, IA/voix refacturée) ;
+Rapprochement payouts/banque (alerte écart >2 %, orpheline >7 j) ;
+Exports Chorus Pro/PDP `facturx` ; Agenda fiscal/social (IS, TVA, CFE,
+RBE, dépôt comptes, J-30/J-7) ; Clôture le 5 + dossier annuel. Jamais
+d'écriture auto, jamais de mélange inter-SIREN. Batterie : export mono-SIREN.
+
+**V8 `dash-commercial` — pipeline + simulateur (jamais prix/coûts).**
+Pipeline 8 étapes + relances brouillons J+3/J+7/J+15. Simulateur bornes
+réelles + TF saisie, jamais de promesse rendement (fourchette + suivi
+trimestriel). Offres fiche PDF + UTM `?src=`. Fiche police / mandat /
+CGV générés au mandat. Batterie : commercial sans prix/coûts (403).
 
 ## §S4 Hébergement 3 phases — seuils UNIQUES (figés)
 
@@ -216,7 +304,7 @@ Seuils (uniques, tous cahiers) :
   purge PII 90 j, archivage mandat + compta 10 ans ; clôture + reversement
   soldé J+5. Checklist `actif → préavis → transfert → clôturé` au registre.
 
-## §S6 Glossaire (détail : `docs/90-glossaire.md`)
+## §S6 Glossaire (termes seuls, détail : `docs/90-glossaire.md` à créer si besoin)
 
 Box = mini-PC + HA + moteurs sur place. Logement `cloud` = sans box
 (pilotage central seul, migrable sans perte, `logement_id` stable).

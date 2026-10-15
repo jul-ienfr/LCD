@@ -1,21 +1,21 @@
 # 50 — Technique Box v5 (box + moteurs + voix/IA + front + qualité + juridique)
 
-> Statut : v5 du 2026-10-14. Remplace `Plan Technique LCD - Pipeline automatisation complet v4.md`.
-> Socle `§S*` seul fait foi pour vision/forfaits/archi/tenant/hébergement/intangibles/bornes/SLA (R1).
+> Statut : v5 du 2026-10-15 (renvois DRY §S3.5). Remplace `Plan Technique LCD - Pipeline automatisation complet v4.md`.
+> Socle `§S*` seul fait foi pour vision/forfaits/archi/tenant/hébergement/intangibles/bornes/SLA/vues (R1).
 > Contrats gateway-boxes-front : `docs/20-architecture-contrats.md` + YAML réels font foi (R4).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/`.
 > Exigences : `REQ-T-001/002/003` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md`.
-> TODO vivants seuls : `registres/a-trancher.md` (T-01 QloApps, T-02 Nuki/KeyMaster, T-03 Vik 2-way, T-04 ERPNext, T-08 voix primary). Annexe T-A v4 gelée (R5).
+> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-08 TRANCHÉS 2026-10-14). Annexe T-A v4 gelée (R5).
 
 ## §T1 Socle box : 1 HA par site + central mutualisé (REQ-T-001)
 
 1 box HA par logement, autonome offline-first (PIN, guide, scénarios sans WAN, test offline 2 h exigible par phase). 1 central mutualisé chez l'hôte (Proxmox existant, 0 € hardware) : moteurs + proxy LLM + UI routage. WireGuard seul, jamais d'expo WAN box. Sites dispersés = jamais un HA pour 2 LAN distants.
 
-FULL (log1) : mini-PC N100 16 Go + SLZB-06p7 PoE/Ethernet (jamais WiFi) + ZBT-2 Thread (Nuki Matter) + onduleur NUT + Nuki Go + Keypad 2.0 + Hub ESP32 (codes MQTT) + KeyMaster (slots 1-10) + fumée certifiés + fuite + bras vanne <2 s (réarmement manuel) + bruit 3 niveaux + NodOn/ZLinky/Shelly/prises Nous + RM4 clim IR local. Constaté : Phase 0 ~1 100-1 200 €, complet ~2 050-2 150 €. 3 paniers (EU garantie + 2× Chine <150 €, CE).
+FULL (log1) : mini-PC N100 16 Go + SLZB-06p7 PoE/Ethernet (jamais WiFi) + ZBT-2 Thread (Nuki Matter) + onduleur NUT + serrure catalogue T-02 (défaut : Nuki Go + Keypad 2.0 + Hub ESP32 codes MQTT ; proprio libre, migration par flag `smart_lock`) + KeyMaster pattern (slots 1-10, auto-expire + purge via automatisations Nuki — TRANCHÉ T-02 2026-10-14, détail `docs/decision-serrure-acces.md`) + fumée certifiés + fuite + bras vanne <2 s (réarmement manuel) + bruit 3 niveaux + NodOn/ZLinky/Shelly/prises Nous + RM4 clim IR local. Constaté : Phase 0 ~1 100-1 200 €, complet ~2 050-2 150 €. 3 paniers (EU garantie + 2× Chine <150 €, CE).
 
-Light (log2) : HA Green ou RPi4 + SLZB + onduleur + boîte à clés (~650-750 €). Pas de Nuki/ZBT-2/voix/RM4 inutile. Migration FULL = pack + flip `smart_lock: true`, 0 automation réécrite. Même socle logiciel, branches off sautées.
+Light (log2) : HA Green ou RPi4 + SLZB + onduleur + boîte à clés (~650-750 €). Pas de serrure connectée/ZBT-2/voix/RM4 inutile (catalogue T-02 : ajout ultérieur par devis + flip `smart_lock: true`, 0 automation réécrite). Même socle logiciel, branches off sautées.
 
-Moteurs stdlib 0 € (ports 8090-8100) : `ics-sync` :8090 (pull OTA 15 min, anti-double-résa, stop-sell) ; `pricing` :8091 (pivot × K_saison×K_events×K_we×K_occ×K_duree×K_lastmin) ; `decision-engine` :8092 (règles + jugements) ; `facturation` :8093 (Factur-X B2B / PDF B2C) ; `caution` :8094 (holds, jamais dans le prix) ; `booking-direct` :8095 (`POST /resa`, `PUT /prix`, `GET /dispo`, QloApps transitoire → maison par flag T-01) ; `dispatch` :8096 (score prix×note×dispo×délai, zone + RC) ; `inventaire` :8097 (QR/NFC) ; `extras` :8098 ; `stocks` :8099 (Grocy seuils) ; `compta` :8100 (rapprochement, exports). Transverses : `:4000` proxy, `:8050` routage, `:8060` supervision, `:8443` plane. Tous lisent `logement_id` + `entite_id`, jamais d'ID en dur.
+Moteurs stdlib 0 € (ports 8090-8100) : `ics-sync` :8090 (pull OTA 15 min, anti-double-résa, stop-sell) ; `pricing` :8091 (pivot × K_saison×K_events×K_we×K_occ×K_duree×K_lastmin) ; `decision-engine` :8092 (règles + jugements) ; `facturation` :8093 (Factur-X B2B / PDF B2C) ; `caution` :8094 (holds, jamais dans le prix) ; `booking-direct` :8095 (`POST /resa`, `PUT /prix`, `GET /dispo`, maison v1 — QloApps écarté v1 T-01 TRANCHÉ 2026-10-14) ; `dispatch` :8096 (score prix×note×dispo×délai, zone + RC) ; `inventaire` :8097 (QR/NFC) ; `extras` :8098 ; `stocks` :8099 (Grocy seuils) ; `compta` :8100 (rapprochement, exports — maison v1, ERPNext réévalué G4 T-04 TRANCHÉ 2026-10-14). Transverses : `:4000` proxy, `:8050` routage, `:8060` supervision, `:8443` plane. Tous lisent `logement_id` + `entite_id`, jamais d'ID en dur.
 
 Feature-flags logX (règle d'or) : 1 feature = 1 flag `logements.yaml` + 1 dossier + 1 dashboard (`visibility:`). Héritage `global` → `logX`. Flags : `smart_lock, portail, chauffage_fp, clim_ir, ecs_pilotee, vanne_eau, bruit, incendie, alarme_intrusion, voix, voix_satellite, geoloc_voyageur, assistance_voyageur, etat_lieux_auto, traca_intervenants, inventaire_biens, events_auto, sinistre_auto, annuaire_presta, concurrence_suivi, compta_auto, extras_upsell, memoire_voyageur, moteur_direct`. Decision-engine + dashboards + watchdog sautent les branches off. Kill-switch global `jev_enabled`. Ajouter log3 = 5 lignes. Forfait = flag par logement (branches full/pilotage/kit, jamais de fork, jamais de promesse rendement).
 
@@ -47,7 +47,7 @@ Synchro : ICS pull 15 min par logement, jamais partagé entre clients. Fusion di
 
 BYOD strict (smartphone voyageur, aucun téléphone laissé). QR/PWA → consentement → STT téléphone → `:4000` → TTS téléphone. Texte seul en API (jamais d'audio), session = séjour, révocation checkout. Scripts bornés (FAQ, WiFi, horaires, tri/départ, clim). Jamais : codes, KeyMaster, portail, vanne, alarme OFF, caméras (aucune dedans). Satellites S3-BOX-3 + Atom (+75 €) si `voix_satellite` (PMR/premium). Sans WAN : 3 questions <5 s via sentences offline.
 
-Proxy unique `:4000` (LiteLLM, aliases `lcd-chat-*`). Fallbacks + retry 1 + cooldown 30 s + local/Ollama + sentences. WAN down >2 min → force local. UI `:8050` (LAN/WG seuls) : primaire + fallbacks par usage, bouton Tester (`test_ui`, n'écrit rien). `routing.json` versionné + reload à chaud. Pivot : gateway apportée par l'hôte (flash/strong/Jev). Historique Groq/Mistral/TypeSafe = spec inchangée. Primary voix à trancher T-08 (jamais de choix en dur).
+Proxy unique `:4000` (LiteLLM, aliases `lcd-chat-*`). Fallbacks + retry 1 + cooldown 30 s + local/Ollama + sentences. WAN down >2 min → force local. UI `:8050` (LAN/WG seuls) : primaire + fallbacks par usage, bouton Tester (`test_ui`, n'écrit rien). `routing.json` versionné + reload à chaud. Pivot : gateway apportée par l'hôte (flash/strong/Jev). Historique Groq/Mistral/TypeSafe = spec inchangée. Split actuel `llm.yaml` 9 usages validé — T-08 TRANCHÉ 2026-10-14 (jamais de choix en dur).
 
 Jev consultatif : `Choice` (routage), `Score` (gravité), `Noul` (urgence/garde-fou). Tri bruit, dispatch proposé (validation humaine), garde-fous prix/messages, arbitrage pré-chauffe/prix, no-show/surconso/litige. `noul>0,8 + confidence>0,75` → action bornée, sinon dashboard. Jamais d'effet de bord direct. `cache_ttl: 0` sur `lcd-jev-*`, kill-switch. Chaque décision loggue fournisseur+modèle+endpoint+étage+confidence+tokens+latence.
 
@@ -55,19 +55,31 @@ Compteurs : `llm_cout_mois` + `jev_cout_mois` ventilés `{logement, usage}` → 
 
 RGPD : texte seul TLS, opt-in par échange/séjour révocable, géoloc OFF défaut (1×/séjour, 2 zones, jamais fond), jamais d'ouverture auto, révocation checkout. Logs 90 j (texte + zone), audio 0 j, voyageurs 24 mois / présence 90 j. 100 % local possible. Mentions guide + règlement + QR consentement.
 
-## §T5 Front web/ (8 dashboards plugins, §S3)
+## §T5 Front web/ — technique seule (fiches vues : §S3.5 seul fait foi)
 
-App `web/` Next.js (build + lint verts) derrière `:8443`. 5 langues + maternelle auto (glossaire + badge). PWA (offline guide + QR fallback), sans-JS OK lecture. Thème par marque (dark/light, mobile-first, a11y). 0 nom de stack côté voyageur/presta. Hôte FR, ménage FR + pictos, guest = langue résa. Budgets front (mesurés en CI, build bloqué si dépassés) : LCP <2,5 s, JS <200 Ko/page, PWA offline <1 s, images <150 Ko (AVIF/WebP). Charge par box (N100 cible) : 1 box = 1-3 logements max (HA + moteurs ~1,5 Go RAM) ; au-delà = 2e box ou logement `cloud`. Stockage preuves : quota 5 Go/logement (photos EDL + vidéos), éviction oldest-first après 90 j (originaux basse-def gardés 1 an), alerte 80 %.
+App `web/` Next.js (build + lint verts) derrière `:8443`. Rôles,
+périmètres, fiches 8 vues : voir §S3.1 + §S3.5 (jamais recopiés ici).
+Exigences communes (auth, langues, marque blanche, offline, budgets) :
+voir §S3.4 (jamais copié ici).
 
-Login → dashboard plugin (§S3.1) : super_admin (`dash-super`, « voir comme » + `/systeme` + secrets), admin (`dash-admin`, sans secrets), opérateur (`dash-operateur`, 14 actions : planning, accès/PIN, prix + modes, énergie, incidents/sinistres, supervision, finances, messages, clôture…), comptable (`dash-comptable`, Finances + exports seuls), client tiers (`dash-proprio` : CA/charges/net, travaux >seuil, exports périmètre), presta (`dash-presta` : mission + pointage + photos), voyageur (`dash-voyageur` : WiFi <3 s, guide QR, parler/écrire, extras, départ zéro friction, SAV <15 min 8h-22h), commercial (`dash-commercial` : simulateur, offres, pipeline CRM, fiche PDF). Auth nominative, scopes par tenant, sessions à expiry auto.
+Spécifique box (seul contenu propre à §T5, budgets : §S3.4) : 5 langues + maternelle auto
+(glossaire + badge). PWA (offline guide + QR fallback), sans-JS OK
+lecture. Thème par marque (dark/light, mobile-first, a11y). 0 nom de
+stack côté voyageur/presta. Hôte FR, ménage FR + pictos, guest = langue
+résa. HTML sans JS côté parc, WCAG 2.2 AA, lazy cartes, journal 200/page,
+`ETag` + delta-sync, `?fields=`. Charge par box (N100 cible) : 1 box =
+1-3 logements max (HA + moteurs ~1,5 Go RAM) ; au-delà = 2e box ou
+logement `cloud`. Stockage preuves : quota 5 Go/logement (photos EDL +
+vidéos), éviction oldest-first après 90 j (originaux basse-def gardés 1
+an), alerte 80 %.
 
-Dashboards HA (compat box) : hôte 7 onglets (Planning, Accès, Prix, Énergie, Incidents, Supervision, Finances) ; ménage 3 onglets (todos + deadline check-in −2 h, checklist bloquante, stocks) ; guest kiosk (WallPanel, QR backup). Lovelace YAML versionné ; front lit les mêmes APIs. Switcher `logement_actif`, bandeau offline. Recette : mobile + offline 2 h + 1 séjour témoin zéro-touch (hors ménage).
+Dashboards HA (compat box, fiches SaaS : §S3.5) : hôte 7 onglets (Planning, Accès, Prix, Énergie, Incidents, Supervision, Finances) ; ménage 3 onglets (todos + deadline check-in −2 h, checklist bloquante, stocks) ; guest kiosk (WallPanel, QR backup). Lovelace YAML versionné ; front lit les mêmes APIs. Switcher `logement_actif`, bandeau offline. Recette : mobile + offline 2 h + 1 séjour témoin zéro-touch (hors ménage).
 
 Preuves : EDL PWA photos horodatées par pièce + vidéo optionnelle (anti-galerie >24 h, EXIF, comparatif, clôture bloquée si manquantes). Traça intervenants (pointage, photos, temps pointé = temps facturé). Journal accès 90 j (heures + slot, jamais code). Inventaire QR/NFC (dormants/dégradés/garanties). Extras (stock vs seuil, CA/séjour, top). Questionnaire J-2 (cut-off J-1 18 h, jamais bloquant).
 
 ## §T6 0 € logiciel + qualité (REQ-T-003)
 
-HAOS, Proxmox, Mosquitto, Z2M, OTBR, Nuki Hub, Versatile, KeyMaster, Wyoming/Whisper/Piper/openWakeWord, LiteLLM, ESPHome, WireGuard, Grocy, WallPanel, `ics_calendar`, DuckDNS/LE, Telegram/Companion. Maison : `ics-sync, pricing, decision-engine, branding, llm-proxy, router-ui, jev-gateway, qloapps-module-ha`. Blueprints : arrivée, départ-ménage, bridage, bruit, fuite, incendie. Moteurs lab stdlib, aucun abonnement, aucun SaaS intermédiaire obligatoire.
+HAOS, Proxmox, Mosquitto, Z2M, OTBR, Nuki Hub, Versatile, KeyMaster, Wyoming/Whisper/Piper/openWakeWord, LiteLLM, ESPHome, WireGuard, Grocy, WallPanel, `ics_calendar`, DuckDNS/LE, Telegram/Companion. Maison : `ics-sync, pricing, decision-engine, branding, llm-proxy, router-ui, jev-gateway, booking-direct:8095, compta:8100` (T-01/T-04 TRANCHÉS 2026-10-14 : maison v1, QloApps écarté v1, ERPNext réévalué G4). Doctrine 0 € stricte — T-03 TRANCHÉ 2026-10-14 : fonctions payantes réécrites maison intégralement, jamais achetées. Blueprints : arrivée, départ-ménage, bridage, bruit, fuite, incendie. Moteurs lab stdlib, aucun abonnement, aucun SaaS intermédiaire obligatoire.
 
 `versions.lock` committé. Revue mensuelle (EOL, quotas, CVE). MAJ fenêtrées + backup avant + test PIN sans WAN après. WAN box : fibre/ADSL + clé 4G failover partagée (~10 €/mois, active si WAN down >5 min, quota 5 Go, alerte conso) — jamais de PIN distant sans WAN de secours le jour d'arrivée ; Starlink = option zone blanche (devis, jamais par défaut). OPEX logiciel : 0 € strict à ~1-3,2 €/mois/logement (UE + Jev). Coûts LLM/Jev au dashboard, alerte >5 €.
 
@@ -77,7 +89,7 @@ Qualité données (entrée + mensuel) : SIREN/SIRET vérifié (API INSEE au mand
 
 ## §T7 Juridique FR par client (matrice, pas de conseil)
 
-Mandat écrit par proprio (périmètre, forfait, seuils, durée, rémunération). CGV direct + CGU plateformes (CGU > propres). Contrat voyageur PWA 30 s + règlement copro-aligné + mentions annonces. Factur-X B2B / PDF B2C, registre national + taxe NCA + DPE. Classement Atout France en option. Comptes créés à la signature (invitation scopée, login → dashboard §S3.1).
+Mandat écrit par proprio (périmètre, forfait, seuils, durée, rémunération). CGV direct + CGU plateformes (CGU > propres). Contrat voyageur PWA 30 s + règlement copro-aligné + mentions annonces. Factur-X B2B / PDF B2C, registre national + taxe NCA + DPE. Classement Atout France en option. Comptes créés à la signature (invitation scopée, voir §S3.1 + fiches §S3.5).
 
 Médiation consommation L.612-1 (pro, obligatoire) : médiateur désigné (~200-400 €/an, nommé au go-live, coordonnées sur factures + site + contrat PWA) ; réclamation écrite d'abord, saisine <12 mois si échec ; jamais de clause abusive R.212-1 (médiation payante imposée = interdite). ODR + rétractation voyageur : lien plateforme ODR `ec.europa.eu/consumers/odr` sur site + contrat PWA (obligatoire pro) ; mention L.221-28 12° au contrat/CGV (hébergement à date = pas de rétractation 14 j — à écrire, sinon le voyageur l'invoque). Registre des réclamations (1/logement, DGCCRF) : toute réclamation écrite = entrée datée + réponse <30 j (humaine, tracée) → médiation si échec ; revue trimestrielle (top causes → standard MAJ). CFE : due dès la 2e année par logement (exonération 1re année, ~200-500 €/an, vérifiée avec l'expert-comptable) ; provisionnée au prévisionnel, jamais une surprise.
 

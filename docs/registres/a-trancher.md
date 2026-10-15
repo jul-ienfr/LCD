@@ -5,11 +5,11 @@
 
 | # | Question | Options | Owner | Échéance | Statut |
 |---|---|---|---|---|---|
-| T-01 | Moteur direct Phase 1 : QloApps (cf. benchmark OSS) vs maison minimale | QloApps AFL-3.0 adapté (permissive vérifiée 2026-10-14, pilote allégé) / maison `booking:8095` seul | super_admin | avant P2-12 | ouvert |
-| T-02 | Serrure log1 : Nuki + Keypad (officiel HA) vs Z-Wave + KeyMaster (HACS) | Nuki Web/MQTT/Bridge (pattern KeyMaster adapté, HACS = Z-Wave seul) vs Z-Wave Yale/Schlage | super_admin | avant achat box-log1 | ouvert — voir `docs/decision-serrure-acces.md` + benchmark KeyMaster |
-| T-03 | Channel Manager 2-way maison : non (v1 ICS seul) vs Vik Channel Manager commercial | ICS pull 15min seul / Vik ~249 €/an plus tard | super_admin | P10 | ouvert — Won't v1 confirmé en 00 §00.6 |
-| T-04 | Compta : ERPNext + Frappe Hospitality vs Odoo Rental/Hotel vs `compta:8100` maison | ERPNext / Odoo / maison + export Chorus/PDP | comptable + expert-comptable | avant 1er mandat tiers | ouvert |
-| T-05 | Copro log1/log2 `verifiee:false` → accord écrit syndic + Cerfa + DPE | bloque mise en ligne (REQ-L-001) | super_admin | avant go-live | ouvert |
-| T-06 | Carte G Hoguet + GALIAN/SOCAF + RCP si mandat tiers payant | 2-3 mois bloquant P10-8 | juriste | avant 1er client | ouvert |
-| T-07 | Hébergement P1→P2→P3 : seuils uniques confirmés (BW 80Go / build 100h / p95 >800ms 7j ; puis CPU/RAM >70% 14j ou >15 logements ou outbox >200) | seuils §S4 | super_admin | revue mensuelle | ouvert |
-| T-08 | Voix : `ollama-local/qwen2.5-7b` vs `gateway-4000/lcd-chat-fast` en primary par usage | voir `llm.yaml` 9 usages | super_admin | G2 | ouvert |
+| T-01 | Moteur direct Phase 1 : QloApps (cf. benchmark OSS) vs maison minimale | maison `booking:8095` seul (QloApps écarté v1 : poids PrestaShop + multi-tenant/allowlist absents) | super_admin | avant P2-12 | TRANCHÉ 2026-10-14 : maison v1 |
+| T-02 | Serrure log1 : catalogue ouvert — proprio libre (Nuki reco par défaut vs Z-Wave + KeyMaster vs Gimdow/Tuya bidouille) | Nuki Go + Keypad 2.0 Home Set Basic 209 € par défaut ; Z-Wave Yale/Schlage + KeyMaster si proprio veut ; Gimdow = bidouille documentée | super_admin | avant achat box-log1 | TRANCHÉ 2026-10-14 : catalogue ouvert + reco §L2/§T1 + migration par flag — voir `docs/decision-serrure-acces.md` + benchmark KeyMaster |
+| T-03 | Channel Manager 2-way maison : 0 € strict — réécrire maison intégralement, jamais acheter | ICS pull 15min seul v1 ; fonctions payantes (Vik ~249 €/an) réécrites maison si besoin, jamais achetées | super_admin | P10 | TRANCHÉ 2026-10-14 : 0 € strict réécrire maison — Won't v1 confirmé en 00 §00.6 |
+| T-04 | Compta : maison `compta:8100` v1 (ERPNext réévalué G4) vs Odoo vs ERPNext immédiat | maison + export Chorus/PDP v1 ; ERPNext+Hospitality réévalué au 1er mandat tiers si compta native exigée | comptable + expert-comptable | avant 1er mandat tiers | TRANCHÉ 2026-10-14 : maison v1, ERPNext G4 |
+| T-05 | Copro log1/log2 `verifiee:false` → accord écrit syndic + Cerfa + DPE | bloque mise en ligne (REQ-L-001) ; phase test = attente, ensuite double mode : lancement immédiat OU attente pour tout nouveau logement | super_admin | avant go-live | TRANCHÉ 2026-10-14 : double mode onboarding, REQ-L-001 inchangé |
+| T-06 | Carte G Hoguet + GALIAN/SOCAF + RCP si mandat tiers payant | 2-3 mois bloquant P10-8 ; lancement au 1er prospect (jamais avant) | juriste | avant 1er client | TRANCHÉ 2026-10-14 : attente prospect |
+| T-07 | Hébergement P1→P2→P3 : seuils uniques confirmés (BW 80Go / build 100h / p95 >800ms 7j ; puis CPU/RAM >70% 14j ou >15 logements ou outbox >200) | seuils §S4 validés | super_admin | revue mensuelle | TRANCHÉ 2026-10-14 : seuils §S4 validés |
+| T-08 | Voix : `ollama-local/qwen2.5-7b` vs `gateway-4000/lcd-chat-fast` en primary par usage | split actuel `llm.yaml` 9 usages validé | super_admin | G2 | TRANCHÉ 2026-10-14 : split actuel validé |

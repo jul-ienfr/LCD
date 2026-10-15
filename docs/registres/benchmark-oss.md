@@ -13,14 +13,14 @@
 ### QloApps (fork PrestaShop)
 - Licence **AFL-3.0 (Academic Free License, vérifiée web 2026-10-14 — pas OSL-3.0)**, fork PrestaShop 1.6, code GitHub QloApps/QloApps. Licence permissive type PrestaShop : pas de copyleft réseau contraignant.
 - Fonctions : booking engine + front-desk + créateur site, chambres=produits, dispo temps réel, paiement partiel, extras, multi-hôtel/langue/devise, modules channel-manager.
-- Enseignement LCD : candidat sérieux pour `moteur_direct` Phase 1 (T-01) : moteur résa direct éprouvé vs réécrire `booking:8095` maison. À évaluer : poids PrestaShop vs besoin minimal + multi-tenant `entite_id` + allowlist 1-tap absents d'origine.
-- Verdict : PILOTE possible en lab (docker isolé), contrainte licence ALLÉGÉE (AFL-3.0 permissive — attribution + conservation de licence, audit avant tout fork dans le repo tout de même).
+- Enseignement LCD : référence fonctionnelle pour `moteur_direct` (booking engine + front-desk éprouvés). ÉCARTÉ v1 — T-01 TRANCHÉ 2026-10-14 : maison `booking:8095` seul (poids PrestaShop + multi-tenant `entite_id` + allowlist 1-tap absents d'origine).
+- Verdict : MAISON v1 (AFL-3.0 permissive notée — attribution + conservation de licence si inspiration, audit avant tout fork tout de même).
 
 ### Vik Booking (Joomla/WordPress)
 - Core Lite GPLv2+ sur WordPress.org, versions Pro/Joomla commerciales mais GPL (zip ~99 €+), pas de repo public complet.
 - Channel Manager séparé commercial (**~249 €/an licence 1 domaine, vérifié web 2026-10-14**, core VikBooking requis en plus, hors TVA) : 2-way API (pas juste iCal) Airbnb + Booking.com + Expedia, Google Hotels, Vrbo, 100+ OTAs — dispo + tarifs/rate plans + restrictions (min stay, closed) + résas re-poussées.
-- Enseignement LCD : confirme stratégie v1 ICS pull 15 min seul (suffit 1-5 lots) + Won't Channel API 2-way maison (T-03). Si 2-way un jour : acheter Vik Channel Manager plutôt que réécrire.
-- Verdict : ne pas réécrire un channel manager ; ICS d'abord, Vik en option P10+.
+- Enseignement LCD : confirme stratégie v1 ICS pull 15 min seul (suffit 1-5 lots) + Won't Channel API 2-way maison (T-03). Doctrine 0 € stricte — T-03 TRANCHÉ 2026-10-14 : si 2-way un jour = RÉÉCRIRE maison intégralement (toutes fonctions/options/configurations), jamais acheter.
+- Verdict : ICS d'abord, réécriture maison 0 € si besoin futur, jamais d'achat (Vik ~249 €/an noté pour mémoire seule).
 
 ### Roomify / BAT (Drupal, archivé)
 - Roomify D7 EOL archivé, BAT = framework dispo/événements Drupal.

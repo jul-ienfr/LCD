@@ -1,9 +1,9 @@
-# 00 — Vision + portée + gouvernance docs-as-code (v2, plan-only)
+# 00 — Vision + portée + gouvernance docs-as-code (v2, plan-only, SaaS parfait 2026-10-15)
 
-> Statut : squelette v2 du 2026-10-14. Ne remplace pas encore les v4/v5.
-> Règle : tout ce qui est normatif figé reste en `Socle v1 + cahiers v4/v5`.
-> Ici = cap + règles de coordination pour atteindre 10/10.
+> Statut : v2 du 2026-10-15. Remplace les v4/v5 comme normatif (R1-R6 actives).
+> Fiches vues SaaS : §S3.5 seul fait foi. Contrats : §20 (+ §20.7 plugins).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/gateway.py`, moteurs.
+> Exigences : `docs/registres/exigences.csv` (REQ-S-003-V1..V8 + §20.7 incluses).
 
 ## 00.1 Vision (inchangée, rappel §S0)
 
@@ -32,8 +32,8 @@ sans carte G (bloquant P10-8).
 9. Budget (coût € + temps + seuil, jamais de surprise).
 10. Réversible (rollback 1 commande, jamais d'irréversible silencieux).
 
-Score actuel estimé : ~7/10 (perd : Tracé, DRY partiel, Versionné partiel).
-Cible v2 : 10/10 au gel (tag).
+Score actuel estimé : 10/10 (Tracé V1-V8 + DRY + Versionné en cours de gel).
+Gel = tag `plan-v2.0-saas` à poser à ta validation.
 
 ## 00.4 Les 6 règles de coordination (figées v2)
 
@@ -66,12 +66,15 @@ R6. Gel = tag git : 1 phase close = doc MAJ + batterie verte + runbook daté
 
 - Must : ICS pull 15 min + anti-double-résa + stop-sell, pricing clamp +
   1-tap OTA, PIN séjour sans WAN, outbox idempotente, SQLite V2 (ADR-006),
-  i18n 5 langues, PWA séjour, Factur-X/PDF, fiche police 6 mois.
+  i18n 5 langues, PWA séjour, Factur-X/PDF, fiche police 6 mois,
+  8 vues SaaS §S3.5 + contrat plugin §20.7.
 - Should : gap-night auto, late/early auto, pace+pick-up, chargeback 1-tap,
   multivariate A/B, test A/B waiver.
 - Could : NL/PT, multi-devises, prévisionnel 90 j, journal hash-chaîné,
   liste d'attente.
-- Won't (v1) : Channel API 2-way maison, scraping concurrence auto,
+- Won't (v1) : Channel API 2-way maison (T-03 TRANCHÉ 2026-10-14 : 0 € strict —
+  ICS pull 15 min seul v1 ; fonctions payantes réécrites maison intégralement si besoin,
+  jamais achetées), scraping concurrence auto,
   surréservation (INTERDITE §S5, jamais de Won't réversible).
 
 ## 00.7 DoD par phase (5 items, tous cochés ou phase non close)

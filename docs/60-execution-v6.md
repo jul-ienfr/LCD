@@ -1,12 +1,12 @@
 # 60 — Exécution v6 (ordre seul + G0→G5 + RACI + budgets + DoD)
 
-> Statut : v6 du 2026-10-14. Remplace `Plan Execution LCD - Conciergerie v5.md` comme pilotage.
-> Socle `§S*` (`docs/10-socle-v2.md`) seul fait foi pour vision/forfaits/archi/tenant/hébergement/intangibles/bornes/SLA (R1).
+> Statut : v6 du 2026-10-15. Remplace `Plan Execution LCD - Conciergerie v5.md` comme pilotage.
+> Socle `§S*` (`docs/10-socle-v2.md`, fiches vues §S3.5 incluses) seul fait foi pour vision/forfaits/archi/tenant/hébergement/intangibles/bornes/SLA/vues (R1).
 > Fonds : `docs/30-passerelle-v5.md` (§P1-P10) + `docs/40-logement-v5.md` (§L1-L5) + `docs/50-technique-box-v5.md` (§T1-T7).
-> Contrats : `docs/20-architecture-contrats.md` + YAML réels font foi (R4).
+> Contrats : `docs/20-architecture-contrats.md` (+ §20.7 plugins) + YAML réels font foi (R4).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/`.
-> Exigences : `REQ-E-001/002` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md` (R5).
-> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-08). Annexes v5 gelées (R5).
+> Exigences : `REQ-E-001/002` + `REQ-S-003-V1..V8` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md` (R5).
+> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-08 TRANCHÉS 2026-10-14). Annexes v5 gelées (R5).
 
 **Progression reprise v5 : `89 / 143` (62 %).**
 - Lab/logiciel (P1-partiel, P2, P6, P7, P9-docs, P10-docs) : **fait, batterie 1125 OK/0 KO**
@@ -58,10 +58,10 @@ Seuils P1→P2 / P2→P3 : §S4 seuls font foi (jamais recopiés ici).
 - [ ] P1-14 Restore backup testée (puis trimestriel)
 
 ### Phase 2 — Moteurs + synchro + pricing (FAIT lab)
-- [x] P2-1→P2-16 Moteurs stdlib (ics-sync, pricing, decision-engine RBAC, booking-direct :8095, facturation, caution, QloApps hook T-01, copro-wizard, vitrines) — batterie verte (reste : LXC + URLs/clés réelles)
+- [x] P2-1→P2-16 Moteurs stdlib (ics-sync, pricing, decision-engine RBAC, booking-direct :8095 maison v1 — T-01 TRANCHÉ 2026-10-14, QloApps écarté v1, facturation, caution, copro-wizard, vitrines) — batterie verte (reste : LXC + URLs/clés réelles)
 
 ### Phase 3 — Accès (box requise)
-- [ ] P3-1→P3-8 Nuki + Keypad + Hub ESP32 + KeyMaster slots 1-10 (T-02) + J-2/J-1 + révocation départ+30 min + portail + PIN sans WAN + Master Lock
+- [ ] P3-1→P3-8 Serrure catalogue T-02 (défaut Nuki + Keypad + Hub ESP32 + KeyMaster slots 1-10, proprio libre, migration par flag — TRANCHÉ 2026-10-14) + J-2/J-1 + révocation départ+30 min + portail + PIN sans WAN + Master Lock
 
 ### Phase 4 — Énergie (box requise)
 - [ ] P4-1→P4-10 Versatile ×4 + Central + RM4 + prises LV/LL + Energy + délestage + VMC + sonde frigo + mémoire voyageur
@@ -73,7 +73,7 @@ Seuils P1→P2 / P2→P3 : §S4 seuls font foi (jamais recopiés ici).
 - [x] P6-1→P6-22 Dispatch, intervenant, inventaire, extras, ménage, stocks, wifi, phrases, mémoire, questionnaire, contrat, EDL, avis, compta, tarifs, RBAC, carnet, formation — batterie verte
 
 ### Phase 7 — Voix + LLM/Jev (FAIT lab 20/20)
-- [x] P7-1→P7-19 Voix + routage + seuils + traçabilité + pricing + ops + juridique + proxy + garde-fous — batterie verte (reste T-08 primary voix)
+- [x] P7-1→P7-19 Voix + routage + seuils + traçabilité + pricing + ops + juridique + proxy + garde-fous — batterie verte (split actuel `llm.yaml` 9 usages validé — T-08 TRANCHÉ 2026-10-14)
 
 ### Phase 8 — Recette / go-live (box requise pour la fin)
 - [x] P8-1→P8-7/10/12 Formation, bornes prix, maintenance dry-run, clone log2 — lab
@@ -96,7 +96,7 @@ Seuils P1→P2 / P2→P3 : §S4 seuls font foi (jamais recopiés ici).
 - [x] P10-5 Facturation par forfait (`FORFAITS` + `journal_revenus` + simulateur)
 - [ ] P10-6 1er client signé (FULL ou PILOTAGE) + install + go-live + retour 30 j — EXTERNE
 - [x] P10-7 Kit démo (visite + dashboard + simulateur)
-- [ ] P10-8 RC pro + carte G Hoguet (CCI + GALIAN/SOCAF + RCP, ~1-2 k€/an, 2-3 mois — bloquant mandat tiers payant, T-06) + assurances mandats — EXTERNE
+- [ ] P10-8 RC pro + carte G Hoguet (CCI + GALIAN/SOCAF + RCP, ~1-2 k€/an, 2-3 mois — bloquant mandat tiers payant, lancement au 1er prospect jamais avant — T-06 TRANCHÉ 2026-10-14) + assurances mandats — EXTERNE
 - [ ] P10-9 Benchmark (10 appels mystères + 5/an, tableau trimestriel, §L4) — EXTERNE
 - [ ] P10-10 Modèle éco revu (point mort, BFR, coûts fixes — §S8, revue trimestrielle)
 - [ ] P10-11 Dépôt marque INPI (~200 €, avant 3e client) + formation continue (1/an min — §S8)

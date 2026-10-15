@@ -2,7 +2,8 @@
 
 > Source : extrait SANS réinvention depuis `custom/passerelle-parc/openapi.yaml`,
 > `boxes.yaml`, `entites.yaml`, `mandats.yaml`, `llm.yaml`, `custom/logements.yaml`,
-> `custom/acces.yaml` + ADR-001..006 lus le 2026-10-14.
+> `custom/acces.yaml` + ADR-001..006 lus le 2026-10-14, + fiches vues §S3.5
+> (contrat plugin §20.7, 2026-10-15).
 > En cas de divergence avec un texte de cahier v4, CE fichier + les YAML réels
 > l'emportent (R4). Plan-only : aucun code modifié.
 
@@ -60,7 +61,30 @@ Horloge : `chrony ±5min`, sinon `401 clock_skew`.
 - Pricing : `clamp(pivot × K_saison × K_events × K_we × K_occ × K_duree × K_lastmin, min, max)`, 1×/j + par résa, direct auto, OTA reco 1-tap jamais auto. Modes `remplissage_max/equilibre/revenu_max`.
 - Synchro : ICS pull 15min/logement jamais partagé, fusion direct <60s + OTA, anti-double-résa + stop-sell same-day, chevauchement = critique + blocage sortant + relogement frais propres. Overbooking INTERDIT.
 
-## 20.6 Voix BYOD + front (rappel)
+## 20.6 Voix BYOD + front (rappels, détails : §T4 + §S3.5)
 
 - Voix : QR/PWA consentement, STT téléphone → `:4000` → TTS téléphone, texte seul API, LLM consultatif seul `confidence<0.7 → dashboard`.
-- Front : login unique `/login` IdP+2FA, rôle→dashboard+périmètre, `super_admin` voir-comme tracé `{qui_reel, vu_comme, quoi}`.
+- Front : login unique `/login` IdP+2FA, rôle→dashboard+périmètre (§S3.1 + fiches §S3.5, jamais recopiés ici).
+
+## 20.7 Contrat plugin dashboard (`dashboard.yaml`, fait foi, R4)
+
+Fiches fonctionnelles : §S3.5 seul (jamais recopiées ici). Ce §20.7 fige
+le contrat technique minimal que le chargeur vérifie au démarrage
+(refus + log si invalide, jamais de demi-chargement) :
+
+```yaml
+id: dash-voyageur            # 1 des 8 : dash-super|dash-admin|dash-operateur|
+                             # dash-comptable|dash-proprio|dash-presta|
+                             # dash-voyageur|dash-commercial
+version: "1.0.0"
+roles: [voyageur]            # rôles autorisés (§S3.1), 1 login = 1 dashboard
+routes: [/sejour, /guide]    # routes servies, plugin désactivé = 404 + journal
+apis: [GET /parc/logements] # sous-ensemble allowlist globale §20.2 seul
+flags: [assistance_voyageur] # feature-flags requis, branches off sautées
+i18n_prefixe: voyageur.      # clés complètes 5 langues, 0 manquante (CI)
+```
+
+Règles : `roles` connus de `acces.yaml` ; `apis` dans l'allowlist globale
+(`POST /v1/action` + lectures §20.2) ; `flags` existants
+`logements.yaml` ; `i18n_prefixe` couvert FR/EN/ES/IT/DE. Marque blanche :
+aucune chaîne `{{marque}}` en dur hors `branding.yaml` (batterie 0 fuite).
