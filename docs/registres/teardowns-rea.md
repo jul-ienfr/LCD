@@ -118,7 +118,28 @@
 - Chercher : seuils 3 niveaux, fenêtres, consentement, anti-faux-positifs,
   wording 5 langues, preuves (dB seuls, jamais d'audio).
 - Rebuild : tuning + wording → §T1/§L2, 0 hardware nouveau.
-- Statut : À FAIRE.
+- Protocole posé 2026-10-15 (lab seul, exécution À FAIRE) :
+  1. VM lab isolée + compte lab propre + journal des cibles rempli
+     avant toute observation.
+  2. Observer seuils 3 niveaux : valeurs dB par niveau, durées avant
+     alerte, fenêtres jour/nuit différenciées ?
+  3. Noter anti-faux-positifs : quoi pour éviter les déclenchements
+     abusifs (fête 1 soir vs bruit continu) ? Comparer à notre logique
+     §T1/L2.
+  4. Noter consentement voyageur : info affichée où, wording exact,
+     opt-out possible ? Mention RGPD ?
+  5. Noter wording 5 langues (FR/EN/ES/DE/IT) des alertes + messages
+     voyageur — piste copiable en propre (wording maison, pas copié).
+  6. Noter preuves : dB seuls horodatés, jamais d'audio — confirmer que
+     c'est bien le standard observé.
+  7. Captures = comportement seul (pas de dump, pas de clés).
+- Preuves à collecter : screenshots seuils + wording consentement +
+  alertes, tableau niveaux/durées/fenêtres.
+- Mapping rebuild maison : tuning seuils + wording 5 langues → §T1/§L2,
+  0 hardware nouveau, dB seuls jamais d'audio, 1-tap humaine tracée.
+- Limites attendues (à remplir) : calibration pièce non visible,
+  faux-positifs non mesurables sans déploiement réel.
+- Statut : À FAIRE (protocole posé, exécution lab en attente).
 
 ## R-05 Durcissement KeyMaster — PRIORITÉ 2
 
