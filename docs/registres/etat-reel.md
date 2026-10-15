@@ -21,3 +21,6 @@
   mapping + limites posés, exécution lab en attente) + renvoi benchmark-oss,
   0 code pompé.
   À reporter en socle-v2 §S10 au prochain gel (v2 gelé `plan-v2.0-saas` non rouvert ici).
+- Terrain P0 2026-10-15 : fiche `docs/suivi-p0-terrain.md` (P0-1..P0-8,
+  inventaire + commandes + réception CE/photo/facture + journal) — P0 clos
+  = pré-requis P1-box, 0 code touché.

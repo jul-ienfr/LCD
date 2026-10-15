@@ -14,3 +14,4 @@
 - `maj-rea-2026-10-15 : 2026-10-15 : radar REA morluto/rea (MIT, MCP local) : socle §S10 clean-room lab seul + P10-9b 5 teardowns/an + registre teardowns-rea.md R-01..R-08 + renvoi benchmark-oss + 89/144 — docs seuls, 0 code prod.`
 - `maj-rea-proto-2026-10-15 : 2026-10-15 : protocoles R-01..R-08 detailles (7 etapes + preuves + mapping + limites chacun) + runbook setup lab REA + etat-reel MAJ — execution lab en attente, 0 code touche.`
 - `maj-p10-docs-2026-10-15 : 2026-10-15 : P10 docs clos (hors externes) : revue modele eco P10-10 (point mort + BFR + KPIs + journal) + marque INPI/formation P10-11 + AG SAS P10-12 — restent EXTERNES P10-6 client, P10-8 RC pro/carte G, P10-9 appels mysteres, 0 code touche.`
+- `maj-p0-2026-10-15 : 2026-10-15 : fiche suivi P0 terrain (P0-1..P0-8 : inventaire + commandes Essentiel/Chine + reception CE/photo/facture + journal) — P0 clos = pre-requis P1-box, 0 code touche.`
