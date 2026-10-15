@@ -149,7 +149,29 @@
 - Rebuild : audit slots 1-10 + révocation +30 min prouvée → P3.
   Réserve 2026-10-14 : KeyMaster HACS = Z-Wave ; si Nuki Matter/Thread,
   reprendre le PATTERN via automatisations Nuki (cf. benchmark-oss.md).
-- Statut : À FAIRE.
+- Protocole posé 2026-10-15 (lab seul, exécution À FAIRE) :
+  1. VM lab isolée + compte lab propre + journal des cibles rempli
+     avant toute observation.
+  2. Observer provisioning codes : création, plages dates, slots,
+     auto-expire checkout — comparer à nos slots 1-10 P3.
+  3. Noter rotation/révocation : délai effectif (+30 min prouvée ?),
+     purge checkout automatique ? Audit trail visible (qui/quand) ?
+  4. Noter offline : fonctionnement sans WAN ? Mode dégradé documenté ?
+     Comparer à notre offline-first box (§T1).
+  5. Noter jamais de PIN en clair : 4 derniers seuls ? `pin_transmis:bool` ?
+     Équivalent de notre REQ R-02 observé ou non.
+  6. Noter Matter/Thread vs Z-Wave : quel transport observé, passage à
+     l'échelle multi-logements comment géré.
+  7. Captures = comportement seul (pas de dump, pas de clés, jamais de
+     PIN même lab).
+- Preuves à collecter : screenshots provisioning + audit trail + mode
+  dégradé, tableau slots/rotation/révocation.
+- Mapping rebuild maison : audit slots 1-10 + révocation +30 min → P3,
+  pattern KeyMaster si Z-Wave sinon automatisations Nuki, jamais de
+  PIN en clair, jamais d'auto-ouverture (1-tap humaine tracée §S5).
+- Limites attendues (à remplir) : firmware/transport exacts non visibles,
+  délai révocation réel non mesurable sans serrure lab.
+- Statut : À FAIRE (protocole posé, exécution lab en attente).
 
 ## R-06 Moteur direct anti-OTA — PRIORITÉ 2
 
