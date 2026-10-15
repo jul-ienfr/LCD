@@ -238,7 +238,27 @@
 - Cible : conso eau/élec vue concurrent (ZLinky/NodOn, compte lab propre).
 - Chercher : seuils surconso, alertes fuite lente, pic conso suivi comment.
 - Rebuild : surconso = ticket auto P2 → `grocy-stocks`/`compta` + §S8 SLA.
-- Statut : À FAIRE.
+- Protocole posé 2026-10-15 (lab seul, exécution À FAIRE) :
+  1. VM lab isolée + compte lab propre + journal des cibles rempli
+     avant toute observation.
+  2. Observer seuils : surconso définie comment (%, kWh/L, durée) ?
+     Comparer à nos seuils §S8.
+  3. Noter fuite lente : détection (goutte-à-goutte eau ?), délai
+     d'alerte, escalade P1/P2 ?
+  4. Noter pic conso : suivi temps réel, historique, corrélation
+     occupation (voyageur présent vs logement vide) ?
+  5. Noter ticket auto : création, assignation, SLA — piste ticket P2
+     `grocy-stocks`/`compta` maison.
+  6. Noter 0 hardware nouveau : ce qu'on tire du ZLinky/NodOn existant
+     sans acheter de capteur.
+  7. Captures = comportement seul (pas de dump, pas de clés).
+- Preuves à collecter : screenshots seuils + alertes + historique,
+  tableau seuils/délais/escalade.
+- Mapping rebuild maison : surconso = ticket auto P2 →
+  `grocy-stocks`/`compta` + §S8 SLA, 0 hardware nouveau.
+- Limites attendues (à remplir) : calibration capteurs non visible,
+  faux-positifs non mesurables sans déploiement réel.
+- Statut : À FAIRE (protocole posé, exécution lab en attente).
 
 ## Journal des cibles
 
