@@ -24,3 +24,11 @@
 - Terrain P0 2026-10-15 : fiche `docs/suivi-p0-terrain.md` (P0-1..P0-8,
   inventaire + commandes + réception CE/photo/facture + journal) — P0 clos
   = pré-requis P1-box, 0 code touché.
+- Replica 2026-10-15 : pack `replica-skill` (MIT) installé `.claude/skills/`
+  (11 skills, outillage lab versionné) + `replica-mapping.md` (skill →
+  R-01..R-08 → modules LCD) ; cadrage R-01 inbox prêt (exécution lab VM
+  isolée en attente), 0 code pompé.
+- Radar projets 2026-10-15 : `radar-projets-rea-replica.md` (familles A/B/C :
+  14 PMS + 13 pricing/direct + 17 ops, R-09..R-19 proposés ancrés 17 modules
+  `custom/*` vérifiés) + ordre exécution P1/P2/P3, exécutions lab en attente,
+  0 code touché.

@@ -66,4 +66,7 @@ Thumbs.db
 *~
 
 # Outillage local (config machine, audits locaux — jamais versionnés)
-.claude/
+.claude/*
+# Skills replica (radar concurrentiel §S10 — versionnés, MIT, outillage lab)
+!.claude/skills/
+!.claude/skills/**
