@@ -210,7 +210,28 @@
   preuves de clôture, écart >20 % géré comment.
 - Rebuild : todos + photos + score → `dispatch` + `inventaire`.
   Clôture 409 si preuves manquantes (déjà §P1).
-- Statut : À FAIRE.
+- Protocole posé 2026-10-15 (lab seul, exécution À FAIRE) :
+  1. VM lab isolée + compte lab propre + journal des cibles rempli
+     avant toute observation.
+  2. Observer checklist : photos AVANT/APRÈS obligatoires ? Cases
+     cochables ? Comparer à nos todos P6-1 + clôture 409.
+  3. Noter score presta : calcul visible, historique, seuil d'alerte ?
+     Piste score maison `dispatch:8096`.
+  4. Noter gamification : badges, classements, incentives — retenir
+     le pattern, jamais copier le design.
+  5. Noter preuves de clôture : quoi exigé pour clore (photos, cases,
+     signature) ? Équivalent de notre 409 si preuves manquantes ?
+  6. Noter écart >20 % : signalé comment, à qui, escalade ?
+     Comparer à notre §P1/§12.4-bis.
+  7. Captures = comportement seul (pas de dump, pas de clés).
+- Preuves à collecter : screenshots checklist + score + clôture,
+  tableau preuves exigées vs nos 409.
+- Mapping rebuild maison : todos + photos + score → `dispatch` +
+  `inventaire`, clôture 409 si preuves manquantes, traçabilité
+  `entite_id/logement_id`.
+- Limites attendues (à remplir) : IA photo non visible côté client,
+  score réel non validé sans volume presta.
+- Statut : À FAIRE (protocole posé, exécution lab en attente).
 
 ## R-08 Maintenance prédictive — PRIORITÉ 3
 
