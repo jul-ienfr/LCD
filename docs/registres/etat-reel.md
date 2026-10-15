@@ -64,3 +64,10 @@
   dB seuls jamais audio INCHANGÉS — seuils/wording/consentement seuls
   observés, 0 hardware nouveau) — EXÉCUTION BLOQUÉE sur compte lab
   PROPRE Minut (action opérateur), 0 code touché.
+- R-09 compta 2026-10-15 : préparation `r09-compta-prep.md`
+  (Pennylane+DAnderson+Stripe TEST+Stelogy, S01-S06, F01-F05, matrix,
+  ancrée `compta:8100` clôture 409/rapprochement file/seuil 0,7 +
+  `facturation:8093` brouillon + 1-tap + 422 INCHANGÉS —
+  clôture/dispute/export seuls observés) — EXÉCUTION BLOQUÉE sur
+  comptes lab PROPRES Pennylane + DAnderson + Stripe TEST + Stelogy
+  (action opérateur), 0 code touché.
