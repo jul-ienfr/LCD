@@ -55,7 +55,31 @@
   ne voit pas.
 - Rebuild : écran « pourquoi ce prix » + tradeoff mode → `pricing-engine`
   + `dash-operateur`. Règle `clamp(pivot × K_*)` inchangée.
-- Statut : À FAIRE.
+- Protocole posé 2026-10-15 (lab seul, exécution À FAIRE) :
+  1. VM lab isolée + compte lab propre + journal des cibles rempli
+     avant toute observation.
+  2. Observer écran reco prix : valeur proposée, fourchette min-max,
+     comparables affichés (lesquels ? distance ? dates ?), confiance ?
+  3. Noter explications visibles : facteurs cités (saison, events,
+     week-end, occupation, durée, last-minute) vs nos K_* — écart de
+     vocabulaire = piste wording « pourquoi ce prix ».
+  4. Noter bornes UX : 1-tap accepter/ajuster ? Min-max modifiables ?
+     Override manuel tracé (qui+motif) ? Équivalent de notre 409 si
+     hors bornes ?
+  5. Noter tradeoff mode : curseur remplissage vs revenu ? Profils
+     (prudent/agressif) ? Comparer à notre pivot × K_*.
+  6. Noter ce qui est INVISIBLE : algo serveur, poids exacts, données
+     d'entraînement — on les liste comme limites, on ne les suppose pas.
+  7. Captures = comportement seul (pas de dump, pas de clés).
+- Preuves à collecter : screenshots écran reco + explications, tableau
+  facteurs affichés vs nos K_*, description bornes UX et override.
+- Mapping rebuild maison : écran « pourquoi ce prix » en
+  `dash-operateur` (décomposition pivot × K_saison × K_events × K_we ×
+  K_occ × K_durée × K_lastmin + motif_prix) + tradeoff mode + 1-tap
+  (`pricing:8091`) + 409 si hors bornes. Jamais d'auto-OTA.
+- Limites attendues (à remplir) : algo serveur invisible, poids non
+  mesurables côté client, reco non validée sans A/B réel.
+- Statut : À FAIRE (protocole posé, exécution lab en attente).
 
 ## R-03 Relance abandon + upsell J-2/J-1 — PRIORITÉ 1
 
