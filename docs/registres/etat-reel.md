@@ -59,3 +59,8 @@
   INCHANGÉS — checklist/score/dispatch seuls observés) — EXÉCUTION
   BLOQUÉE sur comptes lab PROPRES Breezeway + Turno (action opérateur),
   0 code touché.
+- R-04 bruit 2026-10-15 : préparation `r04-bruit-prep.md` (Minut,
+  S01-S06, F01-F05, matrix, ancrée seuils 75/60 dB + escalade N1→N2→N3 +
+  dB seuls jamais audio INCHANGÉS — seuils/wording/consentement seuls
+  observés, 0 hardware nouveau) — EXÉCUTION BLOQUÉE sur compte lab
+  PROPRE Minut (action opérateur), 0 code touché.
