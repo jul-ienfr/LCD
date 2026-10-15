@@ -13,3 +13,4 @@
 - `maj-audit-10-2026-10-15 : 2026-10-15 : relecture complete 10/30/40/50/00/20/60 : header v2 2026-10-15 + REQ-V5/V6 separees + §20.7 dans REQ-S-003 + S6 glossaire + coquilles — 10/10, gel propose plan-v2.0-saas, 0 code touche.`
 - `maj-rea-2026-10-15 : 2026-10-15 : radar REA morluto/rea (MIT, MCP local) : socle §S10 clean-room lab seul + P10-9b 5 teardowns/an + registre teardowns-rea.md R-01..R-08 + renvoi benchmark-oss + 89/144 — docs seuls, 0 code prod.`
 - `maj-rea-proto-2026-10-15 : 2026-10-15 : protocoles R-01..R-08 detailles (7 etapes + preuves + mapping + limites chacun) + runbook setup lab REA + etat-reel MAJ — execution lab en attente, 0 code touche.`
+- `maj-p10-docs-2026-10-15 : 2026-10-15 : P10 docs clos (hors externes) : revue modele eco P10-10 (point mort + BFR + KPIs + journal) + marque INPI/formation P10-11 + AG SAS P10-12 — restent EXTERNES P10-6 client, P10-8 RC pro/carte G, P10-9 appels mysteres, 0 code touche.`
