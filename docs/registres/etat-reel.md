@@ -38,3 +38,8 @@
   (scope Guesty+Hospitable, 15 sources, S01-S06, F01-F05, matrix, plan reviews,
   journal template) — EXÉCUTION BLOQUÉE sur comptes lab PROPRES Guesty +
   Hospitable + vérification CGU (action opérateur), 0 code touché.
+- R-02 prix 2026-10-15 : préparation `r02-prix-prep.md` (PriceLabs+Beyond,
+  S01-S06, F01-F05, matrix, ancrée `pricing-engine` formule clamp 75-290
+  INCHANGÉE — présentation seule observée, jamais algo serveur) —
+  EXÉCUTION BLOQUÉE sur comptes lab PROPRES PriceLabs + Beyond (action
+  opérateur), 0 code touché.

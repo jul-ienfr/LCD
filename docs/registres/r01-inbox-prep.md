@@ -43,6 +43,8 @@
 
 Règles : lecture humaine seule, pas de crawler, pas de bulk download, pas de contournement paywall/login, pas de lecture des bundles JS ni des appels réseau privés.
 
+> Tentatives WebSearch 2026-10-15 (4 requêtes : Guesty unified inbox, Hospitable automated messaging, Guesty unified inbox guide — lots vides, 0 URL exploitable). AUCUNE URL inventée : l'opérateur note l'URL exacte au journal AVANT lecture depuis son navigateur (help.guesty.com, help.hospitable.com, stores, G2/Capterra/Trustpilot).
+
 ## 4. Screen inventory à remplir (gabarit `recon-map.md` du skill)
 
 | ID | Écran | Accès | Rôle | Composants clés | États vus |
