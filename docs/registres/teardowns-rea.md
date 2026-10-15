@@ -22,7 +22,30 @@
   SLA affichés, assignation, SLA <15 min 8h-22h tenable comment.
 - Rebuild : inbox multi-canal + brouillons IA + SLA → étend
   `dispatch-presta` + `jev-gateway`. Jamais d'envoi auto (§S5).
-- Statut : À FAIRE.
+- Protocole posé 2026-10-15 (lab seul, exécution À FAIRE) :
+  1. VM lab isolée + compte lab propre + journal des cibles rempli
+     (date/cible/version/compte) avant toute observation.
+  2. Observer regroupement fils par réservation/canal/voyageur : 1 fil = 1
+     réservation ? Badge non-lu, filtre par logement/statut/canal ?
+  3. Noter triggers auto-messages visibles côté client (modèles,
+     conditions check-in/J-1/check-out, délai) + si envoi auto ou
+     brouillon à valider — chez nous = brouillon IA + 1-tap humaine
+     tracée seule, jamais d'envoi auto (§S5).
+  4. Noter assignation (qui répond : hôte/équipe/auto), snooze/rappel,
+     SLA affiché (<15 min 8h-22h ?), escalade si dépassé.
+  5. Noter anti-spam/opt-out visibles + 5 langues (FR/EN/ES/DE/IT) ?
+  6. Noter preuves par message : horodatage, canal, auteur (humain vs
+     auto), pièces jointes, lien réservation/ménage.
+  7. Captures = comportement seul (pas de dump code, pas de clés).
+- Preuves à collecter : screenshots wording SLA/triggers, tableau
+  canaux observés, délai batching webhook constaté (si visible),
+  liste assignation/snooze oui-non.
+- Mapping rebuild maison : inbox multi-canal en `dash-operateur` +
+  brouillons IA via `:4000` + file `dispatch:8096` + traçabilité
+  `entite_id/logement_id` + `pin_transmis:bool` jamais en clair.
+- Limites attendues (à remplir) : backend/OTA invisibles, batching
+  serveur non mesurable côté client, SLA réel non prouvé sans charge.
+- Statut : À FAIRE (protocole posé, exécution lab en attente).
 
 ## R-02 Prix explicable — PRIORITÉ 1
 
