@@ -55,8 +55,24 @@
 
 ## 2. Verdict global récupérer vs réécrire
 
+> Ce registre = OSS statique (récupérer vs réécrire, licences).
+> `docs/registres/teardowns-rea.md` = comportement concurrentiel côté
+> client (parité + dépassement, clean-room §S9, lab seul, 0 code pompé).
+> Les deux se complètent : OSS = briques à récupérer, REA = fonctions à
+> comprendre puis rebuild maison. Règle commune : jamais de copier-coller
+> (R-09 + §S9).
+
 - RÉCUPÉRER tel quel : KeyMaster si Z-Wave, sinon patterns Nuki adaptés (T-02, réserve 2026-10-14) pour PIN séjour ; catalogues i18n/outillage e-facture si MIT/Apache.
 - PILOTER en lab avant choix : QloApps comme `moteur_direct` Phase 1 (T-01, AFL-3.0 permissive vérifiée — pilote allégé juridiquement, audit avant fork) ; ERPNext+Hospitality si compta native requise (T-04).
 - ACHETER plutôt que réécrire : Vik Channel Manager (~249 €/an) si 2-way OTA un jour (T-03).
 - RÉÉCRIRE maison (déjà fait en lab) : gateway `:8443` + outbox idempotente + WG + SQLite parc.db + pricing clamp + ICS anti-double-résa + front 8 dashboards — aucun OSS ne fait ce tout (offline-first box + multi-tenant FR + 1-tap tracé).
 - NE JAMAIS copier-coller : HotelDruid/Vik/ERPNext/Odoo (GPL) dans repo privé/client sans audit — inspiration fonctionnelle seule (R-09). QloApps = AFL-3.0 permissive : reprise possible avec attribution + conservation de licence, audit avant fork.
+
+## 3. Complément REA — radar concurrentiel (ne pas confondre)
+
+> Ce registre = OSS statique (récupérer vs réécrire, licences).
+> `docs/registres/teardowns-rea.md` = comportement concurrentiel côté
+> client (parité + dépassement, clean-room §S9, lab seul, 0 code pompé).
+> Les deux se complètent : OSS = briques à récupérer, REA = fonctions à
+> comprendre puis rebuild maison. Règle commune : jamais de copier-coller
+> (R-09 + §S9).

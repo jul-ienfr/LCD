@@ -4,7 +4,7 @@
 > et aux 3 cahiers v4 pour le fond. Ici = l'ordre d'exécution seul.
 > Chaque tâche = fait / reste / externe. 1 phase terminée = commit + tag.
 
-**Progression : `89 / 143` (62 %).**
+**Progression : `89 / 144` (62 %).**
 - Lab/logiciel (P1-partiel, P2, P6, P7, P9-docs, P10-docs) : **fait,
   batterie 1125 OK/0 KO**
 - Terrain/box (P0, P1-box, P3, P4, P5, P8-go-live) : **reste, box requise**
@@ -88,6 +88,7 @@
 - [x] P10-7 Kit démo (visite + dashboard + simulateur)
 - [ ] P10-8 RC pro + carte G Hoguet (CCI + garantie GALIAN/SOCAF + RCP + attestations collaborateurs, ~1-2 k€/an, 2-3 mois — bloquant mandat tiers payant) + assurances mandats — EXTERNE (bloquant avant P10-6)
 - [ ] P10-9 Benchmark (10 appels mystères initiaux + 5/an, tableau comparatif trimestriel — méthode cahier Logement §L4) — EXTERNE
+- [ ] P10-9b Radar REA (lab seul, clean-room §S9, registre `docs/registres/teardowns-rea.md`) : setup `npx rea-agents setup` en VM lab isolée (Node 22/24/26, sans secrets) + journal des cibles + 5 teardowns/an (R-01 inbox → R-02 prix explicable → R-03 upsell J-2/J-1 → R-04 bruit → R-05 KeyMaster → R-06 direct → R-07 QA ménage → R-08 prédictif) + 1 fiche/cible (comportement + preuves + limites) → spec maison → 7 j vitrine si retenue — DOCS SEULS, 0 code prod
 - [ ] P10-10 Modèle éco revu (point mort, BFR, coûts fixes — socle §S8, revue trimestrielle)
 - [ ] P10-11 Dépôt marque INPI (nom + logo, ~200 €, avant le 3e client) + formation continue (1/an min : ménage, accueil, pricing — socle §S8)
 - [ ] P10-12 AG SAS annuelle (revues trimestrielles §S8 = base du PV, dépôt des comptes <6 mois après clôture) — EXTERNE

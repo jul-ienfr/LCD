@@ -4,6 +4,7 @@
 > Règle : ce qui est ici n'est dupliqué nulle part. Les cahiers renvoient
 > ici par `§S*`. En cas de contradiction, ce socle l'emporte.
 > Ton : direct, normatif. 0 € logiciel (stdlib Python + open source).
+> Addendum 2026-10-15 : §S9 radar REA ajouté (docs seuls, 0 code prod).
 
 ## §S0 Vision produit
 
@@ -274,3 +275,52 @@ formation continue 1/an min (ménage, accueil, pricing, sécurité) ;
 1x/an + à chaque accident) + visite médicale + affichage obligatoire ;
 doc « indisponible 48 h » (qui fait quoi : astreinte, ménage, reversement
 reporté, message type). Sans 2e personne = pas de FULL au-delà de 2 biens.
+
+## §S9 Radar concurrentiel — teardowns REA (lab seul, clean-room)
+
+REA = `morluto/rea` (MIT, MCP local, `npx rea-agents setup`, Node
+22/24/26). Radar seul : voir une fonction aimée → comprendre côté
+client → rebuild propre maison. Jamais une brique prod, jamais branché
+box/plane. Lab seul, docs seuls, 0 code pompé.
+
+Clean-room (non négociable, §S5+) : on observe le comportement, on ne
+recopie jamais code/design/textes/marques. 1 cible = 1 fiche teardown
+(comportement + preuves + limites, jamais de dump) → 1 spec maison →
+7 j vitrine log1 si retenue (§S0), juriste comme mandats/CGV.
+Interdits : contourner DRM/auth/chiffrement, violer CGU, attaquer
+backend serveur (90 % d'un PMS y tourne, REA ne le voit pas), scraping
+OTA auto (§T3, ban + données faussées). Cible = client légalement
+installé en VM lab isolée, sans secrets, journal des cibles.
+
+Rituel P10-9 v2 : 10 appels mystères (service vu client) + 5 teardowns
+REA/an (comment côté client) + tableau comparatif trimestriel. Même
+rituel, deux sources. Ordre : inbox, prix, upsell d'abord (marge directe).
+
+Backlog parité + dépassement (1er passage, à instruire par teardown) :
+- R-01 Inbox unifiée multi-canal (cible : inbox Guesty/Hospitable) :
+  batching webhooks, triggers auto-messages, snooze, anti-spam → étend
+  `dispatch-presta` + `jev-gateway`. Priorité 1.
+- R-02 Prix explicable (cible : front PriceLabs/Beyond) : reco présentée,
+  explications, bornes UX 1-tap (algo serveur invisible, on ne le verra
+  pas) → `pricing-engine` + `dash-operateur`. Priorité 1.
+- R-03 Relance abandon + upsell contextuel J-2/J-1 (cible : portail
+  Duve/Enso) : timing, abandon panier, magic-link expiry/rate-limit →
+  `extras-upsell` + `booking-direct`. Priorité 1.
+- R-04 Tuning bruit validé (cible : app Minut) : seuils, fenêtres,
+  consentement, anti-faux-positifs + wording 5 langues → §T1/§L2,
+  0 hardware nouveau. Priorité 2.
+- R-05 Durcissement KeyMaster (cible : Nuki/August) : provisioning codes,
+  rotation, audit trail, offline → P3 (slots 1-10 + révocation +30 min
+  prouvée). Priorité 2.
+- R-06 Moteur direct anti-OTA (cible : Smoobu/Lodgify) : funnel direct,
+  codes promo, SEO, reprise abandon → `booking-direct` (promo retour
+  J+30/J+180 auto). Priorité 2.
+- R-07 QA ménage photo-IA (cible : ticketing Operto/Breezeway) :
+  checklist photo, score, gamification → `dispatch` + `inventaire`.
+  Priorité 3.
+- R-08 Maintenance prédictive surconso/fuite lente (cible : ZLinky/NodOn
+  vu concurrent) : seuils, alertes → ticket auto P2 → `grocy-stocks`/
+  `compta` + §S8 SLA. Priorité 3.
+
+Chaque fiche finit par « limites » (ce que REA n'a pas vu). Sans limites
+= supposition, pas un fait. Pas de fiche = pas de dev.
