@@ -48,3 +48,8 @@
   paiement d'avance + geste humain INCHANGÉS — timing/présentation seuls
   observés) — EXÉCUTION BLOQUÉE sur comptes lab PROPRES Duve + Enso
   (action opérateur), 0 code touché.
+- R-06 direct 2026-10-15 : préparation `r06-direct-prep.md` (Lodgify+Smoobu,
+  S01-S06, F01-F05, matrix, ancrée `booking-direct` brouillon + 1-tap +
+  bornes/403 + src JSONL INCHANGÉS — funnel/promo/reprise seuls observés,
+  objectif direct >30 % §L4) — EXÉCUTION BLOQUÉE sur comptes lab PROPRES
+  Lodgify + Smoobu (action opérateur), 0 code touché.
