@@ -88,7 +88,29 @@
   cut-off J-1 18h tenu comment, géoloc opt-in.
 - Rebuild : relance abandon + upsell contextuel → `extras-upsell` +
   `booking-direct`. Opt-out 1-clic, charte anti-spam §S7.
-- Statut : À FAIRE.
+- Protocole posé 2026-10-15 (lab seul, exécution À FAIRE) :
+  1. VM lab isolée + compte lab propre + journal des cibles rempli
+     avant toute observation.
+  2. Observer timing upsells : à quels moments proposés (résa, J-7,
+     J-2/J-1, check-in) ? Quels extras en premier ? Ordre = piste
+     priorisation `extras:8098`.
+  3. Noter abandon panier : relance observée (délai, canal, contenu) ?
+     1 relance ou N ? Opt-out visible et fonctionnel ?
+  4. Noter magic-link : expiry constatée, rate-limit, renouvellement,
+     cut-off J-1 18h tenu comment côté voyageur.
+  5. Noter géoloc/opt-in : consentement explicite ? Quid 5 langues
+     (FR/EN/ES/DE/IT) et charte anti-spam §S7.
+  6. Noter lien avec séjour : PWA/vue voyageur, offline, photos et
+     consignes — comparer à notre vue séjour V1 (REQ-S-003-V1).
+  7. Captures = comportement seul (pas de dump, pas de clés).
+- Preuves à collecter : screenshots timing upsells + relance abandon,
+  tableau magic-link (expiry/rate-limit/cut-off), wording opt-out.
+- Mapping rebuild maison : relance abandon + upsell contextuel en
+  `extras-upsell` + `booking-direct` + vue séjour V1, opt-out 1-clic,
+  1-tap humaine tracée seule, jamais d'envoi auto.
+- Limites attendues (à remplir) : backend invisible, taux conversion
+  non mesurable sans volume, délivrabilité non prouvée en lab.
+- Statut : À FAIRE (protocole posé, exécution lab en attente).
 
 ## R-04 Tuning bruit validé — PRIORITÉ 2
 
