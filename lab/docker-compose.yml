@@ -16,6 +16,7 @@ name: lcd-lab
 
 services:
   ics-sync:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -50,6 +51,7 @@ services:
       retries: 5
 
   pricing:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -84,6 +86,7 @@ services:
       retries: 5
 
   decision:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -133,6 +136,7 @@ services:
       retries: 5
 
   facturation:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -163,6 +167,7 @@ services:
       retries: 5
 
   caution:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -189,6 +194,7 @@ services:
       retries: 5
 
   booking-direct:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -230,6 +236,7 @@ services:
       retries: 20
 
   dispatch-presta:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -266,6 +273,7 @@ services:
       retries: 5
 
   inventaire:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -300,6 +308,7 @@ services:
       retries: 5
 
   extras:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -337,6 +346,7 @@ services:
       retries: 5
 
   stocks:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -370,6 +380,7 @@ services:
       retries: 5
 
   compta:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -398,6 +409,7 @@ services:
       retries: 5
 
   llm-router-ui:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -426,6 +438,7 @@ services:
   # (prix/journal/todos/routage), multi-logements/multi-box via config.
   # Lecture seule : jamais d'écriture/PIN/secret. PWA = autre étage.
   dashboard-hote:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -453,6 +466,7 @@ services:
   # une vraie box aurait tout en local, mais l'entité du conflit split-brain
   # (§16.2) est le PRIX, donc seuls ics/pricing/decision sont dédoublés.
   ics-sync-nord:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -482,6 +496,7 @@ services:
       retries: 5
 
   pricing-nord:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -512,6 +527,7 @@ services:
       retries: 5
 
   decision-nord:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -559,6 +575,7 @@ services:
   # (volume dédié, jamais jetée) : passerelle coupée = fichiers qui
   # s'accumulent, passerelle revenue = rejeu idempotent (§16.2).
   agent-nord:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -588,6 +605,7 @@ services:
   # 0 écriture : jamais de PIN/secret/action (POST /v1/action = G2).
   # Registre box = lab/lab-config/passerelle-parc-boxes.yaml (0 secret).
   gateway-parc:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: lab/Dockerfile.moteur
@@ -670,6 +688,7 @@ services:
     command: ["python3", "/bootstrap.py"]
     restart: "no"
   homeassistant:
+    restart: unless-stopped
     image: homeassistant/home-assistant:stable
     ports: ["8123:8123"]
     environment:
