@@ -7,7 +7,7 @@
   20 (+ §20.7 contrat plugin) + 30-passerelle-v5 (§P8 renvoi DRY) +
   40-logement-v5 (§L4 renvoi DRY) + 50-technique-box-v5 (§T5 technique
   seule) + 60-execution-v6. R1-R6 actives, normatif v2 en vigueur.
-- Exécution v5 : 89/144 (62 %, +P8-9 sandbox REQ-S-004 ; batterie lab verte tenue 2026-10-16 via `lab/lab-run.ps1` : reset complet + rebuild + santé + `tests_lab.py` sans KO + vps-sim 7/7)
+- Exécution v5 : 90/144 (63 %, +P8-9 sandbox REQ-S-004 CLOS 2026-10-16 + P9-14 self-hosted `deploy/` ; batterie lab verte tenue 2026-10-16 via `lab/lab-run.ps1` 0-5/5 exit 0 : reset complet + rebuild + santé + `tests_lab.py` sans KO + vps-sim 7/7 + deploy 7/7)
   (P10-9b radar REA = veille docs seuls, hors compteur).
 - Lab docker : box-lab (log1+log2) + 18 ports lab (11 moteurs 8090-8100 + router:8050 + dashboard:8060 + gateway:8443 + HA:8123 + nord 8190-8192 ; :4000 apporté box volontairement absent) + seed-reset 1 commande `lab/seed-reset.sh|ps1` + test global 1 commande `lab/lab-run.sh|ps1` (P8-9 REQ-S-004 : reset → rebuild → santé → batterie → vps-sim ; faux VPS `lab/vps-sim/` 7/7 vert 2026-10-16, `test-vps.sh` jumeau sh créé).
 - Self-hosted 2026-10-16 : `deploy/` (front `web/Dockerfile` standalone node24 ~281 Mo + `deploy/Caddyfile` lcd.test TLS interne HSTS/nosniff + compose 2 services web/caddy sur réseau `lcd-lab_default` ; ports hôte 4000+4001, socle jamais publié) — `test-deploy.ps1|sh` 7/7 exit 0 + écriture 1-tap via Caddy `idempotent:true` ; batterie lab §§52/72 inchangée (deploy/ hors périmètre, dit) ; `lab-run.sh|ps1` étendus 0-5/5 (étape 5/5 = build front + up deploy + test-deploy + down, `--no-deploy` pour sauter).

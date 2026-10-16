@@ -1,8 +1,8 @@
-# Checklist — 56 tâches restantes terrain/box/externe (base 60-execution-v6 §60.2 v6)
+# Checklist — 55 tâches restantes terrain/box/externe (base 60-execution-v6 §60.2 v6)
 
 > Sources : `docs/60-execution-v6.md` §60.2/60.3/60.4 + `docs/10-socle-v2.md` §S8 + fonds 30/40/50.
-> Progression : `89 / 144` (62 %). Lab fait (batterie 1125 OK/0 KO). Reste = terrain/box + réel + externe.
-> Recomptage : P0 8 + P1-box 10 + P3 8 + P4 10 + P5 10 + P8 3 + P9-réel 1 + P10 6 = **56 items** (55 dans le compteur 144 + P9-réel hors compteur : VM réelle sur comptes humains, comme P10-9b veille hors compteur).
+> Progression : `90 / 144` (63 %, +P8-9 clos + P9-14 self-hosted 2026-10-16). Lab fait (batterie verte + run global 0-5/5 exit 0). Reste = terrain/box + réel + externe.
+> Recomptage : P0 8 + P1-box 10 + P3 8 + P4 10 + P5 10 + P8 2 + P9-réel 1 + P10 6 = **55 items** (54 dans le compteur 144 + P9-réel hors compteur : VM réelle sur comptes humains, comme P10-9b veille hors compteur).
 > Règle : 1 phase terminée = commit + tag + ligne `registres/changelog.md`. Phase non close si DoD incomplet (§60.4).
 > RACI §60.3 : P0 R hôte/A super_admin/C électricien. P1-box R hôte/A super_admin. P3/P4/P5 R hôte+presta/A super_admin/C syndic/I client. P8 R hôte+opérateur/A super_admin. P9 R hôte/A super_admin. P10 R super_admin/A juriste+assureur/C expert-comptable/I client.
 > Budgets : P0 ~1 050-1 150 € log1 ; Light ~650-750 € ; FULL complet ~2 050-2 150 € ; P1 cloud 0 € ; VPS P3 ~5 €/mois ; RC pro ~1-2 k€/an ; médiation ~200-400 €/an ; juridique ~300-500 €/an ; INPI ~200 € ; 4G ~10 €/mois ; IA ~1-3,2 €/mois/logement. Jamais >200 € sans devis + 1-tap.
@@ -65,8 +65,7 @@
 - [ ] P5-9 Tests mensuels dashboard ménage + piles AA stock Grocy | retard >30 j = P2 | Prérequis : runbook
 - [ ] P5-10 Assurance habitation + RC LCD + RC villégiature J-2 exigée | défaut = suspension après mise en demeure | Prérequis : onboarding §L3
 
-## Phase 8 — Recette/go-live
-- [ ] P8-9 Bac-à-sable vert REQ-S-004 (faux jeu + test global 1 commande + seed reset OK) — bloquant avant G1/G2 | 0 € Docker local | Prérequis : lab G0 vert
+## Phase 8 — Recette/go-live (P8-9 CLOS 2026-10-16 : run global 0-5/5 exit 0, plus dans les restantes)
 - [ ] P8-8 Go-live log1 → tag + changelog | Gate G2 (copro true + n° + DPE + RC, séjour témoin + drill 3 h, 1 mois vitrine) | Prérequis : P0→P5 + P8-9 + conformité §L3
 - [ ] P8-11 Maintenance annuelle (piles, audit, 4G failover ~30 €) | 4G ~10 €/mois | Prérequis : P8-8
 

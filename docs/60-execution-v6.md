@@ -8,7 +8,7 @@
 > Exigences : `REQ-E-001/002` + `REQ-S-003-V1..V8` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md` (R5).
 > TODO vivants seuls : `registres/a-trancher.md` (T-01..T-09 TRANCHÉS 2026-10-14/15). Annexes v5 gelées (R5).
 
-**Progression reprise v5 : `89 / 144` (62 %, +P8-9 sandbox REQ-S-004 ; P10-9b veille hors compteur).**
+**Progression reprise v5 : `90 / 144` (63 %, +P8-9 sandbox REQ-S-004 clos 2026-10-16 + P9-14 self-hosted `deploy/` ; P10-9b veille + P9-réel VM réelle hors compteur).**
 - Lab/logiciel (P1-partiel, P2, P6, P7, P9-docs, P10-docs) : **fait, batterie 1125 OK/0 KO**
 - Terrain/box (P0, P1-box, P3, P4, P5, P8-go-live) : **reste, box requise**
 - Externe (P10-6 client, P10-8 RC pro + carte G, juriste, VM réelle) : **reste, décisions humaines**
@@ -77,7 +77,7 @@ Seuils P1→P2 / P2→P3 : §S4 seuls font foi (jamais recopiés ici).
 
 ### Phase 8 — Recette / go-live (box requise pour la fin)
 - [x] P8-1→P8-7/10/12 Formation, bornes prix, maintenance dry-run, clone log2 — lab
-- [ ] P8-9 Bac-a-sable pre-deploiement vert (REQ-S-004) : faux jeu complet LAB + test global local 1 commande + seed reset OK — bloquant avant G1/G2
+- [x] P8-9 Bac-a-sable pre-deploiement vert (REQ-S-004) : faux jeu complet LAB + test global local 1 commande `lab/lab-run.sh|ps1` 0-5/5 exit 0 (seed-reset complet → lab sain → batterie → vps-sim 7/7 → self-hosted `deploy/` 7/7) + seed-reset OK — bloquant avant G1/G2 (prouvé 2026-10-16, tag `plan-v2.9-run-global`)
 - [ ] P8-8 Go-live log1 → tag + changelog
 - [ ] P8-11 Maintenance annuelle (piles, audit, 4G failover ~30 €)
 
@@ -87,6 +87,7 @@ Seuils P1→P2 / P2→P3 : §S4 seuls font foi (jamais recopiés ici).
 - [x] P9-11 Bascule mesurée (`/v1/statut`)
 - [x] P9-12 Front PWA + CI (manifest + vitest + `ci.yml`)
 - [x] P9-13 Faux VPS `lab/vps-sim` (7/7)
+- [x] P9-14 Self-hosted local `deploy/` : front Next standalone (`web/Dockerfile`, `npm ci` lock versionné) + Caddy entrée unique `lcd.test` TLS interne (4000+4001, socle jamais publié) + `test-deploy.ps1|sh` 7/7 + écriture 1-tap idempotente via Caddy (tag `plan-v2.7-selfhosted`)
 
 ### Phase 10 — Offre SaaS + 1er client (docs FAITS, externe restant)
 - [x] P10-1 Grille §S1 + mandat type + CGV (`docs/templates/`, juriste obligatoire)
