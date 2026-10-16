@@ -1,0 +1,13 @@
+# web/.dockerignore — contexte minimal (jamais de secret ni de build local).
+node_modules
+.next
+out
+*.log
+npm-debug.log*
+.env
+.env.local
+.env*.local
+coverage
+.nyc_output
+.DS_Store
+Thumbs.db

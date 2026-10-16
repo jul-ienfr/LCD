@@ -1,0 +1,47 @@
+# deploy/Caddyfile — entrée unique auto-hébergée LCD (self-hosted local, 0 €).
+#
+# 1 origine locale `lcd.test` (SNI conservé, résolution côté client via
+# --resolve, zéro modif hosts) → Caddy reverse-proxy :
+#   /            → front web :3100 (Next standalone, SSR)
+#   /api/*       → gateway :8443 (fan-out parc, lecture + 1-tap)
+# TLS `tls internal` (CA auto-signée, jamais de Let's Encrypt en local —
+# même pattern que `lab/vps-sim/Caddyfile`, différences dites).
+# Ports hôte : 4000 (HTTP→HTTPS auto) + 4001 (HTTPS). Le socle (:8090-8100,
+# :8123, :4000, :8050, :8060, :8443) n'est JAMAIS publié — même règle qu'en
+# prod et qu'en sim (batterie §52/§72 sur les artefacts prod/sim,inchangés).
+{
+	email admin@example.local
+	# Pas d'ACME en local : CA interne, zéro appel réseau sortant.
+}
+
+(entetes_lcd) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+	header Cache-Control "no-store"
+}
+
+https://lcd.test {
+	tls internal
+	import entetes_lcd
+
+	# Front Next (SSR + Server Actions) : pages /, /voyageur, /proprio, /commercial.
+	reverse_proxy http://web:3100 {
+		header_up X-Forwarded-Proto https
+		header_up -Authorization
+	}
+
+	# Gateway parc via préfixe /api/* (strip → la gateway voit ses routes nues).
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy http://gateway-parc:8443 {
+			header_up X-Forwarded-Proto https
+			header_up -Authorization
+		}
+	}
+}
