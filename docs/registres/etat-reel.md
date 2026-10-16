@@ -79,3 +79,11 @@
   jamais porte réelle, licence KeyMaster à vérifier R-09) —
   EXÉCUTION BLOQUÉE sur comptes lab PROPRES Nuki + Yale/August
   (action opérateur), 0 code touché.
+- R-10 EDL 2026-10-16 : préparation `r10-edl-prep.md`
+  (Smovin+Check&Visit+HappyTenant, S01-S06, F01-F05, matrix,
+  ancrée `dispatch-presta:8096` P6-16 consentement préalable + photo
+  EXIF + vidéo <60s + purge 90j + jamais bloquant INCHANGÉS —
+  guidage/contradictoire/purge seuls observés, photos logement vide
+  seul jamais personne, piste dossier dispute contrat+EDL) —
+  EXÉCUTION BLOQUÉE sur comptes lab PROPRES Smovin + Check&Visit
+  + HappyTenant (action opérateur), 0 code touché.
