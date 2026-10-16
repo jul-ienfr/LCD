@@ -48,7 +48,7 @@
 | B11 | Sonde frigo/congélo Aqara (P4-8) | 1 | 9 € | 9 € | 🇨🇳 | boutique Aqara — à sourcer |
 | B12 | Tablette Lenovo Tab M9 / Fire HD 10 + support + chargeur (WallPanel ; QR papier en attendant) | 1 | 125 € | 125 € | reconditionné −30/40 € possible | Amazon EU — à sourcer |
 | B13 | Voix satellite S3-BOX-3 60 € + Atom Echo 15 € (défaut 0 € BYOD) | 0-1 | 75 € | 0 € / +75 € si PMR/premium | 🇨🇳 M5Stack | boutique officielle M5Stack — à sourcer |
-| **Total A+B** | | | | **~2 050-2 150 €** (A ~1 100 + B ~615-690 + marge 5-10 % ; +75 € si voix satellite) | | |
+| **Total A+B** | | | | **~2 050-2 150 €** (A ramené ~1 050-1 150 par leviers éco §A + B ~672 + marge 5-10 % ≈ 1 800-1 990 + tablette/voix/différés ; somme brute sans leviers = 1 947-1 977 + 75 € si voix satellite ; vérifié 2026-10-16) | | |
 
 ## C. Light log2 (~650-750 €) — sans Nuki/voix/ZBT-2/RM4
 - Retiré vs log1 : Nuki 299 + Hub 8 + ZBT-2 39 + S3-BOX/Atom 75 + RM4 22 + portail 33 = **−460-480 €**.
