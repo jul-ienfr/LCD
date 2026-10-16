@@ -71,3 +71,11 @@
   clôture/dispute/export seuls observés) — EXÉCUTION BLOQUÉE sur
   comptes lab PROPRES Pennylane + DAnderson + Stripe TEST + Stelogy
   (action opérateur), 0 code touché.
+- R-05 serrures 2026-10-16 : préparation `r05-serrures-prep.md`
+  (Nuki+KeyMaster pattern+Yale/August+Igloohome, S01-S06, F01-F05,
+  matrix, ancrée `decision-engine` jamais PIN généré + KeyMaster/Nuki
+  Hub seuls + tool-calling serrure BLOQUÉ + contrat signé avant PIN
+  INCHANGÉS — codes/revoke/offline seuls observés, codes test seuls
+  jamais porte réelle, licence KeyMaster à vérifier R-09) —
+  EXÉCUTION BLOQUÉE sur comptes lab PROPRES Nuki + Yale/August
+  (action opérateur), 0 code touché.
