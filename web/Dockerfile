@@ -7,13 +7,13 @@
 # Run : LCD_GATEWAY_URL=http://gateway-parc:8443 (nom du service sur le réseau
 # Docker partagé, jamais en dur ici — variable d'environnement du compose).
 
-# --- Étape 1 : dépendances (cache stable tant que package.json ne change pas)
+# --- Étape 1 : dépendances (cache stable tant que package.json/lock ne changent pas)
 FROM node:24-slim AS deps
 WORKDIR /app
-COPY web/package.json ./
-# package-lock.json exclu du dépôt (.gitignore) : install reproductible via CI
-# (`npm ci`) ; ici `npm install` + cache docker, jamais de secret.
-RUN npm install
+COPY web/package.json web/package-lock.json ./
+# `npm ci` reproductible (lock versionné, voir .gitignore racine) — jamais de
+# `npm install` flottant en image. Jamais de secret ici.
+RUN npm ci
 
 # --- Étape 2 : build (standalone : .next/standalone + server.js minimal)
 FROM node:24-slim AS build

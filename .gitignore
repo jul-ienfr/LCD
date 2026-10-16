@@ -51,12 +51,12 @@ state-test-*/
 __pycache__/
 *.pyc
 
-# Frontend web/ (Next.js, déployable Vercel — jamais commité : build + deps
-# + lock local + types générés ; CI = `npm ci` reproductible)
+# Frontend web/ (Next.js, déployable Vercel + self-hosted Docker — jamais
+# commité : build + deps + types générés ; le LOCK est versionné pour des
+# builds reproductibles locaux + CI + Docker, jamais de `npm install` flottant)
 web/node_modules/
 web/.next/
 web/out/
-web/package-lock.json
 web/next-env.d.ts
 
 # OS / éditeurs

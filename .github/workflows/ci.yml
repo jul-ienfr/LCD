@@ -38,3 +38,13 @@ jobs:
         working-directory: lab
       - run: python3 tests_lab.py
         working-directory: lab
+
+  selfhosted:
+    runs-on: ubuntu-latest
+    needs: batterie
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up -d --build
+        working-directory: lab
+      - run: docker compose -f deploy/docker-compose.yml up -d --build
+      - run: sleep 20; sh deploy/test-deploy.sh
