@@ -32,3 +32,4 @@
 - `maj-ci-lock-2026-10-16 : 2026-10-16 : lock web/package-lock.json versionne (corrige npm ci CI casse) + Dockerfile npm ci + web/README self-hosted + job CI selfhosted (lab puis deploy/test-deploy.sh, needs batterie) + rebuild image + stack 7/7 exit 0.`
 - `maj-coherence-90-2026-10-16 : 2026-10-16 : coherence docs (60-execution P8-9 CLOS + P9-14 self-hosted + compteur 90/144 + checklist 55 restantes) -- run global exit 0 prouve (tag plan-v2.9-run-global).`
 - `maj-panier-audit-2026-10-16 : 2026-10-16 : audit arithmetique panier (A 1275-1305 OK + C 687 dans 650-750 OK + retire 476 dans 460-480 OK) + ligne Total A+B clarifiee (prix unitaires intacts, somme brute 1947-1977 dite).`
+- `maj-etat-reel-55-2026-10-16 : 2026-10-16 : etat-reel aligne (checklist 55 restantes, P8-9 CLOS, panier audite) -- 0 incoherence 89/56 restante.`
