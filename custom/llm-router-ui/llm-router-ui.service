@@ -1,0 +1,17 @@
+# custom/llm-router-ui/llm-router-ui.service — systemd (même LXC que le proxy :4000, P7-3).
+[Unit]
+Description=LCD llm-router-ui (P7-3) — UI routage proxy LLM :8050
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/llm-router-ui/router_ui.py --config /opt/lcd/llm-router-ui/config.yaml --serve
+Environment=LCD_PROXY_DIR=/opt/lcd/llm-proxy
+Environment=LCD_STATE_DIR=/opt/lcd/llm-router-ui/state
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

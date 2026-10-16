@@ -28,7 +28,7 @@ sans carte G (bloquant P10-8).
 5. DRY (socle seul fait foi, cahiers renvoient `§S*`, 0 copie).
 6. Versionné (semver docs + changelog + tag git par phase).
 7. Owner (RACI par phase, 1 owner, jamais de collectif flou).
-8. Risque (risques.md, mitigation + owner + échéance).
+8. Risque (`docs/registres/risques.md`, mitigation + owner + échéance).
 9. Budget (coût € + temps + seuil, jamais de surprise).
 10. Réversible (rollback 1 commande, jamais d'irréversible silencieux).
 

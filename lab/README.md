@@ -29,7 +29,8 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 > Note volumes : `inventaire.lab/` est monté en RW (box-équivalent) car le
 > registre est un état muté à chaque clôture ménage (+1 utilisation). Les runs
 > de tests y ajoutent des biens `TEST-INV-*` (assertions en `>=`, jamais `==`) —
-> reset via `git checkout -- inventaire.lab/` si besoin.
+> reset en 1 commande : `sh lab/seed-reset.sh` (ou `seed-reset.ps1` sous
+> Windows, `+ --volumes` / `-Volumes` pour `down -v` en plus) — P8-9 REQ-S-004.
 
 ## Batterie (P2-14 : résa <60 s + conflit ICS ; P6-8 : dispatch prestataires ; P6-4 : inventaire ; P6-5 : extras ; P6-18 : compta ; P7-3 : routage)
 
@@ -258,7 +259,9 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 ## Fichiers
 
 - `Dockerfile.moteur` : image générique stdlib (build-args `SCRIPT` + `CONFIG`).
-- `docker-compose.yml` : 9 moteurs + volumes state/logs + healthchecks.
+- `docker-compose.yml` : 11 moteurs 8090-8100 + router :8050 + dashboard :8060 + gateway :8443 + HA :8123 + box nord 8190-8192 + outbox + vps-sim (voir §P8-9) + healthchecks.
+- `seed-reset.sh` / `seed-reset.ps1` : remise à zéro fixtures en 1 commande (P8-9 REQ-S-004) ; `--volumes` / `-Volumes` ajoute `down -v`.
+- `lab-run.sh` / `lab-run.ps1` : **test global local 1 commande** (P8-9 REQ-S-004) — seed-reset → rebuild → attente santé 14 endpoints → `tests_lab.py` → faux VPS (up + test + down) ; `--no-vps` / `-NoVps` saute la sim, `--no-build` / `-NoBuild` saute le rebuild.
 - `export-box.sh` : `docker save` → `.tar` transférable (box = `docker load` + up).
 - `prestataires.lab/log{1,2}.yaml` : annuaires FICTIFS lab (tri prix, hors zone,
   RC expirée, migration `zone:`) — le réel `custom/prestataires/` reste vide.

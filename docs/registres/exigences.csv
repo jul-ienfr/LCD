@@ -1,5 +1,5 @@
 id,titre,source,moteur_port,flag_logements_yaml,batterie_lab,dashboard,statut
-REQ-S-001,1 logement = 1 box = 1 mandat actif,Socle S0,mandats.yaml:statut actif,global/socle,execution P0 §01-05,dash-super/dash-admin,fige-v1
+REQ-S-001,1 logement = 1 box = 1 mandat actif,Socle S0,mandats.yaml:statut actif,global/socle,execution 60 §60.2-P0,dash-super/dash-admin,fige-v1
 REQ-S-002,Overbooking INTERDIT,Socle S5,ics-sync:8090 + booking:8095,global anti-double-resa,batterie ics double-resa,dash-operateur,fige-v1
 REQ-S-003,Multi-tenant entite_id obligatoire des J1 gateway 422 + contrat plugin dashboard.yaml,Socle S3 + 20.7,gateway:8443,global,§60 403 mandat propre + chargeur strict,dash-super,fige-v1
 REQ-S-003-V1,Vue voyageur PWA sejour lien magique J-2 checkout+12h,Socle S3.5-V1,booking:8095 + extras:8098,logX.features.assistance_voyageur,batterie sejour temoin zero-touch + offline 2h,dash-voyageur,a-valider-v2
@@ -12,14 +12,15 @@ REQ-S-003-V7,Vue comptable Finances mono-SIREN Chorus/PDP,Socle S3.5-V7,compta:8
 REQ-S-003-V8,Vue commercial pipeline 8 etapes sans prix/couts,Socle S3.5-V8,gateway:8443 CRM,global,batterie commercial sans prix 403,dash-commercial,a-valider-v2
 REQ-P-001,Fan-out HTTPS + outbox tmp+os.replace replay ref 24h,ADR-002 + P1,passerelle:8443 + outbox/,global,batterie outbox idempotente,dash-operateur,a-valider-v2
 REQ-P-002,WireGuard hub-and-spoke box-initiated keepalive 25s 0 port entrant,ADR-001 + P2,gateway WG 10.99.0.1,global,runbook panne WG + restore,dash-super,a-valider-v2
-REQ-P-003,Split-brain LWW propose humain tranche qui+motif,ADR-003 + P4,parc.db + /parc/conflits/trancher,global,batterie §65 28/28,dash-operateur,a-valider-v2
-REQ-P-004,SQLite parc.db WAL + busy_timeout transactions explicites,ADR-006 + P4,parc.db,global,§69 stockage.py,dash-admin,a-valider-v2
+REQ-P-003,Split-brain LWW propose humain tranche qui+motif,ADR-003 + P4,parc.db + /parc/conflits/trancher,global,batterie ADR-003 28/28 (§P4),dash-operateur,a-valider-v2
+REQ-P-004,SQLite parc.db WAL + busy_timeout transactions explicites,ADR-006 + P4,parc.db,global,stockage.py ADR-006 (§P4),dash-admin,a-valider-v2
 REQ-T-001,Pricing clamp pivot x K_* 1x/j + par resa direct auto OTA 1-tap,Plan T §T3,pricing:8091,logX.pricing + mode_gestion,batterie pricing bornes,dash-operateur,a-valider-v2
 REQ-T-002,ICS pull 15min/logement jamais partage fusion direct <60s,Plan T §T3,ics-sync:8090,global ics_poll_minutes,batterie ics-sync,dash-operateur,fige-v1
 REQ-T-003,Voix BYOD QR/PWA STT tel -> :4000 -> TTS tel LLM consultatif seul,Plan T §T4,llm-proxy:4000 + routage:8050,logX.features.voix,batterie voix consentement,dash-voyageur,a-valider-v2
-REQ-T-004,1 feature = 1 flag + 1 dossier + 1 dashboard + 1 batterie,Plan T §1.5.5,logements.yaml features,logX.features.*,CI docs R3,tous,a-valider-v2
+REQ-T-004,1 feature = 1 flag + 1 dossier + 1 dashboard + 1 batterie,Plan T §T1 (R3),logements.yaml features,logX.features.*,CI docs R3,tous,a-valider-v2
 REQ-L-001,Copro verifiee false = BLOQUEE mise en ligne,logements.yaml + L1,copro.verifiee,logX.copro,sensor logX_config_ok rouge,dash-operateur,fige-v1
 REQ-L-002,Onboarding 7 etapes + checklist 8 items mandat tiers,Plan L §L3,mandats.yaml checklist,logX onboarding,batterie onboarding,dash-operateur,a-valider-v2
 REQ-E-001,DoD 5 items + tag git par phase close,00-vision §00.7,docs/,global,batterie 1125 OK/0 KO tenue,dash-super,a-valider-v2
+REQ-E-002,RACI + budgets + DoD 5 items bloquants,60-execution §60.3/§60.4,docs/ + tag git,global,CI + tag par phase close,tous,a-valider-v2
 REQ-S-004,Bac-a-sable pre-deploiement faux jeu complet + test global local 1 commande,Socle S9,lab docker box-lab + vps-sim + HA virtuelle,logements.lab.yaml + fixtures LAB-*,batterie tests_lab.py verte + seed reset,tous,a-valider-v2
-REQ-S-005,Radar REA 5 teardowns/an clean-room lab seul 0 code pompe,Socle v1 S10,lab isole VM sans secrets,global,1 fiche/cible comportement+preuves+limites + journal cibles,tous,a-valider-v2
+REQ-S-005,Radar REA 5 teardowns/an clean-room lab seul 0 code pompe,Socle v1 §S10 gele (report socle-v2 §S10 au prochain gel T-09),lab isole VM sans secrets,global,1 fiche/cible comportement+preuves+limites + journal cibles,tous,a-valider-v2

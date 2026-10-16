@@ -5,7 +5,7 @@
 > Contrats gateway-boxes-front : `docs/20-architecture-contrats.md` + YAML réels font foi (R4).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/`.
 > Exigences : `REQ-L-001/002` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md`.
-> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-08 TRANCHÉS 2026-10-14). Annexe L-A v4 gelée (R5).
+> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-09 TRANCHÉS 2026-10-14/15). Annexe L-A v4 gelée (R5).
 
 ## §L1 Bien vitrine — Santa Severa (REQ-L-001)
 
@@ -329,7 +329,7 @@ Canicule / plan chaleur (>35 °C) : volets fermés inter-séjours, clim bridée 
 coupée en occupé), consigne hydratation au message J-1, ventilateur de secours en stock ; pic
 conso suivi (ZLinky), jamais de coupure à distance en occupé.
 Vols : retard >30 min = pré-chauffe décalée + message. Carnet tranquillité /trimestre (bruit +
-22h-8h + interventions = anti-litige syndic). Budget vitrine ~1 100-1 200 € + capteurs → amorti
+22h-8h + interventions = anti-litige syndic). Budget vitrine ~1 050-1 150 € (panier `docs/panier-p0-chiffre.md`) + capteurs → amorti
 ~3-4 mois à 60 % occ.
 
 Acompte / solde direct (Stripe/Swikly, jamais d'oral) : acompte 25-30 % à la résa, solde J-30 auto

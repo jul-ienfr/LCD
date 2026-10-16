@@ -304,7 +304,7 @@ Seuils (uniques, tous cahiers) :
   purge PII 90 j, archivage mandat + compta 10 ans ; clôture + reversement
   soldé J+5. Checklist `actif → préavis → transfert → clôturé` au registre.
 
-## §S6 Glossaire (termes seuls, détail : `docs/90-glossaire.md` à créer si besoin)
+## §S6 Glossaire (termes seuls, pas de glossaire séparé en v2)
 
 Box = mini-PC + HA + moteurs sur place. Logement `cloud` = sans box
 (pilotage central seul, migrable sans perte, `logement_id` stable).

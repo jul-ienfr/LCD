@@ -48,7 +48,7 @@ garanties transactionnelles (mandat + dossier + checklist = 1 commit).
 - Nouveau module `custom/passerelle-parc/stockage.py` (stdlib, ~300 lignes) :
   schéma versionné (`PRAGMA user_version`, migrations `001→NNN` idempotentes),
   CRUD par registre, journal append-only, export/import YAML.
-- Batterie lab **§69** : schéma à jour, migration YAML→SQLite rejouable,
+- Batterie lab §69 tests_lab.py (`== 69. passerelle parc : base SQLite V2`, ADR-006) : schéma à jour, migration YAML→SQLite rejouable,
   concurrence (2 écritures simultanées = 1 gagne + 1 réessaie proprement),
   cross-tenant 403, export mono-SIREN, backup+restore, rollback migration.
 - Checklist : Phase 9 += P9-10 (SQLite V2) ; Passerelle v2 += §6 (ce plan).

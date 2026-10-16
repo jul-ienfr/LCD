@@ -5,13 +5,13 @@
 > Contrats gateway-boxes-front : `docs/20-architecture-contrats.md` + YAML réels font foi (R4).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/`.
 > Exigences : `REQ-T-001/002/003` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md`.
-> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-08 TRANCHÉS 2026-10-14). Annexe T-A v4 gelée (R5).
+> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-09 TRANCHÉS 2026-10-14/15). Annexe T-A v4 gelée (R5).
 
 ## §T1 Socle box : 1 HA par site + central mutualisé (REQ-T-001)
 
 1 box HA par logement, autonome offline-first (PIN, guide, scénarios sans WAN, test offline 2 h exigible par phase). 1 central mutualisé chez l'hôte (Proxmox existant, 0 € hardware) : moteurs + proxy LLM + UI routage. WireGuard seul, jamais d'expo WAN box. Sites dispersés = jamais un HA pour 2 LAN distants.
 
-FULL (log1) : mini-PC N100 16 Go + SLZB-06p7 PoE/Ethernet (jamais WiFi) + ZBT-2 Thread (Nuki Matter) + onduleur NUT + serrure catalogue T-02 (défaut : Nuki Go + Keypad 2.0 + Hub ESP32 codes MQTT ; proprio libre, migration par flag `smart_lock`) + KeyMaster pattern (slots 1-10, auto-expire + purge via automatisations Nuki — TRANCHÉ T-02 2026-10-14, détail `docs/decision-serrure-acces.md`) + fumée certifiés + fuite + bras vanne <2 s (réarmement manuel) + bruit 3 niveaux + NodOn/ZLinky/Shelly/prises Nous + RM4 clim IR local. Constaté : Phase 0 ~1 100-1 200 €, complet ~2 050-2 150 €. 3 paniers (EU garantie + 2× Chine <150 €, CE).
+FULL (log1) : mini-PC N100 16 Go + SLZB-06p7 PoE/Ethernet (jamais WiFi) + ZBT-2 Thread (Nuki Matter) + onduleur NUT + serrure catalogue T-02 (défaut : Nuki Go + Keypad 2.0 + Hub ESP32 codes MQTT ; proprio libre, migration par flag `smart_lock`) + KeyMaster pattern (slots 1-10, auto-expire + purge via automatisations Nuki — TRANCHÉ T-02 2026-10-14, détail `docs/decision-serrure-acces.md`) + fumée certifiés + fuite + bras vanne <2 s (réarmement manuel) + bruit 3 niveaux + NodOn/ZLinky/Shelly/prises Nous + RM4 clim IR local. Constaté : Phase 0 ~1 050-1 150 € (panier chiffré `docs/panier-p0-chiffre.md` : Total A lignes ≈ 1 275-1 305 € ramené à ~1 100 € par reconditionné/lots/0 € PoE, hors MO ; ex-1 100-1 200 € avant audit prix 2026-10-05), complet ~2 050-2 150 €. 3 paniers (EU garantie + 2× Chine <150 €, CE).
 
 Light (log2) : HA Green ou RPi4 + SLZB + onduleur + boîte à clés (~650-750 €). Pas de serrure connectée/ZBT-2/voix/RM4 inutile (catalogue T-02 : ajout ultérieur par devis + flip `smart_lock: true`, 0 automation réécrite). Même socle logiciel, branches off sautées.
 

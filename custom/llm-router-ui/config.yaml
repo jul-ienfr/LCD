@@ -1,0 +1,6 @@
+# custom/llm-router-ui/config.yaml — config BOX UI routage :8050 (P7-3, §6.5).
+# LAN + WireGuard seule, jamais WAN (panel_iframe /systeme sur box).
+# Fichiers proxy lus seuls : ../llm-proxy/ (LCD_PROXY_DIR sur box, voir .service).
+# Primaire + fallbacks + garde-fous vivent dans custom/llm-proxy/ (jamais ici).
+http_port: 8050
+state_dir: "./state"   # box : volume persistant (router-health.json + routes-audit.jsonl)

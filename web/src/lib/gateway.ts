@@ -10,6 +10,7 @@ export type Qui =
   | "personne_02"
   | "personne_03"
   | "personne_04"
+  | "personne_05"
   | "commercial_01";
 
 // Allowlist stricte : le front ne relaie QUE ces routes (aucun proxy libre).

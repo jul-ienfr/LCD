@@ -1,0 +1,17 @@
+# custom/dashboard-hote/config.yaml — config BOX dashboard pilote :8060 (P1-13/P2-9).
+# Lecture seule, LAN seule, jamais d'écriture/PIN/secret (v1).
+# Multi-systèmes : 1 entrée par logement/box (futures box = autre URL moteur + qui dédié).
+# Box réelle : remplacer les URL par les IP LAN de la box + monter /config/logs/.
+http_port: 8060
+qui: "dashboard_hote"
+systems:
+  - id: "log1"
+    nom: "Log1 Santa Severa"
+  - id: "log2"
+    nom: "Log2 futur"
+urls:
+  pricing: "http://127.0.0.1:8091"
+  decision: "http://127.0.0.1:8092"
+  dispatch: "http://127.0.0.1:8096"
+  router: "http://127.0.0.1:8050"
+  homeassistant: "http://127.0.0.1:8123"

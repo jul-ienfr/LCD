@@ -7,11 +7,13 @@
   20 (+ §20.7 contrat plugin) + 30-passerelle-v5 (§P8 renvoi DRY) +
   40-logement-v5 (§L4 renvoi DRY) + 50-technique-box-v5 (§T5 technique
   seule) + 60-execution-v6. R1-R6 actives, normatif v2 en vigueur.
-- Exécution v5 : 89/144 (62 %), batterie lab 1125 OK / 0 KO tenue
-  (+ P10-9b radar REA docs seuls).
-- Lab docker : box-lab (log1+log2) + 15 endpoints (pricing:8091, decision:8092, dispatch:8096, router:8050, HA:8123, booking:8095, compta:8100, caution:8094, ics:8090, facturation:8093, extras:8098, inventaire:8097, stocks:8099).
+- Exécution v5 : 89/144 (62 %, +P8-9 sandbox REQ-S-004 ; batterie lab verte tenue 2026-10-16 via `lab/lab-run.ps1` : reset complet + rebuild + santé + `tests_lab.py` sans KO + vps-sim 7/7)
+  (P10-9b radar REA = veille docs seuls, hors compteur).
+- Lab docker : box-lab (log1+log2) + 18 ports lab (11 moteurs 8090-8100 + router:8050 + dashboard:8060 + gateway:8443 + HA:8123 + nord 8190-8192 ; :4000 apporté box volontairement absent) + seed-reset 1 commande `lab/seed-reset.sh|ps1` + test global 1 commande `lab/lab-run.sh|ps1` (P8-9 REQ-S-004 : reset → rebuild → santé → batterie → vps-sim ; faux VPS `lab/vps-sim/` 7/7 vert 2026-10-16, `test-vps.sh` jumeau sh créé).
+- Configs box posées 2026-10-16 : `custom/llm-router-ui/config.yaml + .service`, `custom/dashboard-hote/config.yaml + .service`, `custom/llm-proxy/README.md` (proxy :4000 = gateway apportée, 0 code volontaire) — 0 code moteur touché.
+- Livrables pilotage 2026-10-16 : `docs/checklist-taches-restantes.md` (56 items à cocher, RACI/budgets/gates/DoD) + `docs/panier-p0-chiffre.md` (P0 ~1 050-1 150 €, FULL ~2 050-2 150 €, light ~650-750 €).
 - Registres réels : boxes/entites/mandats/llm/logements/acces conformes §20.
-- ADRs : 001 WG + 002 transport + 003 split-brain (28/28 §65) + 004 i18n + 005 llm + 006 sqlite acceptés.
+- ADRs : 001 WG + 002 transport + 003 split-brain (28/28 batterie lab §65 `tests_lab.py`) + 004 i18n + 005 llm + 006 sqlite (batterie lab §69 `tests_lab.py`) acceptés.
 - Copro : log1 + log2 `verifiee:false` = BLOQUÉES (REQ-L-001), dossiers `docs/logN/copro/` en cours.
 - SaaS parfait 2026-10-15 : §S3.5 V1-V8 + REQ-S-003-V1..V8 (V5/V6 séparées) + §20.7 posés,
   §P8/§T5/§L4 + 60 header réduits aux renvois DRY, audit complet 10/30/40/50/00/20/60 fait,

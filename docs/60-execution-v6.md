@@ -6,9 +6,9 @@
 > Contrats : `docs/20-architecture-contrats.md` (+ §20.7 plugins) + YAML réels font foi (R4).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/`.
 > Exigences : `REQ-E-001/002` + `REQ-S-003-V1..V8` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md` (R5).
-> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-08 TRANCHÉS 2026-10-14). Annexes v5 gelées (R5).
+> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-09 TRANCHÉS 2026-10-14/15). Annexes v5 gelées (R5).
 
-**Progression reprise v5 : `89 / 143` (62 %).**
+**Progression reprise v5 : `89 / 144` (62 %, +P8-9 sandbox REQ-S-004 ; P10-9b veille hors compteur).**
 - Lab/logiciel (P1-partiel, P2, P6, P7, P9-docs, P10-docs) : **fait, batterie 1125 OK/0 KO**
 - Terrain/box (P0, P1-box, P3, P4, P5, P8-go-live) : **reste, box requise**
 - Externe (P10-6 client, P10-8 RC pro + carte G, juriste, VM réelle) : **reste, décisions humaines**
@@ -72,7 +72,7 @@ Seuils P1→P2 / P2→P3 : §S4 seuls font foi (jamais recopiés ici).
 ### Phase 6 — Exploitation (FAIT lab 22/22)
 - [x] P6-1→P6-22 Dispatch, intervenant, inventaire, extras, ménage, stocks, wifi, phrases, mémoire, questionnaire, contrat, EDL, avis, compta, tarifs, RBAC, carnet, formation — batterie verte
 
-### Phase 7 — Voix + LLM/Jev (FAIT lab 20/20)
+### Phase 7 — Voix + LLM/Jev (FAIT lab 19/19)
 - [x] P7-1→P7-19 Voix + routage + seuils + traçabilité + pricing + ops + juridique + proxy + garde-fous — batterie verte (split actuel `llm.yaml` 9 usages validé — T-08 TRANCHÉ 2026-10-14)
 
 ### Phase 8 — Recette / go-live (box requise pour la fin)
@@ -82,7 +82,7 @@ Seuils P1→P2 / P2→P3 : §S4 seuls font foi (jamais recopiés ici).
 - [ ] P8-11 Maintenance annuelle (piles, audit, 4G failover ~30 €)
 
 ### Phase 9 — Hébergement SaaS (docs FAITS, exécution réelle restante)
-- [x] P9-1→P9-9 `docs/ops/` + `deploy-vps.sh` + `/v1/statut` + Caddy — reste : VM Oracle réelle
+- [x] P9-1→P9-9 `docs/ops/` + `deploy-vps.sh` + `/v1/statut` + Caddy — reste : VM Oracle réelle (P9-réel, hors compteur 144 : exécution réelle sur comptes humains, pas du lab)
 - [x] P9-10 SQLite ADR-006 (`stockage.py` + `parc.db` WAL)
 - [x] P9-11 Bascule mesurée (`/v1/statut`)
 - [x] P9-12 Front PWA + CI (manifest + vitest + `ci.yml`)

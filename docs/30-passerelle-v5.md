@@ -5,7 +5,7 @@
 > Contrats gateway-boxes-front : `docs/20-architecture-contrats.md` + YAML/openapi réels font foi (R4).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/gateway.py`.
 > Exigences : `REQ-P-001..004` (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md`.
-> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-08 TRANCHÉS 2026-10-14). Annexes P-A/P-B v4 gelées (R5).
+> TODO vivants seuls : `registres/a-trancher.md` (T-01..T-09 TRANCHÉS 2026-10-14/15). Annexes P-A/P-B v4 gelées (R5).
 
 ## §P1 Rôle — proxy authentifié, jamais décideur (REQ-P-001)
 

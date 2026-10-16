@@ -1,0 +1,17 @@
+# custom/dashboard-hote/dashboard-hote.service — systemd (même LXC que les moteurs, P1-13).
+# Lecture seule :8060, jamais d'écriture/PIN/secret.
+[Unit]
+Description=LCD dashboard-hote (P1-13) — dashboard pilote lecture seule :8060
+After=network-online.target pricing-engine.service decision-engine.service dispatch-presta.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/lcd/dashboard-hote/dashboard.py --config /opt/lcd/dashboard-hote/config.yaml --serve
+Environment=LCD_QUI=dashboard_hote
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

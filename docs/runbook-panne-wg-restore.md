@@ -8,4 +8,4 @@ jamais), rejeu idempotent au retour, split-brain affiché + humain tranche.
 Restore backup : snapshot chiffré `age` + escrow, RTO 2h, test semestriel.
 Restaurer `parc-registre/` depuis `*.modele.yaml` + snapshots horodatés
 (`tmp+os.replace`, rollback 1 commande). Vérifier `GET /ready`, `digest`,
-`0 fuite` (§59/§65). Disque plein = refus propre, jamais JSON tronqué.
+`0 fuite` (batterie lab `tests_lab.py` §§59-65 : entités + mandats + SQLite + offline/split-brain). Disque plein = refus propre, jamais JSON tronqué.
