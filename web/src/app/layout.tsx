@@ -26,6 +26,7 @@ export const viewport: Viewport = {
 const NAV: [string, string, string][] = [
   ["/hote", "Pilotage", "Tableau de bord opérateur"],
   ["/planning", "Planning", "Calendrier, conflits, annonces"],
+  ["/compta", "Compta", "Export Chorus/PDP, clôtures"],
   ["/onboarding", "Nouveau logement", "Onboarding 7 étapes (§L3)"],
   ["/voyageur", "Séjour", "Espace voyageur"],
   ["/proprio", "Relevé", "Espace propriétaire"],

@@ -7,6 +7,7 @@ export function Onglets({ lang, ici }: { lang: Langue; ici: string }) {
   const liens: [string, string][] = [
     ["/hote", t("pilotage", lang)],
     ["/planning", "Planning"],
+    ["/compta", t("compta", lang)],
     ["/onboarding", "Nouveau logement"],
     ["/voyageur", t("voyageur", lang)],
     ["/proprio", t("proprio", lang)],

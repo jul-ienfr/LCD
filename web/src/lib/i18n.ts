@@ -39,6 +39,13 @@ const T: Record<string, Record<Langue, string>> = {
     it: "Commerciale",
     de: "Vertrieb",
   },
+  compta: {
+    fr: "Comptabilité",
+    en: "Accounting",
+    es: "Contabilidad",
+    it: "Contabilità",
+    de: "Buchhaltung",
+  },
   envoyer: { fr: "Envoyer", en: "Send", es: "Enviar", it: "Invia", de: "Senden" },
   qui: {
     fr: "Qui (obligatoire, journalisé)",
