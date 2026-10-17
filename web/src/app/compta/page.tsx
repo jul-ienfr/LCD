@@ -109,6 +109,13 @@ export default async function PageCompta({
       <section className="carte p-5 md:p-6" aria-label="Factures par entité">
         <h2 className="text-lg font-extrabold">Factures par entité (SIREN)</h2>
         {ex.note && <p className="mt-1 text-xs text-(--encre-faine)">{ex.note}</p>}
+        <a
+          href="/api/compta/export"
+          className="bouton bouton-secondaire mt-2 inline-block px-4 py-2"
+          download
+        >
+          ⬇ Télécharger le CSV (Excel / Chorus)
+        </a>
         <div className="table-defilante mt-3 border border-[var(--bordure)]">
           <table>
             <thead>
