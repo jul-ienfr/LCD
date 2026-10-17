@@ -8,3 +8,12 @@
 version: 1
 
 prospects:
+  prospect-lab-01:
+    prospect_id: "prospect-lab-01"
+    nom: "Proprietaire Lab"
+    bien: "T2 Cagnes-sur-Mer"
+    source: "agence"
+    contact_ref: "tel:0600000000"
+    cree_le: 2026-10-17T07:50:06Z
+    cree_par: "commercial_01"
+    maj_le: 2026-10-17T07:50:06Z

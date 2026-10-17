@@ -261,6 +261,7 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 - `Dockerfile.moteur` : image générique stdlib (build-args `SCRIPT` + `CONFIG`).
 - `docker-compose.yml` : 11 moteurs 8090-8100 + router :8050 + dashboard :8060 + gateway :8443 + HA :8123 + box nord 8190-8192 + outbox + vps-sim (voir §P8-9) + healthchecks.
 - `seed-reset.sh` / `seed-reset.ps1` : remise à zéro fixtures en 1 commande (P8-9 REQ-S-004) ; `--volumes` / `-Volumes` ajoute `down -v`.
+- `start-all.sh` / `start-all.ps1` : **SAS local complet UP durable (1 commande)** — lab + faux VPS + self-hosted démarrés SIMULTANÉMENT et laissés accessibles (contrairement à `lab-run` qui teste puis démonte) ; idempotent, `--no-build` / `-NoBuild` pour up sans rebuild. Accès : socle lab `:8090-8100/:8050/:8060/:8443/:8123`, sim `https://parc.test:4433` + `https://api.test:4443`, self-hosted `https://lcd.test:4001`.
 - `lab-run.sh` / `lab-run.ps1` : **test global local 1 commande** (P8-9 REQ-S-004) — seed-reset complet → rebuild → attente santé 14 endpoints → `tests_lab.py` → faux VPS (up + test + down) → stack self-hosted `deploy/` (build front + up + test-deploy 7/7 + down) ; `--no-vps` / `-NoVps` saute la sim, `--no-build` / `-NoBuild` saute le rebuild, `--no-deploy` / `-NoDeploy` saute le self-hosted.
 - `export-box.sh` : `docker save` → `.tar` transférable (box = `docker load` + up).
 - `prestataires.lab/log{1,2}.yaml` : annuaires FICTIFS lab (tri prix, hors zone,
