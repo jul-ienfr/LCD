@@ -200,6 +200,12 @@ export default function Landing() {
         <Link href="/login" className="bouton bouton-principal px-6 py-3 text-base">
           Ouvrir la démo →
         </Link>
+        <Link
+          href="/legales"
+          className="text-sm underline decoration-dotted underline-offset-4"
+        >
+          Mentions légales & CGV (LCEN art. 6 III)
+        </Link>
       </section>
     </div>
   );
