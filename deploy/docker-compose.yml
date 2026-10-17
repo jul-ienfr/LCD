@@ -28,6 +28,10 @@ services:
       # Nom du service gateway sur le réseau lab partagé (pas 127.0.0.1 :
       # chaque conteneur a son loopback ; le réseau partagé résout les noms).
       LCD_GATEWAY_URL: http://gateway-parc:8443
+    ports:
+      # Accès direct navigateur sans TLS ni hosts (démo/SAS local) :
+      # http://localhost:3100 (Caddy lcd.test:4001 reste l'entrée TLS officielle).
+      - "3100:3100"
     expose:
       - "3100"
     networks:
