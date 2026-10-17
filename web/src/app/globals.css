@@ -69,6 +69,50 @@
   }
 }
 
+/* Choix EXPLICITE du thème (cookie lcd_theme côté app) : la class sur <html>
+   écrase les variables et neutralise color-scheme (sinon les contrôles natifs
+   resteraient dans le thème OS). Pas de flash : le cookie est lu en RSC. */
+html.theme-clair {
+  color-scheme: light;
+  --fond: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --bordure: #e2e5ec;
+  --encre: #131722;
+  --encre-douce: #3f4756;
+  --encre-faine: #7b8494;
+  --accent: #0e7c6b;
+  --accent-fonce: #0a5f52;
+  --accent-douce: #ddf2ec;
+  --ok: #15803d;
+  --ok-douce: #dcf2e4;
+  --alerte: #b45309;
+  --alerte-douce: #fdefd8;
+  --danger: #b91c1c;
+  --danger-douce: #fbe3e3;
+  --ombre: 0 1px 2px rgb(16 24 40 / 0.06), 0 4px 16px rgb(16 24 40 / 0.08);
+}
+html.theme-sombre {
+  color-scheme: dark;
+  --fond: #0b0e14;
+  --surface: #131826;
+  --surface-2: #1a2132;
+  --bordure: #263049;
+  --encre: #eef1f7;
+  --encre-douce: #c2cad8;
+  --encre-faine: #8a94a8;
+  --accent: #2dd4a8;
+  --accent-fonce: #5ee8c0;
+  --accent-douce: #0e2b25;
+  --ok: #4ade80;
+  --ok-douce: #0f2c1c;
+  --alerte: #fbbf24;
+  --alerte-douce: #2e230c;
+  --danger: #f87171;
+  --danger-douce: #2e1414;
+  --ombre: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 28px rgb(0 0 0 / 0.45);
+}
+
 html {
   scroll-behavior: smooth;
 }

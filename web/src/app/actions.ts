@@ -250,6 +250,25 @@ export async function voirComme(formData: FormData): Promise<void> {
   redirect(retour);
 }
 
+// Bascule thème clair/sombre manuel (cookie lcd_theme). Valeurs fermées :
+// "clair" <-> "sombre". `retour` = chemin interne uniquement.
+export async function basculerTheme(formData: FormData): Promise<void> {
+  const jar = await cookies();
+  const actuel = jar.get("lcd_theme")?.value === "sombre" ? "sombre" : "clair";
+  const cible = actuel === "sombre" ? "clair" : "sombre";
+  jar.set("lcd_theme", cible, {
+    path: "/",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  const brut = String(formData.get("retour") || "").trim();
+  const retour =
+    brut.startsWith("/") && !brut.startsWith("//") && !brut.includes("\\")
+      ? brut
+      : "/hote";
+  redirect(retour);
+}
+
 export async function lire<T>(chemin: string): Promise<{ ok: boolean; data: T | null; erreur: string }> {
   try {
     const data = await gwGet<T>(chemin);

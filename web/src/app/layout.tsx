@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { VoirComme } from "./voir-comme";
+import { ThemeToggle } from "./theme-toggle";
 
 // Le layout lit le cookie de session (voir-comme) : toutes les routes sont
 // rendues à la requête — pas de prerender statique (compat /_not-found).
@@ -60,8 +61,12 @@ export default async function RootLayout({
   const jar = await cookies();
   const courant = jar.get("lcd_qui")?.value || "";
   const identifiant = courant ? PERSONNES[courant] || courant : "";
+  const theme = jar.get("lcd_theme")?.value || "";
   return (
-    <html lang="fr" className="h-full">
+    <html
+      lang="fr"
+      className={`h-full ${theme === "sombre" ? "theme-sombre" : theme === "clair" ? "theme-clair" : ""}`}
+    >
       <body className="flex min-h-full flex-col">
         <a
           href="#contenu"
@@ -142,6 +147,7 @@ export default async function RootLayout({
                 Connexion
               </Link>
             )}
+            <ThemeToggle theme={theme} />
           </div>
           <nav
             className="mx-auto w-full max-w-6xl px-4 pb-2 md:hidden"
