@@ -34,6 +34,7 @@ const NAV: [string, string, string][] = [
   ["/planning", "Planning", "Calendrier, conflits, annonces"],
   ["/compta", "Compta", "Export Chorus/PDP, clôtures"],
   ["/presta", "Prestataire", "Missions ménage, clôtures"],
+  ["/prix", "Prix", "Grille 7 jours, 1-tap"],
   ["/onboarding", "Nouveau logement", "Onboarding 7 étapes (§L3)"],
   ["/voyageur", "Séjour", "Espace voyageur"],
   ["/proprio", "Relevé", "Espace propriétaire"],

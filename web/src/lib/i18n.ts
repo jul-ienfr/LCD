@@ -60,6 +60,13 @@ const T: Record<string, Record<Langue, string>> = {
     it: "Prestazioni",
     de: "Aufträge",
   },
+  grille_prix: {
+    fr: "Grille de prix",
+    en: "Pricing grid",
+    es: "Rejilla de precios",
+    it: "Griglia prezzi",
+    de: "Preisraster",
+  },
   envoyer: { fr: "Envoyer", en: "Send", es: "Enviar", it: "Invia", de: "Senden" },
   qui: {
     fr: "Qui (obligatoire, journalisé)",
