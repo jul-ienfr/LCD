@@ -161,3 +161,53 @@ export async function lire<T>(chemin: string): Promise<{ ok: boolean; data: T | 
     return { ok: false, data: null, erreur: e instanceof Error ? e.message : "Échec." };
   }
 }
+
+// Onboarding §L3 étape 7 : création RÉELLE du logement via POST /parc/logements.
+// Règles RG respectées : qui = humain connecté (cookie, défaut personne_01),
+// copro verifiee:false posée par la passerelle (BLOQUÉ tant que pas de syndic),
+// jamais de champ gratuit non prévu par le registre.
+export async function onboardingCreer(
+  prev: ResultatAction | null,
+  formData: FormData,
+): Promise<ResultatAction> {
+  const jar = await cookies();
+  const qui = String(formData.get("qui") || "").trim() || jar.get("lcd_qui")?.value || "";
+  const nom = String(formData.get("nom") || "").trim();
+  const commune = String(formData.get("commune") || "").trim();
+  const capacite = String(formData.get("capacite") || "").trim();
+  const surface = String(formData.get("surface_m2") || "").trim();
+  const prixBase = String(formData.get("prix_base") || "").trim();
+  const slug = String(formData.get("logement_id") || "").trim();
+  const logement_id =
+    slug ||
+    `log${Date.now().toString(36).slice(-6).replace(/[^a-z0-9]/g, "")}`;
+  if (!nom || !commune || !capacite)
+    return { ok: false, message: "nom, commune et capacité sont requis." };
+  if (!["personne_01", "personne_02"].includes(qui))
+    return { ok: false, message: `création réservée à admin/super_admin (qui=${qui || "?"}).` };
+  const data: Record<string, string> = {
+    nom,
+    commune,
+    capacite,
+    surface_m2: surface || "0",
+    ...(prixBase ? { prix_base: prixBase } : {}),
+    smart_lock: formData.get("smart_lock") === "on" ? "true" : "false",
+    voix: formData.get("voix") === "on" ? "true" : "false",
+  };
+  try {
+    const rep = await gwPost<Record<string, unknown>>("/parc/logements", {
+      logement_id,
+      qui,
+      data,
+    });
+    const lid = String(rep.logement_id ?? logement_id);
+    return {
+      ok: true,
+      message:
+        `Logement ${lid} créé (bornes héritées ${JSON.stringify(rep.bornes_heritees ?? [])}). ` +
+        "⚠ copro verifiee=false : mise en ligne BLOQUÉE tant que le syndic n'a pas confirmé (REQ-L-001).",
+    };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Échec création." };
+  }
+}

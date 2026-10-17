@@ -41,6 +41,9 @@ const ECRITURE_OK = new Set([
   "/v1/offres",
   "/v1/llm-tester",
   "/v1/effacement",
+  // Onboarding §L3 : création de logement (POST /parc/logements, admin seuls ;
+  // copro verifiee:false par défaut = BLOQUÉ tant que le syndic n'a pas dit oui).
+  "/parc/logements",
 ]);
 
 function cheminAutorise(path: string): boolean {
