@@ -46,6 +46,20 @@ const T: Record<string, Record<Langue, string>> = {
     it: "Contabilità",
     de: "Buchhaltung",
   },
+  prestataire: {
+    fr: "Prestataire",
+    en: "Contractor",
+    es: "Contratista",
+    it: "Prestatore",
+    de: "Dienstleister",
+  },
+  prestation: {
+    fr: "Prestations",
+    en: "Jobs",
+    es: "Prestaciones",
+    it: "Prestazioni",
+    de: "Aufträge",
+  },
   envoyer: { fr: "Envoyer", en: "Send", es: "Enviar", it: "Invia", de: "Senden" },
   qui: {
     fr: "Qui (obligatoire, journalisé)",

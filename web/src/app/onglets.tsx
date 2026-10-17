@@ -8,6 +8,7 @@ export function Onglets({ lang, ici }: { lang: Langue; ici: string }) {
     ["/hote", t("pilotage", lang)],
     ["/planning", "Planning"],
     ["/compta", t("compta", lang)],
+    ["/presta", t("prestataire", lang)],
     ["/onboarding", "Nouveau logement"],
     ["/voyageur", t("voyageur", lang)],
     ["/proprio", t("proprio", lang)],
