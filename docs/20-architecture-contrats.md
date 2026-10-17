@@ -2,7 +2,7 @@
 
 > Source : extrait SANS réinvention depuis `custom/passerelle-parc/openapi.yaml`,
 > `boxes.yaml`, `entites.yaml`, `mandats.yaml`, `llm.yaml`, `custom/logements.yaml`,
-> `custom/acces.yaml` + ADR-001..006 lus le 2026-10-14, + fiches vues §S3.5
+> `custom/acces.yaml` + ADR-001..007 lus le 2026-10-17, + fiches vues §S3.5
 > (contrat plugin §20.7, 2026-10-15).
 > En cas de divergence avec un texte de cahier v4, CE fichier + les YAML réels
 > l'emportent (R4). Plan-only : aucun code modifié.
@@ -11,7 +11,7 @@
 
 ```
 [Voyageur BYOD/PWA] --HTTPS--> [Front web/ Next.js 16 : 8 dashboards plugins]
-[Box site logN : HA + moteurs stdlib :8090-8100 + :8050 + :4000 + :8060, bind 127.0.0.1]
+[Box site logN : runtime HA :8123 (défaut) OU Moli :8790 (ADR-007) + moteurs stdlib :8090-8100 + :8050 + :4000 + :8060, bind 127.0.0.1]
    --HTTPS/WG box-initiated keepalive 25s--> [Gateway VPS :8443 proxy authentifié]
 [Super_admin /login IdP+2FA] --> [Gateway] --> [SQLite parc.db WAL + outbox/<box_id>/*.json]
 ```
@@ -55,6 +55,7 @@ Horloge : `chrony ±5min`, sinon `401 clock_skew`.
 - ADR-004 i18n : `fr/en/es/it/de.yaml`, priorité `?lang > profil > Accept-Language > entité > fr`, socle 422/403 relu humain, IA = brouillon validé.
 - ADR-005 llm : vault seul pour clés, quotas req/tokens jour, cloud-optin par entité.
 - ADR-006 sqlite : `parc.db` WAL + `busy_timeout` + transactions explicites ; YAML/JSONL = échange + secours.
+- ADR-007 runtime box : HA (`:8123`, défaut) **ou** Moli (`:8790`) — SaaS agnostique via adaptateur runtime au contrat normalisé (état / events / commande tracée / scénario / health + `last_seen`, ADR-007). Clé `logements.yaml runtime: ha|moli` (héritage global→logX). Moteurs : jamais d'API HA/Moli en dur, seulement `logement_id` + objets logiques mappés par box. Moli = branches sans serrure tant que couverture Nuki/KeyMaster absente (T-02) ; contribution amont plutôt que fork.
 
 ## 20.5 Pricing + synchro (rappel normatif, détails §S/§T3)
 

@@ -77,7 +77,7 @@ Détail packs par forfait : voir 40-logement-v5 §L2 (renvoi, jamais copié).
   v HTTPS interne (LCD_GATEWAY_URL)
 [Gateway passerelle-parc :8443 — stdlib, fan-out, cache, journal, vault]
   ^--- box-initiated seul (WireGuard hub-and-spoke, keepalive 25s)
-  +--- [Box logement : HA :8123 + moteurs 8090-8100 + dashboard :8060 LAN seul]
+  +--- [Box logement : runtime HA :8123 (défaut) OU Moli :8790 + moteurs 8090-8100 + dashboard :8060 LAN seul]
   +--- [Central hôte = repli local lecture seule + bandeau si plane down]
 ```
 
@@ -85,6 +85,12 @@ Source de vérité : chaque box pour son logement. Le control plane fait
 fan-out, cache horodaté, allowlist 1-tap, audit central. Jamais décideur.
 Plane down → box autonome + `:8060` local. Box offline → cache stale +
 `last_seen`. (REQ-P-001/002/003, ADR-001/002/003, §20.1/20.4.)
+
+Runtime box pluggable : HA (défaut) **ou** Moli OS — le SaaS (gateway +
+moteurs + front) gère les 2 indifféremment via un adaptateur runtime,
+clé `logements.yaml runtime: ha|moli`, jamais d'API runtime en dur dans
+un moteur. (REQ-S-006, ADR-007 ; Moli = branches sans serrure tant que
+couverture serrure absente, T-02.)
 
 ## §S3 Multi-tenant — login, 8 dashboards SaaS, plugins (REQ-S-003)
 
