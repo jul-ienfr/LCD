@@ -1,6 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import "./globals.css";
+import { VoirComme } from "./voir-comme";
+
+// Le layout lit le cookie de session (voir-comme) : toutes les routes sont
+// rendues à la requête — pas de prerender statique (compat /_not-found).
+export const instant = false;
 
 export const metadata: Metadata = {
   title: {
@@ -33,13 +39,25 @@ const NAV: [string, string, string][] = [
   ["/commercial", "Prospects", "Espace commercial"],
 ];
 
-export default function RootLayout({
+const PERSONNES: Record<string, string> = {
+  personne_01: "Claire (super_admin)",
+  personne_02: "Alex (admin)",
+  personne_03: "Sam (opérateur)",
+  personne_04: "Ruth (comptable)",
+  personne_05: "Marc (proprio)",
+  commercial_01: "Inès (commercial)",
+};
+
+export default async function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
-  // Layout 100 % statique (prerender OK) : la langue se règle par ?lang=
-  // dans chaque page. Aucune donnée gateway ici.
+}>) {
+  // Session voir-comme (§14 V5/V6) : le cookie lcd_qui identifie le profil
+  // navigué ; l'unique vérité RBAC reste la passerelle à chaque écriture.
+  const jar = await cookies();
+  const courant = jar.get("lcd_qui")?.value || "";
+  const identifiant = courant ? PERSONNES[courant] || courant : "";
   return (
     <html lang="fr" className="h-full">
       <body className="flex min-h-full flex-col">
@@ -110,6 +128,18 @@ export default function RootLayout({
                 </button>
               </noscript>
             </form>
+            {identifiant ? (
+              <div className="min-w-0 flex-none rounded-full bg-(--encre) px-2 py-1 text-white">
+                <VoirComme courant={courant} personne={identifiant} />
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-full bg-(--accent) px-3 py-1.5 text-xs font-bold text-white"
+              >
+                Connexion
+              </Link>
+            )}
           </div>
           <nav
             className="mx-auto w-full max-w-6xl px-4 pb-2 md:hidden"

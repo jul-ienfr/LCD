@@ -228,6 +228,28 @@ export async function trancherConflit(
   }
 }
 
+// Voir-comme (§14 V5/V6) : bascule de session super/admin vers un autre profil.
+// Cookie seul : la passerelle reste l'unique vérité RBAC à CHAQUE écriture.
+// `retour` = chemin interne (`/…`), jamais un protocole externe.
+export async function voirComme(formData: FormData): Promise<void> {
+  const jar = await cookies();
+  const cible = String(formData.get("qui") || "").trim();
+  const brutRetour = String(formData.get("retour") || "").trim();
+  const retour =
+    brutRetour.startsWith("/") && !brutRetour.startsWith("//") && !brutRetour.includes("\\")
+      ? brutRetour
+      : "/hote";
+  if (COMPTES[cible]) {
+    jar.set("lcd_qui", cible, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+  }
+  redirect(retour);
+}
+
 export async function lire<T>(chemin: string): Promise<{ ok: boolean; data: T | null; erreur: string }> {
   try {
     const data = await gwGet<T>(chemin);
