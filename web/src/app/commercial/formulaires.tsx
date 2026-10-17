@@ -2,7 +2,7 @@
 // Pages commercial : formulaires prospect/simulateur (scope §14.5).
 // Sans JS : POST natif vers les Server Actions.
 import { useActionState } from "react";
-import { creerProspect, calculerSimulateur } from "../actions";
+import { creerProspect, calculerSimulateur, offreGenerer } from "../actions";
 
 const FORFAITS = ["kit", "pilotage", "full_service"] as const;
 
@@ -48,6 +48,37 @@ export function FormSimulateur({ envoyer }: { envoyer: string }) {
         <p role="status" className={`rounded-xl px-3 py-2 text-sm ${etat.ok ? "bg-[var(--ok-douce)] text-[var(--ok)]" : "bg-[var(--danger-douce)] text-[var(--danger)]"}`}>
           {etat.message}
         </p>
+      )}
+    </form>
+  );
+}
+
+// Génération de l'offre (§14.5) : textuel, marque posée par crm.py
+// (indicatif everywhere, mention fiscale incluse). Sans JS : POST natif.
+export function FormOffre({ envoyer }: { envoyer: string }) {
+  const [etat, formAction, pending] = useActionState(offreGenerer, null);
+  return (
+    <form action={formAction} className="flex flex-col gap-2.5">
+      <label className="text-sm font-medium">prospect_id *
+        <input name="prospect_id" required className="champ mt-1" placeholder="pr01" autoComplete="off" />
+      </label>
+      <label className="text-sm font-medium">
+        simulation (JSON optionnel)
+        <textarea
+          name="simulation"
+          rows={3}
+          className="champ mt-1 font-mono text-xs"
+          placeholder={'{"adr":110,"net_avant_fisc":9000,"commission_pct":25}'}
+        />
+      </label>
+      <button type="submit" disabled={pending} className="bouton bouton-principal mt-1">{pending ? "…" : envoyer}</button>
+      {etat && (
+        <pre
+          role="status"
+          className={`whitespace-pre-wrap rounded-xl px-3 py-2 text-xs ${etat.ok ? "bg-[var(--surface-2)] text-[var(--encre)]" : "bg-[var(--danger-douce)] text-[var(--danger)]"}`}
+        >
+          {etat.message}
+        </pre>
       )}
     </form>
   );

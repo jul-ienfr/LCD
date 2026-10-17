@@ -153,6 +153,46 @@ export async function testerLlm(
   }
 }
 
+// Offre commerciale (§14.5 scope strict) : génère le TEXTE d'offre à partir
+// d'un prospect réel + une simulation optionnelle. Lecture de la base F.
+export async function offreGenerer(
+  prev: ResultatAction | null,
+  formData: FormData,
+): Promise<ResultatAction> {
+  const qui =
+    String(formData.get("qui") || "").trim() || (await quiParDefaut());
+  const prospect_id = String(formData.get("prospect_id") || "").trim();
+  const simBrut = String(formData.get("simulation") || "").trim();
+  if (!prospect_id) return { ok: false, message: "prospect_id requis." };
+  let simulation: Record<string, unknown> = {};
+  if (simBrut) {
+    try {
+      const p = JSON.parse(simBrut);
+      if (p && typeof p === "object" && !Array.isArray(p)) simulation = p;
+      else throw new Error("objet attendu");
+    } catch {
+      return { ok: false, message: "simulation : JSON objet attendu (ex. {\"adr\":110,...})." };
+    }
+  }
+  try {
+    const rep = await gwPost<Record<string, unknown>>("/v1/offres", {
+      qui,
+      prospect_id,
+      simulation,
+    });
+    const lignes = Array.isArray(rep.lignes) ? (rep.lignes as string[]) : [];
+    const titre = String(rep.titre || "Offre");
+    return {
+      ok: true,
+      message: lignes.length
+        ? `${titre}\n${lignes.map((l) => "· " + l).join("\n")}`
+        : JSON.stringify(rep).slice(0, 600),
+    };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Échec offre." };
+  }
+}
+
 export async function lire<T>(chemin: string): Promise<{ ok: boolean; data: T | null; erreur: string }> {
   try {
     const data = await gwGet<T>(chemin);

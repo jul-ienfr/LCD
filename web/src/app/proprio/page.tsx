@@ -1,8 +1,10 @@
-// Page proprio : relevé lecture seule du mandat (portail tiers §3bis).
-// Lecture seule : aucun formulaire d'écriture ici, par construction.
-// Montants structurés (cartes + table), jamais de JSON brut.
+// Portail propriétaire (V2 §S3.5) : relevé lecture seule du mandat (§3bis).
+// Lecture seule par CONSTRUCTION : aucun formulaire d'écriture ici.
+// Transparence totale : attention[], inconnu[] et la note « indicatif » du
+// moteur sont AFFICHÉS — un montant inconnu se voit, jamais maquillé en 0.
 export const instant = false;
 import { gwGet } from "@/lib/gateway";
+import { cookies } from "next/headers";
 import { t, type Langue } from "@/lib/i18n";
 import { Onglets } from "../onglets";
 import { languePage } from "@/lib/langue";
@@ -10,16 +12,25 @@ import { languePage } from "@/lib/langue";
 type Releve = {
   erreur?: string;
   logement_id?: string;
-  brut_recolte?: number;
-  charges_totales?: number;
-  net_reverse?: number;
-  commission_conciergerie?: number;
-  commission_pct_applique?: number;
-  nuits?: number;
-  menage?: number;
+  entite_id?: string;
+  mode?: string;
+  statut?: string;
+  brut_recolte?: number | null;
+  charges_totales?: number | null;
+  net_reverse?: number | null;
+  commission_conciergerie?: number | null;
+  commission_pct_applique?: number | null;
+  menage?: number | null;
+  autres_charges?: number | null;
+  nuits?: number | null;
   par_canal?: Record<string, number>;
   periode?: { annee?: string; mois?: string };
   reversement?: string;
+  menage_a_charge?: string;
+  lien?: string;
+  note?: string;
+  attention?: string[];
+  inconnu?: string[];
   lecture_seule?: boolean;
 };
 
@@ -32,33 +43,54 @@ function eur(n: unknown): string {
 export default async function PageProprio({
   searchParams,
 }: {
-  searchParams: Promise<{ lang?: string; logement?: string; qui?: string }>;
+  searchParams: Promise<{ lang?: string; logement?: string; qui?: string; annee?: string; mois?: string }>;
 }) {
   const sp = await searchParams;
   const lang: Langue = languePage(sp);
+  const jar = await cookies();
   const logement = typeof sp.logement === "string" ? sp.logement : "log1";
-  const qui = typeof sp.qui === "string" ? sp.qui : "personne_05";
-  return <Releve lang={lang} logement={logement} qui={qui} />;
+  const qui =
+    (typeof sp.qui === "string" && sp.qui) ||
+    jar.get("lcd_qui")?.value ||
+    "personne_05";
+  const annee = typeof sp.annee === "string" ? sp.annee : "";
+  const mois = typeof sp.mois === "string" ? sp.mois : "";
+  return <Releve lang={lang} logement={logement} qui={qui} annee={annee} mois={mois} />;
 }
 
-async function Releve({ lang, logement, qui }: { lang: Langue; logement: string; qui: string }) {
+async function Releve({
+  lang, logement, qui, annee, mois,
+}: { lang: Langue; logement: string; qui: string; annee: string; mois: string }) {
+  const q = new URLSearchParams({ qui });
+  if (annee) q.set("annee", annee);
+  if (mois) q.set("mois", mois);
   const releve = await gwGet<Releve>(
-    `/parc/portail/${encodeURIComponent(logement)}?qui=${encodeURIComponent(qui)}`,
+    `/parc/portail/${encodeURIComponent(logement)}?${q.toString()}`,
   ).catch((e: Error) => ({ erreur: e.message }) as Releve);
   const canaux = Object.entries(releve.par_canal || {});
   const totalCanaux = canaux.reduce((n, [, v]) => n + Number(v || 0), 0) || 1;
+  const attention = releve.attention || [];
+  const inconnu = releve.inconnu || [];
 
   return (
     <div className="flex flex-col gap-5">
       <Onglets lang={lang} ici="/proprio" />
 
       <section className="hero hero-proprio" aria-label={t("releve_titre", lang)}>
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
-          {t("proprio", lang)} · {t("lecture_seule", lang)}
-        </p>
-        <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
-          {t("releve_titre", lang)} — {logement}
-        </h1>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
+              {t("proprio", lang)} · {t("lecture_seule", lang)}
+              {releve.mode ? ` · ${releve.mode}` : ""}
+            </p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
+              {t("releve_titre", lang)} — {logement}
+            </h1>
+          </div>
+          {releve.statut && releve.statut !== "actif" && (
+            <span className="badge badge-alerte">mandat {releve.statut} · état indicatif</span>
+          )}
+        </div>
         <div className="kpis mt-5">
           <div className="kpi">
             <div className="kpi-valeur">{eur(releve.brut_recolte)}</div>
@@ -84,13 +116,18 @@ async function Releve({ lang, logement, qui }: { lang: Langue; logement: string;
         </div>
       </section>
 
+      {/* Sélecteur de période (annee/mois passés à la compta) */}
       <form method="get" action="/proprio" className="carte flex flex-wrap items-end gap-2 p-3 text-sm">
         <input type="hidden" name="lang" value={lang} />
+        <input type="hidden" name="qui" value={qui} />
         <label className="font-medium">{t("choisir_logement", lang)}
           <input name="logement" defaultValue={logement} className="champ mt-1" autoComplete="off" />
         </label>
-        <label className="font-medium">{t("qui", lang)}
-          <input name="qui" defaultValue={qui} className="champ mt-1" autoComplete="off" />
+        <label className="font-medium">Année
+          <input name="annee" defaultValue={annee} placeholder="2026" inputMode="numeric" className="champ mt-1 w-24" autoComplete="off" />
+        </label>
+        <label className="font-medium">Mois
+          <input name="mois" defaultValue={mois} placeholder="1-12 vide = année" inputMode="numeric" className="champ mt-1 w-24" autoComplete="off" />
         </label>
         <button type="submit" className="bouton bouton-secondaire px-4 py-2">OK</button>
       </form>
@@ -101,6 +138,19 @@ async function Releve({ lang, logement, qui }: { lang: Langue; logement: string;
         </div>
       ) : (
         <>
+          {(attention.length > 0 || inconnu.length > 0) && (
+            <section className="carte p-5" aria-label="Points d'attention" role="status">
+              <div className="flex flex-col gap-2">
+                {attention.map((a) => (
+                  <p key={a} className="rounded-xl bg-(--alerte-douce) px-3 py-2 text-sm text-(--alerte)">⚠ {a}</p>
+                ))}
+                {inconnu.map((a) => (
+                  <p key={a} className="rounded-xl bg-(--surface-2) px-3 py-2 text-sm text-(--encre-douce)">∅ {a}</p>
+                ))}
+              </div>
+            </section>
+          )}
+
           {canaux.length > 0 && (
             <section className="carte p-5 md:p-6" aria-label={t("releve_canaux", lang)}>
               <h2 className="text-lg font-extrabold">{t("releve_canaux", lang)}</h2>
@@ -129,6 +179,7 @@ async function Releve({ lang, logement, qui }: { lang: Langue; logement: string;
               </ul>
             </section>
           )}
+
           <section className="carte p-5 md:p-6" aria-label={t("releve_detail", lang)}>
             <h2 className="text-lg font-extrabold">{t("releve_detail", lang)}</h2>
             <div className="table-defilante mt-3 border border-[var(--bordure)]">
@@ -136,11 +187,13 @@ async function Releve({ lang, logement, qui }: { lang: Langue; logement: string;
                 <tbody>
                   {[
                     [t("releve_brut", lang), eur(releve.brut_recolte)],
+                    ["Ménage (contestation n°1)", eur(releve.menage)],
+                    ["Autres charges", eur(releve.autres_charges)],
                     [t("releve_charges", lang), eur(releve.charges_totales)],
-                    [t("releve_menage", lang), eur(releve.menage)],
                     [t("releve_commission", lang), `${eur(releve.commission_conciergerie)} (${releve.commission_pct_applique ?? "—"} %)`],
+                    ["Ménage à charge", releve.menage_a_charge || "—"],
                     [t("releve_net", lang), eur(releve.net_reverse)],
-                    [t("releve_reversement", lang), releve.reversement || "—"],
+                    ["Reversement", releve.reversement || "—"],
                   ].map(([k, v]) => (
                     <tr key={k}>
                       <th scope="row" className="font-semibold normal-case tracking-normal">{k}</th>
@@ -150,6 +203,11 @@ async function Releve({ lang, logement, qui }: { lang: Langue; logement: string;
                 </tbody>
               </table>
             </div>
+            {releve.note && (
+              <p className="mt-3 rounded-xl bg-(--surface-2) px-3 py-2 text-xs text-(--encre-douce)" role="note">
+                {releve.note}
+              </p>
+            )}
           </section>
         </>
       )}

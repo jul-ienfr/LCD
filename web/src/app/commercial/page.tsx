@@ -5,7 +5,7 @@ import { gwGet } from "@/lib/gateway";
 import { t, type Langue } from "@/lib/i18n";
 import { languePage } from "@/lib/langue";
 import { Onglets } from "../onglets";
-import { FormProspect, FormSimulateur } from "./formulaires";
+import { FormProspect, FormSimulateur, FormOffre } from "./formulaires";
 
 export default async function PageCommercial({
   searchParams,
@@ -44,19 +44,31 @@ async function EspaceCommercial({ lang }: { lang: Langue }) {
           </span>
         </div>
         <ol className="mt-5 flex gap-2 overflow-x-auto" aria-label={t("pipeline_titre", lang)}>
-          {etapes.map((etape) => (
-            <li
-              key={etape}
-              className="min-w-28 flex-1 rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-center backdrop-blur"
-            >
-              <div className="text-xl font-extrabold tabular-nums">{(statuts[etape] || []).length}</div>
-              <div className="truncate text-xs opacity-85">{etape}</div>
-            </li>
-          ))}
+          {etapes.map((etape) => {
+            const ids = statuts[etape] || [];
+            return (
+              <li
+                key={etape}
+                className="min-w-32 flex-1 rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-center backdrop-blur"
+              >
+                <div className="text-xl font-extrabold tabular-nums">{ids.length}</div>
+                <div className="truncate text-xs opacity-85">{etape}</div>
+                {ids.length > 0 && (
+                  <ul className="mt-1.5 flex flex-wrap justify-center gap-1" role="list">
+                    {ids.map((id) => (
+                      <li key={id} className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-(--encre)">
+                        {id}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ol>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-3">
         <section className="carte p-5 md:p-6" aria-label={t("prospect_titre", lang)}>
           <div className="flex items-center gap-3">
             <span aria-hidden className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent-douce)] text-xl">＋</span>
@@ -76,6 +88,18 @@ async function EspaceCommercial({ lang }: { lang: Langue }) {
             </div>
           </div>
           <div className="mt-4"><FormSimulateur envoyer={t("envoyer", lang)} /></div>
+        </section>
+        <section className="carte p-5 md:p-6" aria-label="Offre">
+          <div className="flex items-center gap-3">
+            <span aria-hidden className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--ok-douce)] text-xl">📄</span>
+            <div>
+              <h2 className="text-lg font-extrabold">Offre (PDF-ready)</h2>
+              <p className="text-sm text-[var(--encre-douce)]">
+                Texte marque blanche à partir du prospect + simulation — indicatif, mention fiscale incluse.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4"><FormOffre envoyer={t("envoyer", lang)} /></div>
         </section>
       </div>
     </div>
