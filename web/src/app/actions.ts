@@ -193,6 +193,41 @@ export async function offreGenerer(
   }
 }
 
+// Trancher un conflit split-brain (§16.2) : QUELLE version devient la vérité.
+// Geste humain tracé (qui + motif + ref TRANCHE-*), l'application du prix suit
+// le circuit normal prix 1-tap — jamais d'écrasement silencieux.
+export async function trancherConflit(
+  prev: ResultatAction | null,
+  formData: FormData,
+): Promise<ResultatAction> {
+  const qui =
+    String(formData.get("qui") || "").trim() || (await quiParDefaut());
+  const box_id = String(formData.get("box_id") || "").trim();
+  const logement_id = String(formData.get("logement_id") || "").trim();
+  const date = String(formData.get("date") || "").trim();
+  const choix = String(formData.get("choix") || "").trim();
+  const motif = String(formData.get("motif") || "").trim();
+  if (!box_id || !logement_id || !date)
+    return { ok: false, message: "box_id, logement_id et date requis." };
+  if (!["box", "centrale"].includes(choix))
+    return { ok: false, message: 'choix : "box" ou "centrale".' };
+  if (!motif) return { ok: false, message: "motif obligatoire (tracé)." };
+  try {
+    const rep = await gwPost<Record<string, unknown>>(
+      "/parc/conflits/trancher",
+      { qui, box_id, logement_id, date, choix, motif },
+    );
+    return {
+      ok: true,
+      message:
+        `Tranché (${choix}) : ${String(rep.ref ?? "TRANCHE")}. ` +
+        "Applique ensuite le PRIX retenu via le prix 1-tap — le tranchement seul n'écrit rien.",
+    };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Échec tranchement." };
+  }
+}
+
 export async function lire<T>(chemin: string): Promise<{ ok: boolean; data: T | null; erreur: string }> {
   try {
     const data = await gwGet<T>(chemin);

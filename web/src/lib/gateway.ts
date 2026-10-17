@@ -44,6 +44,9 @@ const ECRITURE_OK = new Set([
   // Onboarding §L3 : création de logement (POST /parc/logements, admin seuls ;
   // copro verifiee:false par défaut = BLOQUÉ tant que le syndic n'a pas dit oui).
   "/parc/logements",
+  // V3 planning : trancher un conflit split-brain (§16.2) — geste HUMAIN tracé
+  // (qui + motif obligatoires, ref TRANCHE-*), RBAC prix revérifié par la gw.
+  "/parc/conflits/trancher",
 ]);
 
 function cheminAutorise(path: string): boolean {
