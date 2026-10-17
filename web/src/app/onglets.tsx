@@ -5,7 +5,7 @@ import { t, type Langue } from "@/lib/i18n";
 
 export function Onglets({ lang, ici }: { lang: Langue; ici: string }) {
   const liens: [string, string][] = [
-    ["/", t("pilotage", lang)],
+    ["/hote", t("pilotage", lang)],
     ["/voyageur", t("voyageur", lang)],
     ["/proprio", t("proprio", lang)],
     ["/commercial", t("commercial", lang)],

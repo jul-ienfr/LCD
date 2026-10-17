@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 };
 
 const NAV: [string, string, string][] = [
-  ["/", "Pilotage", "Tableau de bord opérateur"],
+  ["/hote", "Pilotage", "Tableau de bord opérateur"],
   ["/voyageur", "Séjour", "Espace voyageur"],
   ["/proprio", "Relevé", "Espace propriétaire"],
   ["/commercial", "Prospects", "Espace commercial"],
@@ -82,7 +82,7 @@ export default function RootLayout({
             </nav>
             <form
               method="get"
-              action="/"
+              action="/hote"
               className="ml-auto flex items-center gap-2 text-sm"
             >
               <label htmlFor="lang" className="sr-only">

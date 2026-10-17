@@ -1,304 +1,206 @@
-// Page pilotage hôte : hero KPIs + cartes logements + 14 actions 1-tap.
-// Rendu serveur (SSR) : lisible et ACTIONNABLE sans JavaScript.
-// Les formulaires POSTent en natif vers les Server Actions.
-export const instant = false;
-import { gwGet, ACTIONS, type ActionId } from "@/lib/gateway";
-import { LIBELLES_ACTION, t, type Langue } from "@/lib/i18n";
-import { languePage } from "@/lib/langue";
-import { Onglets } from "./onglets";
-import { FormulaireAction } from "./formulaire-action";
+// Landing publique : c'est la vitrine marketing du SaaS (ce qu'un prospect
+// voit AVANT de créer un compte). 100 % statique, zéro appel gateway,
+// fonctionne sans JavaScript. Chiffres = forfaits §S1 (plancher 149 €/mois,
+// PILOTAGE 190 €, FULL 290 €) — jamais de promesse hors doc.
+import type { Metadata } from "next";
+import Link from "next/link";
 
-type Logement = {
-  box_id?: string;
-  logement_id?: string;
-  nom?: string;
-  stale?: boolean;
-  prix_7j?: [string, number | string][];
-  journal_total?: number;
-  occupation?: { occ_j30?: unknown };
-  dernieres?: { ts?: string; ref?: string; qui?: string; quoi?: string }[];
-  todos?: { dossier?: string; statut?: string; deadline?: string }[];
-  routage_primaire?: string;
-  ha_vivante?: boolean;
-  copro_verifiee?: boolean;
-  alertes?: string[];
-  erreurs?: string[];
+export const metadata: Metadata = {
+  title: "LCD — la conciergerie courte durée pilotée en 1-tap",
 };
-type Apercu = {
-  boxes?: { box_id: string; site?: string; last_seen?: string }[];
-  logements?: Logement[];
-  fanout_ms?: number;
-  generated_at?: string;
-};
-type Metriques = { ecritures?: number; ecritures_refusees?: number };
 
-const HUMAINS: [string, string][] = [
-  ["personne_01", "personne_01 (super_admin)"],
-  ["personne_02", "personne_02 (admin)"],
-  ["personne_03", "personne_03 (operateur)"],
-  ["personne_04", "personne_04 (comptable)"],
-  ["commercial_01", "commercial_01 (commercial)"],
+const FEATURES: { icone: string; titre: string; texte: string }[] = [
+  {
+    icone: "📈",
+    titre: "Pricing automatique borné",
+    texte:
+      "Grille 7 jours recalculée chaque nuit, bornes inviolables (plancher/plafond), saisonalité, événements, dernier-minute — l'IA propose, l'humain valide en 1-tap.",
+  },
+  {
+    icone: "⚡",
+    titre: "Vente directe < 60 s",
+    texte:
+      "Devis → contrat signé → calendrier bloqué en moins d'une minute, sans commission plateforme. Zéro double réservation (conflit refusé dès la 2ᵉ requête).",
+  },
+  {
+    icone: "🧹",
+    titre: "Ménage traçable photo",
+    texte:
+      "Checklist 7 cases, templates marqués à l'heure, photos avant/après obligatoires, clôture bloquante sans preuves. Temps facturé = temps pointé.",
+  },
+  {
+    icone: "🛡️",
+    titre: "Caution juste",
+    texte:
+      "Pré-autorisation Swikly/Stripe, aucun débit sans justificatifs (photos état des lieux + facture), restitution 7-14 j annoncée 48 h avant.",
+  },
+  {
+    icone: "🤖",
+    titre: "IA locale rédigée",
+    texte:
+      "Messages J-2/J-1, avis, résumés — écrits par l'IA, envoyés par un humain. IBAN/PIN masqués avant prompt, quotas, kill-switch, 5 langues.",
+  },
+  {
+    icone: "🔌",
+    titre: "Offline-first",
+    texte:
+      "Électricité ou Internet coupé ? La box continue : serrure, chauffage, remontées en queue rejouées au retour. Jamais de page blanche, jamais de surbooking.",
+  },
 ];
 
-const EXEMPLES: Record<string, string> = {
-  debut: "2027-11-10",
-  fin: "2027-11-12",
-  voyageurs: "2",
-  date: "2027-12-01",
-  prix: "150",
-  presta_id: "lab_menage_01",
-  motif: "Ménage J+1",
-  dossier: "menage/log1/M-001",
-  facture_id: "F-2027-001",
-  rubrique: "menage",
-  canal: "virement",
-  montant: "450",
-  ref_resa: "",
-  annee: "2027",
-  mois: "11",
-  justificatifs: "photo-canape.jpg,facture.pdf",
-  b2b: "non",
-  type_doc: "facture_b2c",
-  extras: "linge-lit:1,parking:1",
-  arrivee: "2027-11-10",
-  description: "Fuite sous l'évier de la cuisine",
-};
+const FORFAITS = [
+  {
+    nom: "Kit",
+    prix: "149",
+    base: "€/logement/mois · plancher",
+    cible: "Le propriétaire bricoleur qui veut la boîte à outils.",
+    points: ["Moteurs + box installés", "Vente directe", "Support communautaire", "Sans reversement"],
+    enavant: false,
+  },
+  {
+    nom: "Pilotage",
+    prix: "190",
+    base: "€/logement/mois",
+    cible: "Le propriétaire absent qui veut déléguer l'exploitation.",
+    points: [
+      "Tout le Kit",
+      "Réunions ménage/dispatch pilotées",
+      "Relevé mensuel owner portal",
+      "Sans reversement",
+    ],
+    enavant: true,
+  },
+  {
+    nom: "Full service",
+    prix: "290",
+    base: "€/logement/mois",
+    cible: "Gestion complète de A à Z, clé en main.",
+    points: [
+      "Tout le Pilotage",
+      "Conciergerie + urgents + sinistres",
+      "Compta + expert-comptable",
+      "Reversement J+5 garanti",
+    ],
+    enavant: false,
+  },
+];
 
-async function donnees() {
-  const [ap, met] = await Promise.all([
-    gwGet<Apercu>("/api/apercu-parc").catch(() => null),
-    gwGet<Metriques>("/metrics").catch(() => null),
-  ]);
-  return { ap, met };
-}
-
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ lang?: string }>;
-}) {
-  const sp = await searchParams;
-  const lang: Langue = languePage(sp);
-  return <Pilotage lang={lang} />;
-}
-
-function maxPrix(prix: [string, number | string][]): number {
-  let m = 0;
-  for (const [, p] of prix) {
-    const n = Number(p);
-    if (Number.isFinite(n) && n > m) m = n;
-  }
-  return m || 1;
-}
-
-async function Pilotage({ lang }: { lang: Langue }) {
-  let ap: Apercu | null = null;
-  let met: Metriques | null = null;
-  let erreur = "";
-  try {
-    ({ ap, met } = await donnees());
-  } catch (e) {
-    erreur = e instanceof Error ? e.message : String(e);
-  }
-  const logements = ap?.logements || [];
-  const joignables = logements.filter((l) => !l.stale).length;
-  const todosOuverts = logements.reduce(
-    (n, l) => n + (l.todos || []).filter((x) => x.statut !== "fait").length,
-    0,
-  );
-  const refBase = (ap?.generated_at || new Date().toISOString())
-    .replace(/[:.\-+]/g, "")
-    .replace("T", "-")
-    .slice(0, 20);
-  const L = (id: ActionId) => LIBELLES_ACTION[id]?.[lang] ?? id;
-
-  if (!ap)
-    return (
-      <div className="flex flex-col gap-4">
-        <Onglets lang={lang} ici="/" />
-        <div className="carte border-[var(--danger)] p-6" role="alert">
-          <h1 className="text-xl font-extrabold">Passerelle injoignable</h1>
-          <p className="mt-2 text-sm text-[var(--encre-douce)]">
-            Vérifiez <code>LCD_GATEWAY_URL</code> (défaut 127.0.0.1:8443) ou le
-            mode démo.
-          </p>
-          {erreur && <p className="mt-2 text-xs text-[var(--danger)]">Détail : {erreur}</p>}
-        </div>
-      </div>
-    );
-
+export default function Landing() {
   return (
-    <div className="flex flex-col gap-5">
-      <Onglets lang={lang} ici="/" />
-
-      <section className="hero" aria-label={t("pilotage", lang)}>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
-              {t("titre", lang)}
-            </p>
-            <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
-              {t("pilotage", lang)}
-            </h1>
-          </div>
-          <span className="badge" style={{ background: "rgb(255 255 255 / .18)", color: "#fff" }}>
-            <span aria-hidden>●</span> {joignables}/{logements.length} {t("joignables", lang)}
+    <div className="flex flex-col gap-10">
+      {/* HERO */}
+      <section className="hero relative overflow-hidden rounded-3xl px-6 py-12 md:px-12 md:py-16">
+        <div className="flex max-w-3xl flex-col gap-5">
+          <span className="w-fit badge" style={{ background: "rgb(255 255 255 / .18)", color: "#fff" }}>
+            <span aria-hidden>●</span> Offline-first · box résidentielle · 0 downtime
           </span>
-        </div>
-        <div className="kpis mt-5">
-          <div className="kpi">
-            <div className="kpi-valeur">{logements.length}</div>
-            <div className="kpi-etiquette">{t("kpi_logements", lang)}</div>
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-white md:text-6xl">
+            La conciergerie courte durée qui tourne{" "}
+            <span className="whitespace-nowrap" style={{ color: "#6ee7c7" }}>toute seule</span>.
+          </h1>
+          <p className="max-w-2xl text-lg text-white/85 md:text-xl">
+            Prix bornés, ménages traçables, cautions justes, messages rédigés par l&apos;IA et
+            validés par vous — depuis un seul écran, même quand Internet tombe.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <Link
+              href="/login"
+              className="bouton bouton-principal px-6 py-3 text-base shadow-lg shadow-black/20"
+            >
+              Ouvrir la démo 1-tap →
+            </Link>
+            <Link
+              href="/voyageur"
+              className="inline-flex items-center rounded-xl px-6 py-3 text-base font-bold text-(--encre) shadow-lg shadow-black/10"
+              style={{ background: "rgb(255 255 255 / .92)" }}
+            >
+              Voir l&apos;espace voyageur
+            </Link>
           </div>
-          <div className="kpi">
-            <div className="kpi-valeur">{todosOuverts}</div>
-            <div className="kpi-etiquette">{t("kpi_todos", lang)}</div>
-          </div>
-          <div className="kpi">
-            <div className="kpi-valeur">
-              {met?.ecritures ?? 0}
-              <span className="text-sm font-semibold opacity-80">
-                {" "}/ {met?.ecritures_refusees ?? 0} {t("kpi_refus", lang)}
-              </span>
-            </div>
-            <div className="kpi-etiquette">{t("kpi_ecritures", lang)}</div>
-          </div>
-          <div className="kpi">
-            <div className="kpi-valeur">
-              {ap.fanout_ms ?? "—"}
-              <span className="text-sm font-semibold opacity-80"> ms</span>
-            </div>
-            <div className="kpi-etiquette">{t("kpi_fanout", lang)}</div>
-          </div>
+          <dl className="mt-4 grid max-w-xl grid-cols-3 gap-3 text-center text-white">
+            {[
+              ["5", "langues natives"],
+              ["14", "actions 1-tap"],
+              ["0 €", "com. plateforme"],
+            ].map(([v, l]) => (
+              <div key={l} className="rounded-2xl px-2 py-3" style={{ background: "rgb(255 255 255 / .12)" }}>
+                <dt className="text-2xl font-extrabold">{v}</dt>
+                <dd className="text-xs opacity-85">{l}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
-      {logements.map((r) => {
-        const lid = String(r.logement_id || "?");
-        const stale = !!r.stale;
-        const prix = r.prix_7j || [];
-        const plafond = maxPrix(prix);
-        const todos = (r.todos || []).filter((x) => x.statut !== "fait");
-        return (
-          <section key={`${r.box_id}-${lid}`} className="carte p-5 md:p-6" aria-label={r.nom || lid}>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-xl font-extrabold tracking-tight">{r.nom || lid}</h2>
-              <span className="text-xs text-[var(--encre-faine)]">{lid} · {r.box_id}</span>
-              <span className="ml-auto flex flex-wrap gap-1.5">
-                {stale ? (
-                  <span className="badge badge-danger">{t("ecritures_off", lang)}</span>
-                ) : (
-                  <span className="badge badge-ok">● {t("joignables", lang)}</span>
-                )}
-                <span className={`badge ${r.copro_verifiee ? "badge-accent" : "badge-alerte"}`}>
-                  {t("copro", lang)} : {r.copro_verifiee ? t("oui", lang) : t("non_bloquee", lang)}
-                </span>
-                <span className={`badge ${r.ha_vivante ? "badge-accent" : "badge-alerte"}`}>
-                  HA : {r.ha_vivante ? t("ha_vivante", lang) : t("ha_morte", lang)}
-                </span>
-              </span>
-            </div>
+      {/* FEATURES */}
+      <section aria-labelledby="tit-capacites">
+        <h2 id="tit-capacites" className="text-2xl font-extrabold tracking-tight md:text-3xl">
+          Tout ce que font les grands groupes, sans les abonnements cachés.
+        </h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <article key={f.titre} className="carte flex flex-col gap-2 p-5">
+              <span aria-hidden className="text-2xl">{f.icone}</span>
+              <h3 className="font-bold tracking-tight">{f.titre}</h3>
+              <p className="text-sm text-[var(--encre-douce)]">{f.texte}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-            <dl className="mt-4 grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
-              <div className="rounded-xl bg-[var(--surface-2)] p-3">
-                <dt className="text-xs text-[var(--encre-faine)]">{t("kpi_journal", lang)}</dt>
-                <dd className="mt-0.5 text-lg font-bold tabular-nums">{r.journal_total ?? 0}</dd>
-              </div>
-              <div className="rounded-xl bg-[var(--surface-2)] p-3">
-                <dt className="text-xs text-[var(--encre-faine)]">{t("kpi_occupation", lang)}</dt>
-                <dd className="mt-0.5 text-lg font-bold tabular-nums">{String(r.occupation?.occ_j30 ?? "—")}</dd>
-              </div>
-              <div className="rounded-xl bg-[var(--surface-2)] p-3">
-                <dt className="text-xs text-[var(--encre-faine)]">{t("kpi_routage", lang)}</dt>
-                <dd className="mt-0.5 truncate text-lg font-bold">{r.routage_primaire || "—"}</dd>
-              </div>
-              <div className="rounded-xl bg-[var(--surface-2)] p-3">
-                <dt className="text-xs text-[var(--encre-faine)]">{t("kpi_todos", lang)}</dt>
-                <dd className="mt-0.5 text-lg font-bold tabular-nums">{todos.length}</dd>
-              </div>
-            </dl>
-
-            {prix.length > 0 && (
-              <div className="mt-3">
-                <p className="text-xs font-semibold text-[var(--encre-faine)]">
-                  {t("prix_7j", lang)} · {String(prix[0][1])} € {t("aujourd_hui", lang)}
-                </p>
-                <div className="prix-7j" role="img" aria-label={`${t("prix_7j", lang)} : ${prix.map((p) => String(p[1])).join(", ")}`}>
-                  {prix.map(([jour, p], i) => (
-                    <span
-                      key={`${jour}-${i}`}
-                      title={`${jour} : ${String(p)} €`}
-                      style={{ height: `${Math.max(8, Math.round((Number(p) / plafond) * 100))}%` }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {(r.alertes || []).length > 0 && (
-              <ul className="mt-3 flex flex-col gap-1.5" role="list" aria-label={t("alertes", lang)}>
-                {r.alertes!.map((a, i) => (
-                  <li key={i} className="rounded-xl bg-[var(--alerte-douce)] px-3 py-2 text-sm text-[var(--alerte)]">
-                    ⚠ {a}
+      {/* TARIFS */}
+      <section aria-labelledby="tit-tarifs">
+        <h2 id="tit-tarifs" className="text-2xl font-extrabold tracking-tight md:text-3xl">
+          Sans surprise : un prix par logement, pas une commission sur vos loyers.
+        </h2>
+        <p className="mt-2 text-sm text-[var(--encre-douce)]">
+          Indicatif — le devis final dépend du nombre de logements et du niveau de service.
+        </p>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {FORFAITS.map((f) => (
+            <article
+              key={f.nom}
+              className={`carte flex flex-col gap-3 p-6 ${f.enavant ? "border-2 border-(--accent) shadow-lg shadow-(--accent-douce)" : ""}`}
+            >
+              {f.enavant && (
+                <span className="w-fit badge badge-accent">Le plus choisi</span>
+              )}
+              <h3 className="text-lg font-extrabold">{f.nom}</h3>
+              <p className="text-4xl font-black tabular-nums">
+                {f.prix} <span className="text-sm font-semibold text-[var(--encre-faine)]">{f.base}</span>
+              </p>
+              <p className="text-sm text-[var(--encre-douce)]">{f.cible}</p>
+              <ul className="flex flex-col gap-1.5 text-sm" role="list">
+                {f.points.map((p) => (
+                  <li key={p} className="flex items-start gap-2">
+                    <span aria-hidden className="mt-0.5 text-(--ok)">✓</span> {p}
                   </li>
                 ))}
               </ul>
-            )}
+              <Link
+                href="/commercial"
+                className="bouton bouton-secondaire mt-auto justify-center text-center"
+              >
+                Demander une offre
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
 
-            {todos.length > 0 && (
-              <div className="table-defilante mt-3 border border-[var(--bordure)]">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>{t("th_dossier", lang)}</th>
-                      <th>{t("th_statut", lang)}</th>
-                      <th>{t("th_echeance", lang)}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {todos.slice(0, 8).map((x, i) => (
-                      <tr key={i}>
-                        <td>{x.dossier || "—"}</td>
-                        <td>{x.statut || "—"}</td>
-                        <td className="tabular-nums">{x.deadline || "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {stale ? (
-              <p className="mt-4 rounded-xl bg-[var(--danger-douce)] p-3 text-sm text-[var(--danger)]" role="status">
-                {t("ecritures_off", lang)}
-              </p>
-            ) : (
-              <>
-                <h3 className="mt-5 text-sm font-bold uppercase tracking-wide text-[var(--encre-faine)]">
-                  {t("actions_1tap", lang)}
-                </h3>
-                <div className="mt-2 grid gap-3 lg:grid-cols-2">
-                  {ACTIONS.map((a) => (
-                    <FormulaireAction
-                      key={a.id}
-                      actionId={a.id}
-                      libelle={L(a.id)}
-                      champs={[...a.champs]}
-                      exemples={EXEMPLES}
-                      boxId={String(r.box_id || "")}
-                      logementId={lid}
-                      refBase={`${refBase}-${lid}`}
-                      humains={HUMAINS}
-                      envoyer={t("envoyer", lang)}
-                      choisirQui={t("qui", lang)}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </section>
-        );
-      })}
+      {/* CTA FINAL */}
+      <section className="carte flex flex-col items-center gap-4 p-8 text-center md:p-12">
+        <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl">
+          Votre parc marche même pendant la panne.
+        </h2>
+        <p className="max-w-xl text-[var(--encre-douce)]">
+          La démo interactive tourne en ce moment sur un parc témoin : 3 logements,
+          3 boxes, réservations réelles simulées. Connectez-vous et pilotez en 1-tap.
+        </p>
+        <Link href="/login" className="bouton bouton-principal px-6 py-3 text-base">
+          Ouvrir la démo →
+        </Link>
+      </section>
     </div>
   );
 }

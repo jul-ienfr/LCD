@@ -35,3 +35,4 @@
 - `maj-etat-reel-55-2026-10-16 : 2026-10-16 : etat-reel aligne (checklist 55 restantes, P8-9 CLOS, panier audite) -- 0 incoherence 89/56 restante.`
 - `maj-start-all-2026-10-16 : 2026-10-16 : SAS local durable lab/start-all.sh|ps1 (lab + vps-sim + deploy UP simultanes `sans` teardown, idempotent) -- prouve 31 conteneurs + vps-sim 7/7 + deploy 7/7 simultanes.`
 - `maj-port-3100-2026-10-16 : 2026-10-16 : deploy publie web :3100 sur hote (acces direct navigateur http://127.0.0.1:3100, sans TLS ni hosts) -- prouve HTTP 200 len 152k + gateway 8443 page 200 + dashboard 8060 200.`
+- `maj-saas-front-2026-10-17 : 2026-10-17 : refonte SaaS front (landing publique marketing hero+features+forfaits 149/190/290 + /login role par profil + cookie lcd_qui httpOnly propage qui par defaut dans formulaires + dashboard hote deplace /hote) -- lint+6/6 tests+build OK, image rebuild, routes /,/login,/hote,... 200, cookie pre-remplit select prouve via HTML.`

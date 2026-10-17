@@ -16,6 +16,7 @@ export function FormulaireAction({
   humains,
   envoyer,
   choisirQui,
+  quiDefaut = "",
 }: {
   actionId: string;
   libelle: string;
@@ -27,6 +28,7 @@ export function FormulaireAction({
   humains: [string, string][];
   envoyer: string;
   choisirQui: string;
+  quiDefaut?: string;
 }) {
   const [etat, formAction, pending] = useActionState(executerAction, null);
   return (
@@ -47,8 +49,8 @@ export function FormulaireAction({
         <input type="hidden" name="ref" value={`${refBase}-${actionId}`} />
         <label className="text-sm font-medium">
           {choisirQui}
-          <select name="qui" required defaultValue="" className="champ mt-1">
-            <option value="">—</option>
+          <select name="qui" required defaultValue={quiDefaut} className="champ mt-1">
+            {quiDefaut ? null : <option value="">—</option>}
             {humains.map(([id, lib]) => (
               <option key={id} value={id}>{lib}</option>
             ))}

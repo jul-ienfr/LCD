@@ -14,6 +14,42 @@ export async function choisirLangueAction(formData: FormData) {
   redirect(`/?lang=${encodeURIComponent(lang)}`);
 }
 
+// Connexion SIMULÉE (lab) : on choisit un compte humain déclaré dans la
+// gateway (custom/acces.yaml) et on le mémorise en cookie httpOnly. C'est ce
+// `qui` qui pré-remplit les formulaires 1-tap — la gateway REVÉRIFIE toujours
+// l'autorisation (ce cookie ne prouve rien côté serveur : RBAC réel = gateway).
+const COMPTES: Record<string, string> = {
+  personne_01: "/hote",
+  personne_02: "/hote",
+  personne_03: "/hote",
+  personne_04: "/hote",
+  personne_05: "/proprio?logement=log1&qui=personne_05",
+  commercial_01: "/commercial",
+};
+
+export async function loginAction(formData: FormData) {
+  const qui = String(formData.get("qui") || "").trim();
+  const jar = await cookies();
+  const cible = COMPTES[qui];
+  if (!cible) redirect("/login?erreur=inconnu");
+  jar.set("lcd_qui", qui, {
+    path: "/",
+    maxAge: 30 * 24 * 3600,
+    httpOnly: true,
+    sameSite: "lax",
+  });
+  redirect(cible);
+}
+
+export async function logoutAction() {
+  (await cookies()).delete("lcd_qui");
+  redirect("/login?erreur=deconnexion");
+}
+
+async function quiParDefaut(): Promise<string> {
+  return (await cookies()).get("lcd_qui")?.value || "";
+}
+
 export type ResultatAction = { ok: boolean; message: string };
 
 export async function executerAction(
@@ -23,7 +59,8 @@ export async function executerAction(
   const box_id = String(formData.get("box_id") || "").trim();
   const logement_id = String(formData.get("logement_id") || "").trim();
   const action = String(formData.get("action") || "").trim();
-  const qui = String(formData.get("qui") || "").trim();
+  const qui =
+    String(formData.get("qui") || "").trim() || (await quiParDefaut());
   if (!box_id || !logement_id || !action || !qui)
     return { ok: false, message: "box, logement, action et qui sont requis." };
   const data: Record<string, string> = {};
@@ -59,7 +96,8 @@ export async function creerProspect(
   prev: ResultatAction | null,
   formData: FormData,
 ): Promise<ResultatAction> {
-  const qui = String(formData.get("qui") || "").trim();
+  const qui =
+    String(formData.get("qui") || "").trim() || (await quiParDefaut());
   const data: Record<string, string> = {};
   for (const k of ["prospect_id", "nom", "bien", "source", "contact_ref"]) {
     const v = String(formData.get(k) || "").trim();
@@ -80,7 +118,8 @@ export async function calculerSimulateur(
   formData: FormData,
 ): Promise<ResultatAction> {
   const corps: Record<string, unknown> = {
-    qui: String(formData.get("qui") || "").trim(),
+    qui:
+      String(formData.get("qui") || "").trim() || (await quiParDefaut()),
     entite_id: String(formData.get("entite_id") || "").trim(),
   };
   const forfait = String(formData.get("forfait") || "").trim();
@@ -103,7 +142,8 @@ export async function testerLlm(
 ): Promise<ResultatAction> {
   try {
     const rep = await gwPost<Record<string, unknown>>("/v1/llm-tester", {
-      qui: String(formData.get("qui") || "").trim(),
+      qui:
+        String(formData.get("qui") || "").trim() || (await quiParDefaut()),
       usage: String(formData.get("usage") || "").trim(),
       prompt: String(formData.get("prompt") || ""),
     });
