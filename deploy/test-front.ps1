@@ -70,6 +70,14 @@ $head = (Get-Content $tmp -TotalCount 1 -Encoding UTF8)
 Verif "csv : colonnes compta" ($head -match "entite_id.*logement_id.*montant_ttc")
 Remove-Item $tmp -ErrorAction SilentlyContinue
 
+# 7b. Export CSV planning (grille jour x logement, meme protocole lecture
+#     seule + ?debut propage si passe)
+$tmpp = Join-Path $env:TEMP ("lcd-front-" + [guid]::NewGuid().ToString("N") + ".csv")
+$null = curl.exe -s -m 20 -o $tmpp "$F/api/planning-export?jours=7"
+$headp = (Get-Content $tmpp -TotalCount 1 -Encoding UTF8)
+Verif "csv : colonnes planning" ($headp -match "logement_id.*nom.*\d{4}-\d{2}-\d{2}")
+Remove-Item $tmpp -ErrorAction SilentlyContinue
+
 # 8. i18n 5 langues (spot h1)
 Verif "i18n fr planning" ((corps "/planning?lang=fr" $null) -match "Planning du parc")
 Verif "i18n en planning" ((corps "/planning?lang=en" $null) -match "Estate planning")
