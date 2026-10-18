@@ -77,6 +77,11 @@ Verif "i18n es compta"   ((corps "/compta?lang=es" $null) -match "Un plan por SI
 Verif "i18n it presta"   ((corps "/presta?lang=it" $null) -match "Prestazioni")
 Verif "i18n de prix"     ((corps "/prix?lang=de" $null) -match "Preisraster")
 
+# 8b. Navigation fenetre planning ?debut (+7 j) : chip prag affiche la date
+#     decalee (meme protocole prix ?depuis ; gw secours invalide->aujourd'hui).
+$navd = (Get-Date).ToUniversalTime().AddDays(7).ToString("yyyy-MM-dd")
+Verif "planning nav : debut +7j affiche" ((corps "/planning?debut=$navd" $null) -match [regex]::Escape($navd))
+
 # 9. Guide voyageur : donnees annonce reelle
 $v = corps "/voyageur" $null
 Verif "voyageur : guide annonce" ($v -match "17:00")
