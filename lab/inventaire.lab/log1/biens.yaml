@@ -59,7 +59,7 @@ biens:
     utilisations_nb: 2
     derniere_utilisation: 2026-02-01
     etat: 5
-  - qr: TEST-INV-1792335855
+  - qr: TEST-INV-1792355067
     logement: log1
     categorie: linge
     label: Drap test lab
@@ -69,7 +69,7 @@ biens:
     utilisations_nb: 1
     derniere_utilisation: 2026-10-18
     etat: 1
-  - qr: T58-36059
+  - qr: T58-55272
     logement: log1
     categorie: linge
     label: Plaid transfert 58

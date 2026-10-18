@@ -54,6 +54,38 @@ jamais de secret exposé).
 des 14 actions traduits (`src/lib/i18n.ts`). Le `<select>` du header navigue
 en `?lang=` sans JS.
 
+## Architecture plugins (§20.7, cahier `docs/70-front-v1.md`)
+
+8 dashboards = 1 dossier chacun dans `src/plugins/dash-*/` avec un manifeste
+`dashboard.yaml` (id, version semver, actif, roles, routes, apis, flags,
+i18n_prefixe, route_prefix, lite, offline) + un `i18n.json` 5 langues. Le
+chargeur **strict** `scripts/valider-plugins.mjs` (0 dépendance, sous-ensemble
+YAML plat écrit à la main) tourne à chaque `npm run build` et en CI :
+
+- schéma **fermé** : toute clé inconnue = refus (fail-closed, jamais de
+  demi-chargement) ;
+- `roles` ⊆ `src/plugins/roles.json` (liste fermée §S3.1), `flags` ⊆
+  `src/plugins/flags.json` (miroir synchronisé avec `custom/logements.yaml`,
+  kill-switch `jev_enabled` autorisé) ;
+- `apis` ⊆ `src/lib/allowlist.json` (la MÊME source que `src/lib/gateway.ts`,
+  DRY) : un plugin ne peut que sous-utiliser la gateway, jamais l'élargir ;
+- 1 route = 1 plugin (pas de double propriété), route active = page existante ;
+- `npm run valider:plugins` seule, `npm run budget` pour le garde-fou JS/page.
+
+`npm run build` = validateur plugins → `next build` → `scripts/budget-bundle.mjs`
+(mesure gzip réelle page par page via serveur standalone, budget 200 Ko §S3.4.6,
+surcharge `LCD_BUDGET_KO`). Sortie courante : ~177 Ko/page, marge faible —
+les ajouts de composants clients doivent rester rares.
+
+## Mode dégradé (L0-L3, REQ-S-008)
+
+Le front doit vieillir avec ses téléphones, pas tomber en panne : `lite.css`
++ cookie `lcd_lite` posé par `GET /api/lite?on=1&retour=/…` (lien `<a>` natif,
+sans JS, anti open-redirect) → classe `html.mode-lite` neutralise
+backdrop-filter, dégradés et transitions (vieilles versions Safari/Chrome).
+Aucune règle ne masque du contenu : alléger n'est pas réduire.
+L'échelle complète L0 (SMS + papier) → L3 (PWA offline) : `docs/70-front-v1.md` §F7.
+
 ## Contraintes respectées
 
 - Gateway **intacte** : le front lit le JSON existant, ne modifie aucune route

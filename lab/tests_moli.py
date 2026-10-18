@@ -199,7 +199,14 @@ def _journal():
 
 def main():
     print("== 80. box Moli : santé + pilotes demo (contrat health) ==")
+    # la box peut encore booter apres le down -v du socle : attesté
+    # sain avant tout autre check (sinon le reste est muet).
     c, r, _ = _req("GET", "/api/health")
+    for _ in range(30):
+        if c == 200:
+            break
+        time.sleep(4)
+        c, r, _ = _req("GET", "/api/health")
     check("80 : GET /api/health = 200 + name moli-os",
           c == 200 and isinstance(r, dict) and r.get("name") == "moli-os",
           f"HTTP {c}")

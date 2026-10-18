@@ -145,7 +145,10 @@ def _moli_etat(point):
     c, d = _get_json(MOLI_URL + "/api/devices/" + point.split("/")[0])
     if c != 200 or not isinstance(d, dict):
         return None
-    ech = (d.get("state") or {}).get(point.split("/", 1)[1]) or {}
+    st = d.get("state")
+    if not isinstance(st, dict):
+        return None
+    ech = st.get(point.split("/", 1)[1]) or {}
     return ech.get("value")
 
 
@@ -341,7 +344,11 @@ def main():
           and r97.get("point") == "maison:evenements/value"
           and r97.get("pin_transmis") is False, f"HTTP {c} {r97}")
     c, d_ev97 = _get_json(MOLI_URL + "/api/devices/maison:evenements")
-    val_ev97 = ((d_ev97 or {}).get("state") or {}).get("value", {}).get("value")
+    # la box peut etre injoignable : echec net, jamais crash
+    # (detail = KO, la suite continue de verifier le journal).
+    _st = d_ev97.get("state") if isinstance(d_ev97, dict) else None
+    val_ev97 = (_st or {}).get("value", {}).get("value") \
+        if isinstance(_st, dict) else None
     check("97 : box moli refleche l'event (helper evenements = trace "
           "type|logement|ref|qui — JAMAIS le message ni le PIN)",
           c == 200 and isinstance(val_ev97, str)
@@ -375,7 +382,10 @@ def main():
           and bool(h.get("version")), f"HTTP {c} {h}")
     c, n3 = _get_json(MOLI_NORD_URL + "/api/devices/"
                       "maison:config_ok")
-    val3 = ((n3 or {}).get("state") or {}).get("on", {}).get("value")
+    # box nord pas encore bootee : echec net (KO), jamais crash
+    _st3 = n3.get("state") if isinstance(n3, dict) else None
+    val3 = (_st3 or {}).get("on", {}).get("value") \
+        if isinstance(_st3, dict) else None
     for _ in range(9):
         if val3 is True:
             break
@@ -384,7 +394,9 @@ def main():
         time.sleep(4)
         c, n3 = _get_json(MOLI_NORD_URL + "/api/devices/"
                           "maison:config_ok")
-        val3 = ((n3 or {}).get("state") or {}).get("on", {}).get("value")
+        _st3 = n3.get("state") if isinstance(n3, dict) else None
+        val3 = (_st3 or {}).get("on", {}).get("value") \
+            if isinstance(_st3, dict) else None
     check("98 : decision-nord (log3, yaml runtime: moli) a pousse "
           "config_ok = true sur SA box (pas celle du lab)",
           c == 200 and val3 is True, f"HTTP {c} val={val3}")
@@ -413,7 +425,9 @@ def main():
           and r98.get("point") == "maison:evenements/value",
           f"HTTP {c} {r98}")
     c, d_ev98 = _get_json(MOLI_NORD_URL + "/api/devices/maison:evenements")
-    val_ev98 = ((d_ev98 or {}).get("state") or {}).get("value", {}).get("value")
+    _st = d_ev98.get("state") if isinstance(d_ev98, dict) else None
+    val_ev98 = (_st or {}).get("value", {}).get("value") \
+        if isinstance(_st, dict) else None
     check("98 : la box NORD refleche l'event log3 (isolation : pas la "
           "box lab)",
           c == 200 and isinstance(val_ev98, str)
@@ -564,11 +578,15 @@ def main():
     px98 = {}
     for _ in range(9):
         c, px98 = _get_json(MOLI_NORD_URL + "/api/devices/maison:prix_nuit")
-        v_px = ((px98 or {}).get("state") or {}).get("value", {}).get("value")
+        _st = px98.get("state") if isinstance(px98, dict) else None
+        v_px = (_st or {}).get("value", {}).get("value") \
+            if isinstance(_st, dict) else None
         if isinstance(v_px, (int, float)) and v_px > 0:
             break
         time.sleep(4)
-    v_px = ((px98 or {}).get("state") or {}).get("value", {}).get("value")
+    _st = px98.get("state") if isinstance(px98, dict) else None
+    v_px = (_st or {}).get("value", {}).get("value") \
+        if isinstance(_st, dict) else None
     check("98 : pricing moteur UNIQUE pousse prix_nuit = pivot dans SA "
           "box Moli (ADR-008 : cible config, 0 fork)",
           c == 200 and isinstance(rec98, dict)
@@ -609,13 +627,17 @@ def main():
     ev98b = {}
     for _ in range(9):
         c, ev98b = _get_json(MOLI_NORD_URL + "/api/devices/maison:evenements")
-        v_ev = ((ev98b or {}).get("state") or {}).get("value", {}).get("value")
+        _st = ev98b.get("state") if isinstance(ev98b, dict) else None
+        v_ev = (_st or {}).get("value", {}).get("value") \
+            if isinstance(_st, dict) else None
         # GARDE : ne pas casser trop tôt sur la trace d'un run précédent
         # (le helper écho la DERNIÈRE trace) — attendre CETTE resa.
         if isinstance(v_ev, str) and ref98 in v_ev:
             break
         time.sleep(4)
-    v_ev = ((ev98b or {}).get("state") or {}).get("value", {}).get("value")
+    _st = ev98b.get("state") if isinstance(ev98b, dict) else None
+    v_ev = (_st or {}).get("value", {}).get("value") \
+        if isinstance(_st, dict) else None
     c, jn98 = _get_json(MOLI_NORD_URL + "/api/journal?limit=40")
     tr98 = " ".join(str(((e.get("action") or {}).get("value") or ""))
                     for e in (jn98 if isinstance(jn98, list) else []))

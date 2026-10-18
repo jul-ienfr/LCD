@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import datetime as dt
 import urllib.parse
 import urllib.request
 from datetime import date, timedelta
@@ -193,7 +194,22 @@ def attendre_sain(service, timeout=90):
     return False
 
 
-print("== 1. health des 12 moteurs ==")
+# --- down -v + up --build : HA et les migrations recomposent 2-3 min ;
+# sans attente, la batterie ecrit au milieu d'un boot partiel et la
+# passe suivante herite d'etats a moitie ecrits (409, deja cloturee).
+_CONTENEURS = {  # cles BASE -> noms docker (lcd-lab-<nom>-1)
+    "ics": "ics-sync", "pricing": "pricing", "decision": "decision",
+    "facturation": "facturation", "caution": "caution",
+    "booking": "booking-direct", "dispatch": "dispatch-presta",
+    "inventaire": "inventaire", "extras": "extras", "stocks": "stocks",
+    "compta": "compta", "router": "llm-router-ui",
+    "dashboard": "dashboard-hote", "passerelle": "gateway-parc",
+}
+print("== 0. attente saine : jamais ecrire tant qu'un moteur boote ==")
+for _m, _n in _CONTENEURS.items():
+    attendre_sain(_n, timeout=240)
+attendre_sain("homeassistant", timeout=120)
+print("[OK]   stacks sains, batteries pretes")
 for m in BASE:
     code, obj = get(m, "/health")
     check(f"health {m}", code == 200, f"HTTP {code} {obj}")
@@ -4368,6 +4384,25 @@ check("GET /reco-ota -> reco 1-tap lecture seule (jamais d'ecriture)",
       and isinstance(reco.get("reco_ota_1tap"), dict)
       and "direct" not in reco.get("reco_ota_1tap", {}),
       f"HTTP {code} {reco}")
+# grille DECALEE ? depuis= (Vue Prix front, nav semaine sans JS) :
+# iso futur +21 j -> grille commence ce jour ; invalide -> today ;
+# tufaujourd'hui -> today (la gw la refuse, le moteur prie etc.).
+_depuis = (dt.date.today() + dt.timedelta(days=21)).isoformat()
+code, recod = get("pricing", "/reco-ota?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "depuis": _depuis}))
+check("GET /reco-ota?depuis=+21j -> grille 7j DECALEE (nav sans JS)",
+      code == 200 and isinstance(recod, dict)
+      and isinstance(recod.get("grille_7j"), list) and recod["grille_7j"]
+      and recod["grille_7j"][0][0].startswith(_depuis),
+      f"HTTP {code} j0={recod.get('grille_7j', [['?']])[0][0] if recod.get('grille_7j') else '?'}")
+code, recob = get("pricing", "/reco-ota?" + urllib.parse.urlencode(
+    {"logement_id": "log1", "depuis": "2026-13-99"}))
+check("GET /reco-ota?depuis=invalide -> 200, grille PART AUJOURD'HUI "
+      "(jamais d'erreur brute au front)",
+      code == 200 and isinstance(recob, dict) and recob.get("grille_7j")
+      and recob["grille_7j"][0][0].startswith(
+          dt.date.today().isoformat()),
+      f"HTTP {code} j0={recob.get('grille_7j', [['?']])[0][0] if recob.get('grille_7j') else '?'}")
 
 print()
 print("== 37. marque blanche : rendu marque + jamais LCD/HA (P8-3 §1.5.4) ==")
@@ -5160,6 +5195,44 @@ code, obj = get("passerelle", "/api/apercu?" + urllib.parse.urlencode(
     {"box_id": "box-lab", "logement_id": "logX"}))
 check("passerelle : apercu logement inconnu -> 404", code == 404,
       f"HTTP {code} {obj}")
+# --- grille DECALEE ? depuis= (Vue Prix / nav semaine) : la gw valide
+# (iso, |ecart| <= 90 j, jamais aujourd'hui) et JAMAIS cachee.
+_dj = (dt.date.today() + dt.timedelta(days=14)).isoformat()
+code, p49d = get("passerelle", "/api/apercu-parc?" +
+                urllib.parse.urlencode({"depuis": _dj}))
+l1d = {l.get("logement_id"): l for l in p49d.get("logements", [])}.get("log1", {})
+check("passerelle : apercu-parc?depuis=+14j -> 200 + depuis echos par "
+      "logement + grille decalee",
+      code == 200 and "depuis" not in p49d
+      and l1d.get("depuis") == _dj
+      and l1d.get("cache_hit") is not True
+      and isinstance(l1d.get("prix_7j"), list) and l1d["prix_7j"]
+      and l1d["prix_7j"][0][0].startswith(_dj),
+      f"HTTP {code} j0={l1d.get('prix_7j', [['?']])[:1]}")
+code, p49e = get("passerelle", "/api/apercu-parc")
+_l1e = {l.get("logement_id"): l for l in p49e.get("logements", [])}.get("log1", {})
+check("passerelle : grille depuis JAMAIS cachee : re-fetch normal "
+      "= cache_hit + PAS de champ depuis (la reponse decallee n'a "
+      "pas pollue le cache)",
+      code == 200 and _l1e.get("cache_hit") is True
+      and "depuis" not in _l1e and "depuis" not in p49e,
+      f"cache_hit={_l1e.get('cache_hit')} depuis={_l1e.get('depuis')}")
+code, p49f = get("passerelle", "/api/apercu-parc?" +
+                urllib.parse.urlencode(
+                    {"depuis": "2026-13-99"}))
+_l1f = {l.get("logement_id"): l for l in p49f.get("logements", [])}.get("log1", {})
+check("passerelle : depuis=invalide -> 200 SANS champ depuis "
+      "(gw refuse en silence, auj implicite)",
+      code == 200 and "depuis" not in _l1f and "depuis" not in p49f,
+      f"HTTP {code} depuis={_l1f.get('depuis')}")
+code, p49g = get("passerelle", "/api/apercu-parc?" +
+                urllib.parse.urlencode(
+                    {"depuis": dt.date.today().isoformat()}))
+_l1g = {l.get("logement_id"): l for l in p49g.get("logements", [])}.get("log1", {})
+check("passerelle : depuis=aujourd'hui -> refuse (valeur par defaut "
+      "= auj, jamais une URL garde une chausse-trape)",
+      code == 200 and "depuis" not in _l1g and "depuis" not in p49g,
+      f"HTTP {code} depuis={_l1g.get('depuis')}")
 code, obj = get("passerelle", "/api/apercu?" + urllib.parse.urlencode(
     {"box_id": "boxX", "logement_id": "log1"}))
 check("passerelle : apercu box inconnue -> 404", code == 404,

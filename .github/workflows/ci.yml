@@ -25,6 +25,11 @@ jobs:
         working-directory: web
       - run: npm test
         working-directory: web
+      # Chargeur plugins (§20.7) : 8 manifestes + miroir flags = custom/
+      # (étape dédiée = cause d'échec lisible ; re-filtrée dans `build`).
+      - run: npm run valider:plugins
+        working-directory: web
+      # `build` = validateur + next build + budget JS/page (§S3.4.6).
       - run: npm run build
         working-directory: web
         env:

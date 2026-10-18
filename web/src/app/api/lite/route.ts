@@ -13,7 +13,9 @@ export async function GET(req: NextRequest) {
     brut.startsWith("/") && !brut.startsWith("//") && !brut.includes("\\") && !brut.includes("\n")
       ? brut
       : "/";
-  const rep = NextResponse.redirect(new URL(retour, req.url), 303);
+  // Location RELATIF (RFC 7231 = URI-reference) : jamais d'URL absolue dérivée
+  // du Host reçu (sinon 0.0.0.0/Host-attaque en en-tête), redirection sûre.
+  const rep = new NextResponse(null, { status: 303, headers: { Location: retour } });
   rep.cookies.set("lcd_lite", on ? "1" : "0", {
     path: "/",
     sameSite: "lax",
