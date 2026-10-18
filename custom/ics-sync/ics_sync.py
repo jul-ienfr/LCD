@@ -56,6 +56,37 @@ def utcnow_iso():
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
 
 
+def lire_runtime_par_logement(path=None, default="ha"):
+    """ADR-007/008 : cible runtime (ha|moli) PAR LOGEMENT, lue dans le
+    logements.yaml monté par box (clé top-level `runtime:` indent 4
+    sous `logX:`). Config, jamais un fork. Défaut = LCD_RUNTIME env
+    (les logements sans clé suivent le défaut ha du socle)."""
+    p = path or os.environ.get("LCD_LOGEMENTS_YAML",
+                               "/opt/lcd/logements.yaml")
+    out = {}
+    cur = None
+    try:
+        with open(p, encoding="utf-8") as f:
+            for brute in f:
+                ligne = brute.split("#", 1)[0].rstrip()
+                if not ligne.strip():
+                    continue
+                indent = len(ligne) - len(ligne.lstrip(" "))
+                if indent == 2 and ligne.strip().endswith(":"):
+                    cur = ligne.strip()[:-1]
+                    continue
+                if cur and indent == 4 and ":" in ligne:
+                    k, v = [x.strip().strip("\"'") for x
+                            in ligne.strip().split(":", 1)]
+                    if k == "runtime" and v in ("ha", "moli"):
+                        out[cur] = v
+    except FileNotFoundError:
+        return {}
+    except (OSError):
+        return {}
+    return out
+
+
 def forger_jeton_ha(duree_s=900):
     """Jeton d'accès HA : Bearer secrets.yaml (box, prioritaire, jamais
     CHANGER) ou JWT lab forgé (box virtuelle : LCD_HA_REFRESH_ID +
@@ -181,8 +212,99 @@ class Sync:
         os.makedirs(self.decision_dir, exist_ok=True)
         self.ha_url = os.environ.get("LCD_HA_URL", cfg.get("ha_url", "")).rstrip("/")
         self.ha_token = os.environ.get("LCD_HA_TOKEN", secrets.get("ha_api_token", ""))
+        # ADR-007/008 : runtime PAR LOGEMENT — l'event/état suit LA box
+        # du logement, même code moteur, cible = CONFIG (jamais un fork).
+        self.runtime_backend = os.environ.get(
+            "LCD_RUNTIME", "ha").strip().lower()
+        self.runtime_par_logement = lire_runtime_par_logement()
+        self.runtime_map = {}
+        try:
+            self.runtime_map = json.loads(
+                os.environ.get("LCD_RUNTIME_MAP", "") or "{}") or {}
+        except (ValueError, TypeError):
+            self.runtime_map = {}
+        self.runtime_moli_url = os.environ.get("LCD_MOLI_URL", "").rstrip("/")
+        self.runtime_moli_pin = os.environ.get("LCD_MOLI_PIN", "")
+        self._adapter = None
         self.derniers_polls = {}
         self._stop_sell = {}  # (logement_id, date) -> motif
+
+    def runtime_de(self, logement_id):
+        decl = str(self.runtime_par_logement.get(logement_id)
+                   or "").strip().lower()
+        if decl in ("ha", "moli"):
+            return decl
+        return self.runtime_backend if self.runtime_backend in (
+            "ha", "moli") else "ha"
+
+    def _adaptateur(self):
+        """Adaptateur runtime-box paresseux : False si absent/échec
+        (dégrade, jamais un crash moteur, jamais un push silencieux)."""
+        if self._adapter is not None:
+            return self._adapter
+        if not self.runtime_moli_url or not self.runtime_map:
+            self._adapter = False
+            return self._adapter
+        try:
+            ici = os.path.dirname(os.path.abspath(__file__))
+            sys.path.insert(0, os.path.join(ici, "..", "runtime-box"))
+            import runtime as rt_runtime
+            from copy import deepcopy
+            bk = rt_runtime.MoliBackend(
+                self.runtime_moli_url, pin=self.runtime_moli_pin)
+            self._adapter = rt_runtime.RuntimeAdapter(
+                bk, deepcopy(self.runtime_map), "moli")
+        except Exception as e:  # boot jamais bloqué par l'adaptateur
+            self._adapter = False
+            self.log_decision("*", "ADR-007", "ics-sync", "acces", None,
+                              None, f"adaptateur moli indisponible : {e}")
+        return self._adapter
+
+    def publier_stop_sell(self, logement_id, motif):
+        """Le stop-sell same-day va au runtime DU logement : ha =
+        input_boolean.logX_stop_sell historique ; moli = commande via
+        le contrat (helper switch de SA box). Retour (ok, info)."""
+        if self.runtime_de(logement_id) != "moli":
+            return self.ha_post(
+                f"/api/states/input_boolean.{logement_id}_stop_sell",
+                {"state": "on", "attributes": {"motif": motif}})
+        ad = self._adaptateur()
+        if not ad:
+            return False, "adaptateur_moli_absent"
+        if self.runtime_moli_url and not ad.backend.http.jar:
+            ad.backend.ouvrir_session(self.runtime_moli_pin)
+        res = ad.commande(f"{logement_id}_stop_sell", True, "ics-sync")
+        return (res.get("status") in ("ok", "retenu")), json.dumps(
+            res, ensure_ascii=False)
+
+    def evenement(self, type_event, logement_id, ref, extra=None):
+        """T-11/ADR-007 : le CANAL de l'event = le runtime du logement.
+        ha = POST /api/events/<type> historique ; moli = relais sur la
+        box (helper `evenements`, trace compacte type|logement|ref|qui,
+        JAMAIS le PIN ni un message). Échec/refus = journalisé ici
+        (jamais silencieux)."""
+        extra = dict(extra or {})
+        if self.runtime_de(logement_id) == "moli":
+            ad = self._adaptateur()
+            if not ad:
+                r = (False, "adaptateur_moli_absent")
+            else:
+                if self.runtime_moli_url and not ad.backend.http.jar:
+                    ad.backend.ouvrir_session(self.runtime_moli_pin)
+                res = ad.evenement(type_event, ref, "ics-sync",
+                                   logement_id)
+                r = (res.get("status") in ("ok", "retenu"),
+                     res.get("point")
+                     or json.dumps(res, ensure_ascii=False)[:120])
+        else:
+            r = self.ha_event(type_event,
+                              {"logement_id": logement_id, "ref": ref,
+                               **extra})
+        if not r[0]:
+            self.log_decision(logement_id, ref, "ics-sync", "event_non_emis",
+                              "direct", None,
+                              f"{type_event} NON emis : {r[1]}")
+        return r
 
     # --- secrets ICS : env LCD_ICS_<CANAL>_<LOG> prioritaire, sinon secrets.yaml ---
     def url_ics(self, canal, logement_id):
@@ -302,8 +424,9 @@ class Sync:
                     evenements.append(("lcd_checkout", {
                         "logement_id": logement_id, "ref": conflit["ref"],
                         "motif": "annulation/depart detecte OTA"}))
-                    self.ha_event("lcd_checkout", {
-                        "logement_id": logement_id, "ref": conflit["ref"]})
+                    self.evenement("lcd_checkout", logement_id,
+                                   conflit["ref"],
+                                   {"motif": "annulation/depart detecte OTA"})
                 if ref not in connus:
                     self.log_decision(logement_id, ref, "ics-sync",
                                       "resa_ota_importee", canal, None,
@@ -317,7 +440,8 @@ class Sync:
                                   s.get("canal"), None, "absente du flux ICS")
                 evenements.append(("lcd_checkout", {"logement_id": logement_id,
                                                    "ref": ref, "motif": "annulation OTA"}))
-                self.ha_event("lcd_checkout", {"logement_id": logement_id, "ref": ref})
+                self.evenement("lcd_checkout", logement_id, ref,
+                               {"motif": "annulation OTA"})
         with self.store._lock:
             self.store.data[logement_id] = nouveaux
         self.store.sauver(logement_id)
@@ -346,11 +470,11 @@ class Sync:
         # P2-3 : langue + heure_arrivee + fin voyagent avec l'event (messages J-2/J-1,
         # pré-chauffe/ECS §5.11). Clés ajoutées = rétro-compatibles (ignorées si absentes).
         for ev, delai in (("lcd_j2_envoi_acces", 2), ("lcd_j1_rappel", 1)):
-            self.ha_event(ev, {"logement_id": logement_id, "ref": sej["ref"],
-                               "debut": sej["debut"], "fin": sej.get("fin"),
-                               "langue": sej.get("langue", "fr"),
-                               "heure_arrivee": sej.get("heure_arrivee", "17:00"),
-                               "j_avant": delai})
+            self.evenement(ev, logement_id, sej["ref"],
+                           {"debut": sej["debut"], "fin": sej.get("fin"),
+                            "langue": sej.get("langue", "fr"),
+                            "heure_arrivee": sej.get("heure_arrivee", "17:00"),
+                            "j_avant": delai})
             evenements.append((ev, {"logement_id": logement_id, "ref": sej["ref"]}))
 
     def _stop_sell_check(self, logement_id):
@@ -367,10 +491,9 @@ class Sync:
             self._stop_sell[cle] = motif
             self.log_decision(logement_id, f"stop-sell-{auj}", "ics-sync",
                               "stop_sell_same_day", "direct", None, motif)
-            self.ha_event("lcd_stop_sell", {"logement_id": logement_id,
-                                            "date": auj, "motif": motif})
-            self.ha_post(f"/api/states/input_boolean.{logement_id}_stop_sell",
-                         {"state": "on", "attributes": {"motif": motif}})
+            self.evenement("lcd_stop_sell", logement_id, f"stop-sell-{auj}",
+                           {"date": auj, "motif": motif})
+            self.publier_stop_sell(logement_id, motif)
 
     # --- API locale (pricing-engine + moteur direct) ---
     def dispo(self, logement_id, debut, fin):
@@ -418,9 +541,8 @@ class Sync:
             self.log_decision(logement_id, conflit["ref"], "ics-sync",
                               "conflit_direct_gagne", conflit.get("canal"), None,
                               f"ejecte par resa directe {ref} ; humain <15 min")
-            self.ha_event("lcd_conflit_humain",
-                          {"logement_id": logement_id, "ref_garde": ref,
-                           "ref_ejecte": conflit["ref"]})
+            self.evenement("lcd_conflit_humain", logement_id, ref,
+                           {"ref_garde": ref, "ref_ejecte": conflit["ref"]})
             with self.store._lock:
                 self.store.data[logement_id].pop(conflit["ref"], None)
         with self.store._lock:

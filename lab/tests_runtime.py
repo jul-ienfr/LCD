@@ -280,7 +280,7 @@ def main():
     val_ok = _moli_etat("maison:config_ok/on")
     check("96 : config_ok poussé par le MOTEUR au boot (--check) = true "
           "sur la box Moli (état appliqué)", val_ok is True, str(val_ok))
-    j_moli = _moli_journal(40)
+    j_moli = _moli_journal(160)
     check("96 : journal Moli : origin api + actor decision-engine + "
           "point maison:config_ok/on",
           isinstance(j_moli, list) and any(
@@ -323,7 +323,7 @@ def main():
           f"HTTP {c} {s2}")
     # Priorité CONFIG > env : log2 n'a PAS de point moli dans la map
     # (moli= log1 seul) et le refus éventuel n'apparaît PAS sur la box.
-    j_moli97 = _moli_journal(50)
+    j_moli97 = _moli_journal(160)
     check("97 : 0 écriture decision-engine sur la box Moli pour log2 "
           "(le yaml décide, jamais l'env — refus local si mapping absent)",
           isinstance(j_moli97, list) and all(
@@ -349,7 +349,7 @@ def main():
                                   "personne_01")
           and "pin" not in val_ev97.lower(),
           f"HTTP {c} val={val_ev97!r}")
-    j_ev97 = _moli_journal(30)
+    j_ev97 = _moli_journal(160)
     check("97 : journal moli garde le relais (origin api, point "
           "maison:evenements/value, actor = qui avec role)",
           isinstance(j_ev97, list) and any(
@@ -390,7 +390,7 @@ def main():
           c == 200 and val3 is True, f"HTTP {c} val={val3}")
     jn = []
     for _ in range(9):
-        c, jn = _get_json(MOLI_NORD_URL + "/api/journal?limit=25")
+        c, jn = _get_json(MOLI_NORD_URL + "/api/journal?limit=80")
         if isinstance(jn, list) and any(
                 e.get("actor") == "decision-engine" for e in jn):
             break
@@ -461,6 +461,61 @@ def main():
           and abs(float(v_px) - float(rec98["grille"][0]["pivot"])) < 0.6
           and 0 < float(v_px) <= 5000,
           f"HTTP {c} pivot={rec98.get('grille', [{}])[0].get('pivot') if rec98.get('grille') else '?'} val={v_px}")
+    # ADR-008 : le MÊME ics_sync.py relaie les EVENTS du logement moli
+    # (J-2/J-1 à l'import d'une resa) vers SA box — helper evenements.
+    # REF UNIQUE par run : la resa-directe est idempotente par ref,
+    # une ref réutilisée = re-import ignoré (pas de relais nouveau).
+    ref98 = "LAB-RT98-B-" + str(int(time.time()))
+    resa98 = {}
+    c = 0
+    # fenêtre PROGRESSIVE : une fenêtre déjà louée (run précédent du
+    # même cycle) = 409 conflit -> on glisse (+8 j par essai, 30 j de
+    # base), jamais un conflit de dates entre deux runs.
+    for _essai in range(8):
+        c, resa98 = _post_json(
+            "http://127.0.0.1:8190/resa-direct",
+            {"ref": ref98, "logement_id": "log3",
+             "debut": time.strftime(
+                 "%Y-%m-%d",
+                 time.localtime(time.time()
+                                + 86400 * (30 + _essai * 8))),
+             "fin": time.strftime(
+                 "%Y-%m-%d",
+                 time.localtime(time.time()
+                                + 86400 * (33 + _essai * 8))),
+             "qui": "personne_01"})
+        if c in (200, 201):
+            break
+    check("98 : resa direct log3 = 200/201 (moteur ics-sync UNIQUE, "
+          "idem socle)",
+          c in (200, 201) and isinstance(resa98, dict),
+          f"HTTP {c} {resa98}")
+    ev98b = {}
+    for _ in range(9):
+        c, ev98b = _get_json(MOLI_NORD_URL + "/api/devices/maison:evenements")
+        v_ev = ((ev98b or {}).get("state") or {}).get("value", {}).get("value")
+        # GARDE : ne pas casser trop tôt sur la trace d'un run précédent
+        # (le helper écho la DERNIÈRE trace) — attendre CETTE resa.
+        if isinstance(v_ev, str) and ref98 in v_ev:
+            break
+        time.sleep(4)
+    v_ev = ((ev98b or {}).get("state") or {}).get("value", {}).get("value")
+    c, jn98 = _get_json(MOLI_NORD_URL + "/api/journal?limit=40")
+    tr98 = " ".join(str(((e.get("action") or {}).get("value") or ""))
+                    for e in (jn98 if isinstance(jn98, list) else []))
+    check("98 : ics-sync relais events J-2/J-1 sur SA box nord (trace "
+          "type|logement|ref|ics-sync — les 2 events dans le journal "
+          "nord, helper écho le DERNIER ; JAMAIS le PIN)",
+          c == 200
+          and isinstance(v_ev, str)
+          and (v_ev.startswith("lcd_j2_envoi_acces|log3|" + ref98
+                               + "|ics-sync")
+               or v_ev.startswith("lcd_j1_rappel|log3|" + ref98
+                                  + "|ics-sync"))
+          and (f"lcd_j2_envoi_acces|log3|{ref98}" in tr98)
+          and (f"lcd_j1_rappel|log3|{ref98}" in tr98)
+          and "pin" not in tr98.lower(),
+          f"HTTP {c} val={v_ev!r} jn={len(jn98) if isinstance(jn98, list) else '?'}")
     c, gway = _get_json("http://127.0.0.1:8443/v1/statut")
     _etat70 = (gway or {}).get("etat") if isinstance(gway, dict) else {}
     check("98 : passerelle parc voit toujours 3 logements (log3 sur SA box "

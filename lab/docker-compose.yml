@@ -550,6 +550,13 @@ services:
       LCD_STATE_DIR: /opt/lcd/state
       LCD_DECISION_LOG_DIR: /opt/lcd/logs
       LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
+      # ADR-007/008 : la MÊME image ics-sync, log3 = runtime moli (clé
+      # yaml) — events lcd_* relayés + stop_sell via le contrat vers SA
+      # box. Config = tout (mapping + box + PIN FAUX de lab), 0 fork.
+      LCD_RUNTIME: "auto"
+      LCD_MOLI_URL: "http://moli-box-nord:8790"
+      LCD_MOLI_PIN: "246810"
+      LCD_RUNTIME_MAP: '{"log3_stop_sell":"maison:stop_sell/on","lcd_events":"maison:evenements/value"}'
     volumes:
       - ics-nord-state:/opt/lcd/state
       - ics-logs:/opt/lcd/logs

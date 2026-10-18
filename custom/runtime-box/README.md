@@ -35,8 +35,9 @@ RuntimeAdapter.backend_name   # "ha" | "moli"
   **de lab** (0 secret : HA = JWT forgé jetable, Moli = PIN FAUX) ;
   version réelle : mapping par box montée depuis le repo privé, jetons
   depuis le vault (P2+, jamais de clé ici).
-- Batterie : `lab/tests_runtime.py` (38/38 OK ; socle lab + profil
-  `moli` nécessaires, cycle frais `down -v` puis `up`).
+- Batterie : `lab/tests_runtime.py` (40/40 OK y compris le DOUBLE run
+  consécutif ; socle lab + profil `moli` nécessaires, cycle frais
+  `down -v` puis `up`, ordre canonique socle → moli → runtime).
 ## T-11 : événements lcd_* = relais box (ADR-007)
 
 Les events `lcd_*` (J-2 / J-1 / checkout / avis J+1) sont le CANAL HA au
@@ -65,12 +66,17 @@ moli-box-nord` (sinon la box tourne l'ancien seed : helper absent 404).
 
 Un moteur = **une base de code, une image générique** (Dockerfile.moteur,
 build-args SCRIPT+CONFIG) ; ce qui varie par box = la CONFIG (logements
-sous-ensemble + clé `runtime:`, mapping, port). Le 2e branchement est
-DANS le moteur unique — `pricing_engine.py` publie `prix_nuit` via le
-contrat (moli = helper number `maison:prix_nuit/value` de SA box, les
-canaux OTA restent SaaS) et TOUTES ses instances (socle, nord, box
+sous-ensemble + clé `runtime:`, mapping, port). Les branchements sont
+DANS les moteurs uniques — `pricing_engine.py` publie `prix_nuit` via
+le contrat (moli = helper number `maison:prix_nuit/value` de SA box,
+les canaux OTA restent SaaS) et `ics_sync.py` relaie ses events
+(J-2/J-1/checkout/conflit/stop-sell via `evenement()` sur le helper
+`evenements`) et pousse le stop-sell (helper switch
+`maison:stop_sell/on`) — TOUTES les instances (socle, nord, box
 réelle) en profitent, zéro fork. Prouvé §98 : recalcul nord → pivot
-reflété sur la box (`maison:prix_nuit/value`), isolation intacte.
+reflété sur la box ; resa direct log3 → J-2 ET J-1 dans le journal de
+SA box (trace `type|logement|ref|ics-sync`, jamais le PIN) ; resa
+idempotente par ref (ref unique de batterie) ; isolation intacte.
 
 ## Prouvé 2026-10-17 (lab, cycle frais ex-9 vert)
 

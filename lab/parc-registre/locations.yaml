@@ -39,10 +39,10 @@ logements:
       smart_lock: false
       voix: false
     statut: actif
-  log18249:
+  log25529:
     nom: "Logement de test lab"
     commune: "Nice"
-    logement_id: log18249
+    logement_id: log25529
     surface_m2: 40
     capacite: 4
     pricing:
@@ -56,10 +56,10 @@ logements:
       smart_lock: false
       voix: false
     statut: actif
-  xq1825001:
+  xq2552901:
     nom: "RBAC"
     commune: ""
-    logement_id: xq1825001
+    logement_id: xq2552901
     surface_m2: 0
     capacite: 1
     pricing:
@@ -73,10 +73,10 @@ logements:
       smart_lock: false
       voix: false
     statut: actif
-  xq1825002:
+  xq2552902:
     nom: "RBAC"
     commune: ""
-    logement_id: xq1825002
+    logement_id: xq2552902
     surface_m2: 0
     capacite: 1
     pricing:

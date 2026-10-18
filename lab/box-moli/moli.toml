@@ -143,6 +143,16 @@ max = 5000.0
 step = 0.5
 initial = 0.0
 
+[[driver.options.helper]]
+# ADR-008 (3e branchement : le MÊME ics_sync.py, cible CONFIG) : court-
+# circuit stop-sell same-day écrit par ics-sync via runtime-box (chiffre
+# humains lisent/annulent via le geste 1-tap du socle). HORS pièce
+# protégée : point moteur.
+id = "stop_sell"
+name = "Stop-sell (SaaS)"
+kind = "switch"
+initial = false
+
 [[fixture]]
 id = "suspensions"
 name = "Suspensions"
