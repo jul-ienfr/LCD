@@ -204,7 +204,13 @@ export default function Landing() {
           href="/legales"
           className="text-sm underline decoration-dotted underline-offset-4"
         >
-          Mentions légales & CGV (LCEN art. 6 III)
+          Mentions légales &amp; CGV (LCEN art. 6 III)
+        </Link>
+        <Link
+          href="/aide"
+          className="text-sm underline decoration-dotted underline-offset-4"
+        >
+          Aide — qui utilise quoi, réel vs simulé
         </Link>
       </section>
     </div>
