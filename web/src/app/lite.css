@@ -1,0 +1,43 @@
+/* web/src/app/lite.css — couche « version légère » L1 (§F7, REQ-S-008).
+   S'applique sur html.mode-lite (cookie lcd_lite, lu en RSC) : neutralise
+   filtres/dégradés/transitions coûteux pour les vieux moteurs, garde la
+   lecture et l'écriture intactes. Aucune règle ici ne MASQUE du contenu :
+   le mode lite allège, il ne réduit jamais l'accès (§F0.5). */
+
+html.mode-lite .kpi {
+  /* backdrop-filter non supporté (Chrome <76) = rendu plat, jamais transparent illisible */
+  backdrop-filter: none;
+  background: var(--surface);
+  border-color: var(--bordure);
+  color: var(--encre);
+}
+
+html.mode-lite .hero,
+html.mode-lite .hero-voyageur,
+html.mode-lite .hero-proprio,
+html.mode-lite .hero-commercial {
+  /* dégradés multi-arêtes lourds sur vieux GPU : aplat de marque */
+  background: var(--accent-fonce);
+}
+
+html.mode-lite .bouton,
+html.mode-lite .carte,
+html.mode-lite .kpi,
+html.mode-lite .barre-onglets {
+  /* transitions + ombres = pixels morts sur mobile ancien */
+  transition: none;
+  box-shadow: none;
+}
+
+html.mode-lite body {
+  text-rendering: auto;
+  -webkit-font-smoothing: auto;
+}
+
+html.mode-lite .prix-7j span {
+  background: var(--accent-fonce);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.mode-lite .bouton { transition: none; }
+}

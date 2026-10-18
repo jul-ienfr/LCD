@@ -5,6 +5,11 @@
 const BASE =
   process.env.LCD_GATEWAY_URL?.replace(/\/+$/, "") || "http://127.0.0.1:8443";
 
+// Source unique de l'allowlist (DRY, §20.2) : le chargeur plugins
+// (scripts/valider-plugins.mjs) lit le MÊME fichier — un plugin ne peut
+// jamais élargir ce que la gateway relaie, seulement le sous-utiliser.
+import allowlist from "./allowlist.json";
+
 export type Qui =
   | "personne_01"
   | "personne_02"
@@ -14,54 +19,20 @@ export type Qui =
   | "commercial_01";
 
 // Allowlist stricte : le front ne relaie QUE ces routes (aucun proxy libre).
-const LECTURE_OK = new Set([
-  "/health",
-  "/ready",
-  "/api/apercu-parc",
-  "/etat-parc",
-  "/calendrier-parc",
-  "/export-ota",
-  "/metrics",
-  "/parc/conflits",
-  "/parc/digest",
-  "/parc/logements",
-  "/parc/annonces",
-  "/parc/entites",
-  "/parc/mandats",
-  "/parc/biens",
-  "/v1/pipeline",
-  "/export-compta",
-  "/v1/config-llm",
-  "/v1/i18n",
-]);
-const ECRITURE_OK = new Set([
-  "/v1/action",
-  "/v1/prospects",
-  "/v1/simulateur",
-  "/v1/offres",
-  "/v1/llm-tester",
-  "/v1/effacement",
-  // Onboarding §L3 : création de logement (POST /parc/logements, admin seuls ;
-  // copro verifiee:false par défaut = BLOQUÉ tant que le syndic n'a pas dit oui).
-  "/parc/logements",
-  // V3 planning : trancher un conflit split-brain (§16.2) — geste HUMAIN tracé
-  // (qui + motif obligatoires, ref TRANCHE-*), RBAC prix revérifié par la gw.
-  "/parc/conflits/trancher",
-]);
+const LECTURE_OK = new Set(allowlist.lecture);
+const ECRITURE_OK = new Set(allowlist.ecriture);
 
 function cheminAutorise(path: string): boolean {
   const nu = path.split("?")[0];
   if (LECTURE_OK.has(nu) || ECRITURE_OK.has(nu)) return true;
-  // Relevé proprio : /parc/portail/<logement_id> (lecture seule, §3bis).
-  // Préfixe strict + segment unique (pas de "..", pas de sous-chemin).
-  if (nu.startsWith("/parc/portail/")) {
-    const seg = nu.slice("/parc/portail/".length);
-    return seg.length > 0 && !seg.includes("/") && seg !== "." && seg !== "..";
-  }
-  // Guide de séjour (V1) : /parc/annonces/<logement_id> — même règle.
-  if (nu.startsWith("/parc/annonces/")) {
-    const seg = nu.slice("/parc/annonces/".length);
-    return seg.length > 0 && !seg.includes("/") && seg !== "." && seg !== "..";
+  // Préfixes stricts (allowlist.json) : segment unique, pas de "..", pas de
+  // sous-chemin — /parc/portail/<logement> (relevé proprio, lecture seule)
+  // et /parc/annonces/<logement> (guide séjour V1).
+  for (const p of allowlist.prefixes) {
+    if (nu.startsWith(p)) {
+      const seg = nu.slice(p.length);
+      if (seg.length > 0 && !seg.includes("/") && seg !== "." && seg !== "..") return true;
+    }
   }
   return false;
 }

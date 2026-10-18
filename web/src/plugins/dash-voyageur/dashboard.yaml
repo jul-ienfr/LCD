@@ -1,0 +1,15 @@
+# dash-voyageur — V1 §S3.5 : PWA séjour (lien magique, sans compte).
+# Offline : guide + urgence cache-first (§F8), écritures bornées 1-tap.
+id: dash-voyageur
+version: "1.0.0"
+actif: true
+roles: [voyageur]
+routes: [/voyageur]
+apis:
+  - GET /parc/annonces/
+  - POST /v1/action
+flags: [extras_upsell]
+i18n_prefixe: voyageur.
+route_prefix: /sejour
+lite: true
+offline: true

@@ -1,0 +1,13 @@
+{
+  "comment": "Rôles dashboard connus (§S3.1, liste FERMEE) — 1 login = 1 dashboard. Le chargeur plugins refuse tout rôle hors de cette liste. Mapping acces.yaml : role/sous_role → rôle dashboard (super_admin, admin=sous_role super_admin, gestionnaire (operateur|comptable|dashboard), proprietaire, prestataires, commercial ; voyageur = lien magique sans compte).",
+  "roles": [
+    "super_admin",
+    "admin",
+    "gestionnaire",
+    "comptable",
+    "proprietaire",
+    "prestataire",
+    "commercial",
+    "voyageur"
+  ]
+}

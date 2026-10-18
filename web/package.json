@@ -5,10 +5,12 @@
   "description": "LCD Parc — frontend moderne (hote + voyageur + proprio + commercial) sur passerelle :8443. Progressif : fonctionne sans JS.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/valider-plugins.mjs && next build && node scripts/budget-bundle.mjs",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "valider:plugins": "node scripts/valider-plugins.mjs",
+    "budget": "node scripts/budget-bundle.mjs"
   },
   "dependencies": {
     "next": "16.4.0",

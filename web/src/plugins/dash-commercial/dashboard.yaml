@@ -1,0 +1,17 @@
+# dash-commercial — V8 §S3.5 : pipeline 8 étapes + simulateur + offres.
+# Jamais de prix/coûts ni d'autres clients (403 testé) — périmètre prospects.
+id: dash-commercial
+version: "1.0.0"
+actif: true
+roles: [commercial, super_admin, admin]
+routes: [/commercial]
+apis:
+  - GET /v1/pipeline
+  - POST /v1/prospects
+  - POST /v1/simulateur
+  - POST /v1/offres
+flags: []
+i18n_prefixe: commercial.
+route_prefix: /prospects
+lite: true
+offline: false

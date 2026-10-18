@@ -61,6 +61,9 @@ App `web/` Next.js (build + lint verts) derrière `:8443`. Rôles,
 périmètres, fiches 8 vues : voir §S3.1 + §S3.5 (jamais recopiés ici).
 Exigences communes (auth, langues, marque blanche, offline, budgets) :
 voir §S3.4 (jamais copié ici).
+Plan frontend complet (stack datée, arborescence plugins, chargeur,
+mode dégradé L0-L3, PWA/SW, front box, jalons F1-F6) : `docs/70-front-v1.md`
+seul fait foi (jamais recopié ici).
 
 Spécifique box (seul contenu propre à §T5, budgets : §S3.4) : 5 langues + maternelle auto
 (glossaire + badge). PWA (offline guide + QR fallback), sans-JS OK

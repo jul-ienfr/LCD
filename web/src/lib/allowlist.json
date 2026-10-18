@@ -1,0 +1,37 @@
+{
+  "comment": "Allowlist partagée gateway<>front (DRY) : la gateway (src/lib/gateway.ts) ne relaie QUE ces routes ; les manifestes plugins (src/plugins/*/dashboard.yaml) ne peuvent que la sous-utiliser, jamais l'élargir (§20.2/§20.7). `prefixes` = préfixes stricts avec validation segment unique côté gateway.ts.",
+  "lecture": [
+    "/health",
+    "/ready",
+    "/api/apercu-parc",
+    "/etat-parc",
+    "/calendrier-parc",
+    "/export-ota",
+    "/metrics",
+    "/parc/conflits",
+    "/parc/digest",
+    "/parc/logements",
+    "/parc/annonces",
+    "/parc/entites",
+    "/parc/mandats",
+    "/parc/biens",
+    "/v1/pipeline",
+    "/export-compta",
+    "/v1/config-llm",
+    "/v1/i18n"
+  ],
+  "ecriture": [
+    "/v1/action",
+    "/v1/prospects",
+    "/v1/simulateur",
+    "/v1/offres",
+    "/v1/llm-tester",
+    "/v1/effacement",
+    "/parc/logements",
+    "/parc/conflits/trancher"
+  ],
+  "prefixes": [
+    "/parc/portail/",
+    "/parc/annonces/"
+  ]
+}

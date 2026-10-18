@@ -1,0 +1,15 @@
+# dash-presta — V4 §S3.5 : PWA mission (todos, pointage, photos, clôture).
+# Cache-first terrain ; clôture bloquante sans preuves (409) = gateway.
+id: dash-presta
+version: "1.0.0"
+actif: true
+roles: [prestataire, gestionnaire]
+routes: [/presta]
+apis:
+  - GET /api/apercu-parc
+  - POST /v1/action
+flags: [traca_intervenants, etat_lieux_auto]
+i18n_prefixe: presta.
+route_prefix: /mission
+lite: true
+offline: true

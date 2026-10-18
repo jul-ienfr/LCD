@@ -1,0 +1,27 @@
+{
+  "comment": "Feature-flags autorisés dans les manifestes plugins — miroir de `logements.yaml features` (union log1+log2) + kill-switch global. SYNCHRONISÉ par `scripts/valider-plugins.mjs --sync` : si custom/logements.yaml est accessible (repo CI), toute divergence = KO bloquant. 1 feature = 1 flag (§T1, R3).",
+  "flags": [
+    "smart_lock",
+    "voix",
+    "clim_ir",
+    "extras_upsell",
+    "etat_lieux_auto",
+    "sinistre_auto",
+    "compta_auto",
+    "traca_intervenants",
+    "inventaire_biens",
+    "annuaire_presta",
+    "mode_auto_saison",
+    "events_auto",
+    "memoire_voyageur",
+    "vitrines_gratuites",
+    "guide_vivant",
+    "wallpanel",
+    "qr_pieces",
+    "questionnaire",
+    "avis_j1",
+    "crm_retour",
+    "geoloc_voyageur",
+    "jev_enabled"
+  ]
+}

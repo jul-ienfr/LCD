@@ -1,0 +1,16 @@
+# dash-comptable — V7 §S3.5 : Finances mono-SIREN, exports Chorus/PDP.
+# Jamais d'écriture auto : les gestes passent par /v1/action (humain tracé).
+id: dash-comptable
+version: "1.0.0"
+actif: true
+roles: [comptable, super_admin, admin]
+routes: [/compta]
+apis:
+  - GET /export-compta
+  - GET /parc/entites
+  - POST /v1/action
+flags: [compta_auto]
+i18n_prefixe: comptable.
+route_prefix: /finances
+lite: true
+offline: false

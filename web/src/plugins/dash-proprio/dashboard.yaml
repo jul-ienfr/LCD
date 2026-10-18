@@ -1,0 +1,14 @@
+# dash-proprio — V2 §S3.5 : SES logements seuls, relevé + documents.
+# Lecture seule par construction (portail) ; le mandat prime sur `logements`.
+id: dash-proprio
+version: "1.0.0"
+actif: true
+roles: [proprietaire]
+routes: [/proprio]
+apis:
+  - GET /parc/portail/
+flags: [compta_auto]
+i18n_prefixe: proprio.
+route_prefix: /portail
+lite: true
+offline: false

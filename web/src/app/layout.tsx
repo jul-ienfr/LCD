@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import "./globals.css";
+import "./lite.css";
 import { VoirComme } from "./voir-comme";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -62,10 +63,13 @@ export default async function RootLayout({
   const courant = jar.get("lcd_qui")?.value || "";
   const identifiant = courant ? PERSONNES[courant] || courant : "";
   const theme = jar.get("lcd_theme")?.value || "";
+  // Mode dégradé L1 (§F7) : cookie lcd_lite posé par /api/lite (lien <a> natif,
+  // sans JS) → class html qui neutralise filtres/dégradés dans lite.css.
+  const lite = jar.get("lcd_lite")?.value === "1";
   return (
     <html
       lang="fr"
-      className={`h-full ${theme === "sombre" ? "theme-sombre" : theme === "clair" ? "theme-clair" : ""}`}
+      className={`h-full${lite ? " mode-lite" : ""}${theme === "sombre" ? " theme-sombre" : theme === "clair" ? " theme-clair" : ""}`}
     >
       <body className="flex min-h-full flex-col">
         <a
@@ -179,6 +183,13 @@ export default async function RootLayout({
             </span>
             <span aria-hidden>·</span>
             <span>Fonctionne sans JavaScript — formulaires natifs.</span>
+            {/* Lien <a> natif (sans JS) : bascule mode légère L1 (§F7). */}
+            <a
+              href={`/api/lite?on=${lite ? "0" : "1"}&retour=/`}
+              className="underline underline-offset-2"
+            >
+              {lite ? "Version complète" : "Version légère"}
+            </a>
             <span className="ml-auto">Données : passerelle locale · lecture seule par défaut</span>
           </div>
         </footer>

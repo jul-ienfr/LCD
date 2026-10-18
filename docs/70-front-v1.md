@@ -1,0 +1,279 @@
+# 70 — Frontend v1 (SaaS `web/` + front box + mode dégradé)
+
+> Statut : v1 du 2026-10-18. Nouveau cahier (aucun prédécesseur).
+> Renvois DRY (jamais recopiés, R1) : fiches vues = §S3.5 ; exigences
+> communes = §S3.4 ; login/périmètres = §S3.1 ; contrat plugin = §20.7 ;
+> budgets perf = §S3.4.6 ; box technique (Lovelace, dashboards, stockage
+> preuves) = 50 §T5 ; relais passerelle = 30 §P8.
+> Contrats APIs front : `docs/20-architecture-contrats.md` + YAML réels
+> font foi (R4). Plan-only : 0 touche à `lab/`, `web/`, `custom/*/` —
+> ce cahier est le PLAN, le code suit par jalons §F10.
+> Exigences : REQ-S-007 + REQ-S-008 + REQ-T-005
+> (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md`.
+
+Ce cahier ajoute UNIQUEMENT ce qui n'existe pas encore dans les cahiers
+prédécesseurs : stack 2026 datée + justification, arborescence plugins
+concrète, **mode dégradé L0-L3 (vieux téléphones)**, PWA/service worker,
+front box runtime-agnostique (HA | Moli), ordre de migration. Les 8 fiches
+fonctionnelles restent §S3.5 seul (jamais recopiées ici).
+
+## §F0 Principes front (figés, non négociables)
+
+1. **Serveur d'abord.** Tout contenu ET toute écriture sont rendus SSR ;
+   le JavaScript est une amélioration, jamais une dépendance. Une page qui
+   casse son JS reste utilisable (formulaire natif + navigation).
+2. **Le front n'est jamais la vérité.** RBAC, périmètres, bornes, idempotence
+   = gateway (`:8443`) seule. Le front affiche et relaie, il ne décide pas.
+3. **1 login = 1 dashboard** (§S3.1) ; 1 dashboard = 1 plugin (§20.7). Le
+   cœur (login, layout, lib) ne connaît AUCUN dashboard particulier.
+4. **0 dépendance client superflue.** 0 librairie UI, 0 store client, 0 CDN
+   externe, 0 police distante bloquante, 0 analytics. Budget : JS <200 Ko/page
+   (§S3.4.6). Réévaluer une lib UNIQUEMENT si 2 jalons consécutifs ratent le
+   budget sans autre remède — jamais par confort.
+5. **Défaut = dégradé.** Toute fonction est recettée à 3 niveaux : JS off,
+   CSS lite, écran 320 px. L'échelle L0-L3 (§F7) fait foi.
+6. **Marque blanche** : toute chaîne vient de `i18n` (§F3) ou
+   `branding.yaml`. 0 fuite « LCD / stack / IP » côté voyageur/presta/proprio
+   (batterie grep 0 fuite, §S3.4.3).
+7. **0 secret côté client.** Jamais de PIN complet, jamais de clé, jamais
+   d'`Authorization` dans le navigateur. Cookie de session httpOnly signé,
+   tout relais serveur via allowlist fermée (`src/lib/gateway.ts`).
+
+## §F1 État réel front (relevé 2026-10-18, 0 code changé)
+
+`web/` : Next.js 16.4 (App Router, `cacheComponents`, Turbopack,
+`output: standalone`) + React 19.3 (`useActionState`) + Tailwind 4 (tokens
+sémantiques dark/light) + TypeScript 5 + Vitest 3 + ESLint 9. Node 24 LTS,
+image Docker standalone ~281 Mo, `deploy/` Caddy `lcd.test` TLS.
+
+Prouvé : fonctionne sans JS (formulaires `<form action>` natifs → Server
+Actions), i18n ×5 (`?lang=`), thème cookie, voir-comme, batterie
+`deploy/test-front.ps1` 23 verifs câblée `lab-run` 5/5, écriture 1-tap
+idempotente via Caddy.
+
+Pages plates actuelles : `/` (landing), `/login`, `/hote`, `/planning`,
+`/prix`, `/compta`, `/presta`, `/onboarding`, `/voyageur`, `/proprio`,
+`/commercial`, `/aide`, `/legales`, 404/erreur brandées.
+
+Lacunes vs cible (ce que ce cahier planifie) : aucun chargeur plugin ; pas
+d'IdP réel (cookie `lcd_qui` = mode lab) ; PWA = manifest seul, **0 service
+worker** ; pas de version lite ; dashboards `super`/`admin` (`/systeme`,
+secrets, journal voir-comme, recherche par `ref`) absents ; tickets support +
+messagerie 3 fils (§P8) absents.
+
+## §F2 Stack cible — choix datés fin octobre 2026
+
+| Couche | Choix | Pourquoi (borné) |
+|---|---|---|
+| Framework | Next.js 16 App Router + RSC + Server Actions | Déjà posé, build vert ; SSR à la requête = socle sans-JS et offline ; self-host `standalone` 0 € comme Vercel |
+| UI | React 19.3 rendu SERVEUR ; `useActionState` seul hook client | Islands minimales ; aucun runtime client pour lire/écrire |
+| Styles | Tailwind 4 (tokens `@theme`) + CSS sémantique maison (`.carte`, `.bouton`) | Déjà posé ; 0 lib UI (shadcn/Radix écartés : runtime client + budget) |
+| Language | TypeScript 5 strict | Contrats typed sur l'allowlist gateway |
+| Tests | Vitest 3 (unit) + batterie `test-front.ps1` (SSR) + validateur plugins | 0 € ; la batterie SSR prouve le sans-JS, seul test qui compte ici |
+| i18n | dictionnaires maison FR/EN/ES/IT/DE (`?lang > profil > Accept-Language > fr`) | 5 plats = next-intl inutile ; rendu serveur, 0 clé manquante en CI |
+| PWA | manifest (existant) + **service worker maison ~150 lignes** | Périmètre réduit (2 dashboards) ; Serwist/Workbox écartés (dépendance pour 2 routes) — à réévaluer si périmètre SW >4 routes |
+| Box front | Lovelace YAML (HA) + `:8060` stdlib HTML + kiosk QR (§F6) | Runtime-agnostique via moteurs, jamais d'API HA/Moli en dur |
+| Hébergement | P1 Vercel Hobby → P2/P3 self-host `next start` (§S4) | Bascule = `LCD_GATEWAY_URL` + 1 bloc Caddy, 0 réécriture |
+
+Options écartées et pourquoi (revue tranchée à la 1ʳᵉ revue de budget) :
+
+- **SPA React/Vite** : sans-JS impossible, SSR absent → mort pour le voyageur
+  et les vieux téléphones. Écarté définitivement.
+- **Astro** : islands intéressantes, mais double runtime (Node+build) et
+  migration sans gain sur un socle Next déjà vert. Écarté.
+- **HTMX/Unpoly** : excellent pour le sans-JS, écosystème et périmètre
+  limités, migration totale. Écarté ; reste la porte si le budget JS <200 Ko
+  n'est jamais tenu (pile serveur déjà prête).
+- **Nuxt/SvelteKit** : réécriture 100 % pour 0 exigence. Écarté.
+- **Serwist/Workbox, next-intl, TanStack Query, Redux/Zustand, Radix** :
+  0 € ne veut pas dire « on ajoute » — chaque dépendance doit lever une
+  contrainte réelle (§F0.4). Non retenues en v1.
+
+## §F3 Arborescence + contrat plugin côté front
+
+```text
+web/src/
+  app/                     # CŒUR (jamais par plugin) : layout, login,
+                           #   voir-comme, theme-toggle, error, not-found,
+                           #   legales, aide, api/compta (route handler)
+  lib/                     # CŒUR : gateway.ts (allowlist), i18n.ts, langue.ts
+  plugins/
+    dash-operateur/
+      dashboard.yaml       # manifeste (contrat §20.7 + extensions front)
+      page.tsx             # une route = un dossier route Next dérivé
+      composants/*.tsx
+      i18n/{fr,en,es,it,de}.ts
+    dash-voyageur/ ...
+    dash-presta/ ...
+    dash-proprio/ ...
+    dash-comptable/ ...
+    dash-commercial/ ...
+    dash-super/ ...
+    dash-admin/ ...
+  scripts/
+    valider-plugins.mjs    # chargeur strict exécuté en CI + au boot prod
+```
+
+Manifeste = contrat §20.7 **+ 3 clés front propres** : `route_prefix`
+(`/(plugins)/<id>`), `lite: true|false` (dashboard recetté en L1, §F7),
+`offline: true|false` (droit à un handler SW, §F8).
+
+Chargeur strict (`valider-plugins.mjs`, refus + log, jamais de
+demi-chargement — §S3.2) vérifie au build ET au démarrage prod :
+
+1. `id` ∈ liste fermée des 8 ; `version` semver ; `roles` ∈ `acces.yaml`.
+2. `routes` ⊆ routes Next existantes du plugin ; 1 route = 1 plugin max.
+3. `apis` ⊆ allowlist globale (`20 §20.2` + `src/lib/gateway.ts`) — le
+   plugin ne peut pas élargir l'allowlist, seulement la sous-utiliser.
+4. `flags` ∈ `logements.yaml` (features réelles) ; flag absent = plugin
+   rendu 404 + entrée journal, jamais d'erreur muette.
+5. `i18n_prefixe` : 0 clé manquante sur 5 langues (CI bloquant).
+6. Aucune chaîne hors dictionnaire ni `{{marque}}` en dur (grep 0 fuite).
+
+Migration : chaque page actuelle devient 1 plugin par tranche (§F10), sans
+changement d'URL public (redirect 301 si besoin). Le cœur `app/` perd les
+pages à mesure.
+
+## §F4 Cartographie — 8 dashboards (fiches : §S3.5 seul)
+
+| Plugin | Routes (cible) | État | Jalons |
+|---|---|---|
+| `dash-operateur` | `/hote`, `/planning`, `/prix`, `/onboarding` | existants (4 pages) | migration F2 |
+| `dash-voyageur` | `/voyageur` (+PWA `/s/<token>`) | existant | F2 + F4 (SW) |
+| `dash-presta` | `/presta` (+PWA mission) | existant | F2 + F4 (SW) |
+| `dash-proprio` | `/proprio` | existant | F2 |
+| `dash-comptable` | `/compta` | existant | F2 |
+| `dash-commercial` | `/commercial` | existant | F2 |
+| `dash-super` | `/systeme`, `/journal`, `/secrets`, recherche `ref` | **à créer** | F5 |
+| `dash-admin` | `/supervision` (système sans secrets), voir-comme tracé | **à créer** | F5 |
+
+Transverse (cœur, jamais plugin) : landing `/`, `/login` (IdP), `/aide`,
+`/legales`, 404/erreur, tickets support + messagerie 3 fils (§P8) — créés
+avec F5, utilisés par tous les plugins autorisés via composants cœur.
+
+Voir-comme (§S3.3) reste dans le cœur layout (bandeau permanent + journal
+90 j). La gateway simule toujours `{qui_reel, vu_comme}` ; jamais de secret
+simulé, même super_admin (§S3.5-V5).
+
+## §F5 Sessions — du cookie lab à l'IdP
+
+| Phase | Session | Note |
+|---|---|---|
+| P1 (actuel) | cookie `lcd_qui` signé httpOnly + CSRF token | Mode lab/vitrine ; 2FA absente assumée |
+| P2/P3 | **IdP réel** (Authelia ~50 Mo d'abord, Authentik au seuil §S4) via `forward_auth` Caddy | Session gérée IdP ; le front lit le sujet + rôle ; 2FA staff obligatoire (§S3.1) |
+| Tous | expiration + révocation 1-tap + liste des sessions actives (§P9) | `POST /v1/acces-revoquer` côté gateway |
+
+Bascule testable : même front, 1 bloc Caddy + 1 variable. Jamais de
+persistance d'identité côté client au-delà du cookie signé.
+
+## §F6 Front box — 3 surfaces, runtime-agnostique (HA | Moli)
+
+Principe : **aucune fonction obligatoire ne dépend d'une UI box.** Box down
+→ SaaS (online) ; SaaS/plane down → box locale (§S2). Les moteurs sont la
+seule interface — jamais d'API HA/Moli dans un composant front (ADR-007).
+
+| Surface | Portée | Stack | Existant | Cible |
+|---|---|---|---|---|
+| Dashboards Lovelace (hôte 7 onglets, ménage 3 onglets, système) | Opérateur/ménage SUR PLACE, LAN | YAML versionné, `visibility:` par flag, switcher `logement_actif`, bandeau offline (§T5) | log1 + log2 posés | Inchangé ; tests box + recette offline 2 h. **Uniquement runtime `ha`** |
+| `dashboard-hote` `:8060` | Supervision parc, TOUS runtimes | stdlib Python, HTML unique sans JS, refresh 120 s, lecture seule (`qui=dashboard_hote`) | lab | Étendu : agrégation état runtime (HA ou Moli via adaptateur), bandeau `last_seen`, pinces de secours lecture |
+| Kiosk guest + QR | Voyageur sur place | WallPanel (HA) + QR backup → PWA `/voyageur` (§F8) | packages `guest`/`wallpanel` | Runtime `moli` = pas de WallPanel : QR → PWA SaaS + SMS. Aucune réécriture moteur |
+
+Règle box ajoutée (alignée §T5) : 1 tablette/ancien téléphone de kiosk peut
+tourner en L1 (§F7) — la page kiosk est du HTML simple, sans compte, sans
+donnée perso à l'écran, purgée au checkout.
+
+Recette box (inchangée §T5 + 1 ligne) : mobile + offline 2 h + séjour
+témoin zéro-touch ; sur `runtime: moli`, revérifier la même recette via
+`:8060` + PWA (jamais via Lovelace).
+
+## §F7 Mode dégradé — échelle L0-L3 (vieux téléphones, REQ-S-008)
+
+| Niveau | Profil réel | Capacités | Front garanti |
+|---|---|---|---|
+| **L3** | Smartphone 2019+ (iOS 15+/Android 9+) | SW, ES2020, grid, AVIF | Tout : PWA installable, offline 2 h, thème, animations, caméra EDL |
+| **L2** | 2014-2018 (iOS 12/Android 7, Chrome ~70) | JS partiel, SW instable | Tout SAUF offline installé : SSR + formulaires natifs + JS améliore |
+| **L1** | Vieux bas de gamme / navigateur lite (Chrome 40+, UC Mini, Opera Mini standard) | HTML + flex partiel, JS cassé | **Version lite** : `?lite=1` (cookie) → `lite.css` (0 backdrop-filter, 0 grille auto, blocs empilés, icônes = texte), formulaires natifs, tout en lecture/écriture |
+| **L0** | Sans smartphone viable, sans JS du tout | — | **SMS + kit papier + humain 8h-22h** (fiche §S3.5-V1, jamais redécrit ici) |
+
+Règles techniques opposables (batterie dégradée, §F9) :
+
+1. Aucune tâche voyageur n'exige JS (déjà vrai : gardé par battery).
+   Lecture guide/urgence/Wi-Fi = HTML dans le premier octet utile.
+2. CSS : valeurs de repli avant `var()` ; `@supports` pour grid/backdrop ;
+   pas de `:has()` ni container queries dans le chemin critique ; 320 px
+   sans défilement horizontal ; cibles tactiles ≥44 px.
+3. Polices : stack système (jamais de `@font-face` bloquant) ; `Inter`
+   optionnelle non référencée en L1.
+4. Images : `<picture>` AVIF → WebP → JPEG ; `width/height` obligatoires ;
+   lazy sans JS = chargement natif seulement (`loading=lazy`, 0 observer).
+5. JS cassé/inexistant = dégradation silencieuse vers le sans-JS : zéro
+   `try/catch` global requis, zéro écran blanc. Testé par batterie.
+6. Minimum presta : **L2** (smartphone récent exigé au contrat presta,
+   photos AVANT/APRÈS §S3.5-V4 — hors L2 = mission non assignable, jamais
+   de clôture sans preuve). Voyageur : L0 garanti par SMS/papier.
+7. Voix BYOD (§T4) : nécessite un navigateur STT du téléphone ; sans ça =
+   texte écrit, jamais bloquant (le canal messagerie reste ouvert).
+
+## §F8 PWA + offline (dash-voyageur, dash-presta)
+
+- **Service worker maison** (1 fichier statique, ~150 lignes, versionné) :
+  précache du shell + guide + urgence ; stratégie network-first pour les
+  données, cache-first pour les assets hashés ; 0 framework.
+- **Offline 2 h** (§S3.4.4) : guide, WiFi, horaires, urgences lisibles sans
+  WAN ; écritures voyageur/presta en **outbox locale** (IndexedDB, file par
+  `ref` idempotente) + sync auto au retour réseau ; conflit = humain seul.
+- **Purge** : à checkout +12 h (révocation lien magique §S3.5-V1) le SW
+  supprime ses caches ; quota stockage affiché au presta ; photos EDL =
+  quota 5 Go/logement box, eviction oldest-first (§T5, jamais dupliqué).
+- Box down → SaaS cache stale + `last_seen` + bandeau (§S2) ; plane down →
+  box locale autonome. Le SW ne ment jamais : bandeau « hors ligne » dès
+  `!navigator.onLine`, données horodatées affichées telles quelles.
+- Recette : offline 2 h réelle (mode avion) sur séjour témoin + batterie
+  lab dédiée ; 0 écriture perdue en 3 allers-retours réseau.
+
+## §F9 Performance, a11y, batteries
+
+Budgets (§S3.4.6 seul fait foi) : LCP <2,5 s, JS <200 Ko/page, offline
+<1 s, images <150 Ko. Ajouts front : rapport de bundle en CI (`next build`
++ taille page échoue si budget dépassé), 0 requête tierce au chargement.
+
+Batterie dégradée (extension `test-front.ps1`, 0 outil payant) :
+
+- HTML rendu sans JS (existant) + **POST natif complet sur 1 écriture par
+  plugin** (login, action 1-tap, incident, départ, mission).
+- Validation plugin : manifeste invalide = build KO (chargeur §F3).
+- `?lite=1` : page rendue sans classe `backdrop` ni grille critique.
+- SW : présent, versionné, purge à révocation (test lab).
+- 403/404 anti-énumération + 422 sans `entite_id` (existant, étendu 8 plugins).
+- Grep 0 fuite marque/stack (§F0.6).
+
+Matrice matérielle (budget ~40 €, 1 fois) : 2 appareils réels d'occasion —
+Android 6 (~25 €) + iPhone SE 1 (~15 €) — parcourus manuellement à chaque
+phase DoD (démo + écriture + offline), + simulateurs Chrome. Aucun
+navigateur payant, aucun device cloud.
+
+A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
+`prefers-reduced-motion`, skip-link, tests clavier sur les 8 plugins.
+
+## §F10 Jalons F1→F6 (DoD : 60 §60.4 seul, jamais recopié)
+
+| Jalon | Contenu | Durée estimée (temps partiel, 1 pers.) | Gate |
+|---|---|---|---|
+| **F1 socle** | Arborescence `plugins/`, chargeur + validateur, `lite.css`, rapport bundle CI, batteries dégradées v1 | ~4 j | build vert + validateur KO sur manifeste piégé |
+| **F2 migration 6 plugins** | dossiers existants → plugins (URLs stables), i18n préfixée, grep fuite | ~5 j | `test-front.ps1` étendu vert (23 → ≥35 verifs) |
+| **F3 IdP** | `forward_auth` + 2FA staff + révocations (§F5) | ~3 j | login IdP + lab sans IdP inchangé |
+| **F4 PWA** | SW maison + outbox + purge révocation + recette offline 2 h | ~4 j | offline 2 h sur séjour témoin, 0 écriture perdue |
+| **F5 dash-super/admin** | `/systeme`, secrets rotation super seul, journal voir-comme 90 j, recherche par `ref`, tickets + messagerie 3 fils (§P8) | ~6 j | batteries V5/V6 (secrets jamais simulés, 403 admin secrets) |
+| **F6 front box** | `:8060` étendu (état runtime HA\|Moli), kiosk L1, recette box HA + Moli | ~3 j | recette box offline 2 h sur les 2 runtimes |
+
+Ordre strict F1→F6 ; un jalon non DoD = suivant bloqué. Chaque jalon = 1
+tag `plan-vX.Y` + ligne changelog (R6). Est borné, jamais promis : re-calé à
+chaque revue mensuelle.
+
+## Traçabilité REQ
+
+| ID | Exigence | Batterie |
+|---|---|---|
+| REQ-S-007 | Front SaaS : chargeur plugin strict (§20.7 front) + cœur sans connaissance de dashboard + session réelle (IdP 2FA staff) | validateur manifeste KO + 403 admin sur secrets |
+| REQ-S-008 | Mode dégradé L0-L3 : sans-JS complet, `?lite=1`, matrice appareils réels, voyageur L0 = SMS/papier | batterie dégradée §F9 + 2 appareils réels parcourus |
+| REQ-T-005 | Front box runtime-agnostique : Lovelace (HA seul) + `:8060` (HA\|Moli) + kiosk QR, 0 fonction obligatoire dépendante d'une UI box | recette box offline 2 h sur HA ET Moli |

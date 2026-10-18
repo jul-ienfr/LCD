@@ -1,0 +1,23 @@
+# dash-operateur — V3 §S3.5 : gestionnaire quotidien (14 actions 1-tap).
+# Cœur : /hote (KPIs+actions), /planning (grille+conflits), /prix (1-tap),
+# /onboarding (§L3). Route migrée par plugin en F2 (URLs stables).
+id: dash-operateur
+version: "1.0.0"
+actif: true
+roles: [super_admin, admin, gestionnaire]
+routes: [/hote, /planning, /prix, /onboarding]
+apis:
+  - GET /etat-parc
+  - GET /calendrier-parc
+  - GET /parc/conflits
+  - GET /parc/annonces
+  - GET /parc/logements
+  - GET /api/apercu-parc
+  - POST /v1/action
+  - POST /parc/conflits/trancher
+  - POST /parc/logements
+flags: []
+i18n_prefixe: operateur.
+route_prefix: /operateur
+lite: true
+offline: false
