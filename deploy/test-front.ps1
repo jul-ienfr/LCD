@@ -81,6 +81,30 @@ Verif "i18n de prix"     ((corps "/prix?lang=de" $null) -match "Preisraster")
 $v = corps "/voyageur" $null
 Verif "voyageur : guide annonce" ($v -match "17:00")
 
+# 10. RBAC negatif (la verite est la gw, pas le cookie du front) :
+#     - personne_03 (operateur) cree un logement -> REFUSE (403 admin-only)
+#     - trancher avec choix invalide -> 400 (validation)
+$GW = if ($env:GW) { $env:GW.TrimEnd("/") } else { "http://127.0.0.1:8443" }
+try {
+    $h = (curl.exe -s -m 8 "$GW/health") -join " "
+    if ($h -match "ok") {
+        # JSON envoye via fichier temp : le quoting inline pwsh->curl corrompt
+        # les corps JSON (lecon repetee) ; via @fichier, la gw lit bene.
+        $tmpj = Join-Path $env:TEMP ("lcd-bat-" + [guid]::NewGuid().ToString("N") + ".json")
+        [IO.File]::WriteAllText($tmpj, '{"logement_id":"logBATT","qui":"personne_03","data":{"nom":"BATT","commune":"X","capacite":"2","surface_m2":"1","smart_lock":"false","voix":"false"}}', [Text.UTF8Encoding]::new($false))
+        $cpost = curl.exe -s -o NUL -w "%{http_code}" -m 15 -X POST -H "content-type: application/json" --data-binary "@$tmpj" "$GW/parc/logements"
+        Verif "RBAC : operateur refuse creation (403)" ($cpost -eq "403")
+        [IO.File]::WriteAllText($tmpj, '{"qui":"personne_01","box_id":"box-lab","logement_id":"log1","date":"2026-01-01","choix":"invalide","motif":"batterie"}', [Text.UTF8Encoding]::new($false))
+        $tpost = curl.exe -s -o NUL -w "%{http_code}" -m 15 -X POST -H "content-type: application/json" --data-binary "@$tmpj" "$GW/parc/conflits/trancher"
+        Verif "RBAC : choix invalide refuse (400)" ($tpost -eq "400")
+        Remove-Item $tmpj -ErrorAction SilentlyContinue
+    } else {
+        Write-Output "NOTE gateway ($GW) injoignable : tests RBAC negatifs sautes."
+    }
+} catch {
+    Write-Output "NOTE gateway injoignable : tests RBAC negatifs sautes."
+}
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO
