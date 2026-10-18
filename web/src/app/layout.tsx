@@ -166,7 +166,10 @@ export default async function RootLayout({
             </div>
           </nav>
         </header>
-        <main id="contenu" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+        <a href="#contenu" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-(--surface) focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-(--encre) focus:shadow-md">
+          Sauter au contenu
+        </a>
+        <main id="contenu" tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
           {children}
         </main>
         <footer className="border-t border-[var(--bordure)] px-4 py-5">
