@@ -333,11 +333,37 @@ def main():
     eq97 = {"type": "lcd_j2_envoi_acces", "logement_id": "log1",
             "qui": "personne_01", "ref": "LAB-RT97", "data": {"langue": "fr"}}
     c, r97 = _post_json("http://127.0.0.1:8280/event", eq97)
-    check("97 : event moli log1 = 202 loge_sans_ha + runtime moli (bus "
-          "events = canal HA, v0 exemple jamais push silencieux)",
+    check("97 : event moli log1 = 202 relais_moli (T-11 : l'event passe "
+          "le contrat la box, jamais silencieux)",
           c == 202 and isinstance(r97, dict)
           and r97.get("runtime") == "moli"
-          and r97.get("statut") == "loge_sans_ha", f"HTTP {c} {r97}")
+          and r97.get("statut") == "relais_moli"
+          and r97.get("point") == "maison:evenements/value"
+          and r97.get("pin_transmis") is False, f"HTTP {c} {r97}")
+    c, d_ev97 = _get_json(MOLI_URL + "/api/devices/maison:evenements")
+    val_ev97 = ((d_ev97 or {}).get("state") or {}).get("value", {}).get("value")
+    check("97 : box moli refleche l'event (helper evenements = trace "
+          "type|logement|ref|qui — JAMAIS le message ni le PIN)",
+          c == 200 and isinstance(val_ev97, str)
+          and val_ev97.startswith("lcd_j2_envoi_acces|log1|LAB-RT97|"
+                                  "personne_01")
+          and "pin" not in val_ev97.lower(),
+          f"HTTP {c} val={val_ev97!r}")
+    j_ev97 = _moli_journal(30)
+    check("97 : journal moli garde le relais (origin api, point "
+          "maison:evenements/value, actor = qui avec role)",
+          isinstance(j_ev97, list) and any(
+              e.get("point") == "maison:evenements/value"
+              and e.get("origin") == "api"
+              and str(e.get("actor") or "").startswith("personne_01")
+              for e in j_ev97),
+          f"n={len(j_ev97)}")
+    eq97x = {"type": "lcd_event_inconnu", "logement_id": "log1",
+             "qui": "personne_01", "ref": "LAB-RT97X"}
+    c, r97x = _post_json("http://127.0.0.1:8280/event", eq97x)
+    check("97 : event type INCONNU = 400 (TYPES_EVENT fermé, jamais "
+          "silencieux)",
+          c == 400, f"HTTP {c} {r97x}")
 
     print("== 98. multi-box P3 : box Moli NORD 8791 + decision-nord :8192 "
           "(log3 runtime moli = 1 logement = 1 box) ==")
@@ -377,14 +403,38 @@ def main():
           and any(e.get("origin") == "api"
                   and e.get("actor") == "decision-engine"
                   for e in jn), f"n={len(jn)}")
+    eq98 = {"type": "lcd_j1_rappel", "logement_id": "log3",
+            "qui": "personne_01", "ref": "LAB-RT98", "data": {"langue": "fr"}}
+    c, r98 = _post_json("http://127.0.0.1:8192/event", eq98)
+    check("98 : event nord log3 = 202 relais_moli sur SA box (même "
+          "contrat, box séparée)",
+          c == 202 and isinstance(r98, dict)
+          and r98.get("statut") == "relais_moli"
+          and r98.get("point") == "maison:evenements/value",
+          f"HTTP {c} {r98}")
+    c, d_ev98 = _get_json(MOLI_NORD_URL + "/api/devices/maison:evenements")
+    val_ev98 = ((d_ev98 or {}).get("state") or {}).get("value", {}).get("value")
+    check("98 : la box NORD refleche l'event log3 (isolation : pas la "
+          "box lab)",
+          c == 200 and isinstance(val_ev98, str)
+          and val_ev98.startswith("lcd_j1_rappel|log3|LAB-RT98|personne_01")
+          and "pin" not in val_ev98.lower(),
+          f"HTTP {c} val={val_ev98!r}")
     c, jlab = _get_json(MOLI_URL + "/api/journal?limit=60")
     p_lab_moli = {((e.get("action") or {}).get("point"))
                   for e in (jlab if isinstance(jlab, list) else [])
-                  if e.get("actor") == "decision-engine"}
+                  if ((e.get("action") or {}).get("point") or "")
+                  .startswith("maison:")}
+    traces_lab = " ".join(
+        str(((e.get("action") or {}).get("value") or ""))
+        for e in (jlab if isinstance(jlab, list) else []))
     check("98 : isolation : la box du lab n'a AUCUN point de decision-nord "
-          "(p Dans lab = {maison:config_ok/on} SEUL)",
+          "(trace lab = config_ok + evenements, JAMAIS log3/nord/LAB-RT98)",
           isinstance(jlab, list)
-          and p_lab_moli <= {"maison:config_ok/on"},
+          and "maison:evenements/value" in p_lab_moli
+          and not any(p.endswith("log3") or "log3" in str(p)
+                      for p in p_lab_moli)
+          and "LAB-RT98" not in traces_lab,
           f"lab points={sorted(p_lab_moli)}")
     c, dn = _get_json("http://127.0.0.1:8192/health")
     check("98 : decision-nord health = 200 (même API, runtime mixte "

@@ -291,6 +291,28 @@ class RuntimeAdapter:
             return refus(self.name, f"{objet}: hors mapping runtime-box")
         return self.backend.commande(pt, value, actor)
 
+    def evenement(self, type_event: str, ref: str, qui: str,
+                  logement: str) -> dict:
+        """T-11 (ADR-007) : un event lcd_* vers LE runtime du logement.
+        - moli : trace compacte `type|logement|ref|qui` sur le helper
+          `evenements` (value text <=4000, point moteur hors pièce
+          protégée) => journal box origin=api actor=<qui>. JAMAIS le
+          message composé ni le PIN (le texte de message reste canal
+          message, P2+ : automatisation humaine sur la box).
+        - ha : pas ici — l'event HA reste le pattern historique
+          POST /api/events/<type> géré par le moteur (canal inchangé) ;
+          l'appel sur un adaptateur ha = refus local, 0 réseau."""
+        if self.name != "moli":
+            return {"backend": self.name, "status": "refuse",
+                    "erreur": "evenement: runtime ha géré par le moteur "
+                              "(POST /api/events/<type>)"}
+        pt = self.points.get("lcd_events")
+        if not pt:
+            return refus(self.name, "lcd_events: hors mapping runtime-box "
+                                    "(helper `evenements` attendu)")
+        trace = f"{type_event}|{logement}|{ref or '-'}|{qui or '-'}"
+        return self.backend.commande(pt, trace, qui or "decision-engine")
+
     def journal(self, objet: str | None = None, limit: int = 25) -> list:
         if self.name == "ha":
             pts = [self.points[objet]] if objet and objet in self.points \

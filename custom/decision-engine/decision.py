@@ -1836,22 +1836,34 @@ class Moteur:
             return 403, {"statut": "bloque",
                          "motif": "copro.verifiee=false : mise en ligne BLOQUÉE"}
         if self.runtime_de(logement_id) == "moli":
-            # ADR-007 v0 : le bus d'événements lcd_* est un canal HA
-            # (blueprints). Runtime moli = l'ordre est TRACE et RENDU à
-            # l'appelant (202, jamais un push silencieux vers HA) —
-            # messages/automatisations par runtime moli = P2+ (à évaluer).
-            langue_d = str((data or {}).get("langue") or "fr")
+            # T-11 (ADR-007) : l'event passe le contrat adaptateur vers LA
+            # box du logement (helper `evenements`, trace compacte
+            # type|logement|ref|qui — JAMAIS le message ni le PIN : le
+            # canal message box = P2+, automatisation humaine). Mapping
+            # absent/box muette = 202 loge_sans_ha loggé — jamais
+            # silencieux.
+            ad_ev = self._adaptateur_moli()
+            ok_box, info_ev = False, "adaptateur moli absent"
+            if ad_ev:
+                res_ev = ad_ev.evenement(type_event, ref, qui, logement_id)
+                ok_box = res_ev.get("status") in ("ok", "retenu")
+                info_ev = res_ev.get("point") or "?"
+                if not ok_box:
+                    info_ev = json.dumps(res_ev, ensure_ascii=False)[:200]
             self.log_decision(logement_id, ref or type_event, qui, "acces",
                               None, None,
-                              f"event {type_event} NON EMIS : runtime moli "
-                              "v0 (état seul ; events = canal HA)")
-            return 202, {"statut": "loge_sans_ha", "runtime": "moli",
-                         "type": type_event, "ha": "runtime_moli_v0",
-                         "langue": langue_d,
-                         "pin_transmis": False,
-                         "contrat_signe": None,
-                         "gabarit_trouve": False,
-                         "message_longueur": 0}
+                              f"event {type_event} relais moli : "
+                              + ("OK" if ok_box else f"non emis ({info_ev})"))
+            return 202, {"statut": "relais_moli" if ok_box
+                          else "loge_sans_ha",
+                          "runtime": "moli", "type": type_event,
+                          "point": info_ev if ok_box else None,
+                          "ha": "runtime_moli_t11",
+                          "langue": str((data or {}).get("langue") or "fr"),
+                          "pin_transmis": False,
+                          "contrat_signe": None,
+                          "gabarit_trouve": False,
+                          "message_longueur": 0}
         data = dict(data or {})
         # Defaults statiques P6-9-bis : branding + identité logement complètent
         # les trous ics-sync/QloApps (marque/adresse/tel/liens). Données

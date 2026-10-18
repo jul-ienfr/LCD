@@ -11,6 +11,7 @@ RuntimeAdapter.backend_name   # "ha" | "moli"
 .health()                                      -> {backend, ok, version|None}
 .etat(objet_logique)                           -> {backend, point, value, ts}
 .commande(objet_logique, value, actor)         -> {backend, point, value, status: ok|retenu|refuse[, pending, code, erreur]}
+.evenement(type_event, ref, qui, logement)     -> {backend, point, value, status}   # T-11 : moli SEUL
 .journal(objet_logique|None, limit)            -> [{ts, point, kind, value, decision|None, origin, actor}]
 ```
 
@@ -34,8 +35,32 @@ RuntimeAdapter.backend_name   # "ha" | "moli"
   **de lab** (0 secret : HA = JWT forgé jetable, Moli = PIN FAUX) ;
   version réelle : mapping par box montée depuis le repo privé, jetons
   depuis le vault (P2+, jamais de clé ici).
-- Batterie : `lab/tests_runtime.py` (32/32 OK ; socle lab + profil
+- Batterie : `lab/tests_runtime.py` (38/38 OK ; socle lab + profil
   `moli` nécessaires, cycle frais `down -v` puis `up`).
+
+## T-11 : événements lcd_* = relais box (ADR-007)
+
+Les events `lcd_*` (J-2 / J-1 / checkout / avis J+1) sont le CANAL HA au
+socle (blueprints). Sur un logement runtime `moli`, l'adaptateur expose
+`evenement()` : la box reçoit sur le helper **`evenements`** (kind
+`text`, point `maison:evenements/value`, Moli MAX_TEXT=4000) la trace
+compacte `type|logement|ref|qui` :
+
+- le relais est journalisé par la box elle-même (`origin=api`,
+  `actor=<qui>` avec le rôle) — jamais silencieux ;
+- **JAMAIS le message composé ni le PIN** vers la box : le canal message
+  (gabarit → texte voyageur) reste P2+ — via les automatisations de la
+  box (draft → Dry-run → empreinte humaine). v1 = relais trace +
+  écho helper SEUL ;
+- HA backend : `evenement()` refuse localement — l'event HA garde son
+  pattern historique `POST /api/events/<type>` géré par le moteur.
+
+Opération : le seed du helper vivant dans `/data/moli.toml` est écrit
+par un bootstrap one-shot (`moli-bootstrap*`) — **un contenu bind-mount
+changeant ne recrée pas ce conteneur** : après toute modification du
+moli.toml, `docker compose --profile moli up -d --force-recreate
+moli-bootstrap moli-bootstrap-nord` puis `restart moli-box
+moli-box-nord` (sinon la box tourne l'ancien seed : helper absent 404).
 
 ## Prouvé 2026-10-17 (lab, cycle frais ex-9 vert)
 

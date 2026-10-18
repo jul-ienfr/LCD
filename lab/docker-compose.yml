@@ -617,7 +617,7 @@ services:
       LCD_RUNTIME: "auto"
       LCD_MOLI_URL: "http://moli-box-nord:8790"
       LCD_MOLI_PIN: "246810"
-      LCD_RUNTIME_MAP: '{"log3_config_ok":"maison:config_ok/on"}'
+      LCD_RUNTIME_MAP: '{"log3_config_ok":"maison:config_ok/on","lcd_events":"maison:evenements/value"}'
       # Pas de LCD_HA_URL nord : une box n'a qu'un runtime (log3 = Moli).
     volumes:
       - decision-nord-state:/opt/lcd/state
@@ -679,7 +679,7 @@ services:
       LCD_MOLI_URL: "http://moli-box:8790"
       LCD_MOLI_PIN: "246810"
       # Runtime moli : mapping objet_logique -> point natif (log1 SEUL).
-      LCD_RUNTIME_MAP: '{"log1_config_ok":"maison:config_ok/on"}'
+      LCD_RUNTIME_MAP: '{"log1_config_ok":"maison:config_ok/on","lcd_events":"maison:evenements/value"}'
       # Runtime ha (log2/logtmp, défaut) : HA virtuelle + JWT forgé lab
       # (mêmes valeurs FAUSSES jetables que ha-bootstrap/tests_lab.py).
       LCD_HA_URL: "http://homeassistant:8123"

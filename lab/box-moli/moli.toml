@@ -118,6 +118,17 @@ name = "Config OK (SaaS)"
 kind = "switch"
 initial = false
 
+[[driver.options.helper]]
+# T-11 ADR-007 : relais d'événements lcd_* vers la box (adaptateur
+# runtime-box `evenement()`) — valeur = trace compacte
+# "type|logement|ref|qui" JAMAIS le message ni le PIN (PIN jamais en
+# clair côté box : canal message = P2+, automatisation humaine).
+# HORS pièce protégée : point moteur, pas d'ordre humain.
+id = "evenements"
+name = "Evenements SaaS (lcd_*)"
+kind = "text"
+initial = ""
+
 [[fixture]]
 id = "suspensions"
 name = "Suspensions"

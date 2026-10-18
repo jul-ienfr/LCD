@@ -73,9 +73,10 @@ Au boot (`--check`) le MÊME moteur pousse : log1 → box Moli (helper
 entité canonique `input_boolean.log2_copro_verifiee` flippée via
 `/api/services` — sensor template se dérive seul) ;
 logtmp hors mapping = refus LOCAL loggé, 0 réseau. Battery :
-`tests_runtime.py` (**32/32 OK** checks §90-98, cycle frais 2026-10-17 :
+`tests_runtime.py` (**37/37 OK** checks §90-98, cycle frais 2026-10-17 :
 formes HA/Moli identiques + E2E moteur + un moteur sur les 2 box +
-events moli = 202 tracé + BOX MOLI NORD multi-box).
+**T-11 relais des événements lcd_*** (helper `evenements` = trace
+compacte, JAMAIS le message ni le PIN) + BOX MOLI NORD multi-box).
 
 ### Multi-box P3 : log3/nord sur SA box Moli (`moli-box-nord`)
 
@@ -86,6 +87,13 @@ seedé liste l'Host guard des 2 box). `decision-nord` :8192 pousse
 runtime) : assistant visible §98 avec isolation prouvée (0 point du
 nord sur la box lab) et comptage passerelle inchangé (3 logements /
 2 boxes du registre).
+
+> T-11 opé : le helper `evenements` vit dans `/data/moli.toml` écrit
+> par un bootstrap one-shot — un bind-mount changé NE recrée pas ce
+> conteneur : `docker compose --profile moli up -d --force-recreate
+> moli-bootstrap moli-bootstrap-nord` puis `restart moli-box
+> moli-box-nord` après toute modif du moli.toml (sinon helper absent,
+> 404 constaté/batterie le jour du test).
 
 > Leçons du cycle frais 2026-10-17 (ce qui rendait les runs non
 > déterministes, maintenant corrigé) :
