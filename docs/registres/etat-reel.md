@@ -3,6 +3,33 @@
 > R5 : l'état réel vit ICI, jamais mélangé aux cahiers normatifs.
 > Relevé du 2026-10-15, sans toucher au code.
 
+- **FRONT SaaS RÉEL 2026-10-17 (15 tranches, front 23/23, deploy 7/7, arbre
+  propre)** : le front est passé de preuve technique à produit démontrable —
+  landing marketing (forfaits §S1 149/190/290), login par rôle (cookie
+  `lcd_qui`, gw = RBAC de vérité), voir-comme global en layout (V5/V6),
+  thème clair/sombre auto/manuel, 404/erreur brandées, pages légales
+  LCEN art.6 III branchées `/parc/entites` réelles, **i18n ×5 prouvées en
+  live (fr/en/es/it/de)**. Dashboards §S3.5 TOUS branchés réels :
+  V1 voyageur (guide de séjour depuis l'annonce `/parc/annonces/<lid>`
+  : horaires/équipements/description bilingue), V2 proprio (relevé de
+  période annee/mois, ligne ménage = contestation n°1, transparence
+  attention/inconnu affichée), V3 planning (grille 7-30 j
+  `/calendrier-parc` + tranchage split-brain `POST /parc/conflits/trancher`
+  geste humain tracé ref TRANCHE-* + vitrine `/parc/annonces`), V4 presta
+  (missions réelles = todos mockés, dispatch, clôture ménage), V7 compta
+  (export Chorus/PDP par SIREN + CSV téléchargeable `/api/compta/export`
+  + gestes jamais automatiques), V8 commercial (kanban prospect chips +
+  simulation + offre texte `POST /v1/offres`), onboarding 7 étapes §L3
+  (gates réels : DPE F/G refusé, ≥2 prestas, mandats, Cerfa/SIRET/taxe ;
+  étape 7 crée le logement via `POST /parc/logements` PROUVÉ 201 +
+  `copro=false`=BLOQUÉ REQ-L-001), grille de prix 7 j éditable
+  (prix 1-tap, bornes gw). Qualité : `deploy/test-front.ps1` 23 vérifs
+  (pages, cookies, gates, CSV, 404, i18n ×5) câblée dans `lab-run` 5/5
+  (verdict partagé). ASSUMÉ/resté FR métier : corps onboarding, gates de
+  conformité, compta h2+, légales en détail (i18n de conformité =
+  relecture P10-juridique, pas machine). Non-local inchangé :
+  P0 terrain/box, cloud réel (Oracle/domaine), RC pro + carte G
+  (`docs/checklist-taches-restantes.md`, `docs/panier-p0-chiffre.md`).
 - Plans : 00 + 10-socle-v2 (§S3 SaaS parfait : S3.4 + S3.5 V1-V8) +
   20 (+ §20.7 contrat plugin) + 30-passerelle-v5 (§P8 renvoi DRY) +
   40-logement-v5 (§L4 renvoi DRY) + 50-technique-box-v5 (§T5 technique
