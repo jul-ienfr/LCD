@@ -80,7 +80,7 @@ export default async function PagePlanning({
               {t("planning", lang)} · {t("operation", lang)}
             </p>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
-              Planning des trois logements
+              {t('planning_h1', lang)}
             </h1>
           </div>
           <form method="get" action="/planning" className="flex items-end gap-2 text-sm">

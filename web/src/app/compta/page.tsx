@@ -76,7 +76,7 @@ export default async function PageCompta({
           {t("compta", lang)} · export Chorus Pro / PDP
         </p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
-          1 plan par SIREN — jamais de mélange
+          {t('compta_h1', lang)}
         </h1>
         {ex.erreur ? (
           <p className="mt-3 rounded-xl bg-white/15 px-3 py-2 text-sm">{ex.erreur}</p>
