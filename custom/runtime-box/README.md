@@ -12,7 +12,8 @@ RuntimeAdapter.backend_name   # "ha" | "moli"
 .etat(objet_logique)                           -> {backend, point, value, ts}
 .commande(objet_logique, value, actor)         -> {backend, point, value, status: ok|retenu|refuse[, pending, code, erreur]}
 .evenement(type_event, ref, qui, logement)     -> {backend, point, value, status}   # T-11 : moli SEUL
-.message(titre, corps, qui, logement)          -> {backend, id, name, status: draft|live|refuse}  # P2+ : moli SEUL, DRAFT
+.message(titre, corps, qui, logement)          -> {backend, id, name, status: draft|live|refuse}  # P2+ : moli SEUL, DRAFT MCP (author agent)
+.brouillons()                                  -> {backend, status, brouillons: [{id, name, live}]}  # P2+ : moli SEUL (lecture)
 .journal(objet_logique|None, limit)            -> [{ts, point, kind, value, decision|None, origin, actor}]
 ```
 
@@ -36,21 +37,28 @@ RuntimeAdapter.backend_name   # "ha" | "moli"
   **de lab** (0 secret : HA = JWT forgé jetable, Moli = PIN FAUX) ;
   version réelle : mapping par box montée depuis le repo privé, jetons
   depuis le vault (P2+, jamais de clé ici).
-- Batterie : `lab/tests_runtime.py` (44/44 OK y compris le DOUBLE run
+- Batterie : `lab/tests_runtime.py` (46/46 OK y compris le DOUBLE run
   consécutif ; socle lab + profil `moli` nécessaires, cycle frais
   `down -v` puis `up`, ordre canonique socle → moli → runtime).
 
-## P2+ posé : canal message = BROUILLON (`message()`)
+## P2+ posé : canal message = BROUILLON MCP (`message()`)
 
 Le canal MESSAGE d'un logement `runtime: moli` n'est PAS un push :
 l'adaptateur `message(titre, corps, qui, logement)` crée sur SA box une
-**automatisation BROUILLON** :
+**automatisation BROUILLON, auteur AGENT** :
 
-- `POST /api/automations {author: agent, enabled: false, graph:
-  Manual(trigger, jamais auto) -> Notify(channels: Maison)}` —
-  `live=false, approved=false` au retour ; rien ne part tant qu'un
-  humain n'a pas approuvé la version PUIS lancé (empreinte humaine ;
-  approbation et lancement restent des gestes dashboard box);
+- par **MCP /mcp SEUL** (`tools/call save_automation_draft`, client
+  streamable-HTTP stdlib : initialize -> notifications/initialized ->
+  tools/call). Pourquoi pas `POST /api/automations` ? Une session PIN
+  est par construction vue **humaine** par Moli (cookie) — le SaaS
+  n'imite JAMAIS une personne : l'auteur serait un mensonge dans le
+  dashboard. MCP = `author agent, human false` natif ;
+- `enabled: false`, graphe `Manual(trigger, jamais auto) ->
+  Notify(channels: Maison)` — `live=false, approved=false` au retour ;
+  rien ne part tant qu'un humain n'a pas approuvé la version PUIS
+  lancé (approbation ET lancement restent des gestes dashboard box) ;
+- MCP stateless au lab (pas d'entête `mcp-session-id`) : le client
+  lit l'entête s'il existe et la suit, sinon il continue sans ;
 - le corps du brouillon utilise les MÊMES gabarits socle 5 que le
   canal HA (compose côté moteur) ; le placeholder `{{pin}}` est
   remplacé par la **consigne boîte à clés** — la valeur réelle du PIN
@@ -61,9 +69,14 @@ l'adaptateur `message(titre, corps, qui, logement)` crée sur SA box une
 - struct `decision.py` : J-2/J-1 sur runtime moli = 202 `relais_moli`
   + brouillon posé (`p2_message: "draft"`, `p2_message_id`) ; ics-sync
   = relais trace SEUL (pas de composition côté ics) ;
-- prouvé §98 : brouillon J-1 live false + AUCUN draft log3 sur la box
-  du lab (isolation) ; brouillon J-2 = corps gabarit + consigne
-  boîte à clés, `246810` absent de TOUT le JSON de l'automatisation.
+- vue SaaS des brouillons en attente : `brouillons()` (contrat,
+  author agent & non-approuvés) exposée par LE MOTEUR sur
+  `GET /p2-brouillons?logement_id=` (lecture seule — l'empreinte
+  reste un geste sur la box, cette route n'exécute jamais rien) ;
+- prouvé §98 : brouillon J-1 `author=agent, live=false` ; brouillon
+  J-2 = corps gabarit + consigne boîte à clés, `246810` absent de
+  TOUT le JSON ; isolation (aucun draft log3 sur la box du lab) ;
+  `/p2-brouillons` nord ET lab listent leurs brouillons en attente.
 ## T-11 : événements lcd_* = relais box (ADR-007)
 
 Les events `lcd_*` (J-2 / J-1 / checkout / avis J+1) sont le CANAL HA au

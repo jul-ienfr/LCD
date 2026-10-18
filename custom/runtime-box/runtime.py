@@ -178,6 +178,83 @@ class MoliBackend:
         c, r = self.http.req("POST", "/api/session", {"pin": pin or self.pin})
         return {"ok": c == 200, "reponse": r}
 
+    # MCP : les drafts d'automatisation passent par /mcp (AUTEUR =
+    # agent, human=false). Raison doctrinale : une session ouverte au
+    # PIN est VUE comme humaine par Moli (cookie) — posé une
+    # automatisation par ce canal mentirait sur son auteur (SaaS
+    # affiché « écrit par une personne »). MCP = author Agent natif :
+    # le brouillon reste un document, la validation reste l'empreinte
+    # humaine au dashboard (approve PUIS lance).
+    _MCP_PROTO = "2025-06-18"
+
+    def mcp_save_draft(self, auto: dict) -> dict:
+        """Client MCP streamable-HTTP stdlib : initialize ->
+        notifications/initialized -> tools/call save_automation_draft.
+        Retour {status: draft|refuse, id, ...} — author agent côté
+        box, JAMAIS une session humaine imitée."""
+        entetes = {"accept": "application/json, text/event-stream",
+                   "content-type": "application/json"}
+        # 1) initialize (mcp-session-id si l'état de session est actif ;
+        #    le lab = stateless : réponse JSON sans entête, on suit)
+        body = {"jsonrpc": "2.0", "id": 1, "method": "initialize",
+                "params": {"protocolVersion": self._MCP_PROTO,
+                           "capabilities": {},
+                           "clientInfo": {"name": "lcd-runtime-box",
+                                          "version": "1.0"}}}
+        data = json.dumps(body).encode("utf-8")
+        req = urllib.request.Request(
+            self.base + "/mcp", data=data, headers=entetes,
+            method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=15) as r:
+                sid = r.headers.get("mcp-session-id")
+                brut = r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            return {"status": "refuse", "code": e.code,
+                    "erreur": e.read().decode("utf-8", "replace")[:200]}
+        except Exception as e:
+            return {"status": "refuse", "code": 0, "erreur": str(e)}
+        # 2) notifications/initialized (202 attendu, pas bloquant)
+        entetes2 = dict(entetes)
+        if sid:
+            entetes2["mcp-session-id"] = sid
+        body2 = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+        data2 = json.dumps(body2).encode("utf-8")
+        req2 = urllib.request.Request(self.base + "/mcp", data=data2,
+                                      headers=entetes2, method="POST")
+        try:
+            urllib.request.urlopen(req2, timeout=15)
+        except Exception:
+            pass
+        # 3) tools/call save_automation_draft
+        call = {"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+                "params": {"name": "save_automation_draft",
+                           "arguments": {"automation": auto}}}
+        data3 = json.dumps(call).encode("utf-8")
+        req3 = urllib.request.Request(self.base + "/mcp", data=data3,
+                                      headers=entetes2, method="POST")
+        try:
+            with urllib.request.urlopen(req3, timeout=20) as r:
+                brut3 = r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            return {"status": "refuse", "code": e.code,
+                    "erreur": e.read().decode("utf-8", "replace")[:200]}
+        except Exception as e:
+            return {"status": "refuse", "code": 0, "erreur": str(e)}
+        try:
+            jrpc = json.loads(brut3)
+            content = (jrpc.get("result") or {}).get("content") or []
+            texte = "".join(str(b.get("text") or "") for b in content
+                            if isinstance(b, dict))
+            out = json.loads(texte) if texte.strip().startswith("{") \
+                else {"reponse": texte[:200]}
+        except ValueError:
+            return {"status": "refuse", "code": 0, "erreur": brut3[:200]}
+        if out.get("id") and "draft" in str(out.get("status") or ""):
+            return {"status": "draft", "id": out.get("id"),
+                    "erreur": None}
+        return {"status": "refuse", "erreur": out}
+
 
 class HaBackend:
     """Runtime Home Assistant (REST /api/*). Lab : jeton = JWT forgé
@@ -316,13 +393,14 @@ class RuntimeAdapter:
 
     def message(self, titre: str, corps: str, qui: str,
                 logement: str) -> dict:
-        """P2+ (ADR-008) : canal MESSAGE box = automatisation DRAFT.
-        - moli : POST /api/automations {author agent, enabled:false,
-          graph Manual(trig. jamais auto) -> Notify(channels Maison)}.
-          C'est un BROUILLON : rien ne part, rien ne s'exécute —
-          l'envoi réel reste l'empreinte humaine sur le dashboard box
-          (approuver la version, puis lancer). JAMAIS de PIN dans le
-          corps (il ne traverse pas vers la box, consigne clé boîte).
+        """P2+ (ADR-008) : canal MESSAGE box = automatisation DRAFT via
+        MCP /mcp (author AGENT natif ; le SaaS n'imite JAMAIS une
+        session humaine — le PIN-cookie serait lu « humain » par Moli).
+        - moli : MCP save_automation_draft {enabled:false, graph
+          Manual(trig. jamais auto) -> Notify(channels Maison)} —
+          BROUILLON : rien ne part, rien ne s'exécute — l'envoi réel
+          reste l'empreinte humaine sur le dashboard box (approuver la
+          version, puis lancer). JAMAIS de PIN dans le corps.
         - ha : refuse local — sur HA le message est déjà canal native
           blueprint (notifier), jamais ce draft box."""
         if self.name != "moli":
@@ -344,20 +422,41 @@ class RuntimeAdapter:
                 "enabled": False, "mode": "restart", "graph": graph,
                 "note": f"draft SaaS ({qui or 'socle'}) — jamais auto, "
                         "empreinte humaine requise"}
-        c, r = self.backend.http.req("POST", "/api/automations", auto)
-        if c == 200 and isinstance(r, dict):
-            au = r.get("automation") or {}
-            if not au:
-                return {"backend": self.name, "status": "refuse",
-                        "code": c, "erreur": r}
-            return {"backend": self.name,
-                    "status": "draft" if not r.get("live") else "live",
-                    "id": au.get("id"), "name": au.get("name"),
-                    "fingerprint": r.get("fingerprint"),
-                    "live": bool(r.get("live"))}
-        return {"backend": self.name, "status": "refuse", "code": c,
-                "erreur": (r or {}).get("error") if isinstance(r, dict)
-                else r}
+        # MCP SEUL : une session PIN serait vue humaine par Moli et
+        # mentirait sur l'auteur ; MCP = author agent natif.
+        res = self.backend.mcp_save_draft(auto)
+        if res.get("status") == "draft":
+            return {"backend": self.name, "status": "draft",
+                    "id": res.get("id"), "name": auto["name"],
+                    "live": False, "canal": "mcp"}
+        return {"backend": self.name, "status": "refuse",
+                "code": res.get("code"), "erreur": res.get("erreur")}
+
+    def brouillons(self) -> dict:
+        """P2+ empreinte (ADR-008) : les BROUILLONS SaaS en attente sur
+        la box (author agent, pas encore approuvés) — la liste que le
+        SaaS peut afficher « en attente d'empreinte humaine ». moli
+        SEUL ; ha = refus (le message HA part par blueprint notifier
+        natif, il n'y a pas de brouillon box)."""
+        if self.name != "moli":
+            return {"backend": self.name, "status": "refuse",
+                    "erreur": "brouillons: runtime ha (message = prêt "
+                              "sur la box, blueprint notifier natif)"}
+        c, r = self.backend.http.req("GET", "/api/automations")
+        if c != 200 or not isinstance(r, dict):
+            return {"backend": self.name, "status": "refuse", "code": c,
+                    "erreur": r if not isinstance(r, dict) else r.get("error")}
+        out = []
+        for it in (r.get("automations") or []):
+            au = it.get("automation") or {}
+            if str((au.get("author") or "")).lower() != "agent" and \
+                    str((au.get("author") or "")).lower() != "assistant":
+                continue
+            if it.get("approved"):
+                continue  # déjà approuvé : plus en attente d'empreinte
+            out.append({"id": au.get("id"), "name": au.get("name"),
+                        "live": bool(it.get("live"))})
+        return {"backend": self.name, "status": "ok", "brouillons": out}
 
     def journal(self, objet: str | None = None, limit: int = 25) -> list:
         if self.name == "ha":

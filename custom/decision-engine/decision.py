@@ -3096,6 +3096,32 @@ class Handler(BaseHTTPRequestHandler):
         qs = urllib.parse.parse_qs(url.query)
         if url.path == "/health":
             return self._json(200, {"ok": True})
+        if url.path == "/p2-brouillons":
+            # ADR-008 P2+ : brouillons SaaS EN ATTENTE D'EMPREINTE sur
+            # la box du logement — liste pour le front SaaS (badge de
+            # rappel), via le contrat (jamais en direct box). La prise
+            # en main initiale reste UN GESTE sur la box (approuver +
+            # lancer au dashboard) : cette route n'exécute jamais
+            # rien, elle ne fait QUE LIRE.
+            logement_id = qs.get("logement_id", [""])[0]
+            if not logement_id or logement_id not in \
+                    self.engine.logts:
+                return self._json(400, {"erreur": "logement_id requis"})
+            if self.engine.runtime_de(logement_id) != "moli":
+                return self._json(200, {
+                    "logement_id": logement_id, "runtime": "ha",
+                    "brouillons": [],
+                    "note": "message HA = blueprint notifier natif"})
+            ad = self.engine._adaptateur_moli()
+            if not ad:
+                return self._json(503, {"erreur": "adaptateur moli absent"})
+            res = ad.brouillons()
+            if res.get("status") != "ok":
+                return self._json(502, {"erreur": res.get("erreur")
+                                              or "box muette"})
+            return self._json(200, {"logement_id": logement_id,
+                                    "runtime": "moli",
+                                    "brouillons": res.get("brouillons", [])})
         if url.path == "/etat":
             logement_id = qs.get("logement_id", [""])[0]
             if not logement_id:

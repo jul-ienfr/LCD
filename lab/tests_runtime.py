@@ -462,12 +462,15 @@ def main():
             corps98 = str(_n.get("message") or "")
             titre98 = str(_n.get("title") or "")
     check("98 : message P2+ = BROUILLON d'automatisation sur SA box "
-          "(author agent, enabled false, live false — jamais auto)",
+          "(author AGENT (MCP — l'auteur ment pas), enabled false, "
+          "live false — jamais auto)",
           bool(d98au) and "log3" in (d98au.get("name") or "")
+          and str(d98au.get("author") or "").lower() == "agent"
           and d98au.get("enabled") is False
           and (d98 or {}).get("live") is False
           and (d98 or {}).get("approved") is False,
-          f"name={d98au.get('name') if isinstance(d98au, dict) else au98raw}")
+          f"name={d98au.get('name') if isinstance(d98au, dict) else au98raw} "
+          f"author={d98au.get('author') if isinstance(d98au, dict) else '?'}")
     check("98 : brouillon message J-1 = corps gabarit rempli (jamais "
           "vide), JAMAIS la valeur PIN (elle ne traverse pas)",
           bool(corps98) and bool(titre98)
@@ -500,10 +503,13 @@ def main():
         if (_n.get("type") or "").lower() == "notify":
             corps98j2 = str(_n.get("message") or "")
     check("98 : brouillon J-2 = consigne boîte à clés FORCÉE à la place "
-          "du PIN (jamais 246810 dans l'automatisation, jamais live)",
+          "du PIN (jamais 246810 dans l'automatisation, author AGENT, "
+          "jamais live)",
           c in (200, 202) and isinstance(ev98j2, dict)
           and ((ev98j2 or {}).get("p2_message") == "draft")
           and bool(corps98j2)
+          and str((((d98j2 or {}).get("automation") or {}).get("author")
+                   or "")).lower() == "agent"
           and "boîte à clés" in corps98j2
           and "246810" not in corps98j2
           and "246810" not in json.dumps(d98j2, ensure_ascii=False),
@@ -523,6 +529,34 @@ def main():
           isinstance(_lab_autos, set) and not any(
               "log3" in n for n in _lab_autos),
           f"lab autos={sorted(_lab_autos)}")
+    # Vue SaaS des brouillons en attente d'empreinte : le moteur
+    # déclare SA liste via le contrat (route lecture seule, l'action
+    # reste un geste sur la box).
+    c, br98 = _get_json("http://127.0.0.1:8192/p2-brouillons"
+                        "?logement_id=log3")
+    brs98 = (br98 or {}).get("brouillons") if isinstance(br98, dict) else []
+    check("98 : /p2-brouillons nord = liste des brouillons en attente "
+          "(author agent, J-1 et J-2 présents, aucun live)",
+          c == 200 and isinstance(br98, dict)
+          and br98.get("runtime") == "moli"
+          and isinstance(brs98, list)
+          and sum(1 for b in brs98
+                  if str(b.get("name") or "").startswith("Message log3")
+                  ) >= 2
+          and all(not b.get("live") for b in brs98),
+          f"HTTP {c} n={len(brs98) if isinstance(brs98, list) else '?'}")
+    c, brlm = _get_json("http://127.0.0.1:8280/p2-brouillons"
+                        "?logement_id=log1")
+    brslm = (brlm or {}).get("brouillons") if isinstance(brlm, dict) else []
+    check("98 : /p2-brouillons moli (log1) = le brouillon J-1 du relais "
+          "§97 visible, isolation (AUCUN log3 dans la liste)",
+          c == 200 and isinstance(brlm, dict)
+          and brlm.get("runtime") == "moli"
+          and any(str(b.get("name") or "").startswith("Message log1")
+                  for b in (brslm or []))
+          and not any("log3" in str(b.get("name") or "")
+                      for b in (brslm or [])),
+          f"HTTP {c} n={len(brslm) if isinstance(brslm, list) else '?'}")
     # ADR-008 : le MÊME pricing_engine.py pousse prix_nuit sur SA box
     # via le contrat (cible CONFIG, jamais un fork) — recalc nord,
     # helper number maison:prix_nuit reflecte le pivot.
