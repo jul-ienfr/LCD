@@ -123,6 +123,22 @@ if ($vcid.Success) {
     Write-Output "NOTE voir-comme ACTION_ID introuvable (colleague layout ?) -- test open-redirect passe."
 }
 
+# 12. Mode degrade L1 (REQ-S-008, cahier 70 §F7) : lien natif /api/lite
+#     (sans JS) pose le cookie, la page rend la class mode-lite, et le
+#     retour externe est refuse (anti open-redirect comme voir-comme).
+$liteOn = (curl.exe -s -D - -o NUL -m 15 "$F/api/lite?on=1&retour=/hote") -join " "
+Verif "lite : 303 redirect" ($liteOn -match "303")
+Verif "lite : cookie lcd_lite=1 pose" ($liteOn -match "lcd_lite=1")
+Verif "lite : Location /hote" ($liteOn -match "Location: /hote")
+$lh = corps "/hote" "lcd_qui=personne_01; lcd_lite=1"
+Verif "lite : classe mode-lite rendue" ($lh -match "mode-lite")
+# pattern ASCII seul (lesson cp1252 : accents non fiables en PS 5.1)
+Verif "lite : lien bascule visible" ($lh -match "Version compl")
+$liteEvil = (curl.exe -s -D - -o NUL -m 15 "$F/api/lite?on=1&retour=//evil.org") -join " "
+Verif "lite : open-redirect refuse" ($liteEvil -notmatch "evil\.org")
+$liteOff = (curl.exe -s -D - -o NUL -m 15 "$F/api/lite?on=0&retour=/") -join " "
+Verif "lite : retour complet (on=0)" ($liteOff -match "lcd_lite=0")
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO

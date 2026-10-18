@@ -552,12 +552,32 @@ class Passerelle:
         return max(ts) if ts else None
 
     # -- lecture d'un logement ---------------------------------------------- #
-    def apercu_logement(self, box, logement_id, force=False, qui=None):
+    @staticmethod
+    def _depuis_valide(depuis):
+        """depuis (grille decalee) : ISO, |ecart|<=90 j, sinon None."""
+        if not isinstance(depuis, str) or not re.fullmatch(
+                r"\d{4}-\d{2}-\d{2}", depuis.strip() or ""):
+            return None
+        try:
+            d = dt.date.fromisoformat(depuis.strip())
+        except (TypeError, ValueError):
+            return None
+        if abs((d - dt.date.today()).days) > 90 or depuis == \
+                dt.date.today().isoformat():
+            return None
+        return depuis
+
+    def apercu_logement(self, box, logement_id, force=False, qui=None,
+                        depuis=None):
         box_id = box.get("box_id")
         qui = qui or box.get("qui_relay") or self.qui
         cle = (box_id, logement_id)
-        cache = self.memoire.get(cle) or self.disque.get(box_id, {}).get(logement_id)
-        if cache and not force and (time.time() - cache.get("fetched_ts", 0)) < self.ttl:
+        depuis = self._depuis_valide(depuis)
+        cache = self.memoire.get(cle) if not depuis else None
+        if cache is None and not depuis:
+            cache = self.disque.get(box_id, {}).get(logement_id)
+        if cache and not force and not depuis and \
+                (time.time() - cache.get("fetched_ts", 0)) < self.ttl:
             out = dict(cache)
             out["cache_hit"] = True
             # stale = (fan-out incomplet à la récup) OU (données trop vieilles).
@@ -576,8 +596,10 @@ class Passerelle:
         nom = next((l.get("nom") for l in box.get("logements", [])
                     if l.get("id") == logement_id), logement_id)
 
-        code, reco = appeler("GET", u.get("pricing", "") + "/reco-ota",
-                             {"logement_id": logement_id})
+        code, reco = appeler(
+            "GET", u.get("pricing", "") + "/reco-ota",
+            {"logement_id": logement_id,
+             **({"depuis": depuis} if depuis else {})})
         grille = reco.get("grille_7j", []) if isinstance(reco, dict) else []
         if code != 200:
             erreurs.append(f"pricing:{code}")
@@ -637,19 +659,23 @@ class Passerelle:
             "ha_vivante": haok,
             "erreurs": erreurs,
         }
+        if depuis:
+            ap["depuis"] = depuis
+            return ap          # grille decallee : JAMAIS ecrite au cache
         self._ecrire_disque(box_id, logement_id, ap)
         return ap
 
     # -- fan-out parc -------------------------------------------------------- #
-    def apercu_parc(self, force=False, qui=None, entite=None, mode=None):
+    def apercu_parc(self, force=False, qui=None, entite=None, mode=None,
+                    depuis=None):
         t0 = time.time()
         cibles = [(b, l.get("id")) for b in self.boxes
                   for l in b.get("logements", []) if l.get("id")]
         res = []
         if cibles:
             with ThreadPoolExecutor(max_workers=self.workers) as ex:
-                futs = [ex.submit(self.apercu_logement, b, lid, force, qui)
-                        for b, lid in cibles]
+                futs = [ex.submit(self.apercu_logement, b, lid, force, qui,
+                                  depuis) for b, lid in cibles]
                 for fut in as_completed(futs):
                     try:
                         res.append(fut.result())
@@ -3461,9 +3487,9 @@ class Handler(BaseHTTPRequestHandler):
         if url.path == "/":
             return self._html(200, eng.page(force=force))
         if url.path == "/api/apercu-parc":
-            return self._json(200, eng.apercu_parc(force=force,
-                                                   entite=ent_f or None,
-                                                   mode=mode_f or None))
+            return self._json(200, eng.apercu_parc(
+                force=force, entite=ent_f or None, mode=mode_f or None,
+                depuis=qs.get("depuis", [""])[0]))
         if url.path == "/api/apercu":
             box_id = qs.get("box_id", [""])[0]
             logement_id = qs.get("logement_id", [""])[0]

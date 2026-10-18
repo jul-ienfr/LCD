@@ -501,11 +501,19 @@ class Pricing:
                      "date": date_s, "ancien": ancien, "prix": prix,
                      "note": "OTA = reco 1-tap, jamais d'écriture auto"}
 
-    def recalculer(self, logement_id, jours=30, occ_force=None, k_events=1.0):
+    def recalculer(self, logement_id, jours=30, occ_force=None,
+                   k_events=1.0, depuis=None):
         occ, sejours = self.occ_j30(logement_id)
         if occ_force is not None:
             occ = float(occ_force)
+        # depuis : grille DECALEE (nav semaine grille prix front) —
+        # invalide/hors regex = aujourd'hui, jamais d'erreur brute.
         auj = dt.date.today()
+        if depuis:
+            try:
+                auj = dt.date.fromisoformat(depuis)
+            except (TypeError, ValueError):
+                auj = dt.date.today()
         grille = []
         for i in range(jours):
             jour = auj + dt.timedelta(days=i)
@@ -591,7 +599,8 @@ class Handler(BaseHTTPRequestHandler):
             logement_id = qs.get("logement_id", [""])[0]
             if not logement_id:
                 return self._json(400, {"erreur": "logement_id requis"})
-            r = eng.recalculer(logement_id, jours=7)
+            depuis = (qs.get("depuis", [""])[0] or "").strip()
+            r = eng.recalculer(logement_id, jours=7, depuis=depuis or None)
             return self._json(200, {"logement_id": logement_id,
                                     "reco_ota_1tap": r["reco_ota_1tap"],
                                     "grille_7j": [(g["date"], g["pivot"], g["prix_canal"])

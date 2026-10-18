@@ -27,13 +27,33 @@ const QUI_PRIX = ["personne_01", "personne_02", "personne_03"];
 export default async function PagePrix({
   searchParams,
 }: {
-  searchParams: Promise<{ lang?: string }>;
+  searchParams: Promise<{ lang?: string; depuis?: string }>;
 }) {
   const sp = await searchParams;
   const lang: Langue = languePage(sp);
-  const ap = await gwGet<Apercu>("/api/apercu-parc").catch(
-    (e: Error) => ({ erreur: e.message }) as Apercu,
-  );
+  // Navigation semaine sans JS : depuis=YYYY-MM-DD (bornes 90 j, gw).
+  const c = /^(\d{4}-\d{2}-\d{2})$/.exec(sp.depuis || "");
+  let base = c ? new Date(c[1] + "T00:00:00Z") : new Date();
+  const auj = new Date();
+  const MAXJ = 90;
+  if (isNaN(base.getTime()) ||
+      Math.abs((base.getTime() - auj.getTime()) / 86400000) > MAXJ) {
+    base = auj;
+  }
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const depuis = iso(base);
+  const decaler = (n: number) => {
+    const d = new Date(base);
+    d.setUTCDate(d.getUTCDate() + n);
+    return iso(d);
+  };
+  const navUrl = (d: string) =>
+    d === iso(auj) ? `/prix?lang=${lang}` : `/prix?lang=${lang}&depuis=${d}`;
+  const ap = await gwGet<Apercu>(
+    depuis === iso(auj)
+      ? "/api/apercu-parc"
+      : `/api/apercu-parc?depuis=${encodeURIComponent(depuis)}`,
+  ).catch((e: Error) => ({ erreur: e.message }) as Apercu);
   const liste = ap.logements || [];
 
   // Les prix sont des tableaux [date, direct, {canal:valeur}] — on normalise.
@@ -75,6 +95,22 @@ export default async function PagePrix({
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
               Grille de prix 7 jours
             </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+              <Link rel="prev" href={navUrl(decaler(-7))} className="bouton bouton-secondaire px-3 py-1.5">
+                ← 7 j
+              </Link>
+              <span className="rounded-xl bg-(--surface-2) px-3 py-1.5 font-mono text-xs tabular-nums">
+                {depuis} → {decaler(6)}
+              </span>
+              <Link rel="next" href={navUrl(decaler(7))} className="bouton bouton-secondaire px-3 py-1.5">
+                7 j →
+              </Link>
+              {depuis !== iso(auj) && (
+                <Link href={navUrl(iso(auj))} className="text-xs underline decoration-dotted underline-offset-2">
+                  aujourd&#39;hui
+                </Link>
+              )}
+            </div>
           </div>
           <Link href="/planning" className="bouton bouton-secondaire px-3 py-2">
             Voir les conflits ⚔ →
