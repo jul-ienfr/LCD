@@ -2,7 +2,7 @@
 // Pages commercial : formulaires prospect/simulateur (scope §14.5).
 // Sans JS : POST natif vers les Server Actions.
 import { useActionState } from "react";
-import { creerProspect, calculerSimulateur, offreGenerer } from "../actions";
+import { creerProspect, calculerSimulateur, offreGenerer } from "@/app/actions";
 
 const FORFAITS = ["kit", "pilotage", "full_service"] as const;
 

@@ -1,7 +1,9 @@
 {
-  "fr": { "titre": "Ma mission" },
-  "en": { "titre": "My job" },
-  "es": { "titre": "Mi misión" },
-  "it": { "titre": "La mia missione" },
-  "de": { "titre": "Mein Auftrag" }
+  "presta.prestation": {
+    "fr": "Prestations",
+    "en": "Jobs",
+    "es": "Prestaciones",
+    "it": "Prestazioni",
+    "de": "Aufträge"
+  }
 }

@@ -5,10 +5,10 @@
 export const instant = false;
 import type { Metadata } from "next";
 import { gwGet } from "@/lib/gateway";
-import { t, type Langue } from "@/lib/i18n";
+import { t, type Langue } from "../../i18n";
 import { languePage } from "@/lib/langue";
-import { Onglets } from "../onglets";
-import { FormulaireAction } from "../formulaire-action";
+import { Onglets } from "@/app/onglets";
+import { FormulaireAction } from "@/app/formulaire-action";
 
 export const metadata: Metadata = { title: "Prestataire" };
 
@@ -50,7 +50,7 @@ export default async function PagePresta({
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
-              {t("prestation", lang)} · runbook 3 h
+              {t("presta.prestation", lang)} · runbook 3 h
             </p>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
               {carte?.nom || logement}

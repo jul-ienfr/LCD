@@ -5,8 +5,8 @@
 export const instant = false;
 import { gwGet } from "@/lib/gateway";
 import { cookies } from "next/headers";
-import { t, type Langue } from "@/lib/i18n";
-import { Onglets } from "../onglets";
+import { t, type Langue } from "../../i18n";
+import { Onglets } from "@/app/onglets";
 import { languePage } from "@/lib/langue";
 
 type Releve = {
@@ -76,15 +76,15 @@ async function Releve({
     <div className="flex flex-col gap-5">
       <Onglets lang={lang} ici="/proprio" />
 
-      <section className="hero hero-proprio" aria-label={t("releve_titre", lang)}>
+      <section className="hero hero-proprio" aria-label={t("proprio.releve_titre", lang)}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
-              {t("proprio", lang)} · {t("lecture_seule", lang)}
+              {t("proprio", lang)} · {t("proprio.lecture_seule", lang)}
               {releve.mode ? ` · ${releve.mode}` : ""}
             </p>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
-              {t("releve_titre", lang)} — {logement}
+              {t("proprio.releve_titre", lang)} — {logement}
             </h1>
           </div>
           {releve.statut && releve.statut !== "actif" && (
@@ -94,23 +94,23 @@ async function Releve({
         <div className="kpis mt-5">
           <div className="kpi">
             <div className="kpi-valeur">{eur(releve.brut_recolte)}</div>
-            <div className="kpi-etiquette">{t("releve_brut", lang)}</div>
+            <div className="kpi-etiquette">{t("proprio.releve_brut", lang)}</div>
           </div>
           <div className="kpi">
             <div className="kpi-valeur">{eur(releve.charges_totales)}</div>
-            <div className="kpi-etiquette">{t("releve_charges", lang)}</div>
+            <div className="kpi-etiquette">{t("proprio.releve_charges", lang)}</div>
           </div>
           <div className="kpi">
             <div className="kpi-valeur">{eur(releve.net_reverse)}</div>
-            <div className="kpi-etiquette">{t("releve_net", lang)}</div>
+            <div className="kpi-etiquette">{t("proprio.releve_net", lang)}</div>
           </div>
           <div className="kpi">
             <div className="kpi-valeur">
               {releve.nuits ?? "—"}
-              <span className="text-sm font-semibold opacity-80"> {t("releve_nuits", lang)}</span>
+              <span className="text-sm font-semibold opacity-80"> {t("proprio.releve_nuits", lang)}</span>
             </div>
             <div className="kpi-etiquette">
-              {t("releve_commission", lang)} : {releve.commission_pct_applique ?? "—"} %
+              {t("proprio.releve_commission", lang)} : {releve.commission_pct_applique ?? "—"} %
             </div>
           </div>
         </div>
@@ -152,8 +152,8 @@ async function Releve({
           )}
 
           {canaux.length > 0 && (
-            <section className="carte p-5 md:p-6" aria-label={t("releve_canaux", lang)}>
-              <h2 className="text-lg font-extrabold">{t("releve_canaux", lang)}</h2>
+            <section className="carte p-5 md:p-6" aria-label={t("proprio.releve_canaux", lang)}>
+              <h2 className="text-lg font-extrabold">{t("proprio.releve_canaux", lang)}</h2>
               <ul className="mt-3 flex flex-col gap-2">
                 {canaux.map(([canal, montant]) => (
                   <li key={canal}>
@@ -180,19 +180,19 @@ async function Releve({
             </section>
           )}
 
-          <section className="carte p-5 md:p-6" aria-label={t("releve_detail", lang)}>
-            <h2 className="text-lg font-extrabold">{t("releve_detail", lang)}</h2>
+          <section className="carte p-5 md:p-6" aria-label={t("proprio.releve_detail", lang)}>
+            <h2 className="text-lg font-extrabold">{t("proprio.releve_detail", lang)}</h2>
             <div className="table-defilante mt-3 border border-[var(--bordure)]">
               <table>
                 <tbody>
                   {[
-                    [t("releve_brut", lang), eur(releve.brut_recolte)],
+                    [t("proprio.releve_brut", lang), eur(releve.brut_recolte)],
                     ["Ménage (contestation n°1)", eur(releve.menage)],
                     ["Autres charges", eur(releve.autres_charges)],
-                    [t("releve_charges", lang), eur(releve.charges_totales)],
-                    [t("releve_commission", lang), `${eur(releve.commission_conciergerie)} (${releve.commission_pct_applique ?? "—"} %)`],
+                    [t("proprio.releve_charges", lang), eur(releve.charges_totales)],
+                    [t("proprio.releve_commission", lang), `${eur(releve.commission_conciergerie)} (${releve.commission_pct_applique ?? "—"} %)`],
                     ["Ménage à charge", releve.menage_a_charge || "—"],
-                    [t("releve_net", lang), eur(releve.net_reverse)],
+                    [t("proprio.releve_net", lang), eur(releve.net_reverse)],
                     ["Reversement", releve.reversement || "—"],
                   ].map(([k, v]) => (
                     <tr key={k}>

@@ -260,7 +260,7 @@ A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 | Jalon | Contenu | Durée estimée (temps partiel, 1 pers.) | Gate |
 |---|---|---|---|
 | **F1 socle** — ✅ clos 2026-10-18 | Arborescence `plugins/`, chargeur + validateur, `lite.css`, rapport bundle CI, batteries dégradées v1 | ~4 j | build vert + validateur KO sur manifeste piégé |
-| **F2 migration 6 plugins** | dossiers existants → plugins (URLs stables), i18n préfixée, grep fuite | ~5 j | `test-front.ps1` étendu vert (23 → ≥35 verifs) |
+| **F2 migration 6 plugins** — ✅ clos 2026-10-18 | dossiers existants → plugins (URLs stables), i18n préfixée, grep fuite | ~5 j | `test-front.ps1` étendu vert (23 → ≥35 verifs) — gate passé : 39/39 exit 0 |
 | **F3 IdP** | `forward_auth` + 2FA staff + révocations (§F5) | ~3 j | login IdP + lab sans IdP inchangé |
 | **F4 PWA** | SW maison + outbox + purge révocation + recette offline 2 h | ~4 j | offline 2 h sur séjour témoin, 0 écriture perdue |
 | **F5 dash-super/admin** | `/systeme`, secrets rotation super seul, journal voir-comme 90 j, recherche par `ref`, tickets + messagerie 3 fils (§P8) | ~6 j | batteries V5/V6 (secrets jamais simulés, 403 admin secrets) |

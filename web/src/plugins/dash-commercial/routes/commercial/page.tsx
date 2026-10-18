@@ -2,9 +2,9 @@
 // Scope strict §14.5 : prospects + simulateur + offres seuls (jamais prix/coûts).
 export const instant = false;
 import { gwGet } from "@/lib/gateway";
-import { t, type Langue } from "@/lib/i18n";
+import { t, type Langue } from "../../i18n";
 import { languePage } from "@/lib/langue";
-import { Onglets } from "../onglets";
+import { Onglets } from "@/app/onglets";
 import { FormProspect, FormSimulateur, FormOffre } from "./formulaires";
 
 export default async function PageCommercial({
@@ -36,14 +36,14 @@ async function EspaceCommercial({ lang }: { lang: Langue }) {
               {t("commercial", lang)}
             </p>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
-              {t("pipeline_titre", lang)}
+              {t("commercial.pipeline_titre", lang)}
             </h1>
           </div>
           <span className="badge" style={{ background: "rgb(255 255 255 / .18)", color: "#fff" }}>
-            {total} {t("pipeline_prospects", lang)}
+            {total} {t("commercial.pipeline_prospects", lang)}
           </span>
         </div>
-        <ol className="mt-5 flex gap-2 overflow-x-auto" aria-label={t("pipeline_titre", lang)}>
+        <ol className="mt-5 flex gap-2 overflow-x-auto" aria-label={t("commercial.pipeline_titre", lang)}>
           {etapes.map((etape) => {
             const ids = statuts[etape] || [];
             return (
@@ -69,22 +69,22 @@ async function EspaceCommercial({ lang }: { lang: Langue }) {
       </section>
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <section className="carte p-5 md:p-6" aria-label={t("prospect_titre", lang)}>
+        <section className="carte p-5 md:p-6" aria-label={t("commercial.prospect_titre", lang)}>
           <div className="flex items-center gap-3">
             <span aria-hidden className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent-douce)] text-xl">＋</span>
             <div>
-              <h2 className="text-lg font-extrabold">{t("prospect_titre", lang)}</h2>
-              <p className="text-sm text-[var(--encre-douce)]">{t("prospect_sous", lang)}</p>
+              <h2 className="text-lg font-extrabold">{t("commercial.prospect_titre", lang)}</h2>
+              <p className="text-sm text-[var(--encre-douce)]">{t("commercial.prospect_sous", lang)}</p>
             </div>
           </div>
           <div className="mt-4"><FormProspect envoyer={t("envoyer", lang)} /></div>
         </section>
-        <section className="carte p-5 md:p-6" aria-label={t("simulateur_titre", lang)}>
+        <section className="carte p-5 md:p-6" aria-label={t("commercial.simulateur_titre", lang)}>
           <div className="flex items-center gap-3">
             <span aria-hidden className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--alerte-douce)] text-xl">◈</span>
             <div>
-              <h2 className="text-lg font-extrabold">{t("simulateur_titre", lang)}</h2>
-              <p className="text-sm text-[var(--encre-douce)]">{t("simulateur_sous", lang)}</p>
+              <h2 className="text-lg font-extrabold">{t("commercial.simulateur_titre", lang)}</h2>
+              <p className="text-sm text-[var(--encre-douce)]">{t("commercial.simulateur_sous", lang)}</p>
             </div>
           </div>
           <div className="mt-4"><FormSimulateur envoyer={t("envoyer", lang)} /></div>

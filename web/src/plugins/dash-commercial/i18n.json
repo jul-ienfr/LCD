@@ -1,7 +1,44 @@
 {
-  "fr": { "titre": "Prospects" },
-  "en": { "titre": "Leads" },
-  "es": { "titre": "Prospectos" },
-  "it": { "titre": "Prospect" },
-  "de": { "titre": "Interessenten" }
+  "commercial.pipeline_prospects": {
+    "fr": "prospects",
+    "en": "prospects",
+    "es": "prospectos",
+    "it": "prospetti",
+    "de": "Interessenten"
+  },
+  "commercial.pipeline_titre": {
+    "fr": "Pipeline prospects",
+    "en": "Prospect pipeline",
+    "es": "Cartera",
+    "it": "Pipeline",
+    "de": "Pipeline"
+  },
+  "commercial.prospect_sous": {
+    "fr": "Créé au registre, suivi au journal.",
+    "en": "Created in registry, tracked.",
+    "es": "Creado y seguido.",
+    "it": "Creato e seguito.",
+    "de": "Erfasst und verfolgt."
+  },
+  "commercial.prospect_titre": {
+    "fr": "Nouveau prospect",
+    "en": "New prospect",
+    "es": "Nuevo prospecto",
+    "it": "Nuovo prospetto",
+    "de": "Neuer Interessent"
+  },
+  "commercial.simulateur_sous": {
+    "fr": "Argumentaire par forfait — jamais un prix.",
+    "en": "Per-plan estimate — never a price.",
+    "es": "Estimación por plan — nunca un precio.",
+    "it": "Stima per piano — mai un prezzo.",
+    "de": "Schätzung pro Plan — kein Preis."
+  },
+  "commercial.simulateur_titre": {
+    "fr": "Simulateur (indicatif)",
+    "en": "Simulator (indicative)",
+    "es": "Simulador (indicativo)",
+    "it": "Simulatore (indicativo)",
+    "de": "Simulator (unverbindlich)"
+  }
 }

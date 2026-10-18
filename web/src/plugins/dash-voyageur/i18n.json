@@ -1,7 +1,107 @@
 {
-  "fr": { "titre": "Mon séjour" },
-  "en": { "titre": "My stay" },
-  "es": { "titre": "Mi estancia" },
-  "it": { "titre": "Il mio soggiorno" },
-  "de": { "titre": "Mein Aufenthalt" }
+  "voyageur.extras_commander": {
+    "fr": "Commander des extras",
+    "en": "Order extras",
+    "es": "Pedir extras",
+    "it": "Ordina extra",
+    "de": "Extras bestellen"
+  },
+  "voyageur.extras_sous": {
+    "fr": "Relayé par l'hôte, tracé au journal.",
+    "en": "Relayed by the host, logged.",
+    "es": "Transmitido por el anfitrión, registrado.",
+    "it": "Tramite l'host, registrato.",
+    "de": "Über den Gastgeber, protokolliert."
+  },
+  "voyageur.extras_titre": {
+    "fr": "Extras du séjour",
+    "en": "Stay extras",
+    "es": "Extras",
+    "it": "Extra",
+    "de": "Extras"
+  },
+  "voyageur.guide_arrivee": {
+    "fr": "Arrivée",
+    "en": "Check-in",
+    "es": "Llegada",
+    "it": "Arrivo",
+    "de": "Anreise"
+  },
+  "voyageur.guide_depart": {
+    "fr": "Départ",
+    "en": "Check-out",
+    "es": "Salida",
+    "it": "Partenza",
+    "de": "Abreise"
+  },
+  "voyageur.guide_equipements": {
+    "fr": "Équipements",
+    "en": "Amenities",
+    "es": "Equipamiento",
+    "it": "Servizi",
+    "de": "Ausstattung"
+  },
+  "voyageur.guide_nuits": {
+    "fr": "nuits min.",
+    "en": "nights min.",
+    "es": "noches mín.",
+    "it": "notti min.",
+    "de": "Nächte min."
+  },
+  "voyageur.guide_sejour": {
+    "fr": "Guide de séjour",
+    "en": "Stay guide",
+    "es": "Guía de la estancia",
+    "it": "Guida al soggiorno",
+    "de": "Aufenthaltsguide"
+  },
+  "voyageur.guide_vide": {
+    "fr": "Annonce pas encore publiée — demandez au pilotage de la synchroniser.",
+    "en": "Listing not published yet — ask the control room to sync it.",
+    "es": "Anuncio aún no publicado — pide al control que lo sincronice.",
+    "it": "Annuncio non ancora pubblicato — chiedi al pilotage di sincronizzarlo.",
+    "de": "Inserat noch nicht veröffentlicht — Sync im Pilotage anfragen."
+  },
+  "voyageur.incident_declarer": {
+    "fr": "Déclarer un incident",
+    "en": "Report an incident",
+    "es": "Declarar un incidente",
+    "it": "Dichiara un problema",
+    "de": "Problem melden"
+  },
+  "voyageur.incident_sous": {
+    "fr": "Signalez-le, l'hôte est prévenu.",
+    "en": "Report it, the host is notified.",
+    "es": "Avísenos, el anfitrión responde.",
+    "it": "Segnalalo, l'host interviene.",
+    "de": "Melden Sie es, der Gastgeber reagiert."
+  },
+  "voyageur.incident_titre": {
+    "fr": "Un problème ?",
+    "en": "An issue?",
+    "es": "¿Un problema?",
+    "it": "Un problema?",
+    "de": "Ein Problem?"
+  },
+  "voyageur.par_nuit": {
+    "fr": "/ nuit",
+    "en": "/ night",
+    "es": "/ noche",
+    "it": "/ notte",
+    "de": "/ Nacht"
+  },
+  "voyageur.prix_consulter": {
+    "fr": "Prix : nous consulter",
+    "en": "Price: contact us",
+    "es": "Precio: consúltenos",
+    "it": "Prezzo: contattateci",
+    "de": "Preis: auf Anfrage"
+  },
+  "voyageur.voyageur_bienvenue": {
+    "fr": "Bienvenue — votre séjour",
+    "en": "Welcome — your stay",
+    "es": "Bienvenido — su estancia",
+    "it": "Benvenuto — il soggiorno",
+    "de": "Willkommen — Ihr Aufenthalt"
+  }
 }

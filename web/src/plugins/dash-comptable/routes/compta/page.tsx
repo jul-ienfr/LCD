@@ -4,10 +4,11 @@
 export const instant = false;
 import type { Metadata } from "next";
 import { gwGet, type ActionId } from "@/lib/gateway";
-import { LIBELLES_ACTION, t, type Langue } from "@/lib/i18n";
+import { LIBELLES_ACTION, type Langue } from "@/lib/i18n";
+import { t } from "../../i18n";
 import { languePage } from "@/lib/langue";
-import { Onglets } from "../onglets";
-import { FormulaireAction } from "../formulaire-action";
+import { Onglets } from "@/app/onglets";
+import { FormulaireAction } from "@/app/formulaire-action";
 
 export const metadata: Metadata = { title: "Compta" };
 
@@ -76,7 +77,7 @@ export default async function PageCompta({
           {t("compta", lang)} · export Chorus Pro / PDP
         </p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
-          {t('compta_h1', lang)}
+          {t('comptable.compta_h1', lang)}
         </h1>
         {ex.erreur ? (
           <p className="mt-3 rounded-xl bg-white/15 px-3 py-2 text-sm">{ex.erreur}</p>

@@ -1,7 +1,9 @@
 {
-  "fr": { "titre": "Finances" },
-  "en": { "titre": "Accounting" },
-  "es": { "titre": "Contabilidad" },
-  "it": { "titre": "Contabilità" },
-  "de": { "titre": "Buchhaltung" }
+  "comptable.compta_h1": {
+    "fr": "1 plan par SIREN — jamais de mélange",
+    "en": "One ledger per SIREN — never mixed",
+    "es": "Un plan por SIREN — nunca mezclado",
+    "it": "Un registro per SIREN — mai mescolati",
+    "de": "Ein Plan pro SIREN — nie vermischt"
+  }
 }

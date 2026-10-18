@@ -150,7 +150,9 @@ export function validerManifeste(obj, ctx) {
       if (vues.has(r)) rep(`route dupliquee : "${r}"`);
       vues.add(r);
       if (actif && !ctx.routeExiste(r, ctx.dossier))
-        rep(`route "${r}" sans page (src/app${r === "/" ? "" : r}/page.tsx ou ${ctx.dossier}${r}/page.tsx)`);
+        rep(`route "${r}" sans page plugin (${ctx.dossier}/routes${r === "/" ? "" : r}/page.tsx)`);
+      if (actif && ctx.shimExiste && !ctx.shimExiste(r))
+        rep(`route "${r}" sans shim URL stable (src/app${r === "/" ? "" : r}/page.tsx)`);
     }
   }
 
@@ -190,16 +192,39 @@ export function validerManifeste(obj, ctx) {
   for (const b of ["lite", "offline"])
     if (b in obj && typeof obj[b] !== "boolean") rep(`${b} doit etre true|false`);
 
-  // i18n.json du plugin : 5 langues présentes et non vides (§S3.4.2).
+  // i18n.json du plugin — DEUX formes valides, garanties équivalentes
+  // (§S3.4.2 : 5 langues présentes et non vides, CI bloquant) :
+  //  1. forme CŒUR (F1) : { fr: {key: v}, en: {...} } — 5 langues en tête ;
+  //  2. forme PLUGIN (F2) : { "prefixe.cle": { fr: v, ... } } — chaque clé
+  //     est préfixée par le i18n_prefixe du manifeste (0 clé hors préfixe =
+  //     0 fuite), 5 langues complètes sur CHAQUE clé.
   if (ctx.i18nFichier) {
     const brut = lireJson(ctx.i18nFichier);
-    for (const l of LANGUES) {
-      const d = brut[l];
-      if (!d || typeof d !== "object" || Array.isArray(d) || Object.keys(d).length === 0)
-        rep(`i18n.json : langue "${l}" absente ou vide (5/5 requises)`);
+    const formeLangue = LANGUES.some((l) => l in brut);
+    if (formeLangue) {
+      for (const l of LANGUES) {
+        const d = brut[l];
+        if (!d || typeof d !== "object" || Array.isArray(d) || Object.keys(d).length === 0)
+          rep(`i18n.json : langue "${l}" absente ou vide (5/5 requises)`);
+      }
+      for (const l of Object.keys(brut))
+        if (!LANGUES.includes(l)) rep(`i18n.json : langue inconnue "${l}"`);
+    } else {
+      const prefixe = obj.i18n_prefixe; // requis ci-dessus, finit par "."
+      if (Object.keys(brut).length === 0)
+        rep(`i18n.json (forme plugin) : 0 clé`);
+      for (const [cle, bloc] of Object.entries(brut)) {
+        if (!cle.startsWith(prefixe))
+          rep(`i18n.json : clé "${cle}" hors préfixe "${prefixe}" (fuite)`);
+        for (const l of LANGUES) {
+          const v = bloc && typeof bloc === "object" ? bloc[l] : undefined;
+          if (typeof v !== "string" || !v)
+            rep(`i18n.json : "${cle}" langue "${l}" absente ou vide`);
+        }
+        for (const l of Object.keys(bloc || {}))
+          if (!LANGUES.includes(l)) rep(`i18n.json : "${cle}" langue inconnue "${l}"`);
+      }
     }
-    for (const l of Object.keys(brut))
-      if (!LANGUES.includes(l)) rep(`i18n.json : langue inconnue "${l}"`);
   } else if (actif) {
     rep("i18n.json absent pour un plugin actif");
   }
@@ -220,9 +245,14 @@ export function validerTout(racine = DIR_PLUGINS) {
       ecriture: new Set(allowBrut.ecriture),
       prefixes: allowBrut.prefixes,
     },
+    // F2 : la logique vit dans <plugin>/routes/<route>/page.tsx (le cœur
+    // app/ ne contient que des SHIMS d'URL stable, jamais la logique).
     routeExiste: (route, dossier) =>
-      existsSync(join(DIR_APP, route === "/" ? "page.tsx" : route.slice(1), "page.tsx")) ||
-      existsSync(join(racine, dossier, route === "/" ? "page.tsx" : route.slice(1), "page.tsx")),
+      existsSync(join(racine, dossier, "routes", route === "/" ? "page.tsx" : route.slice(1), "page.tsx")),
+    // Le shim d'URL stable dans app/ doit exister pour toute route active
+    // (Next sert les routes depuis app/ ; sans shim = 404 silencieux).
+    shimExiste: (route) =>
+      existsSync(join(DIR_APP, route === "/" ? "page.tsx" : route.slice(1), "page.tsx")),
   };
 
   const dossiers = readdirSync(racine, { withFileTypes: true })

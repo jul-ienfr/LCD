@@ -3,10 +3,10 @@
 // l'hôte relaye avec SON `qui` (tracé), la ref voyageur voyage dans `data`.
 export const instant = false;
 import { gwGet } from "@/lib/gateway";
-import { t, type Langue } from "@/lib/i18n";
+import { t, type Langue } from "../../i18n";
 import { languePage } from "@/lib/langue";
-import { Onglets } from "../onglets";
-import { FormulaireAction } from "../formulaire-action";
+import { Onglets } from "@/app/onglets";
+import { FormulaireAction } from "@/app/formulaire-action";
 
 const HUMAINS: [string, string][] = [
   ["personne_03", "personne_03 (operateur)"],
@@ -62,13 +62,13 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
 
       <section className="hero hero-voyageur" aria-label={t("voyageur", lang)}>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
-          {t("voyageur_bienvenue", lang)}
+          {t("voyageur.voyageur_bienvenue", lang)}
         </p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">
           {carte?.nom || logement}
         </h1>
         <p className="mt-2 text-lg font-semibold tabular-nums">
-          {prixJour !== undefined ? `${String(prixJour)} € ${t("par_nuit", lang)}` : t("prix_consulter", lang)}
+          {prixJour !== undefined ? `${String(prixJour)} € ${t("voyageur.par_nuit", lang)}` : t("voyageur.prix_consulter", lang)}
         </p>
       </section>
 
@@ -85,26 +85,26 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
         <button type="submit" className="bouton bouton-secondaire mt-auto px-4 py-2">OK</button>
       </form>
 
-      <section className="carte p-5 md:p-6" aria-label={t("guide_sejour", lang)}>
+      <section className="carte p-5 md:p-6" aria-label={t("voyageur.guide_sejour", lang)}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-extrabold">{t("guide_sejour", lang)}</h2>
+          <h2 className="text-lg font-extrabold">{t("voyageur.guide_sejour", lang)}</h2>
           {fiche?.statut && <span className="badge badge-ok">annonce {fiche.statut}</span>}
         </div>
         {fiche ? (
           <div className="mt-3 flex flex-col gap-3 text-sm">
             <div className="flex flex-wrap gap-4">
               <span className="rounded-xl bg-(--accent-douce) px-3 py-2 font-semibold text-(--accent-fonce)">
-                {t("guide_arrivee", lang)} {fiche.regles?.arrivee || "—"}
+                {t("voyageur.guide_arrivee", lang)} {fiche.regles?.arrivee || "—"}
               </span>
               <span className="rounded-xl bg-(--alerte-douce) px-3 py-2 font-semibold text-(--alerte)">
-                {t("guide_depart", lang)} {fiche.regles?.depart || "—"} →
+                {t("voyageur.guide_depart", lang)} {fiche.regles?.depart || "—"} →
               </span>
               <span className="rounded-xl bg-(--surface-2) px-3 py-2">
-                {fiche.regles?.nuitee_min || "—"} {t("guide_nuits", lang)}
+                {fiche.regles?.nuitee_min || "—"} {t("voyageur.guide_nuits", lang)}
               </span>
             </div>
             {(fiche.equipements || []).length > 0 && (
-              <ul className="flex flex-wrap gap-1.5" role="list" aria-label={t("guide_equipements", lang)}>
+              <ul className="flex flex-wrap gap-1.5" role="list" aria-label={t("voyageur.guide_equipements", lang)}>
                 {fiche.equipements!.map((eq) => (
                   <li key={eq} className="badge badge-accent">{eq.replace(/_/g, " ")}</li>
                 ))}
@@ -116,35 +116,35 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
           </div>
         ) : (
           <p className="mt-3 rounded-xl bg-(--surface-2) px-3 py-2 text-sm text-(--encre-douce)">
-{t("guide_vide", lang)}
+{t("voyageur.guide_vide", lang)}
           </p>
         )}
       </section>
 
       <div className="grid gap-5 md:grid-cols-2">
-        <section className="carte p-5 md:p-6" aria-label={t("extras_titre", lang)}>
+        <section className="carte p-5 md:p-6" aria-label={t("voyageur.extras_titre", lang)}>
           <div className="flex items-center gap-3">
             <span aria-hidden className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent-douce)] text-xl">✦</span>
             <div>
-              <h2 className="text-lg font-extrabold">{t("extras_titre", lang)}</h2>
-              <p className="text-sm text-[var(--encre-douce)]">{t("extras_sous", lang)}</p>
+              <h2 className="text-lg font-extrabold">{t("voyageur.extras_titre", lang)}</h2>
+              <p className="text-sm text-[var(--encre-douce)]">{t("voyageur.extras_sous", lang)}</p>
             </div>
           </div>
           <div className="mt-4">
-            <FormulaireAction actionId="commande_extras" libelle={t("extras_commander", lang)} champs={["ref_resa", "extras", "arrivee"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
+            <FormulaireAction actionId="commande_extras" libelle={t("voyageur.extras_commander", lang)} champs={["ref_resa", "extras", "arrivee"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
           </div>
         </section>
 
-        <section className="carte p-5 md:p-6" aria-label={t("incident_titre", lang)}>
+        <section className="carte p-5 md:p-6" aria-label={t("voyageur.incident_titre", lang)}>
           <div className="flex items-center gap-3">
             <span aria-hidden className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--alerte-douce)] text-xl">⚠</span>
             <div>
-              <h2 className="text-lg font-extrabold">{t("incident_titre", lang)}</h2>
-              <p className="text-sm text-[var(--encre-douce)]">{t("incident_sous", lang)}</p>
+              <h2 className="text-lg font-extrabold">{t("voyageur.incident_titre", lang)}</h2>
+              <p className="text-sm text-[var(--encre-douce)]">{t("voyageur.incident_sous", lang)}</p>
             </div>
           </div>
           <div className="mt-4">
-            <FormulaireAction actionId="sinistre_declarer" libelle={t("incident_declarer", lang)} champs={["motif", "description"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
+            <FormulaireAction actionId="sinistre_declarer" libelle={t("voyageur.incident_declarer", lang)} champs={["motif", "description"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
           </div>
         </section>
       </div>

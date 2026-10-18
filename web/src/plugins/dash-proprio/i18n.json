@@ -1,7 +1,65 @@
 {
-  "fr": { "titre": "Mes relevés" },
-  "en": { "titre": "My statements" },
-  "es": { "titre": "Mis extractos" },
-  "it": { "titre": "I miei estratti" },
-  "de": { "titre": "Meine Auszüge" }
+  "proprio.lecture_seule": {
+    "fr": "Lecture seule",
+    "en": "Read-only",
+    "es": "Solo lectura",
+    "it": "Sola lettura",
+    "de": "Nur Lesen"
+  },
+  "proprio.releve_brut": {
+    "fr": "Brut récolté",
+    "en": "Gross collected",
+    "es": "Bruto",
+    "it": "Lordo",
+    "de": "Brutto"
+  },
+  "proprio.releve_canaux": {
+    "fr": "Par canal",
+    "en": "By channel",
+    "es": "Por canal",
+    "it": "Per canale",
+    "de": "Nach Kanal"
+  },
+  "proprio.releve_charges": {
+    "fr": "Charges",
+    "en": "Charges",
+    "es": "Cargos",
+    "it": "Spese",
+    "de": "Kosten"
+  },
+  "proprio.releve_commission": {
+    "fr": "Commission",
+    "en": "Commission",
+    "es": "Comisión",
+    "it": "Commissione",
+    "de": "Provision"
+  },
+  "proprio.releve_detail": {
+    "fr": "Détail du relevé",
+    "en": "Statement detail",
+    "es": "Detalle",
+    "it": "Dettaglio",
+    "de": "Details"
+  },
+  "proprio.releve_net": {
+    "fr": "Net reversé",
+    "en": "Net paid out",
+    "es": "Neto",
+    "it": "Netto",
+    "de": "Netto"
+  },
+  "proprio.releve_nuits": {
+    "fr": "nuits",
+    "en": "nights",
+    "es": "noches",
+    "it": "notti",
+    "de": "Nächte"
+  },
+  "proprio.releve_titre": {
+    "fr": "Relevé",
+    "en": "Statement",
+    "es": "Extracto",
+    "it": "Rendiconto",
+    "de": "Abrechnung"
+  }
 }

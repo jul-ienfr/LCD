@@ -1,7 +1,191 @@
 {
-  "fr": { "titre": "Pilotage du parc" },
-  "en": { "titre": "Estate control" },
-  "es": { "titre": "Pilotaje del parque" },
-  "it": { "titre": "Pilotaggio del parco" },
-  "de": { "titre": "Parksteuerung" }
+  "operateur.actions_1tap": {
+    "fr": "Actions 1-tap",
+    "en": "1-tap actions",
+    "es": "Acciones 1-tap",
+    "it": "Azioni 1-tap",
+    "de": "1-Tap-Aktionen"
+  },
+  "operateur.alertes": {
+    "fr": "Alertes",
+    "en": "Alerts",
+    "es": "Alertas",
+    "it": "Avvisi",
+    "de": "Warnungen"
+  },
+  "operateur.aujourd_hui": {
+    "fr": "aujourd'hui",
+    "en": "today",
+    "es": "hoy",
+    "it": "oggi",
+    "de": "heute"
+  },
+  "operateur.conflits": {
+    "fr": "Conflits",
+    "en": "Conflicts",
+    "es": "Conflictos",
+    "it": "Conflitti",
+    "de": "Konflikte"
+  },
+  "operateur.copro": {
+    "fr": "Copro",
+    "en": "Co-op",
+    "es": "Comunidad",
+    "it": "Condominio",
+    "de": "WEG"
+  },
+  "operateur.ecritures_off": {
+    "fr": "Écritures désactivées : box injoignable.",
+    "en": "Writes disabled: box unreachable.",
+    "es": "Escrituras desactivadas: caja inalcanzable.",
+    "it": "Scritture disabilitate: box non raggiungibile.",
+    "de": "Schreiben deaktiviert: Box nicht erreichbar."
+  },
+  "operateur.ha_morte": {
+    "fr": "injoignable",
+    "en": "unreachable",
+    "es": "inalcanzable",
+    "it": "non raggiungibile",
+    "de": "nicht erreichbar"
+  },
+  "operateur.ha_vivante": {
+    "fr": "vivante",
+    "en": "alive",
+    "es": "activa",
+    "it": "attiva",
+    "de": "aktiv"
+  },
+  "operateur.joignables": {
+    "fr": "joignable(s)",
+    "en": "reachable",
+    "es": "alcanzable(s)",
+    "it": "raggiungibile(i)",
+    "de": "erreichbar"
+  },
+  "operateur.kpi_ecritures": {
+    "fr": "Écritures relayées",
+    "en": "Relayed writes",
+    "es": "Escrituras",
+    "it": "Scritture",
+    "de": "Schreibvorgänge"
+  },
+  "operateur.kpi_fanout": {
+    "fr": "Temps fan-out",
+    "en": "Fan-out time",
+    "es": "Tiempo fan-out",
+    "it": "Tempo fan-out",
+    "de": "Fan-out-Zeit"
+  },
+  "operateur.kpi_journal": {
+    "fr": "Journal",
+    "en": "Journal",
+    "es": "Diario",
+    "it": "Diario",
+    "de": "Journal"
+  },
+  "operateur.kpi_logements": {
+    "fr": "Logements",
+    "en": "Properties",
+    "es": "Alojamientos",
+    "it": "Alloggi",
+    "de": "Unterkünfte"
+  },
+  "operateur.kpi_occupation": {
+    "fr": "Occupation J+30",
+    "en": "Occupancy D+30",
+    "es": "Ocupación D+30",
+    "it": "Occupazione G+30",
+    "de": "Auslastung T+30"
+  },
+  "operateur.kpi_refus": {
+    "fr": "refus",
+    "en": "refused",
+    "es": "rechazos",
+    "it": "rifiuti",
+    "de": "abgelehnt"
+  },
+  "operateur.kpi_routage": {
+    "fr": "Routage",
+    "en": "Routing",
+    "es": "Enrutado",
+    "it": "Instradamento",
+    "de": "Routing"
+  },
+  "operateur.kpi_todos": {
+    "fr": "À faire",
+    "en": "To-do",
+    "es": "Pendientes",
+    "it": "Da fare",
+    "de": "Offen"
+  },
+  "operateur.non_bloquee": {
+    "fr": "non (bloquée)",
+    "en": "no (blocked)",
+    "es": "no (bloqueada)",
+    "it": "no (bloccata)",
+    "de": "nein (blockiert)"
+  },
+  "operateur.operation": {
+    "fr": "Opération",
+    "en": "Operations",
+    "es": "Operación",
+    "it": "Operazione",
+    "de": "Betrieb"
+  },
+  "operateur.oui": {
+    "fr": "oui",
+    "en": "yes",
+    "es": "sí",
+    "it": "sì",
+    "de": "ja"
+  },
+  "operateur.planning": {
+    "fr": "Planning",
+    "en": "Planning",
+    "es": "Planificación",
+    "it": "Pianificazione",
+    "de": "Planung"
+  },
+  "operateur.planning_h1": {
+    "fr": "Planning du parc",
+    "en": "Estate planning",
+    "es": "Planificación del parque",
+    "it": "Pianificazione del parco",
+    "de": "Park-Planung"
+  },
+  "operateur.prix_7j": {
+    "fr": "Prix 7 jours",
+    "en": "7-day prices",
+    "es": "Precios 7 días",
+    "it": "Prezzi 7 giorni",
+    "de": "7-Tage-Preise"
+  },
+  "operateur.th_dossier": {
+    "fr": "Dossier",
+    "en": "Case",
+    "es": "Expediente",
+    "it": "Pratica",
+    "de": "Vorgang"
+  },
+  "operateur.th_echeance": {
+    "fr": "Échéance",
+    "en": "Due",
+    "es": "Vencimiento",
+    "it": "Scadenza",
+    "de": "Fällig"
+  },
+  "operateur.th_statut": {
+    "fr": "Statut",
+    "en": "Status",
+    "es": "Estado",
+    "it": "Stato",
+    "de": "Status"
+  },
+  "operateur.titre": {
+    "fr": "LCD — Parc",
+    "en": "LCD — Estate",
+    "es": "LCD — Parque",
+    "it": "LCD — Parco",
+    "de": "LCD — Park"
+  }
 }
