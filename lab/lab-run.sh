@@ -66,6 +66,10 @@ if [ "$NO_DEPLOY" = "0" ]; then
   sleep 15
   if command -v powershell.exe >/dev/null 2>&1; then
     powershell.exe -ExecutionPolicy Bypass -File ../deploy/test-deploy.ps1
+    # Batterie front (SSR, cookies, gates, CSV, i18n x5, 404) - verdict partage.
+    if [ -f ../deploy/test-front.ps1 ]; then
+      powershell.exe -ExecutionPolicy Bypass -File ../deploy/test-front.ps1 || BAT_EXIT=$?
+    fi
   else
     sh ../deploy/test-deploy.sh
   fi

@@ -56,6 +56,11 @@ if (-not $NoDeploy) {
   docker compose up -d --build
   Start-Sleep 15
   powershell -ExecutionPolicy Bypass -File ./test-deploy.ps1
+  # Batterie front (SSR, cookies, gates, CSV, i18n x5, 404) - verdict partage.
+  if (Test-Path ./test-front.ps1) {
+    powershell -ExecutionPolicy Bypass -File ./test-front.ps1
+    if ($LASTEXITCODE -ne 0 -and $BAT_EXIT -eq 0) { $BAT_EXIT = $LASTEXITCODE }
+  }
   docker compose down -v
   Set-Location $PSScriptRoot
 } else {
