@@ -1,0 +1,20 @@
+{
+  "_doc": "custom/runtime-box/runtime-config.example.json — mapping objet_logique -> point natif par runtime (ADR-007/§20.4). AUCUNE clé/secret ici : HA = jeton provider (lab : JWT forgé ; box réelle : vault), Moli = session PIN passée avant. Codage FAUX lab ; la version réelle sera montée depuis le vault côté moteur (P2+).",
+  "runtimes": {
+    "ha": {
+      "base": "http://127.0.0.1:8123",
+      "token": "lab",
+      "mapping": {
+        "log1_lampe_salon": "light.lab_test",
+        "log1_prix_nuit": "sensor.log1_prix_nuit"
+      }
+    },
+    "moli": {
+      "base": "http://127.0.0.1:8790",
+      "mapping": {
+        "log1_lampe_salon": "hue:lampadaire-salon/on",
+        "log1_planche_test": "tuya:prise-ordinateur/switch_1"
+      }
+    }
+  }
+}

@@ -26,6 +26,88 @@ Nouveau logement = bloc `logements.lab.yaml` + `prestataires.lab/logX.yaml`,
 > `.storage/auth_provider.homeassistant` si reset).
 > UI routage (JSON) : http://localhost:8050/routes — pas de page HTML.
 
+## Box Moli virtuelle (ADR-007 / REQ-S-006 — 2ᵉ runtime, G4-c)
+
+2ème runtime optionnel à côté de HA : le SaaS doit gérer HA **et** Moli
+(`logements.yaml runtime: ha|moli`). La box Moli de lab vit sous
+`--profile moli` (socle inchangé sans elle) :
+
+```sh
+cd lab
+MOLI_SRC=/chemin/clone/moli-os docker compose --profile moli up -d --build moli-box
+python3 tests_moli.py          # batterie du contrat adaptateur (35 checks)
+```
+
+- Sans `MOLI_SRC`, compose clonable `https://github.com/rudy-io/moli-os#main`
+  (image construite sur place, ~4 min ; aucune image préconstruite publiée).
+- `box-moli/` : `moli.toml` (adapté de la villa upstream, pilotes `demo`
+  = 0 réseau, 0 hardware ; `demo=false` pour permettre les écritures
+  persistantes ; pièces protégées Léa/Hugo/Sécurité = banc de la garde) +
+  `villa/` (fixtures appareils + seed, Apache-2.0, `README-upstream.md`).
+- Modèle de stockage Moli : TOUT vit à côté du config (data, coffre,
+  journal) → `moli-bootstrap` (pattern `ha-bootstrap`) copie le config
+  versionné dans le volume `moli-data` chown 1000 — c'est la même
+  recette sous Windows/Docker que la box réelle (CONFIG + écritures).
+- Batterie `tests_moli.py` (contrat adaptateur §20.4/ADR-007) :
+  santé/pilotes/énergies → état snapshot → commande tracée API (journal
+  origin=api actor=… outcome ok) → SSE temps réel (state + journal) →
+  garde pièce protégée (202 pending → 403 sans ui → session PIN →
+  approbation + refus, deux tracés journal) → MCP agent (system_status,
+  tools/list sans outil d'approbation, list_devices, send_command acteur
+  journalisé) → automatisations (draft jamais live, dry-run, validation
+  humaine à fingerprint exacte, modification re-brouillon) → bornes
+  404/403/422 + garde anti-DNS-rebinding.
+- État du 2026-10-17 : **35/35 OK** (`moli-os 0.1.0`, commit amont
+  d54c3de, image locale `moli-os:lcd-lab` — build réel, pas de stub).
+- Dashboard visuel : http://127.0.0.1:8790 (code lab `246810`).
+
+### Moteur branché sur la box : `decision-moli` (premier E2E SaaS)
+
+Même image générique que `decision`, profil `moli`, port **:8280** :
+`LCD_RUNTIME=auto` (runtime PAR LOGEMENT : la clé yaml `runtime:` de
+`lab-config/logements.moli.yaml` décide — log1 = `moli`, log2/logtmp =
+sans clé → défaut `ha`) + `LCD_RUNTIME_MAP` = JSON mapping
+objet_logique → point natif (`{"log1_config_ok": "maison:config_ok/on"}`).
+Au boot (`--check`) le MÊME moteur pousse : log1 → box Moli (helper
+`config_ok = true`) ET log2 → box HA (`sensor.log2_config_ok = on`,
+entité canonique `input_boolean.log2_copro_verifiee` flippée via
+`/api/services` — sensor template se dérive seul) ;
+logtmp hors mapping = refus LOCAL loggé, 0 réseau. Battery :
+`tests_runtime.py` (**32/32 OK** checks §90-98, cycle frais 2026-10-17 :
+formes HA/Moli identiques + E2E moteur + un moteur sur les 2 box +
+events moli = 202 tracé + BOX MOLI NORD multi-box).
+
+### Multi-box P3 : log3/nord sur SA box Moli (`moli-box-nord`)
+
+`moli-box-nord` : mêmes fixtures/dockerfile, image `moli-os:lcd-lab`
+identique, port hôte **8791**, volumes/journal SÉPARÉS (le config
+seedé liste l'Host guard des 2 box). `decision-nord` :8192 pousse
+`log3_config_ok` (yaml `runtime: moli` — 1 logement = 1 box = 1
+runtime) : assistant visible §98 avec isolation prouvée (0 point du
+nord sur la box lab) et comptage passerelle inchangé (3 logements /
+2 boxes du registre).
+
+> Leçons du cycle frais 2026-10-17 (ce qui rendait les runs non
+> déterministes, maintenant corrigé) :
+> 1. `initial:` d'un `input_boolean` de package se RE-APPLIQUE à chaque
+>    restart HA et écrase toujours le restore — les packages log1/log2
+>    n'en déclarent plus sur copro_verifiee (défaut off au 1er boot
+>    sans restore, puis restauration du dernier état).
+> 2. Un bloc `http:` avec trusted_proxies dans la config lab HA crée à
+>    chaque boot un config "pending" jamais promu (box headless, pas de
+>    wizard UI) → HA revert + redémarre toutes les 5 min. La box lab
+>    est en accès direct : pas de bloc `http:` (la box réelle, derrière
+>    Caddy, le garde — promotion au wizard du premier démarrage).
+> 3. Un moteur sans HA configuré (nord) ne doit jamais tenter le push
+>    canonique HA : garde sur `ha_url` non vide dans `publier_etat`.
+> 4. `depends_on` cross-profile (decision-nord → moli-box-nord)
+>    invalide le projet compose ENTIER sans `--profile` : retiré ;
+>    le race boot nord↔moli-box est couvert par retry borné côté
+>    moteur + sondes bornées côté batterie.
+
+> Note : la box Moli lab est en `127.0.0.1:8790`, la HA virtuelle en
+> `:8123` — les deux coexistent, jamais l'une au-dessus de l'autre.
+
 > Note volumes : `inventaire.lab/` est monté en RW (box-équivalent) car le
 > registre est un état muté à chaque clôture ménage (+1 utilisation). Les runs
 > de tests y ajoutent des biens `TEST-INV-*` (assertions en `>=`, jamais `==`) —

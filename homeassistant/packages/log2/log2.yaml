@@ -37,9 +37,12 @@ template:
         state: "{{ states('input_boolean.log2_copro_verifiee') }}"
 
 input_boolean:
+  # SANS `initial:` : l'initial se RE-APPLIQUE à chaque restart HA et
+  # écrase toujours le restore (constat batterie 2026-10-17) — la box
+  # démarre `off` sans restore au 1er boot même défaut sûr, puis restaure
+  # le dernier état (l'adaptateur runtime-box flipppe via services).
   log2_copro_verifiee:
     name: "log2 copro vérifiée (accord écrit + Cerfa)"
-    initial: false
   # Features on/off ← custom/logements.yaml log2.features: (§1.5.5, §1.6.4-1)
   # 1 feature = 1 flag + 1 dossier + 1 dashboard visibility:
   log2_enable_smart_lock:

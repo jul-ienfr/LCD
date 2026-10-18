@@ -17,6 +17,7 @@ global:
 
 logements:
   log3:
+    runtime: moli                     # ADR-007 : box Moli NORD (helper maison:config_ok/on)
     nom: "Logement 3 Nord (LAB)"
     commune: "Cagnes-sur-Mer"
     logement_id: log3

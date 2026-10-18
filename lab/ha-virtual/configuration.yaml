@@ -52,8 +52,10 @@ logbook:
       - "*nuki*"
       - "*wifi*"
 
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 127.0.0.1
-    - ::1
+# PAS de bloc http: ici : la box virtuelle lab rejoint le LAN en ACCES
+# DIRECT (127.0.0.1:8123, aucun reverse-proxy devant). Un `http:` avec
+# trusted_proxies crée à CHAQUE boot un config "pending" jamais promu
+# (box headless, pas de wizard UI) -> HA revert + redémarre toutes les
+# 5 min (états d'entrée retombent) — constaté 2026-10-17 (batterie).
+# La box RÉELLE garde le bloc situé derrière Caddy : la promotion se
+# fait au wizard du premier démarrage (humain dans l'UI, une fois).

@@ -1,0 +1,144 @@
+# lab/lab-config/logements.moli.yaml — logements pour decision-moli :8280
+# (ADR-007/REQ-S-006 : runtime PAR LOGEMENT). Copie LAB de
+# logements.lab.yaml + clé top-level `runtime: ha|moli` par logement.
+# Priorité CONFIG > env (LCD_RUNTIME = défaut des logements sans clé) :
+# la CONFIG décrit la box. Ici : log1 = runtime `moli` (la box Moli
+# virtuelle, helper `maison:config_ok/on` via l'adaptateur runtime-box) ;
+# log2 et logtmp = sans clé → défaut `ha` (box HA virtuelle, capteurs
+# sensor.*) — le MÊME moteur sert donc les DEUX runtimes en même temps.
+# Le socle (decision :8092) lit logements.lab.yaml SANS clé `runtime` →
+# env défaut `ha` → comportement historique inchangé.
+
+global:
+  devise: EUR
+  langue_hote: fr
+  langues_socle: [fr, en, es, it, de]
+  prix_min: 75
+  prix_max: 290
+  hold_caution_min: 500
+  hold_caution_max: 800
+  ics_poll_minutes: 15
+  menage_montant_defaut: 110
+  llm_proxy: "http://llm-stub:4000"
+  ui_routage: "http://lab-ui:8050"
+
+logements:
+  log1:
+    runtime: moli                       # ADR-007 : box Moli (helper config_ok)
+    nom: "Santa Severa (LAB)"
+    commune: "Saint-Laurent-du-Var"
+    logement_id: log1
+    surface_m2: 65
+    capacite: 5
+    vue_mer: true
+    pricing:
+      prix_base: 110
+      prix_min: 75
+      prix_max: 290
+      mode_gestion_defaut: equilibre
+    copro:
+      verifiee: true                     # LAB SEUL — réel reste false (BLOQUÉ)
+      meuble_entier: true
+      chambres_separees: false
+      fetes: false
+      heures_calmes: "22h-8h"
+      occupants_max: 5
+      animaux: false
+      non_fumeur: true
+      taxe_sejour_majoration: 0.10
+    features:
+      smart_lock: true
+      voix: true
+      clim_ir: true
+      extras_upsell: true
+      etat_lieux_auto: true
+      sinistre_auto: true
+      compta_auto: true
+      traca_intervenants: true
+      inventaire_biens: true
+      annuaire_presta: true
+      mode_auto_saison: false
+      events_auto: true
+      memoire_voyageur: true
+      vitrines_gratuites: false
+      guide_vivant: true
+      wallpanel: true
+      qr_pieces: true
+      questionnaire: true
+      avis_j1: true
+      crm_retour: true
+      geoloc_voyageur: true
+    menage:
+      montant: 110
+      facturation: supplement
+    zones: [santa_severa, nice_ouest]
+    zone_defaut: santa_severa
+    moteur_direct: maison
+
+  log2:
+    # SANS clé `runtime` → défaut (env LCD_RUNTIME=auto ⇒ `ha`) : l'état
+    # config_ok est poussé vers la HA virtuelle (sensor.log2_config_ok).
+    nom: "Logement 2 (LAB)"
+    commune: "Saint-Laurent-du-Var"
+    logement_id: log2
+    surface_m2: 45
+    capacite: 4
+    vue_mer: false
+    pricing:
+      prix_base: 90
+      prix_min: 75
+      prix_max: 290
+      mode_gestion_defaut: remplissage_max
+    copro:
+      verifiee: true
+      meuble_entier: true
+      chambres_separees: false
+      fetes: false
+      heures_calmes: "22h-8h"
+      occupants_max: 4
+      animaux: false
+      non_fumeur: true
+      taxe_sejour_majoration: 0.10
+    features:
+      smart_lock: false
+      voix: false
+      clim_ir: false
+      extras_upsell: false
+      etat_lieux_auto: true
+      sinistre_auto: false
+      compta_auto: true
+      traca_intervenants: true
+      inventaire_biens: true
+      annuaire_presta: true
+      mode_auto_saison: false
+      events_auto: true
+      memoire_voyageur: true
+      vitrines_gratuites: false
+      guide_vivant: true
+      wallpanel: true
+      qr_pieces: true
+      questionnaire: true
+      avis_j1: true
+      crm_retour: false
+      geoloc_voyageur: false
+    menage:
+      montant: 90
+      facturation: supplement
+    zones: []
+    zone_defaut: null
+    moteur_direct: maison
+
+  logtmp:
+    # Témoin hors mapping/run : sans clé runtime → défaut ha. Prouve le
+    # refus LOGGÉ côté moli quand un id ne mappe (aucune écriture réseau).
+    nom: "Temoins flag off (hors box)"
+    commune: "Lab"
+    logement_id: logtmp
+    surface_m2: 20
+    capacite: 1
+    copro:
+      verifiee: true
+      meuble_entier: true
+    features:
+      inventaire_biens: false
+      annuaire_presta: true

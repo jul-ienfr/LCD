@@ -730,9 +730,13 @@ def lire_logements(path):
             # Identité statique logement (nom, commune, surface, capacité —
             # sert les defaults J-2/J-1/J+1 + mentions annonce P6-21).
             k_id, v_id = [x.strip().strip("\"'") for x in prop.split(":", 1)]
-            if k_id in ("nom", "commune", "surface_m2",
-                        "capacite") and v_id:
+            if k_id in ("nom", "commune", "surface_m2", "capacite") and v_id:
                 logts[cur][k_id] = v_id
+            elif k_id == "runtime" and v_id in ("ha", "moli"):
+                # ADR-007/REQ-S-006 : runtime box décrété PAR LOGEMENT.
+                # Priorité CONFIG > env : la config décrit la box, l'env
+                # jamais (LCD_RUNTIME = défaut des logements sans clé).
+                logts[cur]["runtime"] = v_id
             continue
         if section and ":" in prop:
             k, v = [x.strip().strip("\"'") for x in prop.split(":", 1)]
@@ -881,6 +885,26 @@ class Moteur:
             "abritel": float(cfg.get("commission_abritel", 0.10)),
             "expedia": None,  # taux contrat à vérifier -> reco sans prix + motif
         }
+        # ADR-007/REQ-S-006 : runtime box pluggable (ha par défaut, moli option).
+        # Flag env LCD_RUNTIME (+ map objet_logique -> point natif, JSON en
+        # LCD_RUNTIME_MAP ou chemin de fichier). Moli : LCD_MOLI_URL + LCD_MOLI_PIN.
+        # Jamais de secret ici ; hub adaptateur = custom/runtime-box/runtime.py.
+        self.runtime_backend = os.environ.get("LCD_RUNTIME", "ha").strip().lower()
+        self.runtime_map = {}
+        _rmap = os.environ.get("LCD_RUNTIME_MAP", "")
+        if _rmap:
+            try:
+                brut = (_rmap if _rmap.strip().startswith("{")
+                        else open(_rmap, encoding="utf-8").read())
+                self.runtime_map = json.loads(brut)
+                if not isinstance(self.runtime_map, dict):
+                    self.runtime_map = {}
+            except (ValueError, OSError) as errmap:
+                print(f"LCD_RUNTIME_MAP illisible : {errmap}", file=sys.stderr)
+        self.runtime_moli_url = os.environ.get(
+            "LCD_MOLI_URL", "").rstrip("/")
+        self.runtime_moli_pin = os.environ.get("LCD_MOLI_PIN", "")
+        self._adapter = None  # paresseux : créé au 1er push si backend=moli
 
     # --- RBAC ---
     def _lire_revocations(self):
@@ -1561,8 +1585,19 @@ class Moteur:
             return False, f"ha_erreur:{type(e).__name__}"
 
     def ha_get(self, url):
+        # Auth SEULEMENT pour la box HA (jamais envoyée à pricing/ics) :
+        # /api/states exige le Bearer (JWT lab forgé ou token secrets).
+        entetes = {}
+        if self.ha_url and url.startswith(self.ha_url):
+            if self.ha_token and not self.ha_token.startswith("CHANGER"):
+                entetes["Authorization"] = f"Bearer {self.ha_token}"
+            else:
+                jeton = forger_jeton_ha()
+                if jeton:
+                    entetes["Authorization"] = f"Bearer {jeton}"
+        req = urllib.request.Request(url, headers=entetes)
         try:
-            with urllib.request.urlopen(url, timeout=8) as r:
+            with urllib.request.urlopen(req, timeout=8) as r:
                 return json.loads(r.read().decode("utf-8"))
         except Exception:
             return None
@@ -1604,17 +1639,127 @@ class Moteur:
                 "features_actives": sorted(k for k, v in l["features"].items() if v),
                 "bornes_prix": [l["prix_min"], l["prix_max"]], "alertes": alertes}, None
 
+    # --- ADR-007 : écriture d'état par le runtimes (publier_etat) ---
+    def runtime_de(self, logement_id):
+        """Runtime du logement : yaml `runtime: ha|moli` PRISE sur l'env.
+        LCD_RUNTIME reste le défaut des logements sans clé (=> `auto` n'est
+        pas un runtime : un logement sans clé et env `auto` = `ha`)."""
+        l = self.logts.get(logement_id) or {}
+        decl = str(l.get("runtime") or "").strip().lower()
+        if decl in ("ha", "moli"):
+            return decl
+        return self.runtime_backend if self.runtime_backend in (
+            "ha", "moli") else "ha"
+
+    def _adaptateur_moli(self):
+        """Adaptateur Moli paresseux (custom/runtime-box/runtime.py, stdlib).
+        Absent/faux -> None + motif (dégrade, jamais un crash moteur)."""
+        if self._adapter is not None:
+            return self._adapter
+        try:
+            ici = os.path.dirname(os.path.abspath(__file__))
+            sys.path.insert(0, os.path.join(ici, "..", "runtime-box"))
+            import runtime as rt_runtime  # module contrat adaptateur
+            ad_moli = rt_runtime.MoliBackend(self.runtime_moli_url,
+                                             pin=self.runtime_moli_pin)
+            from copy import deepcopy
+            self._adapter = rt_runtime.RuntimeAdapter(
+                ad_moli, deepcopy(self.runtime_map), "moli")
+        except Exception as e:
+            self._adapter = False
+            self.log_decision("*", "ADR-007", "decision-engine", "acces",
+                              None, None,
+                              f"adaptateur moli indisponible : {e}")
+        return self._adapter
+
+    def publier_etat(self, point_logique, value, attributes=None,
+                     logement_id=""):
+        """Un état SaaS -> runtime de la box du LOGEMENT, via l'adaptateur
+        (jamais d'API runtime en dur ici). point_logique = id stable
+        (`logX_config_ok`) TRADUIT par runtime : chez ha = `sensor.` prefix
+        (code existant), chez moli = point natif de LCD_RUNTIME_MAP. Retour
+        (ok, info) comme ha_post.
+        - ha : POST /api/states/<entité> (comportement inchangé par défaut).
+        - moli : commande tracée côté box (journal origin=api
+          actor=decision-engine) ; refus hors mapping = jamais silencieux
+          (logged et False)."""
+        if self.runtime_de(logement_id) != "moli":
+            if point_logique.endswith("_config_ok") and self.ha_url:
+                # Box HA : sensor.logX_config_ok = TEMPLATE calée sur
+                # input_boolean.logX_copro_verifiee (packages log1/log2
+                # §2.8-bis). Un push d'état direct est écrasé au
+                # re-rendu du template (race batterie) : on flipppe
+                # DONC l'entité canonique (l'état template se dérive
+                # seul, déterministe), repli push direct (box sans
+                # paquet, comportement historique conservé). Garde :
+                # une box SANS HA configurée (nord = runtime moli seul)
+                # ne doit JAMAIS tenter un urlopen sans URL (ValueError) —
+                # sous-garde : la branche moli du même fichier.
+                logX = point_logique[:-len("_config_ok")]
+                canon = f"input_boolean.{logX}_copro_verifiee"
+                on = value in (True, "on")
+                # jamais silencieux : l'entité canonique doit EXISTER
+                # (paquet logX) — HA répond 200 même à une entité inconnue.
+                canon_etat = self.ha_get(f"{self.ha_url}"
+                                         f"/api/states/{canon}")
+                if isinstance(canon_etat, dict):
+                    ok_c, info_c = self.ha_post(
+                        f"/api/services/input_boolean/"
+                        f"{'turn_on' if on else 'turn_off'}",
+                        {"entity_id": canon})
+                    if ok_c:
+                        return ok_c, f"canon {canon}"
+                # repli intentionnel : entité absente (logX sans paquet
+                # dédié), push d'état historique.
+            return self.ha_post(f"/api/states/sensor.{point_logique}",
+                                {"state": "on" if value in (True, "on")
+                                  else "off",
+                                 "attributes": dict(attributes or {})})
+        ad = self._adaptateur_moli()
+        if not ad:
+            return False, "adaptateur_moli_absent"
+        if self.runtime_moli_url and not ad.backend.http.jar:
+            ad.backend.ouvrir_session(self.runtime_moli_pin)
+        res = ad.commande(point_logique, value, "decision-engine")
+        ok = res.get("status") == "ok"
+        return ok, json.dumps(res, ensure_ascii=False)
+
     def pousser_config_ok(self):
         """sensor.logX_config_ok : rouge (off) si copro non vérifiée."""
         res = []
         for log, l in self.logts.items():
-            ok, info = self.ha_post(
-                f"/api/states/sensor.{log}_config_ok",
-                {"state": "on" if l["copro_verifiee"] else "off",
-                 "attributes": {"copro_verifiee": l["copro_verifiee"],
-                                "updated": utcnow_iso(),
-                                "note": ("mise en ligne BLOQUÉE : accord syndic + Cerfa requis"
-                                         if not l["copro_verifiee"] else "config OK")}})
+            try:
+                ok, info = self.publier_etat(
+                    f"{log}_config_ok",
+                    True if l["copro_verifiee"] else False,
+                    {"copro_verifiee": l["copro_verifiee"],
+                     "updated": utcnow_iso(),
+                     "note": ("mise en ligne BLOQUÉE : accord syndic + Cerfa "
+                              "requis" if not l["copro_verifiee"]
+                              else "config OK")},
+                    logement_id=log)
+                if not ok and self.runtime_de(log) == "moli" and \
+                        any(m in str(info) for m in
+                            ("URLError", "Connection", "Timeout")):
+                    # box pas encore prête au boot (up fraîche, la box est
+                    # un service parallèle) : réessais bornés — 5 x 10 s
+                    # max, JAMAIS infini ; succès immédiat quand elle monte.
+                    for _ in range(4):
+                        time.sleep(10)
+                        ok, info = self.publier_etat(
+                            f"{log}_config_ok",
+                            True if l["copro_verifiee"] else False,
+                            {"copro_verifiee": l["copro_verifiee"],
+                             "updated": utcnow_iso(),
+                             "note": ("mise en ligne BLOQUÉE : accord syndic"
+                                      " + Cerfa requis"
+                                      if not l["copro_verifiee"]
+                                      else "config OK")},
+                            logement_id=log)
+                        if ok:
+                            break
+            except Exception as err_ok:
+                ok, info = False, f"erreur:{type(err_ok).__name__}"
             res.append((log, ok, info))
         return res
 
@@ -1690,6 +1835,23 @@ class Moteur:
                               f"BLOQUÉ event {type_event} : copro.verifiee=false")
             return 403, {"statut": "bloque",
                          "motif": "copro.verifiee=false : mise en ligne BLOQUÉE"}
+        if self.runtime_de(logement_id) == "moli":
+            # ADR-007 v0 : le bus d'événements lcd_* est un canal HA
+            # (blueprints). Runtime moli = l'ordre est TRACE et RENDU à
+            # l'appelant (202, jamais un push silencieux vers HA) —
+            # messages/automatisations par runtime moli = P2+ (à évaluer).
+            langue_d = str((data or {}).get("langue") or "fr")
+            self.log_decision(logement_id, ref or type_event, qui, "acces",
+                              None, None,
+                              f"event {type_event} NON EMIS : runtime moli "
+                              "v0 (état seul ; events = canal HA)")
+            return 202, {"statut": "loge_sans_ha", "runtime": "moli",
+                         "type": type_event, "ha": "runtime_moli_v0",
+                         "langue": langue_d,
+                         "pin_transmis": False,
+                         "contrat_signe": None,
+                         "gabarit_trouve": False,
+                         "message_longueur": 0}
         data = dict(data or {})
         # Defaults statiques P6-9-bis : branding + identité logement complètent
         # les trous ics-sync/QloApps (marque/adresse/tel/liens). Données

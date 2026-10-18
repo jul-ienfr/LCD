@@ -1,0 +1,161 @@
+# lab/box-moli/moli.toml — box Moli virtuelle du lab (ADR-007 REQ-S-006).
+# Adapté de la villa de démonstration upstream (demo/villa/, Apache-2.0) :
+# pilotes `demo` uniquement (0 réseau réel), mêmes points que de vrais
+# appareils, l'état de la maison reseed à chaque démarrage (tmpfs /data).
+# Chemins ABSOLUS : les fixtures/seed sont montés en :ro, l'état vit
+# en tmpfs (redémarrage = retour au seed, comme la villa).
+# PIN du code maison : MOLI_UI_PIN défini dans docker-compose.yml
+# (valeur FAUSSE de lab, jetable — jamais de vrai code ici).
+# Ne jamais y mettre de secret (coffre chiffré only).
+
+[server]
+listen = "0.0.0.0:8790"
+data_dir = "/data"
+worker_threads = 2
+# Garde anti DNS-rebinding : nom interne docker (future passerelle SaaS)
+# + localhost. Le lab expose 127.0.0.1 seulement.
+# Garde Host : les noms de services lab qui peuvent parler à une box Moli
+# (1 config partagée, chaque box a SES volumes/journal — 1 logement = 1 box).
+allowed_hosts = ["moli", "moli-box", "moli-box-nord"]
+history_days = 7
+# demo = false (PAS le mode villa) : le mode démo refuse toute écriture
+# persistante (automatisations…). Ici la box doit montrer le CONTRAT :
+# sessions PIN, écritures automatisations, validations humaines — avec
+# pilotes demo (appareils fictifs) et état qui vit normalement /data.
+
+[guard]
+# Pièces protégées (villa) : la garde retient les ordres agent/api par le
+# mécanisme 202 pending — approbation humaine (session PIN) obligatoire.
+protected_rooms = ["Chambre de Léa", "Chambre de Hugo", "Sécurité"]
+
+[guard.quiet_hours]
+from = "22:00"
+to = "07:30"
+timezone = "Europe/Paris"
+rooms = ["Chambre de Léa", "Chambre de Hugo"]
+
+[[driver]]
+id = "air"
+kind = "demo"
+[driver.options]
+fixture = "/villa/devices/air.json"
+
+[[driver]]
+id = "hue"
+kind = "demo"
+[driver.options]
+fixture = "/villa/devices/hue.json"
+
+[[driver]]
+id = "tuya"
+kind = "demo"
+[driver.options]
+fixture = "/villa/devices/tuya.json"
+
+[[driver]]
+id = "z2m"
+kind = "demo"
+[driver.options]
+fixture = "/villa/devices/z2m.json"
+
+[[driver]]
+id = "reolink"
+kind = "demo"
+[driver.options]
+fixture = "/villa/devices/reolink.json"
+
+[[driver]]
+id = "circuits"
+kind = "demo"
+[driver.options]
+fixture = "/villa/devices/circuits.json"
+
+[[driver]]
+id = "meteo"
+kind = "demo"
+[driver.options]
+fixture = "/villa/devices/meteo.json"
+
+[[driver]]
+id = "presence"
+kind = "demo"
+[driver.options]
+fixture = "/villa/devices/presence.json"
+
+[[driver]]
+id = "maison"
+kind = "helpers"
+
+[[driver.options.helper]]
+id = "mode_maison"
+name = "Mode Maison"
+kind = "select"
+options = ["Normal", "Absent", "Nuit", "Vacances"]
+initial = "Normal"
+
+[[driver.options.helper]]
+id = "alarme_active"
+name = "Alarme"
+kind = "switch"
+initial = false
+room = "Sécurité"
+
+[[driver.options.helper]]
+id = "budget_elec_mensuel"
+name = "Budget électricité mensuel"
+kind = "number"
+min = 50.0
+max = 800.0
+step = 10.0
+initial = 320.0
+
+[[driver.options.helper]]
+# ADR-007 lab : l'état SaaS (logX_config_ok du decision-engine, via
+# l'adaptateur runtime-box) s'écrit ICI (1 box = 1 logement, point unique).
+# HORS pièce protégée : point moteur, jamais d'ordre humain requis.
+id = "config_ok"
+name = "Config OK (SaaS)"
+kind = "switch"
+initial = false
+
+[[fixture]]
+id = "suspensions"
+name = "Suspensions"
+room = "Salle à manger"
+bulbs = ["hue:suspension-1", "hue:suspension-2", "hue:suspension-3"]
+power = "tuya:relais-suspensions/switch_1"
+
+[energy]
+timezone = "Europe/Paris"
+currency = "€"
+monthly_fee = 24.0
+budget = "maison:budget_elec_mensuel/value"
+
+[energy.tariff]
+period = "z2m:linky/active_register_tier_delivered"
+prices = { "HP" = 0.2068, "HC" = 0.1615 }
+
+[[energy.meter]]
+id = "linky-hc"
+name = "Linky heures creuses"
+point = "z2m:linky/current_tier1_summ_delivered"
+role = "grid"
+price = 0.1615
+reset = "never"
+period = "HC"
+
+[[energy.meter]]
+id = "linky-hp"
+name = "Linky heures pleines"
+point = "z2m:linky/current_tier2_summ_delivered"
+role = "grid"
+price = 0.2068
+reset = "never"
+period = "HP"
+
+[[energy.meter]]
+id = "general"
+name = "Général"
+point = "circuits:tableau/energy_month_1"
+power = "circuits:tableau/power_1"
+role = "total"

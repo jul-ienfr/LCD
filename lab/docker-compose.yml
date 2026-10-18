@@ -459,6 +459,76 @@ services:
       timeout: 5s
       retries: 5
 
+  # Box Moli virtuelle (ADR-007/REQ-S-006 : runtime box pluggable HA|Moli).
+  # Image upstream construite sur place (aucune image préconstruite publiée) ;
+  # MOLI_SRC permet un build local (clone déjà présent). Profil `moli` :
+  # socle inchangé sans elle (`--profile moli` pour démarrer la box).
+  # Pilotes demo uniquement (villa upstream, :ro) — 0 réseau, 0 hardware.
+  # Résolution des chemins Moli : tout vit à côté du CONFIG (data, coffre,
+  # journal) → moli.toml + l'état doivent être ÉCRITABLES : même pattern que
+  # `ha-bootstrap` ci-dessous (seed python → volume moli-data → box). Les
+  # fixtures/seed demo restent en :ro sur /villa ; l'état vit dans le volume
+  # (demo=true + demo_seed : réseed à chaque démarrage comme la villa).
+  # Pas de healthcheck possible : image FROM scratch (pas de shell/python) —
+  # la santé est prouvée par tests_moli.py (GET /api/health).
+  moli-bootstrap:
+    restart: "no"
+    profiles: ["moli"]
+    image: python:3.12-slim
+    volumes:
+      - ./box-moli/moli.toml:/src/moli.toml:ro
+      - moli-data:/data
+    command: >
+      python3 -c "import pathlib,os,shutil;os.chown('/data',1000,1000);os.chmod('/data',0o700);dst=pathlib.Path('/data/moli.toml');dst.write_text(pathlib.Path('/src/moli.toml').read_text(encoding='utf-8'),encoding='utf-8');os.chown(dst,1000,1000);os.chmod(dst,0o600);print('moli.toml seed ok (uid 1000)')"
+  moli-box:
+    restart: unless-stopped
+    build:
+      context: ${MOLI_SRC:-https://github.com/rudy-io/moli-os#main}
+      dockerfile: Dockerfile
+    image: moli-os:lcd-lab
+    profiles: ["moli"]
+    ports: ["127.0.0.1:8790:8790"]
+    environment:
+      MOLI_UI_PIN: "246810"
+      TZ: "Europe/Paris"
+    volumes:
+      - ./box-moli/villa:/villa:ro
+      - moli-data:/data
+    depends_on:
+      moli-bootstrap:
+        condition: service_completed_successfully
+    mem_limit: 256m
+
+  # Box Moli NORD (ADR-007 multi-box : 1 logement = 1 box, log3 nord).
+  # MÊME image déjà construite (moli-os:lcd-lab, re-construite que si
+  # absente), SES volumes/journal (moli-data-nord), port hôte 8791.
+  # La box décide du Host guard via le config seedé (allowed_hosts).
+  moli-bootstrap-nord:
+    restart: "no"
+    profiles: ["moli"]
+    image: python:3.12-slim
+    volumes:
+      - ./box-moli/moli.toml:/src/moli.toml:ro
+      - moli-data-nord:/data
+    command: >
+      python3 -c "import pathlib,os,shutil;os.chown('/data',1000,1000);os.chmod('/data',0o700);dst=pathlib.Path('/data/moli.toml');dst.write_text(pathlib.Path('/src/moli.toml').read_text(encoding='utf-8'),encoding='utf-8');os.chown(dst,1000,1000);os.chmod(dst,0o600);print('moli.toml seed ok nord (uid 1000)')"
+    depends_on: []
+  moli-box-nord:
+    restart: unless-stopped
+    image: moli-os:lcd-lab
+    profiles: ["moli"]
+    ports: ["127.0.0.1:8791:8790"]
+    environment:
+      MOLI_UI_PIN: "246810"
+      TZ: "Europe/Paris"
+    volumes:
+      - ./box-moli/villa:/villa:ro
+      - moli-data-nord:/data
+    depends_on:
+      moli-bootstrap-nord:
+        condition: service_completed_successfully
+    mem_limit: 256m
+
   # --- box NORD (G4-b) : 2e box RÉELLE, pas un stub. Mêmes images génériques,
   # moteurs PROPRES (ics-sync-nord :8190, pricing-nord :8191, decision-nord
   # :8192), états SÉPARÉS (volumes *-nord), registre logements DÉDIÉ.
@@ -542,6 +612,13 @@ services:
       LCD_DECISION_LOG_DIR: /opt/lcd/logs
       LCD_ICS_SYNC_URL: http://ics-sync-nord:8190
       LCD_PRICING_URL: http://pricing-nord:8191
+      # ADR-007 multi-box : log3 (SEUL logement nord) = runtime moli via
+      # sa clé yaml `runtime: moli` ; env = défaut des logements sans clé.
+      LCD_RUNTIME: "auto"
+      LCD_MOLI_URL: "http://moli-box-nord:8790"
+      LCD_MOLI_PIN: "246810"
+      LCD_RUNTIME_MAP: '{"log3_config_ok":"maison:config_ok/on"}'
+      # Pas de LCD_HA_URL nord : une box n'a qu'un runtime (log3 = Moli).
     volumes:
       - decision-nord-state:/opt/lcd/state
       - ics-logs:/opt/lcd/logs
@@ -556,18 +633,80 @@ services:
       --logements /opt/lcd/logements.yaml
       --acces /opt/lcd/acces.yaml
       --branding /opt/lcd/branding.yaml
-      --memoire /opt/lcd/memoire/voyageurs.lab.yaml --serve"
+      --memoire /opt/lcd/memoire/voyageurs.lab.yaml --check --serve"
     depends_on:
       ics-sync-nord:
         condition: service_healthy
       pricing-nord:
         condition: service_healthy
+      # PAS de depends_on moli-box-nord (service profil `moli` : dépendre
+      # rend le projet compose INVALIDE pour la socle sans --profile) :
+      # le push d'état au boot RETENTE au lieu (borné, decision.py).
     healthcheck:
       test: ["CMD", "python3", "-c",
         "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8192/health',timeout=5)"]
       interval: 15s
       timeout: 5s
       retries: 5
+
+  # Decision-engine de la box MOLI (ADR-007/REQ-S-006 : runtime PAR
+  # LOGEMENT). Même image générique que decision : `LCD_RUNTIME=auto`
+  # = chaque logement suit SA clé yaml `runtime:` (logements.moli.yaml :
+  # log1=moli, log2/logtmp=défaut ha). Le MÊME moteur pousse donc
+  # log1_config_ok -> box Moli (helper `maison:config_ok/on`, via
+  # l'adaptateur) ET log2_config_ok -> box HA (sensor.*, même API que le
+  # socle). `--check` = push au boot, puis --serve :8280. Profil `moli`
+  # (socle inchangé sans elle).
+  decision-moli:
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: lab/Dockerfile.moteur
+      args:
+        SCRIPT: custom/decision-engine/decision.py
+        CONFIG: lab/lab-config/decision-engine.yaml
+    profiles: ["moli"]
+    ports: ["8280:8092"]
+    environment:
+      LCD_BIND: "0.0.0.0"
+      LCD_HTTP_PORT: "8092"
+      LCD_STATE_DIR: /opt/lcd/state
+      LCD_DECISION_LOG_DIR: /opt/lcd/logs
+      # Runtime PAR LOGEMENT (ADR-007) : yaml d'abord (clé `runtime:`),
+      # env = défaut des logements sans clé ; `auto` ⇒ ha hors clé.
+      LCD_RUNTIME: "auto"
+      # Runtime moli (log1) : box + session PIN (FAUX lab).
+      LCD_MOLI_URL: "http://moli-box:8790"
+      LCD_MOLI_PIN: "246810"
+      # Runtime moli : mapping objet_logique -> point natif (log1 SEUL).
+      LCD_RUNTIME_MAP: '{"log1_config_ok":"maison:config_ok/on"}'
+      # Runtime ha (log2/logtmp, défaut) : HA virtuelle + JWT forgé lab
+      # (mêmes valeurs FAUSSES jetables que ha-bootstrap/tests_lab.py).
+      LCD_HA_URL: "http://homeassistant:8123"
+      LCD_HA_REFRESH_ID: "6c6162326f782d7669727475616c2d02"
+      LCD_HA_JWT_KEY: "6c61622d7669727475616c2d6a77742d6c61622d30312d6c61622d3032"
+    volumes:
+      - decision-moli-state:/opt/lcd/state
+      - ics-logs:/opt/lcd/logs
+      - ./lab-config/logements.moli.yaml:/opt/lcd/logements.yaml:ro
+      - ../custom/acces.yaml:/opt/lcd/acces.yaml:ro
+      - ./secrets.lab.yaml:/opt/lcd/secrets.yaml:ro
+      - ./branding.lab.yaml:/opt/lcd/branding.yaml:ro
+      - ./memoire.lab/:/opt/lcd/memoire
+    command: >
+      sh -c "python3 /opt/lcd/custom/decision-engine/decision.py
+      --config /opt/lcd/config.yaml
+      --logements /opt/lcd/logements.yaml
+      --acces /opt/lcd/acces.yaml
+      --branding /opt/lcd/branding.yaml
+      --check --serve"
+    depends_on:
+      homeassistant:
+        condition: service_healthy
+      moli-box:
+        condition: service_started
+    # Pas de healthcheck MOLI (pas de test python accessible) : la santé
+    # 8280 est vérifiée par tests_runtime.py au même titre que la box.
 
   # Agent box NORD (G4-b) : tourne SUR la box nord, lit les moteurs LOCAUX
   # (pricing-nord :8191 / decision-nord :8192) et pousse vers la passerelle
@@ -711,6 +850,9 @@ services:
 
 volumes:
   haconfig:
+  moli-data:
+  moli-data-nord:
+  decision-moli-state:
   ics-state:
   pricing-state:
   decision-state:

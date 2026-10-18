@@ -19,9 +19,9 @@ entites:
     regime: "is_2065"
     tva: "non"
     iban_ref: "env:ENT_PORTAL_IBAN"
-    cree_le: 2026-10-17T07:49:10Z
+    cree_le: 2026-10-17T23:13:46Z
     cree_par: "personne_02"
-    maj_le: 2026-10-17T07:49:10Z
+    maj_le: 2026-10-17T23:13:46Z
   ent-nom-propre-julie:
     libelle: "Julie — nom propre"
     nature: nom_propre

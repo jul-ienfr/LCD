@@ -59,9 +59,12 @@ template:
         state: "0.0"
 
 input_boolean:
+  # SANS `initial:` sur copro : l'initial se RE-APPLIQUE à chaque restart
+  # HA et écrase toujours le restore (constat batterie 2026-10-17) — au
+  # 1er boot sans restore le défaut = off (défaut sûr), puis l'état
+  # dernier (wizard / adaptateur runtime-box) se restaure.
   log1_copro_verifiee:
     name: "log1 copro vérifiée (accord écrit + Cerfa)"
-    initial: false
   # Features on/off ← custom/logements.yaml log1.features: (§1.5.5, §1.6.4-1)
   # 1 feature = 1 flag + 1 dossier + 1 dashboard visibility:
   log1_enable_smart_lock:

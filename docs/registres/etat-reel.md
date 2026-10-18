@@ -90,3 +90,68 @@
   seul jamais personne, piste dossier dispute contrat+EDL) —
   EXÉCUTION BLOQUÉE sur comptes lab PROPRES Smovin + Check&Visit
   + HappyTenant (action opérateur), 0 code touché.
+- Box Moli virtuelle 2026-10-17 : ADR-007 (runtime pluggable HA|Moli,
+  T-10) POSÉ + banc réellement construit dans `lab/` : image `moli-os`
+  build RUST réel (amont d54c3de, Apache-2.0, ~4 min, aucune image
+  préconstruite publiée) + `lab/box-moli/` (moli.toml adapté villa
+  upstream + fixtures demo `:ro` ; moli-bootstrap python = pattern
+  ha-bootstrap pour rendre le config writable dans le volume ; profil
+  compose `moli`, socle inchangé sans elle) + batterie
+  `lab/tests_moli.py` **35/35 OK** (contrat adaptateur §20.4 : santé,
+  état, commande tracée, SSE, garde pièce protégée 202→PIN→ui
+  approbation+refus, MCP agent sans outil d'approbation, automatisation
+  dry/fingerprint, bornes 404/403/422 + garde Host). Socle lab re-testé
+  vert le même jour (`tests_lab.py`, log `lab/lab-run-24.log`). Code
+  moteurs/passerelle : 0 ligne touchée (plan-only gardé — l'adaptateur
+  runtime est P2+).
+- Adaptateur runtime-box v0 2026-10-17 : `custom/runtime-box/`
+  (runtime.py stdlib + runtime-config.example.json + README) — PREMIER
+  module du contrat REQ-S-006 : `RuntimeAdapter` (ha|moli) au contrat
+  §20.4 (health/etat/commande/journal, mapping objet_logique → point
+  natif, refus LOCAL hors mapping, 0 lib). Batterie
+  `lab/tests_runtime.py` **19/19 OK** : formes identiques HA 2026.10.0 /
+  Moli 0.1.0 (health, état, commande + relecture, journal), écriture
+  retracée des 2 côtés, garde Moli traversée (retenu pièce protégée).
+  CLI diagnostic fonctionnel.
+- PREMIER MOTEUR BRANCHÉ 2026-10-17 : `decision-engine` + env
+  `LCD_RUNTIME=ha|moli` (défaut ha, zéro régression) + `LCD_RUNTIME_MAP`
+  (objet_logique → point natif) : `pousser_config_ok` passe par
+  `publier_etat()` → adaptateur. E2E prouvé : service lab `decision-moli`
+  :8280 (profil `moli`, `--check` au boot puis `--serve`) pousse
+  `log1/log2_config_ok` → box Moli `maison:config_ok/on = true`,
+  journal Moli `origin=api actor=decision-engine` ; hors mapping =
+  refus LOGGÉ, jamais silencieux. Batterie §96 verte.
+- RUNTIME PAR LOGEMENT 2026-10-17 (complément ADR-007) : clé
+  top-level `runtime: ha|moli` dans `logements.yaml`, priorité
+  CONFIG > env (`LCD_RUNTIME=auto` sur decision-moli = chaque logement
+  suit sa clé ; un YAML sans clé = env défaut `ha`, socle jamais
+  détourné). Même image, même moteur : log1 → box Moli (helper
+  `maison:config_ok/on`) ET log2 → box HA (entité canonique
+  `input_boolean.log2_copro_verifiee=on`, template §2.8-bis dérive
+  `sensor.log2_config_ok=on` — le push d'état direct perdait la course
+  au re-rendu, fix prouvé) SIMULTANÉMENT (batterie
+  `lab/tests_runtime.py` **23/23 OK** §90-97 ; logtmp hors entité =
+  repli push historique, refus moli loggé, jamais silencieux ;
+  `ha_get` désormais authentifié box HA SEULE, jamais d'Authorization
+  vers pricing/ics). Events J-2/J-1 restent canaux HA : POST /event sur
+  un logement moli = 202 `loge_sans_ha` + `runtime: moli` (tracé, jamais
+  push silencieux). Feature flags R3 conformes (1 clé YAML + env défaut
+  + 1 fichier lab-config/logements.moli.yaml + sections 96-97 ; socle,
+  règlement et autres moteurs inchangés). Leçon batterie retenue :
+  tests_lab présume socle SEEDÉ frais (`down -v` avant re-run — les
+  échecs d'état cumulé ont d'abord faussement imputés au code). Boot
+  déterministe : decision-moli dépend de `homeassistant` healthy
+  (compose) — sans ça, le push d'état au boot tombait en URLError
+  (box pas encore prête, loggé `loge_sans_ha` = jamais silencieux).
+
+- MULTI-BOX RUNTIME MIXTE 2026-10-17 (ADR-007 P3, 2e tour) : box Moli
+  NORD 8791 (moli-box-nord, MÊME image moli-os:lcd-lab, volumes/
+  journal SÉPARÉS, moli-bootstrap-nord seedé du MÊME moli.toml dont
+  allowed_hosts inclut moli-box-nord) + decision-nord :8192 branché
+  (log3 yaml runtime: moli, --check au boot, mapping log3_config_ok ->
+  helper de SA box) : log3 -> SA box Moli (config_ok = true, journal
+  actor=decision-engine), 0 point du nord sur la box lab (isolation
+  prouvée : 2 box, 2 journaux), passerelle parc : comptage inchangé
+  (3 logements / 2 boxes du registre). Batterie lab/tests_runtime.py
+  **32/32 OK** §90-98. VALIDATION FINALE 2026-10-17 (cycle frais ex-9, volumes neufs) : les 3 batteries VERTES ensemble — socle tests_lab « lab OK » (exit 0), box Moli tests_moli 35/35, adaptateur tests_runtime 32/32 (exit 0). Corrections qui ont rendu les runs déterministes : (a) `initial:` d’un input_boolean de package se re-applique à chaque restart HA et écrase toujours le restore — retiré des packages log1/log2 sur copro_verifiee (défaut off au 1er boot puis restauration) ; (b) bloc `http:` trusted_proxies sur la box lab headless = config « pending » jamais promu (HA revert + redémarre toutes les 5 min) — retiré, accès direct ; la box réelle derrière Caddy le garde, promotion au wizard du 1er démarrage ; (c) publier_etat : garde sur `ha_url` non vide (un moteur sans HA configuré ne doit jamais tenter le push canonique HA) ; (d) `depends_on` cross-profile (decision-nord -> moli-box-nord) invalide le projet compose ENTIER sans --profile → retiré ; retry borné du pousse au boot (moteur) + sondes bornées (batterie). §90-98. Modèle posé : 1 box = 1 logement, 1 box = 1 runtime,
+  le SaaS gère les 2 sans re-code moteur.
