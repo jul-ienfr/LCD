@@ -22,6 +22,25 @@ Verif "landing : hero ecologique" ($l -match "conciergerie")
 $lg = corps "/login" $null
 Verif "login : profils listes" (($lg -match "Claire") -and ($lg -match "In"))
 
+# 2b. Login SANS JS (progressive enhancement) : extraire le $ACTION_ID du
+# formulaire login (suivi du hidden qui), POSTer multipart si identique,
+# attendre 303 + Set-Cookie lcd_qui + Location /hote.
+$aid = [regex]::Match($lg, 'name="(\$ACTION_ID_[a-f0-9]+)"\s*/><input type="hidden" name="qui"')
+if ($aid.Success) {
+    $id = $aid.Groups[1].Value
+    $hash = $id.Substring('$ACTION_ID_'.Length)
+    $LF = "`r`n"
+    $body = '--LCD' + $LF + 'Content-Disposition: form-data; name="$ACTION_ID_' + $hash + '"' + $LF + $LF + $LF + '--LCD' + $LF + 'Content-Disposition: form-data; name="qui"' + $LF + $LF + 'personne_03' + $LF + '--LCD--' + $LF
+    $hdrs = curl.exe -s -D - -o NUL -X POST -H "content-type: multipart/form-data; boundary=LCD" --data-binary $body "$F/login"
+    $hj = $hdrs -join " "
+    Verif "login sans JS : 303 redirect" ($hj -match "303")
+    Verif "login sans JS : cookie pose" ($hj -match "lcd_qui=personne_03")
+    Verif "login sans JS : Location /hote" ($hj -match "Location: /hote")
+} else {
+    Write-Output "[KO] login sans JS : ACTION_ID introuvable (build change ?)"
+    $script:KO += 3
+}
+
 # 3. Pages SaaS 200 (session cookie personne_01)
 foreach ($p in @("/hote", "/planning", "/prix", "/compta", "/presta", "/legales", "/voyageur", "/proprio?logement=log1", "/commercial")) {
     $c = corps $p "lcd_qui=personne_01"
