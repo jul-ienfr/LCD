@@ -33,6 +33,27 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
   const boxId = carte?.box_id || "box-lab";
   const exemples: Record<string, string> = { ref_resa: "", extras: "linge-lit:1,parking:1", arrivee: "2027-11-10", motif: "dégât des eaux", description: "" };
   const refVoyageur = `WEB-VOY-${logement.toUpperCase()}`;
+  // Guide de séjour : annonce RÉELLE (horaires, équipements, description).
+  const annonce = await gwGet<{
+    annonce?: {
+      titre?: string;
+      statut?: string;
+      descriptions?: Record<string, string>;
+      equipements?: string[];
+      regles?: { arrivee?: string; depart?: string; nuitee_min?: string };
+    };
+  }>(`/parc/annonces/${encodeURIComponent(logement)}`).catch(() => ({}) as {
+    annonce?: {
+      titre?: string;
+      statut?: string;
+      descriptions?: Record<string, string>;
+      equipements?: string[];
+      regles?: { arrivee?: string; depart?: string; nuitee_min?: string };
+    };
+  });
+  const fiche = annonce.annonce || null;
+  const descLangue =
+    (fiche?.descriptions && (fiche.descriptions[lang] || fiche.descriptions.fr)) || "";
   const prixJour = carte?.prix_7j?.[0]?.[1];
 
   return (
@@ -63,6 +84,43 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
         </label>
         <button type="submit" className="bouton bouton-secondaire mt-auto px-4 py-2">OK</button>
       </form>
+
+      <section className="carte p-5 md:p-6" aria-label="Guide de séjour">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-extrabold">Guide de séjour</h2>
+          {fiche?.statut && <span className="badge badge-ok">annonce {fiche.statut}</span>}
+        </div>
+        {fiche ? (
+          <div className="mt-3 flex flex-col gap-3 text-sm">
+            <div className="flex flex-wrap gap-4">
+              <span className="rounded-xl bg-(--accent-douce) px-3 py-2 font-semibold text-(--accent-fonce)">
+                ← Arrivée {fiche.regles?.arrivee || "—"}
+              </span>
+              <span className="rounded-xl bg-(--alerte-douce) px-3 py-2 font-semibold text-(--alerte)">
+                Départ {fiche.regles?.depart || "—"} →
+              </span>
+              <span className="rounded-xl bg-(--surface-2) px-3 py-2">
+                min. {fiche.regles?.nuitee_min || "—"} nuits
+              </span>
+            </div>
+            {(fiche.equipements || []).length > 0 && (
+              <ul className="flex flex-wrap gap-1.5" role="list" aria-label="Équipements">
+                {fiche.equipements!.map((eq) => (
+                  <li key={eq} className="badge badge-accent">{eq.replace(/_/g, " ")}</li>
+                ))}
+              </ul>
+            )}
+            {descLangue && (
+              <p className="whitespace-pre-line text-(--encre-douce)">{descLangue}</p>
+            )}
+          </div>
+        ) : (
+          <p className="mt-3 rounded-xl bg-(--surface-2) px-3 py-2 text-sm text-(--encre-douce)">
+            Annonce pas encore publiée pour ce logement — demande-t-elle au
+            pilotage de la synchroniser (hors démo).
+          </p>
+        )}
+      </section>
 
       <div className="grid gap-5 md:grid-cols-2">
         <section className="carte p-5 md:p-6" aria-label={t("extras_titre", lang)}>

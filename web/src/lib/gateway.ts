@@ -58,6 +58,11 @@ function cheminAutorise(path: string): boolean {
     const seg = nu.slice("/parc/portail/".length);
     return seg.length > 0 && !seg.includes("/") && seg !== "." && seg !== "..";
   }
+  // Guide de séjour (V1) : /parc/annonces/<logement_id> — même règle.
+  if (nu.startsWith("/parc/annonces/")) {
+    const seg = nu.slice("/parc/annonces/".length);
+    return seg.length > 0 && !seg.includes("/") && seg !== "." && seg !== "..";
+  }
   return false;
 }
 
