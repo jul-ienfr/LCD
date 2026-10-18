@@ -53,3 +53,4 @@
 - `maj-aide-2026-10-17 : centre d'aide /aide (6 roles avec cible directe, reel vs simule en tableau explicite, 9 ecrans, rappel voir-comme ne drole pas le RBAC, bilingual note P10) + lien depuis landing -- lint+6/6+build OK, front batterie 23/23 exit 0.`
 - `maj-loginnojs-2026-10-17 : verif PENDANTE fermee -- POST formulaire login SANS JS prouve (progressive enhancement \ extrait au build, 303 + Set-Cookie lcd_qui + Location /hote, extraction dynamique dans test-front), batterie monte a 26/26 OK exit 0.`
 - `maj-rbacneg-2026-10-17 : batterie front 28/28 -- 2 tests RBAC negatifs (personne_03 creation logement 403 admin-only, trancher choix invalide 400) via gw directe sauf-si-injoignable, JSON via fichier temp (quoting inline corrompt) -- exit 0.`
+- `maj-doc-2026-10-17 : DEMARRAGE.md racine (entree humaine 60 s : lab-run 0-5/5 ou start-all durable, URL produit/TLS/dashboard, credentials, aide reel-vs-simule, arbre code, reset, lecons Windows) -- commit docs.`
