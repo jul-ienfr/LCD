@@ -73,12 +73,15 @@ Au boot (`--check`) le MÊME moteur pousse : log1 → box Moli (helper
 entité canonique `input_boolean.log2_copro_verifiee` flippée via
 `/api/services` — sensor template se dérive seul) ;
 logtmp hors mapping = refus LOCAL loggé, 0 réseau. Battery :
-`tests_runtime.py` (**40/40 OK, double run consécutif vert** checks
+`tests_runtime.py` (**44/44 OK, double run consécutif vert** checks
 §90-98, cycle frais 2026-10-17 : formes HA/Moli identiques + E2E
 moteur + un moteur sur les 2 box + **T-11 relais des événements
 lcd_*** (helper `evenements` = trace compacte, JAMAIS le message ni
-le PIN) + **ADR-008 : pricing ET ics-sync (moteurs UNIQUES, 0 fork)
-poussent via le contrat sur SA box** + BOX MOLI NORD multi-box).
+le PIN) + **canal message P2+ = BROUILLON d'automatisation sur SA box
+(Manual->Notify, author agent, enabled false — l'envoi réel reste
+l'empreinte humaine ; PIN forcé hors boîte, consigne boîte à clés)**
++ **ADR-008 : pricing ET ics-sync (moteurs UNIQUES, 0 fork) poussent
+via le contrat sur SA box** + BOX MOLI NORD multi-box).
 
 ### Multi-box P3 : log3/nord sur SA box Moli (`moli-box-nord`)
 

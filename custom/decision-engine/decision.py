@@ -1838,18 +1838,51 @@ class Moteur:
         if self.runtime_de(logement_id) == "moli":
             # T-11 (ADR-007) : l'event passe le contrat adaptateur vers LA
             # box du logement (helper `evenements`, trace compacte
-            # type|logement|ref|qui — JAMAIS le message ni le PIN : le
-            # canal message box = P2+, automatisation humaine). Mapping
-            # absent/box muette = 202 loge_sans_ha loggé — jamais
-            # silencieux.
+            # type|logement|ref|qui — JAMAIS le PIN). P2+ (ADR-008) : le
+            # message composé part en BROUILLON d'automatisation sur la
+            # box (draft Manuel->Notify Maison, jamais live) — l'envoi
+            # réel reste l'empreinte humaine sur SA box. PIN forcé "" :
+            # le PIN ne traverse JAMAIS vers la box ni dans un brouillon
+            # (consigne boîte à clés invoquée). Mapping absent/box
+            # muette = 202 loge_sans_ha loggé — jamais silencieux.
             ad_ev = self._adaptateur_moli()
             ok_box, info_ev = False, "adaptateur moli absent"
+            draft_m = None
             if ad_ev:
                 res_ev = ad_ev.evenement(type_event, ref, qui, logement_id)
                 ok_box = res_ev.get("status") in ("ok", "retenu")
                 info_ev = res_ev.get("point") or "?"
                 if not ok_box:
                     info_ev = json.dumps(res_ev, ensure_ascii=False)[:200]
+            langue_m = str((data or {}).get("langue") or "fr")
+            msg_m = ""
+            used_m, auto_m = langue_m, False
+            if ad_ev and ok_box and type_event in GABARIT_PAR_EVENT:
+                # Composition identique au canal HA (mêmes gabarits
+                # socle 5), placeholder pin = consigne boîte à clés —
+                # jamais la valeur réelle (ne traverse pas).
+                variables = dict(data or {})
+                for k_def, v_def in self.vars_statiques(logement_id).items():
+                    if not (variables.get(k_def) or "") and (v_def or ""):
+                        variables[k_def] = v_def
+                variables["pin"] = CONSIGNE_BOITE_CLES.get(
+                    (langue_m or "fr").lower()[:2],
+                    CONSIGNE_BOITE_CLES["fr"])
+                msg_m, used_m, auto_m = composer_message(
+                    type_event, langue_m, variables)
+                if msg_m:
+                    res_d = ad_ev.message(
+                        f"{type_event} {ref or '-'} {logement_id}",
+                        msg_m, qui, logement_id)
+                    draft_m = res_d if res_d.get("status") in (
+                        "draft", "live") else None
+                    if not draft_m:
+                        self.log_decision(
+                            logement_id, ref or type_event, qui, "acces",
+                            None, None,
+                            f"message P2+ {type_event} brouillon NON "
+                            f"posé : {json.dumps(res_d,
+                                                 ensure_ascii=False)[:200]}")
             self.log_decision(logement_id, ref or type_event, qui, "acces",
                               None, None,
                               f"event {type_event} relais moli : "
@@ -1858,12 +1891,16 @@ class Moteur:
                           else "loge_sans_ha",
                           "runtime": "moli", "type": type_event,
                           "point": info_ev if ok_box else None,
+                          "p2_message": ("draft" if draft_m else None),
+                          "p2_message_id": (draft_m or {}).get("id"),
+                          "message_longueur": len(msg_m),
                           "ha": "runtime_moli_t11",
-                          "langue": str((data or {}).get("langue") or "fr"),
+                          "langue": langue_m,
+                          "langue_utilisee": used_m,
+                          "traduction_auto": auto_m,
                           "pin_transmis": False,
                           "contrat_signe": None,
-                          "gabarit_trouve": False,
-                          "message_longueur": 0}
+                          "gabarit_trouve": bool(msg_m)}
         data = dict(data or {})
         # Defaults statiques P6-9-bis : branding + identité logement complètent
         # les trous ics-sync/QloApps (marque/adresse/tel/liens). Données

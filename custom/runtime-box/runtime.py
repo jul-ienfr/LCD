@@ -5,12 +5,13 @@
 # JAMAIS à HA ni à Moli en direct — ils appellent CE contrat, l'adaptateur
 # traduit vers le runtime de la box (clé `logements.yaml runtime: ha|moli`).
 #
-# Contrat v0 (les 4 fonctions du §20.4/ADR-007, même forme pour les 2
-# backends, 0 lib externe :
+# Contrat v0 (§20.4/ADR-007, même forme pour les 2 backends, 0 lib externe :
 #   health()                     -> {backend, ok, version|}
 #   etat(objet_logique)          -> {backend, point, value, ts}|refus dict
 #   commande(objet, value, actor)-> {backend, point, status}|refus dict
 #   journal(limit)               -> [{ts, point, action, value, decision|}]
+#   evenement(type, ref, qui, logement)  -> T-11 : moli SEUL (trace helper)
+#   message(titre, corps, qui, logement) -> P2+ : moli SEUL, DRAFT jamais live
 #
 # objet_logique = id STABLE `logX_objet_fonction` (regle §T1/§20.4) :
 # il est traduit par une mapping versionnée (runtime-config JSON, 0 secret)
@@ -312,6 +313,51 @@ class RuntimeAdapter:
                                     "(helper `evenements` attendu)")
         trace = f"{type_event}|{logement}|{ref or '-'}|{qui or '-'}"
         return self.backend.commande(pt, trace, qui or "decision-engine")
+
+    def message(self, titre: str, corps: str, qui: str,
+                logement: str) -> dict:
+        """P2+ (ADR-008) : canal MESSAGE box = automatisation DRAFT.
+        - moli : POST /api/automations {author agent, enabled:false,
+          graph Manual(trig. jamais auto) -> Notify(channels Maison)}.
+          C'est un BROUILLON : rien ne part, rien ne s'exécute —
+          l'envoi réel reste l'empreinte humaine sur le dashboard box
+          (approuver la version, puis lancer). JAMAIS de PIN dans le
+          corps (il ne traverse pas vers la box, consigne clé boîte).
+        - ha : refuse local — sur HA le message est déjà canal native
+          blueprint (notifier), jamais ce draft box."""
+        if self.name != "moli":
+            return {"backend": self.name, "status": "refuse",
+                    "erreur": "message: runtime ha géré par le moteur "
+                              "(blueprint notifier)"}
+        if not titre or not corps:
+            return refus(self.name, "message: titre/corps requis "
+                                    "(jamais silencieux, jamais vide)")
+        graph = {
+            "nodes": [
+                {"id": "t1", "type": "manual"},
+                {"id": "m1", "type": "notify", "title": titre,
+                 "message": corps, "channels": ["maison"]},
+            ],
+            "edges": [{"from": "t1", "port": "out", "to": "m1"}],
+        }
+        auto = {"name": f"Message {logement} {titre}"[:120],
+                "enabled": False, "mode": "restart", "graph": graph,
+                "note": f"draft SaaS ({qui or 'socle'}) — jamais auto, "
+                        "empreinte humaine requise"}
+        c, r = self.backend.http.req("POST", "/api/automations", auto)
+        if c == 200 and isinstance(r, dict):
+            au = r.get("automation") or {}
+            if not au:
+                return {"backend": self.name, "status": "refuse",
+                        "code": c, "erreur": r}
+            return {"backend": self.name,
+                    "status": "draft" if not r.get("live") else "live",
+                    "id": au.get("id"), "name": au.get("name"),
+                    "fingerprint": r.get("fingerprint"),
+                    "live": bool(r.get("live"))}
+        return {"backend": self.name, "status": "refuse", "code": c,
+                "erreur": (r or {}).get("error") if isinstance(r, dict)
+                else r}
 
     def journal(self, objet: str | None = None, limit: int = 25) -> list:
         if self.name == "ha":

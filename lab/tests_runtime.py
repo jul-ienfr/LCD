@@ -441,6 +441,88 @@ def main():
           "multi-box au socle)",
           c == 200 and isinstance(dn, dict) and dn.get("ok") is True,
           f"HTTP {c} {dn}")
+    # P2+ (ADR-008) : canal message = BROUILLON d'automatisation sur SA
+    # box (author agent, enabled false, Manual->Notify Maison). Jamais
+    # live, jamais le PIN — l'envoi réel reste l'empreinte humaine.
+    d98 = None
+    for _ in range(9):
+        c, au98raw = _get_json(MOLI_NORD_URL + "/api/automations")
+        for _a in ((au98raw or {}).get("automations") or []):
+            _au = _a.get("automation") or {}
+            if "log3" in (_au.get("name") or ""):
+                d98 = _a
+                break
+        if d98 is not None and d98.get("live") is False:
+            break
+        time.sleep(4)
+    d98au = (d98 or {}).get("automation") or {}
+    corps98, titre98 = "", ""
+    for _n in (((d98au or {}).get("graph") or {}).get("nodes") or []):
+        if (_n.get("type") or "").lower() == "notify":
+            corps98 = str(_n.get("message") or "")
+            titre98 = str(_n.get("title") or "")
+    check("98 : message P2+ = BROUILLON d'automatisation sur SA box "
+          "(author agent, enabled false, live false — jamais auto)",
+          bool(d98au) and "log3" in (d98au.get("name") or "")
+          and d98au.get("enabled") is False
+          and (d98 or {}).get("live") is False
+          and (d98 or {}).get("approved") is False,
+          f"name={d98au.get('name') if isinstance(d98au, dict) else au98raw}")
+    check("98 : brouillon message J-1 = corps gabarit rempli (jamais "
+          "vide), JAMAIS la valeur PIN (elle ne traverse pas)",
+          bool(corps98) and bool(titre98)
+          and "246810" not in json.dumps(d98, ensure_ascii=False)
+          and "246810" not in titre98,
+          f"corps={corps98[:80]!r}")
+    # J-2 : gabarit avec placeholder {{pin}} -> consigne boîte à clés
+    # forcée (la VALEUR réelle ne traverse jamais vers la box). Ref
+    # unique par run (jamais dépendante d'un block plus bas).
+    ref98j2 = "LAB-RT98-J2-" + str(int(time.time()))
+    c, ev98j2 = _post_json("http://127.0.0.1:8192/event",
+                           {"type": "lcd_j2_envoi_acces",
+                            "logement_id": "log3",
+                            "qui": "personne_01", "ref": ref98j2,
+                            "data": {"langue": "fr", "pin": "246810"}})
+    d98j2 = None
+    for _ in range(9):
+        c, au98raw = _get_json(MOLI_NORD_URL + "/api/automations")
+        for _a in ((au98raw or {}).get("automations") or []):
+            _au = _a.get("automation") or {}
+            if "lcd_j2_envoi_acces" in (_au.get("name") or ""):
+                d98j2 = _a
+                break
+        if d98j2 is not None and (d98j2 or {}).get("live") is False:
+            break
+        time.sleep(4)
+    corps98j2 = ""
+    for _n in ((((d98j2 or {}).get("automation") or {}).get("graph")
+                or {}).get("nodes") or []):
+        if (_n.get("type") or "").lower() == "notify":
+            corps98j2 = str(_n.get("message") or "")
+    check("98 : brouillon J-2 = consigne boîte à clés FORCÉE à la place "
+          "du PIN (jamais 246810 dans l'automatisation, jamais live)",
+          c in (200, 202) and isinstance(ev98j2, dict)
+          and ((ev98j2 or {}).get("p2_message") == "draft")
+          and bool(corps98j2)
+          and "boîte à clés" in corps98j2
+          and "246810" not in corps98j2
+          and "246810" not in json.dumps(d98j2, ensure_ascii=False),
+          f"HTTP {c} p2={ev98j2.get('p2_message') if isinstance(ev98j2, dict) else '?'} "
+          f"corps={corps98j2[:80]!r}")
+    _lab_autos = {}
+    for _ in range(4):
+        c, _lab_autosraw = _get_json(MOLI_URL + "/api/automations")
+        _lab_autos = {(_a.get("automation") or {}).get("name") or ""
+                      for _a in ((_lab_autosraw or {}).get("automations")
+                                 or [])}
+        if not any("log3" in n for n in _lab_autos):
+            break
+        time.sleep(4)
+    check("98 : isolation message P2+ : AUCUN brouillon log3 sur la box "
+          "du lab",
+          isinstance(_lab_autos, set) and not any(
+              "log3" in n for n in _lab_autos),
+          f"lab autos={sorted(_lab_autos)}")
     # ADR-008 : le MÊME pricing_engine.py pousse prix_nuit sur SA box
     # via le contrat (cible CONFIG, jamais un fork) — recalc nord,
     # helper number maison:prix_nuit reflecte le pivot.
