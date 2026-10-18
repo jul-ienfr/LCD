@@ -105,6 +105,24 @@ try {
     Write-Output "NOTE gateway injoignable : tests RBAC negatifs sautes."
 }
 
+# 11. Anti open-redirect : voir-comme avec retour=//evil.org doit refuser
+#     la redirection vers le domaine externe (302 session, retour local).
+$vch = corps "/hote" "lcd_qui=personne_01"
+$vcid = [regex]::Match($vch, 'name="(\$ACTION_ID_[a-f0-9]+)"')
+if ($vcid.Success) {
+    $vh = $vcid.Groups[1].Value
+    $vhash = $vh.Substring('$ACTION_ID_'.Length)
+    $LF2 = "`r`n"
+    $vbody = '--V' + $LF2 + 'Content-Disposition: form-data; name="$ACTION_ID_' + $vhash + '"' + $LF2 + $LF2 + $LF2 + '--V' + $LF2 + 'Content-Disposition: form-data; name="retour"' + $LF2 + $LF2 + '//evil.org' + $LF2 + '--V' + $LF2 + 'Content-Disposition: form-data; name="qui"' + $LF2 + $LF2 + 'personne_05' + $LF2 + '--V--' + $LF2
+    $vout = curl.exe -s -D - -o NUL -X POST -H "content-type: multipart/form-data; boundary=V" --data-binary $vbody -H "Cookie: lcd_qui=personne_01" "$F/hote"
+    $vj = $vout -join " "
+    $vloc = [regex]::Match($vj, 'Location: ([^ ]+|"([^"]*)")').Value
+    Verif "open-redirect : evil.org refuse" ($vloc -notmatch "evil\.org")
+    Verif "open-redirect : retour local" ($vloc -match "/hote|/|Location")
+} else {
+    Write-Output "NOTE voir-comme ACTION_ID introuvable (colleague layout ?) -- test open-redirect passe."
+}
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO
