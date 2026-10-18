@@ -37,7 +37,6 @@ RuntimeAdapter.backend_name   # "ha" | "moli"
   depuis le vault (P2+, jamais de clé ici).
 - Batterie : `lab/tests_runtime.py` (38/38 OK ; socle lab + profil
   `moli` nécessaires, cycle frais `down -v` puis `up`).
-
 ## T-11 : événements lcd_* = relais box (ADR-007)
 
 Les events `lcd_*` (J-2 / J-1 / checkout / avis J+1) sont le CANAL HA au
@@ -50,7 +49,7 @@ compacte `type|logement|ref|qui` :
   `actor=<qui>` avec le rôle) — jamais silencieux ;
 - **JAMAIS le message composé ni le PIN** vers la box : le canal message
   (gabarit → texte voyageur) reste P2+ — via les automatisations de la
-  box (draft → Dry-run → empreinte humaine). v1 = relais trace +
+  box (draft → dry-run → empreinte humaine). v1 = relais trace +
   écho helper SEUL ;
 - HA backend : `evenement()` refuse localement — l'event HA garde son
   pattern historique `POST /api/events/<type>` géré par le moteur.
@@ -61,6 +60,17 @@ changeant ne recrée pas ce conteneur** : après toute modification du
 moli.toml, `docker compose --profile moli up -d --force-recreate
 moli-bootstrap moli-bootstrap-nord` puis `restart moli-box
 moli-box-nord` (sinon la box tourne l'ancien seed : helper absent 404).
+
+## ADR-008 : le contrat sert TOUS les moteurs (image générique, 0 fork)
+
+Un moteur = **une base de code, une image générique** (Dockerfile.moteur,
+build-args SCRIPT+CONFIG) ; ce qui varie par box = la CONFIG (logements
+sous-ensemble + clé `runtime:`, mapping, port). Le 2e branchement est
+DANS le moteur unique — `pricing_engine.py` publie `prix_nuit` via le
+contrat (moli = helper number `maison:prix_nuit/value` de SA box, les
+canaux OTA restent SaaS) et TOUTES ses instances (socle, nord, box
+réelle) en profitent, zéro fork. Prouvé §98 : recalcul nord → pivot
+reflété sur la box (`maison:prix_nuit/value`), isolation intacte.
 
 ## Prouvé 2026-10-17 (lab, cycle frais ex-9 vert)
 

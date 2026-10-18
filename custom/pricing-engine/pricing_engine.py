@@ -161,6 +161,13 @@ def lire_logements(path):
                     pass
             elif k == "mode_gestion_defaut" and v:
                 logts[cur][k] = v
+        elif cur and not in_pricing and indent == 4 and ":" in ligne:
+            # ADR-007/008 : clé `runtime: ha|moli` de LOGEMENT (hors
+            # pricing:, indent 4 = même niveau que prix_base) — la cible
+            # box du logement est CONFIG, jamais un fork de moteur.
+            k, v = [x.strip().strip("\"'") for x in ligne.strip().split(":", 1)]
+            if k == "runtime" and v in ("ha", "moli"):
+                logts[cur]["runtime"] = v
     return logts
 
 
@@ -239,6 +246,70 @@ class Pricing:
         self.ics_sync_url = os.environ.get("LCD_ICS_SYNC_URL",
                                            cfg.get("ics_sync_url", "http://127.0.0.1:8090")).rstrip("/")
         self.prix_appliques = {}  # (logement_id, date) -> {prix, ts, qui}
+        # ADR-007/008 : cible runtime PAR LOGEMENT (clé yaml `runtime:`,
+        # env = défaut) — même code moteur, la config décide de la box.
+        self.runtime_backend = os.environ.get(
+            "LCD_RUNTIME", "ha").strip().lower()
+        self.runtime_map = {}
+        try:
+            self.runtime_map = json.loads(
+                os.environ.get("LCD_RUNTIME_MAP", "") or "{}") or {}
+        except (ValueError, TypeError):
+            self.runtime_map = {}
+        self.runtime_moli_url = os.environ.get(
+            "LCD_MOLI_URL", "").rstrip("/")
+        self.runtime_moli_pin = os.environ.get("LCD_MOLI_PIN", "")
+        self._adapter = None
+
+    def runtime_de(self, logement_id):
+        decl = str((self.logts.get(logement_id) or {}).get("runtime")
+                   or "").strip().lower()
+        if decl in ("ha", "moli"):
+            return decl
+        return self.runtime_backend if self.runtime_backend in (
+            "ha", "moli") else "ha"
+
+    def _adaptateur(self):
+        """Adaptateur runtime-box paresseux : None si absent, False en
+        cas d'échec d'import/config (dégrade, jamais un crash moteur)."""
+        if self._adapter is not None:
+            return self._adapter
+        if not self.runtime_moli_url or not self.runtime_map:
+            self._adapter = False
+            return self._adapter
+        try:
+            ici = os.path.dirname(os.path.abspath(__file__))
+            sys.path.insert(0, os.path.join(ici, "..", "runtime-box"))
+            import runtime as rt_runtime
+            from copy import deepcopy
+            bk = rt_runtime.MoliBackend(
+                self.runtime_moli_url, pin=self.runtime_moli_pin)
+            self._adapter = rt_runtime.RuntimeAdapter(
+                bk, deepcopy(self.runtime_map), "moli")
+        except Exception as e:  # jamais un crash au boot pour l'adapter
+            self._adapter = False
+            self.log_decision("*", "ADR-007", "pricing-engine", "acces",
+                              None, None,
+                              f"adaptateur moli indisponible : {e}")
+        return self._adapter
+
+    def publier_prix_nuit(self, logement_id, value, payload_ha):
+        """Un état prix_nuit vers le runtime DU logement (ADR-007/008) :
+        ha = POST /api/states historique ; moli = commande via le
+        contrat (helper number, point de SA box, jamais d'ID en dur
+        ici). Retour (ok, info) comme ha_post."""
+        if self.runtime_de(logement_id) != "moli":
+            return self.ha_post(
+                f"/api/states/sensor.{logement_id}_prix_nuit", payload_ha)
+        ad = self._adaptateur()
+        if not ad:
+            return False, "adaptateur_moli_absent"
+        if self.runtime_moli_url and not ad.backend.http.jar:
+            ad.backend.ouvrir_session(self.runtime_moli_pin)
+        res = ad.commande(f"{logement_id}_prix_nuit", value,
+                          "pricing-engine")
+        return (res.get("status") == "ok"), json.dumps(
+            res, ensure_ascii=False)
 
     def bornes(self, logement_id):
         l = self.logts.get(logement_id, {})
@@ -387,8 +458,11 @@ class Pricing:
         base = {"source": "pricing-engine", "updated": utcnow_iso(),
                 "bornes": j0["bornes"], "tarifs": j0["tarifs"],
                 "sejour_min": j0["sejour_min"]}
-        ok, info = self.ha_post(f"/api/states/sensor.{logement_id}_prix_nuit",
-                                {"state": j0["pivot"], "attributes": {**base, "k": j0["k"]}})
+        # ADR-007/008 : prix_nuit passe le contrat — le runtime DU
+        # logement décide (ha historique / moli = helper SA box).
+        ok, info = self.publier_prix_nuit(
+            logement_id, j0["pivot"],
+            {"state": j0["pivot"], "attributes": {**base, "k": j0["k"]}})
         res.append(("prix_nuit", ok, info))
         for canal, prix in j0["prix_canal"].items():
             if prix is None:
@@ -418,9 +492,11 @@ class Pricing:
         self.log_decision(logement_id, f"prix-{date_s}", qui or "pricing-engine",
                           "prix_direct_applique", "direct", prix,
                           f"{ancien}->{prix} moteur direct seul (OTA = reco 1-tap)")
-        self.ha_post(f"/api/states/sensor.{logement_id}_prix_nuit",
-                     {"state": prix, "attributes": {"date": date_s, "source": "PUT /prix",
-                                                    "ancien": ancien}})
+        self.publier_prix_nuit(logement_id, prix,
+                               {"state": prix,
+                                "attributes": {"date": date_s,
+                                               "source": "PUT /prix",
+                                               "ancien": ancien}})
         return 200, {"statut": "applique_direct", "logement_id": logement_id,
                      "date": date_s, "ancien": ancien, "prix": prix,
                      "note": "OTA = reco 1-tap, jamais d'écriture auto"}

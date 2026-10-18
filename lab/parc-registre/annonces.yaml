@@ -13,11 +13,11 @@ annonces:
     logement_id: "log1"
     titre: "Santa Severa (LAB) — T3 terrasse plein sud"
     statut: "synchronise"
-    publie_le: 2026-10-17T23:13:45Z
+    publie_le: 2026-10-18T10:10:50Z
     publie_par: "personne_01"
     canaux: [airbnb, direct, booking]
     preuve: "extranet booking"
-    maj_le: 2026-10-17T23:13:44Z
+    maj_le: 2026-10-18T10:10:50Z
     descriptions:
       fr: >-
         Magnifique T3 avec terrasse face a la mer, 2 chambres, 65 m2,
@@ -60,4 +60,4 @@ annonces:
       lat: 43.70
       lon: 7.26
     archive_par: "personne_01"
-    archive_le: 2026-10-17T23:13:45Z
+    archive_le: 2026-10-18T10:10:51Z

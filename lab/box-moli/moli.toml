@@ -129,6 +129,20 @@ name = "Evenements SaaS (lcd_*)"
 kind = "text"
 initial = ""
 
+[[driver.options.helper]]
+# ADR-008 (2e moteur sur le contrat : le MÊME pricing_engine.py, cible
+# CONFIG) : prix nuit pivot par logement — écrit par pricing-engine via
+# runtime-box (commande actor=pricing-engine), jamais d'ID en dur.
+# Bornes large (dérogeation motif humain possible jusqu'à 4999).
+# HORS pièce protégée : point moteur.
+id = "prix_nuit"
+name = "Prix nuit (SaaS)"
+kind = "number"
+min = 0.0
+max = 5000.0
+step = 0.5
+initial = 0.0
+
 [[fixture]]
 id = "suspensions"
 name = "Suspensions"

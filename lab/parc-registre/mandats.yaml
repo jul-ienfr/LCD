@@ -28,9 +28,9 @@ mandats:
     assurance_ref: "vault:client-lab-01/assurance"
     echeance: 2027-12-31
     statut: "actif"
-    cree_le: 2026-10-17T23:13:47Z
+    cree_le: 2026-10-18T10:10:52Z
     cree_par: "personne_02"
-    maj_le: 2026-10-17T23:13:47Z
+    maj_le: 2026-10-18T10:10:52Z
     checklist:
       mandat_signe: true
       edl_entree: true
@@ -39,14 +39,14 @@ mandats:
       rib_ref: true
       attestation_assurance: true
     pret_par: "personne_02"
-    pret_le: 2026-10-17T23:13:47Z
+    pret_le: 2026-10-18T10:10:52Z
     actif_par: "personne_02"
-    actif_le: 2026-10-17T23:13:47Z
+    actif_le: 2026-10-18T10:10:52Z
     motif: "litige reversement en cours"
     suspendu_par: "personne_02"
-    suspendu_le: 2026-10-17T23:13:47Z
+    suspendu_le: 2026-10-18T10:10:52Z
     actif_par: "personne_02"
-    actif_le: 2026-10-17T23:13:47Z
+    actif_le: 2026-10-18T10:10:52Z
   log1:
     entite_id: ent-nom-propre-julie
     mode: propre

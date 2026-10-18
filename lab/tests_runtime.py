@@ -441,6 +441,26 @@ def main():
           "multi-box au socle)",
           c == 200 and isinstance(dn, dict) and dn.get("ok") is True,
           f"HTTP {c} {dn}")
+    # ADR-008 : le MÊME pricing_engine.py pousse prix_nuit sur SA box
+    # via le contrat (cible CONFIG, jamais un fork) — recalc nord,
+    # helper number maison:prix_nuit reflecte le pivot.
+    c, rec98 = _post_json("http://127.0.0.1:8191/recalcul", {"logement_id": "log3"})
+    px98 = {}
+    for _ in range(9):
+        c, px98 = _get_json(MOLI_NORD_URL + "/api/devices/maison:prix_nuit")
+        v_px = ((px98 or {}).get("state") or {}).get("value", {}).get("value")
+        if isinstance(v_px, (int, float)) and v_px > 0:
+            break
+        time.sleep(4)
+    v_px = ((px98 or {}).get("state") or {}).get("value", {}).get("value")
+    check("98 : pricing moteur UNIQUE pousse prix_nuit = pivot dans SA "
+          "box Moli (ADR-008 : cible config, 0 fork)",
+          c == 200 and isinstance(rec98, dict)
+          and rec98.get("grille") and isinstance(v_px, (int, float))
+          and float(v_px) > 0
+          and abs(float(v_px) - float(rec98["grille"][0]["pivot"])) < 0.6
+          and 0 < float(v_px) <= 5000,
+          f"HTTP {c} pivot={rec98.get('grille', [{}])[0].get('pivot') if rec98.get('grille') else '?'} val={v_px}")
     c, gway = _get_json("http://127.0.0.1:8443/v1/statut")
     _etat70 = (gway or {}).get("etat") if isinstance(gway, dict) else {}
     check("98 : passerelle parc voit toujours 3 logements (log3 sur SA box "

@@ -581,6 +581,13 @@ services:
       LCD_DECISION_LOG_DIR: /opt/lcd/logs
       LCD_SECRETS_YAML: /opt/lcd/secrets.yaml
       LCD_ICS_SYNC_URL: http://ics-sync-nord:8190
+      # ADR-007/008 : la MÊME image pricing, log3 = runtime moli (clé
+      # yaml) — prix_nuit passe le contrat vers SA box. Aucune fork de
+      # code : tout est config (mapping + box + PIN FAUX de lab).
+      LCD_RUNTIME: "auto"
+      LCD_MOLI_URL: "http://moli-box-nord:8790"
+      LCD_MOLI_PIN: "246810"
+      LCD_RUNTIME_MAP: '{"log3_prix_nuit":"maison:prix_nuit/value"}'
     volumes:
       - pricing-nord-state:/opt/lcd/state
       - ics-logs:/opt/lcd/logs
