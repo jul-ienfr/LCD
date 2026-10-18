@@ -23,8 +23,12 @@
   (gates réels : DPE F/G refusé, ≥2 prestas, mandats, Cerfa/SIRET/taxe ;
   étape 7 crée le logement via `POST /parc/logements` PROUVÉ 201 +
   `copro=false`=BLOQUÉ REQ-L-001), grille de prix 7 j éditable
-  (prix 1-tap, bornes gw). Qualité : `deploy/test-front.ps1` 23 vérifs
-  (pages, cookies, gates, CSV, 404, i18n ×5) câblée dans `lab-run` 5/5
+  (prix 1-tap, bornes gw) + **nav semaine `?depuis` ISO ≤90 j bout-en-bout
+  pricing→gw→front (commit f2f0568, 2026-10-18 : récalcule depuis une date
+  de départ quelconque jamais écrit au cache, front +30e check front)**.
+  Qualité : `deploy/test-front.ps1` 30 vérifs
+  (pages, cookies, gates, CSV, 404, i18n ×5, login no-JS, open-redirect,
+  depuis+7j) câblée dans `lab-run` 5/5
   (verdict partagé). ASSUMÉ/resté FR métier : corps onboarding, gates de
   conformité, compta h2+, légales en détail (i18n de conformité =
   relecture P10-juridique, pas machine). Non-local inchangé :
