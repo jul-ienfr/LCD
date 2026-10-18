@@ -85,26 +85,26 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
         <button type="submit" className="bouton bouton-secondaire mt-auto px-4 py-2">OK</button>
       </form>
 
-      <section className="carte p-5 md:p-6" aria-label="Guide de séjour">
+      <section className="carte p-5 md:p-6" aria-label={t("guide_sejour", lang)}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-extrabold">Guide de séjour</h2>
+          <h2 className="text-lg font-extrabold">{t("guide_sejour", lang)}</h2>
           {fiche?.statut && <span className="badge badge-ok">annonce {fiche.statut}</span>}
         </div>
         {fiche ? (
           <div className="mt-3 flex flex-col gap-3 text-sm">
             <div className="flex flex-wrap gap-4">
               <span className="rounded-xl bg-(--accent-douce) px-3 py-2 font-semibold text-(--accent-fonce)">
-                ← Arrivée {fiche.regles?.arrivee || "—"}
+                {t("guide_arrivee", lang)} {fiche.regles?.arrivee || "—"}
               </span>
               <span className="rounded-xl bg-(--alerte-douce) px-3 py-2 font-semibold text-(--alerte)">
-                Départ {fiche.regles?.depart || "—"} →
+                {t("guide_depart", lang)} {fiche.regles?.depart || "—"} →
               </span>
               <span className="rounded-xl bg-(--surface-2) px-3 py-2">
-                min. {fiche.regles?.nuitee_min || "—"} nuits
+                {fiche.regles?.nuitee_min || "—"} {t("guide_nuits", lang)}
               </span>
             </div>
             {(fiche.equipements || []).length > 0 && (
-              <ul className="flex flex-wrap gap-1.5" role="list" aria-label="Équipements">
+              <ul className="flex flex-wrap gap-1.5" role="list" aria-label={t("guide_equipements", lang)}>
                 {fiche.equipements!.map((eq) => (
                   <li key={eq} className="badge badge-accent">{eq.replace(/_/g, " ")}</li>
                 ))}
@@ -116,8 +116,7 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
           </div>
         ) : (
           <p className="mt-3 rounded-xl bg-(--surface-2) px-3 py-2 text-sm text-(--encre-douce)">
-            Annonce pas encore publiée pour ce logement — demande-t-elle au
-            pilotage de la synchroniser (hors démo).
+{t("guide_vide", lang)}
           </p>
         )}
       </section>
