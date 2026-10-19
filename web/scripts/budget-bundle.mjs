@@ -10,7 +10,7 @@
 // 0 dépendance (node:fs/fetch/spawn seul). Exit 1 si une route dépasse
 // le budget (ou est injoignable — jamais de garde-fou muet).
 // Budget : 200 Ko/page (figé §S3.4.6) — surcharge LCD_BUDGET_KO pour lab.
-import { readFileSync, statSync, existsSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";

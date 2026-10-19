@@ -194,6 +194,26 @@ def attendre_sain(service, timeout=90):
     return False
 
 
+def attendre_apercu(n_cartes=3, timeout=180):
+    """Attend que le fan-out de la passerelle rende TOUTES les cartes non
+    stale (aperçu forcé).
+
+    `/health` ne prouve pas que les requêtes métier passent : au boot,
+    `decision-*` rejoue son poussage d'état (borné) et le premier rendu de la
+    page de pilotage arrivait avec `log3` stale — §53 comptait alors 2
+    formulaires au lieu de 3 (constaté 2026-10-19 après un reset complet des
+    volumes). On n'affirme RIEN tant que le fan-out n'est pas chaud."""
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        code, o = get("passerelle", "/api/apercu-parc?force=1")
+        lg = o.get("logements", []) if isinstance(o, dict) else []
+        if code == 200 and len(lg) >= n_cartes \
+                and all(not r.get("stale") for r in lg):
+            return True
+        time.sleep(3)
+    return False
+
+
 # --- down -v + up --build : HA et les migrations recomposent 2-3 min ;
 # sans attente, la batterie ecrit au milieu d'un boot partiel et la
 # passe suivante herite d'etats a moitie ecrits (409, deja cloturee).
@@ -210,6 +230,15 @@ for _m, _n in _CONTENEURS.items():
     attendre_sain(_n, timeout=240)
 attendre_sain("homeassistant", timeout=120)
 print("[OK]   stacks sains, batteries pretes")
+# runtime moli OBLIGATOIRE (profil actif) : box-nord (log3) passe par
+# moli-box-nord — sans lui le DNS mort coute ~8 s par reco-ota, la carte
+# log3 part stale et §53/§55 basculent (constaté 2026-10-19 : up sans
+# profil = 2 formulaires au lieu de 3). On échoue ICI, tôt et clairement.
+check("0 : runtime moli de box-nord up (profil moli actif a l'up)",
+      attendre_sain("moli-box-nord", timeout=120),
+      "docker compose --profile moli up -d (sans lui reco-ota log3 ~8 s)")
+check("0 : fan-out chaud (toutes les cartes non stale avant assertions)",
+      attendre_apercu(timeout=180), "apercu force=1 poll 180 s")
 for m in BASE:
     code, obj = get(m, "/health")
     check(f"health {m}", code == 200, f"HTTP {code} {obj}")
@@ -5919,8 +5948,17 @@ if down55:
     check("55 : decision redemarre", up55, "docker compose start decision")
     up55 and attendre_sain("decision")
     if up55:
-        c55c, _ = get("passerelle", "/api/apercu-parc?force=1")
-        c55d, p55d = get("passerelle", "/")
+        # attendre_sain ne couvre que /health (cf. def) : on borne la
+        # boucle d'ecritures de retour plutot qu'un rendu unique pris
+        # pendant la fenetre de chauffe du moteur relance.
+        c55c, p55d = 0, ""
+        for _ in range(30):
+            c55c, _ = get("passerelle", "/api/apercu-parc?force=1")
+            c55d, p55d = get("passerelle", "/")
+            if isinstance(p55d, str) and \
+                    p55d.count("<form method='post'") == 3:
+                break
+            time.sleep(3)
         check("55 : apres relance, moteur frais => ecritures de retour",
               c55c == 200 and c55d == 200 and isinstance(p55d, str)
               and p55d.count("<form method='post'") == 3,

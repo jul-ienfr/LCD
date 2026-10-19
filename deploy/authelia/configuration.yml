@@ -1,0 +1,133 @@
+# deploy/authelia/configuration.yml - IdP de LAB (F3, REQ-S-007).
+# Authelia ~50 Mo en repli leger d'Authentik (S3.2 seuil / F5 P2/P3) :
+# 1 login = 1 sujet, 2FA TOTP exigee (S3.1 staff), forward_auth Caddy en
+# amont du front. VALIDE contre le vrai binaire 4.39.28 :
+#   docker run ... authelia validate-config  ->  0 erreur, 0 warning.
+#
+# == SECRETS : mecanique REELLE (eprouvee sur le binaire, pas devinee) ==
+# Le binaire NE FAIT AUCUNE expansion `${VAR}` dans ce YAML (test prouve :
+# level `${LCD_LOG_LEVEL}` avec la var posee -> "configured as
+# '${LCD_LOG_LEVEL}'" + fatal). La duplication silencieuse par literal
+# (~80 car.) a ete attrapee ici AVANT prod - d'ou la regle :
+#   - CE FICHIER NE CONTIENT AUCUN SECRET, ni literal ni pseudo-template ;
+#   - les secrets viennent par les env natives AUTHELIA_SESSION_SECRET /
+#     AUTHELIA_STORAGE_ENCRYPTION_KEY (override viper, prouve : schema OK
+#     avec env, FATAL sans - fail-closed aux 2 etages validate + runtime) ;
+#   - docker compose interpole ${LCD_...:?...} depuis deploy/.env (gitignore)
+#     - la syntaxe `:?` est COTTE COMPOSE (echec clair si .env absent),
+#     pas cotte Authelia.
+# Ni JWT, ni totp secret global : le secret TOTP est PAR UTILISATEUR
+# (enregistrement via le portail, stockage chiffre storage.local).
+#
+# Le role applicatif n'est PAS decide ici : Authelia prouve le SUJET
+# (Remote-User + Remote-Groups) ; le mapping sujet -> role LCD reste porte
+# par custom/acces.yaml cote gateway (elle REFait son RBAC a chaque
+# ecriture - l'en-tete ne prouve qu'une identite, jamais un droit).
+#
+# SUJET = `qui` LCD : le nom d'utilisateur Authelia est EXACTEMENT l'id
+# d'acces.yaml (personne_01, ...) - zero table de traduction, zero parser
+# duplique : Remote-User EST le qui que la gateway valide deja. Le
+# displayname du portail porte le nom humain.
+#
+# Comptes regeneres par deploy/authelia/generer-secrets.ps1 (bcrypt reel).
+
+theme: dark
+server:
+  address: tcp://0.0.0.0:9091
+
+log:
+  level: info
+  format: json
+
+# Reinitialisation de mot de passe : DESACTIVEE, sans equivoque - le backend
+# file ne peut pas reecrire users.yml, et aucun SMTP local n'existe : une
+# reinit "qui parait marcher" serait une simulation. En prod : backend
+# reecrivable + SMTP reel (procedure-p1). Changer un mdp ici = crypto hash
+# generate + regenerer users.yml (geste reel, generer-secrets.ps1 -Force).
+authentication_backend:
+  password_reset:
+    disable: true
+  file:
+    path: /config/users.yml
+
+# Session : cookie signe, couvrant les DEUX origines par le PORT :
+#   lcd.test:4001 = app protegee (forward_auth verifie cette session)
+#   lcd.test:4002 = portail de login Authelia (pose cette session)
+# un cookie Domain=lcd.test est indifferent au port -> il circule sur les
+# deux, c'est ce qui rend le chainage forward_auth possible.
+# Syntaxe multi-domain (session.cookies) obligatoire depuis la v4.38 -
+# l'ancien `session.domain` est deprecie (warning du validateur).
+# session.secret : ABSENT ici, fourni par AUTHELIA_SESSION_SECRET (env).
+session:
+  name: lcd_session
+  expiration: 1h
+  inactivity: 5m
+  cookies:
+    - domain: lcd.test
+      authelia_url: https://lcd.test:4002
+
+# Stockage local SQLite (dossier monte, gitignore). encryption_key ABSENT
+# d'ici : fourni par AUTHELIA_STORAGE_ENCRYPTION_KEY (env, exigee par le
+# schema - sans elle, fatal). Chiffre sessions + enrTLEMENTS TOTP.
+# En prod P2/P3 : Redis dedie (voir procedure-p1).
+storage:
+  local:
+    path: /config/db.sqlite
+
+# Notificateur filesystem : le schema exige smtp OU filesystem ; smtp local
+# sans relais serait une fausse promesse, le filesystem ecrit de vrai dans
+# /config/notification.log. (Reset pwd desactive ci-dessus -> jamais
+# sollicite en lab ; en prod : SMTP reel.)
+notifier:
+  filesystem:
+    filename: /config/notification.log
+
+# TOTP : 2FA exigee (policy two_factor ci-dessous). Secret PAR UTILISATEUR
+# (enregistrement via le portail, stockage chiffre) - jamais un secret
+# global en config. La recette automatisee enregistre VRAIMENT un TOTP et
+# calcule ses codes (HMAC-SHA1 reel, aucun code en dur).
+totp:
+  period: 30
+  skew: 1
+  issuer: lcd.test
+
+# Access control : le front LCD est une origine staff/portail unique.
+# Seuls les comptes declares dans un des groupes ci-dessous passent, et
+# seulement avec le 2e facteur. TOUT le reste = 403 meme authentifie
+# (default_policy: deny - jamais d'ouverture silencieuse).
+#   parc_admin      - super_admin + admin
+#   parc_operateur  - gestionnaire (operateur/comptable/commercial/dashboard)
+#   parc_tiers      - proprietaire (portail tiers, TOTP aussi)
+# Le mapping role/perimetre reste porte par custom/acces.yaml (jamais ici).
+#
+# BYPASS ciblés (les SEULS chemins sans IdP - rule order = priorité) :
+#   ^/api/health$  - healthcheck ops/monitoring, ne revele rien ("ok": true)
+#   ^/voyageur     - espace public voyageur : SANS compte IdP par nature
+#                    (acces.yaml : voyageurs = pas de compte IdP ; auth =
+#                    lien magique signe HMAC valide PAR LA GATEWAY, et non
+#                    pas "zero authentification")
+#   ^/_next/static - assets compiles (CSS/JS/publics, aucune donnee) :
+#                    sans eux la page voyageur bypassed est Sans style.
+# Une bypass donne 200 SANS Remote-User (Authelia n'authentifie pas) ->
+# front anonyme sur ces chemins. TOUT le reste exige two_factor.
+access_control:
+  default_policy: deny
+  rules:
+    - domain: lcd.test
+      resources:
+        - "^/api/health$"
+      policy: bypass
+    - domain: lcd.test
+      resources:
+        - "^/voyageur"
+      policy: bypass
+    - domain: lcd.test
+      resources:
+        - "^/_next/static/"
+      policy: bypass
+    - domain: lcd.test
+      policy: two_factor
+      subject:
+        - "group:parc_admin"
+        - "group:parc_operateur"
+        - "group:parc_tiers"

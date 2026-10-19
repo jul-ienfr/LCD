@@ -22,6 +22,11 @@ if (-not $NoBuild) {
   Write-Host "== 1/5 up lab (sans rebuild) =="
   docker compose up -d
 }
+# profil moli OBLIGATOIRE apres l'up : box-nord (log3) passe par
+# moli-box-nord (config_ok backend moli) — sans lui reco-ota log3
+# paie ~8 s de DNS mort. SANS --build : moli-box se rebuild depuis un
+# contexte distant (MOLI_SRC pour un rebuild, voir lab/README).
+docker compose --profile moli up -d
 Write-Host "== 2/5 attente sante (120 s max) =="
 $sain = $false
 for ($i = 1; $i -le 24; $i++) {

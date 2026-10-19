@@ -118,7 +118,18 @@ nord sur la box lab) et comptage passerelle inchangé (3 logements /
 > 4. `depends_on` cross-profile (decision-nord → moli-box-nord)
 >    invalide le projet compose ENTIER sans `--profile` : retiré ;
 >    le race boot nord↔moli-box est couvert par retry borné côté
->    moteur + sondes bornées côté batterie.
+>    moteur + sondes bornées côté batterie (§0 : `moli-box-nord` up +
+>    fan-out chaud avant la moindre assertion).
+>    **Amplifié 2026-10-19 : un `up -d` SANS profil laisse moli hors
+>    ligne → `reco-ota log3` paie un DNS mort ~8 s/req (timeout
+>    passerelle → carte log3 stale → §53/§55 en KO — mesuré 8 037 ms
+>    puis 7,8 ms avec `moli-box-nord` up). `lab-run`, `start-all` et
+>    l'invite de `seed-reset` relancent donc TOUJOURS l'up moli, en DEUX
+>    temps : `up -d --build` (socle, sans profil) puis `--profile moli
+>    up -d` **sans `--build`** — le build de `moli-box` part sur un
+>    contexte distant `${MOLI_SRC:-github/…/moli-os}` qui, mal fetché,
+>    renvoie une page >65535 bytes et fait échouer l'up entier
+>    (constaté le jour même) ; l'image locale `moli-os:lcd-lab` suffit.**
 
 > Note : la box Moli lab est en `127.0.0.1:8790`, la HA virtuelle en
 > `:8123` — les deux coexistent, jamais l'une au-dessus de l'autre.
@@ -357,9 +368,9 @@ nord sur la box lab) et comptage passerelle inchangé (3 logements /
 
 - `Dockerfile.moteur` : image générique stdlib (build-args `SCRIPT` + `CONFIG`).
 - `docker-compose.yml` : 11 moteurs 8090-8100 + router :8050 + dashboard :8060 + gateway :8443 + HA :8123 + box nord 8190-8192 + outbox + vps-sim (voir §P8-9) + healthchecks.
-- `seed-reset.sh` / `seed-reset.ps1` : remise à zéro fixtures en 1 commande (P8-9 REQ-S-004) ; `--volumes` / `-Volumes` ajoute `down -v`.
+- `seed-reset.sh` / `seed-reset.ps1` : remise à zéro fixtures en 1 commande (P8-9 REQ-S-004) ; `--volumes` / `-Volumes` ajoute `down -v` **avec `--profile moli`** (sinon les services profilés gardent `ics-logs` monté, Docker refuse sa suppression et les preuves decision survivent — le carnet T2 dérive alors à chaque run).
 - `start-all.sh` / `start-all.ps1` : **SAS local complet UP durable (1 commande)** — lab + faux VPS + self-hosted démarrés SIMULTANÉMENT et laissés accessibles (contrairement à `lab-run` qui teste puis démonte) ; idempotent, `--no-build` / `-NoBuild` pour up sans rebuild. Accès : socle lab `:8090-8100/:8050/:8060/:8443/:8123`, sim `https://parc.test:4433` + `https://api.test:4443`, self-hosted `https://lcd.test:4001`.
-- `lab-run.sh` / `lab-run.ps1` : **test global local 1 commande** (P8-9 REQ-S-004) — seed-reset complet → rebuild → attente santé 14 endpoints → `tests_lab.py` → faux VPS (up + test + down) → stack self-hosted `deploy/` (build front + up + test-deploy 7/7 + down) ; `--no-vps` / `-NoVps` saute la sim, `--no-build` / `-NoBuild` saute le rebuild, `--no-deploy` / `-NoDeploy` saute le self-hosted.
+- `lab-run.sh` / `lab-run.ps1` : **test global local 1 commande** (P8-9 REQ-S-004) — seed-reset complet → rebuild → attente santé 14 endpoints → `tests_lab.py` → faux VPS (up + test + down) → stack self-hosted `deploy/` (build front + up + test-deploy 7 checks fail-closed + recette IdP 22/22 + down) ; `--no-vps` / `-NoVps` saute la sim, `--no-build` / `-NoBuild` saute le rebuild, `--no-deploy` / `-NoDeploy` saute le self-hosted.
 - `export-box.sh` : `docker save` → `.tar` transférable (box = `docker load` + up).
 - `prestataires.lab/log{1,2}.yaml` : annuaires FICTIFS lab (tri prix, hors zone,
   RC expirée, migration `zone:`) — le réel `custom/prestataires/` reste vide.

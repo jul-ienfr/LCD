@@ -6,7 +6,7 @@
 // verifiee:false posée par la passerelle = mise en ligne BLOQUÉE, REQ-L-001).
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { lireIdentite } from "@/lib/identite";
 import { CarteCreation } from "./carte-creation";
 
 export const instant = false;
@@ -142,8 +142,8 @@ export default async function Onboarding({
   const sp: SP = {};
   for (const k of PORTES) if (spAll[k]) sp[k] = spAll[k] as string;
   const etape = Math.min(7, Math.max(1, Number(spAll.etape) || 1));
-  const jar = await cookies();
-  const quiDefaut = jar.get("lcd_qui")?.value || "";
+  // Identité effective (F3 : Remote-User via IdP, sinon cookie lcd_qui lab).
+  const quiDefaut = (await lireIdentite()).qui;
 
   // Le bouton de l'étape n mène à n+1 : les gates sont évaluées SUR LA CIBLE.
   const cible = Math.min(7, etape + 1);

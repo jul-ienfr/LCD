@@ -6,6 +6,8 @@
 import { redirect } from "next/navigation";
 import { gwGet, gwPost } from "@/lib/gateway";
 import { cookies } from "next/headers";
+import { autheliaInterne, lireIdentite, portailIdp } from "@/lib/identite";
+import { PROFILS } from "@/lib/profils";
 
 export async function choisirLangueAction(formData: FormData) {
   const lang = String(formData.get("lang") || "fr").slice(0, 2);
@@ -14,20 +16,19 @@ export async function choisirLangueAction(formData: FormData) {
   redirect(`/?lang=${encodeURIComponent(lang)}`);
 }
 
-// Connexion SIMULÉE (lab) : on choisit un compte humain déclaré dans la
+// Connexion SIMULÉE (lab, P1) : on choisit un compte humain déclaré dans la
 // gateway (custom/acces.yaml) et on le mémorise en cookie httpOnly. C'est ce
 // `qui` qui pré-remplit les formulaires 1-tap — la gateway REVÉRIFIE toujours
 // l'autorisation (ce cookie ne prouve rien côté serveur : RBAC réel = gateway).
-const COMPTES: Record<string, string> = {
-  personne_01: "/hote",
-  personne_02: "/hote",
-  personne_03: "/hote",
-  personne_04: "/hote",
-  personne_05: "/proprio?logement=log1&qui=personne_05",
-  commercial_01: "/commercial",
-};
+// En mode IdP (LCD_IDP=1) ce picker n'existe plus : loginAction redirige vers
+// le portail (l'entrée sans-IdP a disparu, F3).
+const COMPTES: Record<string, string> = Object.fromEntries(
+  Object.entries(PROFILS).map(([id, p]) => [id, p.cible]),
+);
 
 export async function loginAction(formData: FormData) {
+  const id = await lireIdentite();
+  if (id.modeIdp) redirect(`${portailIdp()}/`);
   const qui = String(formData.get("qui") || "").trim();
   const jar = await cookies();
   const cible = COMPTES[qui];
@@ -41,13 +42,51 @@ export async function loginAction(formData: FormData) {
   redirect(cible);
 }
 
+// Mode IdP : la session vit chez Authelia (lcd_session, Domain=lcd.test) —
+// le serveur la relaie à l'endpoint interne (réseau docker, X-Forwarded-Proto
+// https exigé : cookie secure) puis efface lcd_vu. Le navigateur ne parle
+// jamais directement au-delà du front.
+async function fermerSessionIdp(session: string): Promise<void> {
+  try {
+    const portail = new URL(portailIdp());
+    await fetch(`${autheliaInterne()}/api/logout`, {
+      method: "POST",
+      headers: {
+        Cookie: `lcd_session=${session}`,
+        Origin: portail.origin,
+        "X-Forwarded-Proto": "https",
+        "X-Forwarded-Host": portail.host,
+      },
+    });
+  } catch (e) {
+    console.error("logout IdP indisponible:", e);
+  }
+}
+
 export async function logoutAction() {
-  (await cookies()).delete("lcd_qui");
+  const id = await lireIdentite();
+  const jar = await cookies();
+  if (id.modeIdp) {
+    const session = jar.get("lcd_session")?.value || "";
+    jar.delete("lcd_vu");
+    if (session) await fermerSessionIdp(session);
+    redirect("/login?erreur=deconnexion");
+  }
+  jar.delete("lcd_qui");
   redirect("/login?erreur=deconnexion");
 }
 
 async function quiParDefaut(): Promise<string> {
-  return (await cookies()).get("lcd_qui")?.value || "";
+  return (await lireIdentite()).qui;
+}
+
+// Piste d'audit voir-comme (§S3.3) : en mode IdP chaque écriture porte
+// `qui_reel` (Remote-User prouvé) à côté de `qui` (identité effective) —
+// la gateway exige alors un qui_reel admin et journalise le geste 90 j.
+// Mode lab : objet vide, payloads strictement inchangés (batteries).
+async function pisteIdentite(): Promise<{ qui_reel?: string }> {
+  const id = await lireIdentite();
+  return id.modeIdp && id.quiReel ? { qui_reel: id.quiReel } : {};
 }
 
 export type ResultatAction = { ok: boolean; message: string };
@@ -82,6 +121,7 @@ export async function executerAction(
       qui,
       ref,
       data,
+      ...(await pisteIdentite()),
     });
     const code = Number(rep.moteur_code ?? 200);
     if (code >= 200 && code < 300)
@@ -106,7 +146,7 @@ export async function creerProspect(
   if (!qui || !data.prospect_id)
     return { ok: false, message: "qui + prospect_id requis." };
   try {
-    await gwPost("/v1/prospects", { qui, data });
+    await gwPost("/v1/prospects", { qui, data, ...(await pisteIdentite()) });
     return { ok: true, message: `Prospect ${data.prospect_id} créé.` };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "Échec." };
@@ -121,6 +161,7 @@ export async function calculerSimulateur(
     qui:
       String(formData.get("qui") || "").trim() || (await quiParDefaut()),
     entite_id: String(formData.get("entite_id") || "").trim(),
+    ...(await pisteIdentite()),
   };
   const forfait = String(formData.get("forfait") || "").trim();
   if (forfait) corps.forfait = forfait;
@@ -146,6 +187,7 @@ export async function testerLlm(
         String(formData.get("qui") || "").trim() || (await quiParDefaut()),
       usage: String(formData.get("usage") || "").trim(),
       prompt: String(formData.get("prompt") || ""),
+      ...(await pisteIdentite()),
     });
     return { ok: true, message: `Dry-run : ${JSON.stringify(rep).slice(0, 400)}` };
   } catch (e) {
@@ -179,6 +221,7 @@ export async function offreGenerer(
       qui,
       prospect_id,
       simulation,
+      ...(await pisteIdentite()),
     });
     const lignes = Array.isArray(rep.lignes) ? (rep.lignes as string[]) : [];
     const titre = String(rep.titre || "Offre");
@@ -215,7 +258,15 @@ export async function trancherConflit(
   try {
     const rep = await gwPost<Record<string, unknown>>(
       "/parc/conflits/trancher",
-      { qui, box_id, logement_id, date, choix, motif },
+      {
+        qui,
+        box_id,
+        logement_id,
+        date,
+        choix,
+        motif,
+        ...(await pisteIdentite()),
+      },
     );
     return {
       ok: true,
@@ -231,22 +282,53 @@ export async function trancherConflit(
 // Voir-comme (§14 V5/V6) : bascule de session super/admin vers un autre profil.
 // Cookie seul : la passerelle reste l'unique vérité RBAC à CHAQUE écriture.
 // `retour` = chemin interne (`/…`), jamais un protocole externe.
+// Mode IdP (§S3.3) : la cible part dans `lcd_vu` (qui_reel reste Remote-User,
+// bandeau permanent) et le GESTE est d'abord journalisé à la passerelle
+// (POST /v1/audit, 90 j) — si le journal tombe, PAS de bascule (fail-closed :
+// rien ne doit se voir sans trace).
 export async function voirComme(formData: FormData): Promise<void> {
   const jar = await cookies();
+  const id = await lireIdentite();
   const cible = String(formData.get("qui") || "").trim();
   const brutRetour = String(formData.get("retour") || "").trim();
   const retour =
     brutRetour.startsWith("/") && !brutRetour.startsWith("//") && !brutRetour.includes("\\")
       ? brutRetour
       : "/hote";
-  if (COMPTES[cible]) {
-    jar.set("lcd_qui", cible, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-    });
+  if (!COMPTES[cible]) redirect(retour);
+  if (id.modeIdp) {
+    if (cible === id.quiReel) {
+      jar.delete("lcd_vu");
+      redirect(retour);
+    }
+    // Gesté d'audit : journal AVANT la bascule (dûment tracé, §S3.3).
+    let trace = false;
+    try {
+      await gwPost("/v1/audit", {
+        qui_reel: id.quiReel,
+        qui: cible,
+        geste: "voir_comme",
+      });
+      trace = true;
+    } catch (e) {
+      console.error("journal voir-comme indisponible (bascule refusee):", e);
+    }
+    if (trace) {
+      jar.set("lcd_vu", cible, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+    }
+    redirect(retour);
   }
+  jar.set("lcd_qui", cible, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  });
   redirect(retour);
 }
 
@@ -286,8 +368,7 @@ export async function onboardingCreer(
   prev: ResultatAction | null,
   formData: FormData,
 ): Promise<ResultatAction> {
-  const jar = await cookies();
-  const qui = String(formData.get("qui") || "").trim() || jar.get("lcd_qui")?.value || "";
+  const qui = String(formData.get("qui") || "").trim() || (await quiParDefaut());
   const nom = String(formData.get("nom") || "").trim();
   const commune = String(formData.get("commune") || "").trim();
   const capacite = String(formData.get("capacite") || "").trim();
@@ -315,6 +396,7 @@ export async function onboardingCreer(
       logement_id,
       qui,
       data,
+      ...(await pisteIdentite()),
     });
     const lid = String(rep.logement_id ?? logement_id);
     return {

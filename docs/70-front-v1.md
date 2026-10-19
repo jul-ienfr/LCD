@@ -55,11 +55,13 @@ Pages plates actuelles : `/` (landing), `/login`, `/hote`, `/planning`,
 `/prix`, `/compta`, `/presta`, `/onboarding`, `/voyageur`, `/proprio`,
 `/commercial`, `/aide`, `/legales`, 404/erreur brandées.
 
-Lacunes vs cible (ce que ce cahier planifie) : aucun chargeur plugin ; pas
-d'IdP réel (cookie `lcd_qui` = mode lab) ; PWA = manifest seul, **0 service
-worker** ; pas de version lite ; dashboards `super`/`admin` (`/systeme`,
-secrets, journal voir-comme, recherche par `ref`) absents ; tickets support +
-messagerie 3 fils (§P8) absents.
+Lacunes vs cible (point de départ du cahier, 2026-10-18) : ~~aucun chargeur
+plugin~~ ✅ F1 ; ~~pas d'IdP réel (cookie `lcd_qui` = mode lab)~~ ✅ F3
+(Authelia 4.39.28, lab sans IdP = batterie locale seulement) ; PWA = manifest
+seul, **0 service worker** (F4) ; ~~pas de version lite~~ ✅ F1 (L1) ; †
+dashboards `super`/`admin` (`/systeme`, secrets, journal voir-comme, recherche
+par `ref`) absents (F5) ; † tickets support + messagerie 3 fils (§P8) absents
+(F5). † = restant ; états dans §F10.
 
 ## §F2 Stack cible — choix datés fin octobre 2026
 
@@ -152,19 +154,23 @@ Transverse (cœur, jamais plugin) : landing `/`, `/login` (IdP), `/aide`,
 avec F5, utilisés par tous les plugins autorisés via composants cœur.
 
 Voir-comme (§S3.3) reste dans le cœur layout (bandeau permanent + journal
-90 j). La gateway simule toujours `{qui_reel, vu_comme}` ; jamais de secret
-simulé, même super_admin (§S3.5-V5).
+90 j). La gateway porte `{qui_reel, vu_comme}` — piste **réelle livrée F3** :
+`POST /v1/audit` (geste de bascule, fail-closed : pas de trace = pas de
+cookie) + entrée `voir_comme` sur toute écriture (admin actif exigé côté
+gateway) ; jamais de secret simulé, même super_admin (§S3.5-V5).
 
 ## §F5 Sessions — du cookie lab à l'IdP
 
 | Phase | Session | Note |
 |---|---|---|
-| P1 (actuel) | cookie `lcd_qui` signé httpOnly + CSRF token | Mode lab/vitrine ; 2FA absente assumée |
-| P2/P3 | **IdP réel** (Authelia ~50 Mo d'abord, Authentik au seuil §S4) via `forward_auth` Caddy | Session gérée IdP ; le front lit le sujet + rôle ; 2FA staff obligatoire (§S3.1) |
-| Tous | expiration + révocation 1-tap + liste des sessions actives (§P9) | `POST /v1/acces-revoquer` côté gateway |
+| P1 (lab) | cookie `lcd_qui` signé httpOnly + CSRF token | **Batterie locale uniquement** (`test-front.ps1` contre `next start`) — plus une entrée de déploiement |
+| ✅ F3 (2026-10-19) | **IdP réel** Authelia 4.39.28 (repli léger d'Authentik ~50 Mo, seuil §S4) via `forward_auth` Caddy | Livré : `LCD_IDP=1`, front lit `Remote-User` (`lib/identite.ts`), **aucun repli cookie**, 2FA staff TOTP (§S3.1), révocations RBAC — recette `deploy/test-idp.ps1` verte |
+| Tous | expiration + révocation 1-tap + liste des sessions actives (§P9) | `POST /v1/acces-revoquer` côté gateway (preuve 403 dans la recette IdP) |
 
-Bascule testable : même front, 1 bloc Caddy + 1 variable. Jamais de
-persistance d'identité côté client au-delà du cookie signé.
+Bascule = 1 variable (`LCD_IDP`) + 1 bloc Caddy, prouvée dans les deux sens :
+lab sans IdP (batterie front 46/46) et IdP complet (recette 22/22). Jamais de
+persistance d'identité côté client (cookie `lcd_vu` = veneur seul, effacé au
+logout ; identité = en-tête serveur à chaque requête).
 
 ## §F6 Front box — 3 surfaces, runtime-agnostique (HA | Moli)
 
@@ -261,7 +267,7 @@ A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 |---|---|---|---|
 | **F1 socle** — ✅ clos 2026-10-18 | Arborescence `plugins/`, chargeur + validateur, `lite.css`, rapport bundle CI, batteries dégradées v1 | ~4 j | build vert + validateur KO sur manifeste piégé |
 | **F2 migration 6 plugins** — ✅ clos 2026-10-18 | dossiers existants → plugins (URLs stables), i18n préfixée, grep fuite | ~5 j | `test-front.ps1` étendu vert (23 → ≥35 verifs) — gate passé : 39/39 exit 0 |
-| **F3 IdP** | `forward_auth` + 2FA staff + révocations (§F5) | ~3 j | login IdP + lab sans IdP inchangé |
+| **F3 IdP** — ✅ clos 2026-10-19 | `forward_auth` + 2FA staff + révocations (§F5) + piste voir-comme `{qui_reel, vu_comme}` | ~3 j | gate passé : `test-idp.ps1` 22/22 (302 → redir 2FA → TOTP réel niveau 2 → chip identité → 403 révocation → logout 302) + `test-front.ps1` 46/46 lab + `tests_lab.py` 0 KO |
 | **F4 PWA** | SW maison + outbox + purge révocation + recette offline 2 h | ~4 j | offline 2 h sur séjour témoin, 0 écriture perdue |
 | **F5 dash-super/admin** | `/systeme`, secrets rotation super seul, journal voir-comme 90 j, recherche par `ref`, tickets + messagerie 3 fils (§P8) | ~6 j | batteries V5/V6 (secrets jamais simulés, 403 admin secrets) |
 | **F6 front box** | `:8060` étendu (état runtime HA\|Moli), kiosk L1, recette box HA + Moli | ~3 j | recette box offline 2 h sur les 2 runtimes |
@@ -274,6 +280,6 @@ chaque revue mensuelle.
 
 | ID | Exigence | Batterie |
 |---|---|---|
-| REQ-S-007 | Front SaaS : chargeur plugin strict (§20.7 front) + cœur sans connaissance de dashboard + session réelle (IdP 2FA staff) | validateur manifeste KO + 403 admin sur secrets |
+| REQ-S-007 | Front SaaS : chargeur plugin strict (§20.7 front) + cœur sans connaissance de dashboard + session réelle (IdP 2FA staff) | recette `test-idp.ps1` (302 redir + redir 2FA + TOTP + 403 révocation + logout) + `test-front.ps1` + validateur manifeste KO + 403 admin sur secrets |
 | REQ-S-008 | Mode dégradé L0-L3 : sans-JS complet, `?lite=1`, matrice appareils réels, voyageur L0 = SMS/papier | batterie dégradée §F9 + 2 appareils réels parcourus |
 | REQ-T-005 | Front box runtime-agnostique : Lovelace (HA seul) + `:8060` (HA\|Moli) + kiosk QR, 0 fonction obligatoire dépendante d'une UI box | recette box offline 2 h sur HA ET Moli |

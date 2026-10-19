@@ -22,6 +22,7 @@
   ],
   "ecriture": [
     "/v1/action",
+    "/v1/audit",
     "/v1/prospects",
     "/v1/simulateur",
     "/v1/offres",

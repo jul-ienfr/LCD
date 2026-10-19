@@ -20,7 +20,8 @@ LCD_GATEWAY_URL=http://127.0.0.1:8443 npm run dev   # http://localhost:3000
 Voir `deploy/README.md` (entrée unique `https://lcd.test:4001` → ce front
 + gateway lab). Image minimale : `output: standalone` (`next.config.ts`) +
 `web/Dockerfile` multi-stage (`npm ci` reproductible, lock versionné). Build
-local prouvé `lcd-deploy-web` ~281 Mo, `test-deploy.ps1` 7/7 vert.
+local prouvé `lcd-deploy-web` ~281 Mo, `test-deploy.ps1` 7 checks
+fail-closed + recette IdP `test-idp.ps1` 22/22 (mode `LCD_IDP=1`).
 
 La gateway lab tourne via `lab/docker-compose.yml` (service `gateway-parc`,
 `:8443`). Le navigateur ne touche jamais la gateway : tout passe par les

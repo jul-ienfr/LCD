@@ -11,8 +11,9 @@ pwsh lab/lab-run.ps1
 ```
 
 Verdict partagé 0-5/5 : reset fixtures → rebuild → santé 19 ports →
-batterie passerelle (52 sections) → vps-sim 7/7 → build front + stack
-self-hosted (deploy 7/7 + batterie front 28/28) → down -v.
+batterie passerelle (74 sections) → vps-sim 7/7 → build front + stack
+self-hosted (deploy 7 checks fail-closed + recette IdP 22/22 + batterie
+front 46/46) → down -v.
 Ajouter `-NoDeploy` pour sauter l'étape front.
 
 ## 2. Ou : garder le SAS durablement UP (démo continue)
@@ -27,14 +28,17 @@ pwsh lab/start-all.ps1
 
 | URL | Quoi |
 | --- | --- |
-| <http://127.0.0.1:3100> | **SAS front** (produit : 9 écrans + landing + aide) |
-| <http://127.0.0.1:4001> | Variante TLS interne (lcd.test, Caddy HSTS+nosniff) |
+| <http://127.0.0.1:3100> | **SAS front** direct (démo/SAS local, sans TLS — l'entrée officielle est celle du dessous) |
+| <https://lcd.test:4001> | **Entrée officielle** (TLS interne Caddy, HSTS+nosniff) — redirige vers le portail IdP |
+| <https://lcd.test:4002> | Portail Authelia (login 1FA + TOTP 2FA + logout) |
 | <http://127.0.0.1:8060> | Dashboard hôte (18 ports lab) |
 
-Se connecter : n'importe quel profil listé sur `/login`
-(`personne_01` Claire 👑 super_admin … `commercial_01` Inès).
-La bascule « Voir comme » en en-tête change de rôle visuellement ;
-une écriture hors-rôle reste REFUSÉE par la passerelle (403).
+Se connecter : l'entrée `lcd.test:4001` exige la session IdP (F3) —
+comptes/mots de passe dans `deploy/.env` (`personne_01` = Claire 👑
+super_admin, `personne_03` = Sam opérateur …), 2FA TOTP exigée. La bascule
+« Voir comme » (admins, après connexion) change de rôle visuellement et est
+**tracée** (bandeau + journal 90 j) ; une écriture hors-rôle reste REFUSÉE
+par la passerelle (403).
 
 ## 4. Ce qui est réel vs simulé
 
@@ -58,7 +62,9 @@ docs/checklist-taches-restantes.md, docs/panier-p0-chiffre.md
 ## 6. Reset après manipulation des fixtures
 
 ```
-pwsh lab/seed-reset.ps1     # OK : fixtures lab restaurees
+pwsh lab/seed-reset.ps1          # fixtures seules (rapide)
+pwsh lab/seed-reset.ps1 -Volumes # + volumes runtime (prérequis batteries
+                                 # à comptages EXACTS, ex. carnet T2)
 ```
 
 ## 7. Points d'attention Windows (leçons consolidées)

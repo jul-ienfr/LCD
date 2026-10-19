@@ -20,6 +20,9 @@ if [ "$NO_BUILD" = "0" ]; then
 else
   docker compose up -d
 fi
+# profil moli : box-nord (log3) deploye son runtime moli-box-nord.
+# SANS --build (contexte distant - rebuild via MOLI_SRC, voir README).
+docker compose --profile moli up -d
 echo "== 2/3 faux VPS (vps-sim) =="
 (cd vps-sim && docker compose up -d --build)
 echo "== 3/3 self-hosted (deploy) =="

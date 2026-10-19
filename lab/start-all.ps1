@@ -11,6 +11,9 @@ if (-not $NoBuild) {
 } else {
   docker compose up -d
 }
+# profil moli : box-nord (log3) deploye son runtime moli-box-nord.
+# SANS --build (contexte distant — rebuild via MOLI_SRC, voir README).
+docker compose --profile moli up -d
 Write-Host "== 2/3 faux VPS (vps-sim) =="
 Set-Location (Join-Path $PSScriptRoot "vps-sim")
 docker compose up -d --build

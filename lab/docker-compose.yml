@@ -9,8 +9,21 @@
 #
 # Usage :
 #   cd lab && docker compose up -d --build
+#   docker compose --profile moli up -d       # moli OBLIGATOIRE (box-nord/log3)
 #   python3 tests_lab.py            # batterie P2-14 (résa <60 s + conflit ICS + bornes)
-#   docker compose down -v          # teardown (volumes runtime supprimés)
+#   docker compose --profile moli down -v   # teardown COMPLET (voir seed-reset
+#     # -Volumes) : SANS --profile moli, les services profilés gardent
+#     # `ics-logs` monté et Docker refuse sa suppression ("in use") —
+#     # les preuves decision survivent au reset et la batterie dérive.
+# moli sans --build : le contexte de build de moli-box est DISTANT
+#   (${MOLI_SRC:-https://github.com/rudy-io/moli-os#main}) — un fetch
+#   en échec renvoie une page HTML énorme et le build échoue ;
+#   l'image locale `moli-os:lcd-lab` suffit, rebuild documenté via
+#   MOLI_SRC (lab/README T-11). Pourquoi le profil est obligatoire :
+#   box-nord (log3) pousse ses états via `moli-box-nord` (config_ok
+#   backend moli) — sans lui chaque reco-ota log3 paie un DNS mort
+#   (~8 s mesurés 8 037 ms → 7,8 ms avec moli-box-nord up), la carte
+#   part stale et les sections pilotage/55 de tests_lab.py basculent.
 
 name: lcd-lab
 

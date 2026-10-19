@@ -1,17 +1,29 @@
-# deploy/Caddyfile — entrée unique auto-hébergée LCD (self-hosted local, 0 €).
+# deploy/Caddyfile - entree unique auto-hebergee LCD (self-hosted local, 0 EUR).
 #
-# 1 origine locale `lcd.test` (SNI conservé, résolution côté client via
-# --resolve, zéro modif hosts) → Caddy reverse-proxy :
-#   /            → front web :3100 (Next standalone, SSR)
-#   /api/*       → gateway :8443 (fan-out parc, lecture + 1-tap)
-# TLS `tls internal` (CA auto-signée, jamais de Let's Encrypt en local —
-# même pattern que `lab/vps-sim/Caddyfile`, différences dites).
-# Ports hôte : 4000 (HTTP→HTTPS auto) + 4001 (HTTPS). Le socle (:8090-8100,
-# :8123, :4000, :8050, :8060, :8443) n'est JAMAIS publié — même règle qu'en
-# prod et qu'en sim (batterie §52/§72 sur les artefacts prod/sim,inchangés).
+# TOPOLOGIE F3 (IdP partout, AUCUNE entree sans IdP) :
+#   lcd.test:4001 (HTTPS) = app staff/portail - forward_auth OBLIGATOIRE
+#       /api/*  -> gateway :8443 (strip prefix)
+#       *       -> front web :3100 (Next SSR)
+#   lcd.test:4002 (HTTPS) = PORTAIL Authelia (login + TOTP) - c'est l'IdP
+#   lcd.test:4003 (HTTP)  -> redirect HTTPS :4001
+# Meme hote, DEUX ports : un cookie Domain=lcd.test est indifferent au port,
+# la session circule donc entre le portail et l'app - c'est ce qui rend le
+# chainage possible (eprouve : Authelia repond
+#   Location: https://lcd.test:4002/?rd=https%3A%2F%2Flcd.test%3A4001%2F...).
+#
+# forward_auth : endpoint REEL 4.39.28 = /api/authz/forward-auth (le legacy
+# /api/verify repond 401 - teste sur le binaire). Sans session : 302 vers le
+# portail ; politique deny : 403 ; avec TOTP : 200 + Remote-User/Groups.
+# L'IDP NE PROUVE qu'une IDENTITE - le front lit Remote-User (qui reel), la
+# gateway REFait son RBAC a chaque ecriture (jamais de confiance a l'en-tete).
+#
+# TLS `tls internal` (CA interne, zéro ACME - meme pattern lab/vps-sim).
+# Ports hote : 4003 (HTTP->HTTPS) + 4001 (app) + 4002 (portail). Le socle
+# (:8090-8100, :8123, :4000 box, :8050, :8060, :8443, :3100) n'est JAMAIS
+# publie - le front n'est JOIGNABLE qu'ici : toute entree = IdP.
 {
 	email admin@example.local
-	# Pas d'ACME en local : CA interne, zéro appel réseau sortant.
+	# Pas d'ACME en local : CA interne, zero appel reseau sortant.
 }
 
 (entetes_lcd) {
@@ -26,22 +38,73 @@
 	header Cache-Control "no-store"
 }
 
+# --- Portail IdP (login, TOTP, logout) : le SEUL acces sans session --------
+https://lcd.test:4002 {
+	tls internal
+	import entetes_lcd
+
+	reverse_proxy authelia:9091 {
+		header_up X-Forwarded-Proto https
+		header_up -Authorization
+	}
+}
+
+# --- App : TOUT passe par forward_auth (aucune exception au niveau Caddy) ---
+# Les bypass (voyageur/public/health) sont declares UNE SEULE FOI dans
+# Authelia access_control - une source de verite, auditables, jamais un
+# handle Caddy oublie. Les bypass AUTHENTIFIENT quand meme : 200 sans
+# Remote-User -> front anonyme (voyageur) ou public (health).
 https://lcd.test {
 	tls internal
 	import entetes_lcd
 
-	# Front Next (SSR + Server Actions) : pages /, /voyageur, /proprio, /commercial.
-	reverse_proxy http://web:3100 {
-		header_up X-Forwarded-Proto https
-		header_up -Authorization
-	}
+	route {
+		# 1. Defense anti-spoof : un Remote-* fourni par le client est
+		#    SUPPRIME avant tout traitement. Seul Authelia (copy_headers
+		#    apres forward_auth reussi) a le droit d'injecter l'identite.
+		#    (Forme reelle : inline, UN champ par directive — la forme bloc
+		#    est rejetee "wrong argument count", teste sur caddy:2-alpine.)
+		request_header -Remote-User
+		request_header -Remote-Groups
+		request_header -Remote-Name
+		request_header -Remote-Email
 
-	# Gateway parc via préfixe /api/* (strip → la gateway voit ses routes nues).
-	handle /api/* {
-		uri strip_prefix /api
-		reverse_proxy http://gateway-parc:8443 {
+		# 2. IdP : sans session valide -> 302 portail / 403 deny. Reussi ->
+		#    copie Remote-User/Groups/Name dans la requete amont.
+		forward_auth authelia:9091 {
+			uri /api/authz/forward-auth
+			copy_headers Remote-User Remote-Groups Remote-Name
+		}
+
+		# 3. Pref optin legere (lcd_lite) : service FRONT, doit preceder le
+		#    catch-all /api/* -> gateway.
+		handle /api/lite* {
+			reverse_proxy http://web:3100 {
+				header_up X-Forwarded-Proto https
+				header_up -Authorization
+			}
+		}
+
+		# 4. Gateway parc via /api/* (strip -> routes nues ; /api/health =
+		#    bypass Authelia, le reste exige la session).
+		handle /api/* {
+			uri strip_prefix /api
+			reverse_proxy http://gateway-parc:8443 {
+				header_up X-Forwarded-Proto https
+				header_up -Authorization
+			}
+		}
+
+		# 5. Front Next (SSR + Server Actions) - route catch-all.
+		reverse_proxy http://web:3100 {
 			header_up X-Forwarded-Proto https
 			header_up -Authorization
 		}
 	}
+}
+
+# --- HTTP : redirection HTTPS. Port parametrable (defaut local 4001) -------
+# En LAN/Internet (procedure-p1) : LCD_PORT_HTTPS=443, aucun changement Caddy.
+http://lcd.test {
+	redir https://lcd.test:{$LCD_PORT_HTTPS:4001}{uri} permanent
 }

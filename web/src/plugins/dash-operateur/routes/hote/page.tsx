@@ -6,7 +6,7 @@ import { gwGet, ACTIONS, type ActionId } from "@/lib/gateway";
 import { LIBELLES_ACTION, type Langue } from "@/lib/i18n";
 import { t } from "../../i18n";
 import { languePage } from "@/lib/langue";
-import { cookies } from "next/headers";
+import { lireIdentite } from "@/lib/identite";
 import { Onglets } from "@/app/onglets";
 import { FormulaireAction } from "@/app/formulaire-action";
 
@@ -81,8 +81,8 @@ export default async function Page({
 }) {
   const sp = await searchParams;
   const lang: Langue = languePage(sp);
-  const jar = await cookies();
-  const quiDefaut = jar.get("lcd_qui")?.value || "";
+  // Identité effective (F3 : Remote-User via IdP, sinon cookie lcd_qui lab).
+  const quiDefaut = (await lireIdentite()).qui;
   return <Pilotage lang={lang} quiDefaut={quiDefaut} />;
 }
 

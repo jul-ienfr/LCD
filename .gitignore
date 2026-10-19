@@ -6,6 +6,15 @@ secrets.yaml
 custom/branding.yaml
 !custom/branding.yaml.example
 
+# F3 IdP — secrets et comptes Authelia REELS (P1-9) ; l'EXAMPLE versionné
+# reste tracked (documente la forme), la copie reelle est toujours hors git.
+deploy/.env
+deploy/authelia/users.yml
+deploy/authelia/db.sqlite*
+# Secrets TOTP enrôlés (equivalent de l'app d'authentification, lu par la
+# recette test-idp.ps1 pour eviter un re-enrolement a chaque passage).
+deploy/authelia/totp-secrets.json
+
 # Instances privées par logement / parc (P1-7)
 docs/log1/
 docs/log2/
@@ -58,6 +67,7 @@ web/node_modules/
 web/.next/
 web/out/
 web/next-env.d.ts
+web/tsconfig.tsbuildinfo
 
 # OS / éditeurs
 .DS_Store

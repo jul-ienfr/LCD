@@ -1252,6 +1252,78 @@ class Passerelle:
                               f"ecriture sur {action}")
         return None, personne
 
+    # -- Audit voir-comme (S3.3 / F3 IdP) --------------------------------- #
+    # En mode IdP le front envoie `qui_reel` (Remote-User PRUVE par Caddy +
+    # Authelia) a cote de `qui` (identite effective = cible du voir-comme)
+    # sur TOUTE ecriture, et appelle /v1/audit au moment du geste. En mode
+    # lab P1 le champ est absent : rien ne change (batteries inchangees).
+    # Fail-closed : un refus EMPPECHE l'ecriture ; le geste est journalise
+    # (journal parc, consultable 90 j) - voir sans trace est impossible.
+    def _autorise_voir_comme(self, qui_reel, qui):
+        """Sans objet -> (None, None) ; refuse -> (code, err) ; valide ->
+        (None, None). meme ordre de controle que _verifier_qui, sur
+        qui_reel : actif -> connu -> non revoque -> non expire -> admin."""
+        def refus(code, msg):
+            return code, {"erreur": msg, "qui_reel": qui_reel, "qui": qui}
+
+        if not qui_reel or qui_reel == qui:
+            return None, None
+        personne = self.acces.get(qui_reel) \
+            if isinstance(self.acces, dict) else next(
+                (p for p in self.acces if p.get("id") == qui_reel), None)
+        if not personne:
+            return refus(403, "voir-comme refuse : qui_reel inconnu "
+                              f"({qui_reel})")
+        if self._revocations().get(qui_reel):
+            return refus(403, "voir-comme refuse : qui_reel revoque "
+                              f"({qui_reel})")
+        exp = self._expire_le(personne)
+        if exp and exp < dt.date.today():
+            return refus(403, "voir-comme refuse : qui_reel expire le "
+                              f"{personne.get('expire_le')}")
+        role = (personne.get("role"), personne.get("sous_role"))
+        if role not in self._ADMINS:
+            return refus(403, "voir-comme refuse : "
+                              f"{qui_reel} ({role[0]}/{role[1]}) : "
+                              "admin requis")
+        return None, None
+
+    def piste_voir_comme(self, corps, action):
+        """Piste d'audit d'une ecriture (S3.3) : si `qui_reel` differe de
+        `qui`, admin actif exigé + entree journal. Sans champ (lab P1) :
+        (None, None), comportement strictement inchange."""
+        qui_reel = str((corps or {}).get("qui_reel") or "").strip()
+        qui = str((corps or {}).get("qui") or "").strip()
+        code, err = self._autorise_voir_comme(qui_reel, qui)
+        if code:
+            return code, err
+        if qui_reel and qui_reel != qui:
+            self._journal_parc({"ts": utcnow_iso(), "quoi": "voir_comme",
+                                "qui": qui_reel, "qui_reel": qui_reel,
+                                "vu_comme": qui,
+                                "action": str(action or "")})
+        return None, None
+
+    def audit_voir_comme(self, corps):
+        """POST /v1/audit : trace LE GESTE au moment de la bascule (le front
+        l'appelle AVANT de poser lcd_vu ; si le journal tombe, pas de
+        geste - le bandeau S3.3 montre alors l'identite seule)."""
+        qui_reel = str((corps or {}).get("qui_reel") or "").strip()
+        qui = str((corps or {}).get("qui") or "").strip()
+        geste = str((corps or {}).get("geste") or "").strip()
+        if not geste:
+            return 400, {"erreur": "geste requis"}
+        if not qui_reel or qui_reel == qui:
+            return 400, {"erreur": "qui_reel et qui requis et differents "
+                                   "pour tracer un geste voir-comme"}
+        code, err = self._autorise_voir_comme(qui_reel, qui)
+        if code:
+            return code, err
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "voir_comme",
+                            "qui": qui_reel, "qui_reel": qui_reel,
+                            "vu_comme": qui, "action": f"geste:{geste}"})
+        return 200, {"ok": True, "trace": "voir_comme"}
+
     # -- CRUD logements / config générale (§6bis) --------------------------- #
     # `qui` = humain connu, non révoqué, dans le périmètre du logement touché.
     # super_admin/admin pour créer/modifier, super_admin SEUL pour archiver.
@@ -3713,6 +3785,9 @@ class Handler(BaseHTTPRequestHandler):
         # `/parc/conflits` et `/parc/digest` sont des lectures (do_GET).
         if url.path == "/parc/conflits/trancher":
             p = self._corps()
+            code, refus = self.engine.piste_voir_comme(p, "conflit/trancher")
+            if refus:
+                return self._json(code, refus)
             code, rep = self.engine.trancher(p)
             return self._json(code, rep)
         if url.path == "/v1/action":
@@ -3723,9 +3798,24 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError("objet JSON attendu")
             except (ValueError, json.JSONDecodeError):
                 return self._json(400, {"erreur": "JSON objet attendu"})
+            code, refus = self.engine.piste_voir_comme(p, "v1/action")
+            if refus:
+                return self._json(code, refus)
             code, enveloppe = self.engine.action(p)
             return self._json(code, enveloppe)
         p = self._corps()
+        # Audit voir-comme (S3.3) : toute ecriture portant `qui_reel` passe
+        # la piste AVANT le dispatch (fail-closed, un seul point pour la
+        # chaine /v1/* + /parc/*). /v1/audit trace lui-meme son geste (pas
+        # de double entree) ; /ingest + /heartbeat restent hors sujet : les
+        # agents (qui=agent-*) ne portent jamais de piste humaine.
+        if url.path != "/v1/audit":
+            code, refus = self.engine.piste_voir_comme(p, url.path)
+            if refus:
+                return self._json(code, refus)
+        if url.path == "/v1/audit":
+            code, rep = self.engine.audit_voir_comme(p)
+            return self._json(code, rep)
         if url.path in ("/v1/llm-tester", "/v1/config-llm"):
             if url.path == "/v1/llm-tester":
                 code, rep = self.engine.config_llm_tester(p)

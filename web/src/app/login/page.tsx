@@ -1,23 +1,29 @@
-// Connexion (simulée, lab) : on choisit un compte humain déclaré côté
-// gateway. Pas de mot de passe : c'est la sélection de RÔLE de démonstration.
-// La gateway reste la vérité RBAC (le cookie ne prouve rien côté serveur).
+// Connexion — deux régimes, un seul module (lib/identite.ts) :
+// - Mode IdP (LCD_IDP=1, F3) : l'entrée sans-IdP a disparu — cette page
+//   devient l'anneau vers le portail Authelia (1FA + 2FA exigés). Atteignable
+//   seule en accès direct :3100 (démo/SAS local) : via Caddy, les anonymes
+//   sont déjà redirigés par forward_auth AVANT le rendu.
+// - Mode lab (P1) : sélection de compte humain déclaré côté gateway — le
+//   cookie httpOnly ne prouve rien côté serveur : le RBAC réel reste la
+//   passerelle, à chaque écriture.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { loginAction, logoutAction } from "../actions";
+import { lireIdentite, portailIdp } from "@/lib/identite";
+import { PROFILS } from "@/lib/profils";
 
 export const instant = false;
 
 export const metadata: Metadata = { title: "Connexion" };
 
-const COMPTES: { qui: string; nom: string; role: string; cible: string; icone: string }[] = [
-  { qui: "personne_01", nom: "Claire", role: "Super admin — fondatrice", cible: "/hote", icone: "👑" },
-  { qui: "personne_02", nom: "Alex", role: "Admin — exploitant", cible: "/hote", icone: "🛠️" },
-  { qui: "personne_03", nom: "Sam", role: "Opérateur — terrain", cible: "/hote", icone: "🧰" },
-  { qui: "personne_04", nom: "Ruth", role: "Comptable — lecture/validate", cible: "/hote", icone: "📊" },
-  { qui: "personne_05", nom: "Marc", role: "Propriétaire — portail tiers", cible: "/proprio?logement=log1&qui=personne_05", icone: "🏡" },
-  { qui: "commercial_01", nom: "Inès", role: "Commercial — CRM/offres", cible: "/commercial", icone: "🤝" },
-];
+const COMPTES = Object.entries(PROFILS).map(([qui, p]) => ({
+  qui,
+  nom: p.nom,
+  role: p.titre,
+  cible: p.cible,
+  icone: p.icone,
+}));
 
 export default async function Login({
   searchParams,
@@ -25,6 +31,74 @@ export default async function Login({
   searchParams: Promise<{ erreur?: string }>;
 }) {
   const sp = await searchParams;
+  const id = await lireIdentite();
+
+  // --- Mode IdP (F3) : anneau vers le portail, jamais de faux picker. -----
+  if (id.modeIdp) {
+    const moi = id.qui ? PROFILS[id.qui] : undefined;
+    return (
+      <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">
+        <div className="text-center">
+          <h1 className="text-3xl font-black tracking-tight">Connexion</h1>
+          <p className="mt-2 text-sm text-[var(--encre-douce)]">
+            Authentification unique via le portail IdP (Authelia) — le second
+            facteur (TOTP) est exigé avant toute page protégée.
+          </p>
+        </div>
+
+        {sp.erreur === "deconnexion" && (
+          <p className="rounded-xl bg-(--ok-douce) p-3 text-sm text-(--ok)" role="status">
+            Déconnecté — session IdP détruite. À bientôt !
+            {moi ? ` (${moi.nom})` : ""}
+          </p>
+        )}
+        {sp.erreur === "inconnu" && (
+          <p className="rounded-xl bg-(--danger-douce) p-3 text-sm text-(--danger)" role="alert">
+            Compte inconnu — choisissez un profil ci-dessous.
+          </p>
+        )}
+
+        {id.quiReel ? (
+          <div className="carte flex items-center gap-3 p-4" role="status">
+            <span aria-hidden className="text-2xl">{moi?.icone || "🔐"}</span>
+            <div className="flex-1">
+              <p className="font-bold">
+                Connecté : {moi ? moi.nom : id.quiReel}{" "}
+                <span className="text-(--encre-faine)">
+                  · {moi ? moi.titre : "sujet IdP"}
+                </span>
+              </p>
+              <form action={logoutAction} className="mt-2">
+                <button type="submit" className="bouton bouton-secondaire px-3 py-1.5 text-sm">
+                  Se déconnecter (détruit la session IdP)
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : (
+          <div className="carte flex flex-col items-center gap-3 p-6 text-center">
+            <p className="text-sm text-[var(--encre-douce)]">
+              Aucune session : ouvrez le portail, identifiez-vous (1FA), puis
+              confirmez le second facteur — le portail vous ramène ici.
+            </p>
+            <a href={`${portailIdp()}/`} className="bouton px-5 py-2.5">
+              Ouvrir le portail de connexion
+            </a>
+          </div>
+        )}
+
+        <p className="text-center text-sm text-[var(--encre-faine)]">
+          Pas besoin de compte pour explorer :{" "}
+          <Link href="/voyageur" className="text-(--accent-fonce) font-semibold underline">
+            espace voyageur
+          </Link>{" "}
+          ouvert à tous (lien signé, sans session).
+        </p>
+      </div>
+    );
+  }
+
+  // --- Mode lab (P1) : sélection de rôle de démonstration. -----------------
   const jar = await cookies();
   const courant = jar.get("lcd_qui")?.value || "";
   const moi = COMPTES.find((c) => c.qui === courant);
@@ -76,7 +150,7 @@ export default async function Login({
             >
               <span aria-hidden className="text-2xl">{c.icone}</span>
               <span className="font-bold">{c.nom}</span>
-              <span className="text-xs text-(--encre-douce)">{c.role}</span>
+              <span className="text-xs text-[var(--encre-douce)]">{c.role}</span>
               {courant === c.qui && (
                 <span className="badge badge-accent mt-1">session active</span>
               )}
@@ -85,7 +159,7 @@ export default async function Login({
         ))}
       </div>
 
-      <p className="text-center text-sm text-(--encre-faine)">
+      <p className="text-center text-sm text-[var(--encre-faine)]">
         Pas besoin de compte pour explorer :{" "}
         <Link href="/voyageur" className="text-(--accent-fonce) font-semibold underline">
           espace voyageur

@@ -77,7 +77,6 @@ for (const [plugin, [prefixe, cles]] of Object.entries(PAR_PLUGIN)) {
 let reste = src;
 const migrees = new Set(Object.values(PAR_PLUGIN).flatMap(([, cles]) => cles));
 for (const c of migrees) {
-  const b = blocs.get(c);
   // Supprime le bloc + la virgule éventuelle + la fin de ligne.
   reste = reste.replace(new RegExp(`\\n  ${c}:\\s*\\{[^{}]*\\},`), "");
 }
@@ -90,7 +89,6 @@ console.log(`[OK] i18n.ts : ${migrees.size} cles migrees, reste ${reste.match(/^
 
 // 5. Écrit le wrapper i18n.ts de chaque plugin (dict local + repli cœur).
 for (const [plugin, [prefixe]] of Object.entries(PAR_PLUGIN)) {
-  const nom = prefixe.slice(0, -1); // "operateur"
   writeFileSync(
     join(RACINE, "src", "plugins", plugin, "i18n.ts"),
     `// plugins/${plugin}/i18n.ts — dictionnaire du plugin (i18n préfixée §F3).

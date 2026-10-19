@@ -28,6 +28,11 @@ else
   echo "== 1/5 up lab (sans rebuild) =="
   docker compose up -d
 fi
+# profil moli OBLIGATOIRE apres l'up : box-nord (log3) passe par
+# moli-box-nord (config_ok backend moli) - sans lui reco-ota log3
+# paie ~8 s de DNS mort. SANS --build : moli-box se rebuild depuis un
+# contexte distant (MOLI_SRC pour un rebuild, voir lab/README).
+docker compose --profile moli up -d
 echo "== 2/5 attente sante (120 s max) =="
 for i in $(seq 1 24); do
   if python3 -c "import urllib.request

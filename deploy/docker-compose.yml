@@ -6,12 +6,15 @@
 #   powershell ./test-deploy.ps1                  # vérification bout en bout (ou sh test-deploy.sh)
 #   docker compose down -v                        # teardown entrée seule (lab intact)
 #
-# Architecture : 2 services SEULEMENT (web + caddy), branchés sur le réseau
-# EXISTANT `lcd-lab_default` (external) — jamais de duplication des moteurs :
-# le lab FAIT office de box, la gateway lab :8443 reste la vérité runtime.
-#   navigateur → Caddy :4001 (TLS interne, lcd.test) → web :3100 (Next SSR)
-#     → gateway-parc :8443 (résolu via le réseau lab partagé, jamais publié)
-# Ports hôte : 4000 (HTTP→HTTPS) + 4001 (HTTPS). Socle jamais publié.
+# Architecture : 3 services (web + caddy + authelia IdP), branchés sur le
+# RÉSEAU EXISTANT `lcd-lab_default` (external) — jamais de duplication des
+# moteurs : le lab FAIT office de box, la gateway lab :8443 reste la vérité
+# runtime.
+#   navigateur → Caddy :4001 (TLS interne, lcd.test) → forward_auth Authelia
+#     → web :3100 (Next SSR) → gateway-parc :8443 (réseau lab partagé,
+#     jamais publié). Portail de login = Caddy :4002 → Authelia :9091.
+# Ports hôte : 4003 (HTTP→HTTPS) + 4001 (HTTPS app) + 4002 (HTTPS portail).
+# Socle jamais publié.
 # Secrets : aucun — LCD_GATEWAY_URL pointe le service lab (valeur docker
 # interne, jamais de clé réelle). Fixtures = lab, reset = lab/seed-reset.
 # Batterie lab §52/§72 inchangées : elles scrutent custom/.../Caddyfile et
@@ -28,6 +31,15 @@ services:
       # Nom du service gateway sur le réseau lab partagé (pas 127.0.0.1 :
       # chaque conteneur a son loopback ; le réseau partagé résout les noms).
       LCD_GATEWAY_URL: http://gateway-parc:8443
+      # F3 (§F5) : mode IdP ACTIF — l'identité = Remote-User posé par Caddy
+      # (forward_auth Authelia) ; le cookie lcd_qui n'est plus lu (aucun
+      # repli sans IdP). Retirer ces 3 lignes = retour au lab P1 (batteries).
+      LCD_IDP: "1"
+      # Portail visible par le navigateur (mêmes hosts que Caddy).
+      LCD_IDP_URL: https://lcd.test:4002
+      # Endpoint INTERNE du logout serveur (réseau docker front) — le
+      # navigateur ne parle jamais directement à l'IdP.
+      LCD_IDP_INTERNE: http://authelia:9091
     ports:
       # Accès direct navigateur sans TLS ni hosts (démo/SAS local) :
       # http://localhost:3100 (Caddy lcd.test:4001 reste l'entrée TLS officielle).
@@ -45,25 +57,70 @@ services:
       retries: 10
       start_period: 60s
 
+  # --- IdP (Authelia 4.39.28, pin) - F3 REQ-S-007 --------------------------
+  # NORME, jamais une option : TOUTE la stack tourne derriere forward_auth.
+  # Repli leger d'Authentik (~50 Mo, seuil 1 Go RAM S3.2 / F5 P2/P3) :
+  # 1 login = 1 sujet, 2FA TOTP exigee (S3.1).
+  # Secrets : env NATIVES AUTHELIA_* (override viper, seules que le binaire
+  # lit - aucune expansion ${VAR} dans le YAML, prouve sur le binaire) ;
+  # compose interpole depuis deploy/.env (gitignore, P1-9) et ECHOUE CLAIREMENT
+  # si absent (:? cotte compose). Sans elles : Authelia fatal (fail-closed).
+  # Authelia ne prouve qu'une IDENTITE (Remote-User/Groups), jamais un droit :
+  # le mapping sujet -> role reste porte par custom/acces.yaml (gateway refait
+  # son RBAC a chaque ecriture).
+  authelia:
+    image: authelia/authelia:4.39.28
+    environment:
+      AUTHELIA_SESSION_SECRET: ${LCD_AUTHELIA_SESSION_SECRET:?voir deploy/authelia/README.md}
+      AUTHELIA_STORAGE_ENCRYPTION_KEY: ${LCD_AUTHELIA_STORAGE_KEY:?voir deploy/authelia/README.md}
+    volumes:
+      - ./authelia/configuration.yml:/config/configuration.yml:ro
+      # users.yml = vraie copie lab (gitignorée) ; l'EXAMPLE documente la forme.
+      # db.sqlite + notification.log = etat runtime Authelia (gitignore aussi).
+      - ./authelia/users.yml:/config/users.yml:ro
+      - authelia-data:/config
+    expose:
+      - "9091"
+    networks:
+      - front
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9091/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # Un SEUL caddy (4000/4001 socle + 4002 portail IdP, aucun conflit).
+  # forward_auth Authelia AVANT tout rendu : sans session valide, 302 vers le
+  # portail — jamais de rendu protege a l'aveugle. meme hote lcd.test :
+  # :4001 = staff/app, :4002 = portail Authelia (cookies partages).
   caddy:
     image: caddy:2-alpine
     ports:
-      # 4000 = HTTP (redirect auto → HTTPS), 4001 = HTTPS (lcd.test).
-      # :4000 gateway-llm de la BOX en prod — jamais publié ici non plus,
-      # et en local le lab ne le publie pas : pas de collision possible.
-      - "4000:80"
+      # 4003 = HTTP (redirect auto → HTTPS), 4001 = HTTPS (lcd.test, staff).
+      # (4000 HOTE deja pris par un outil externe utilisateur (opencode.py,
+      # pythonw, depuis le 17/10) : mapping 4000:80 etait reste VIDE sans
+      # erreur docker — jamais de collision, on bouge.)
+      # :4000 gateway-llm de la BOX en prod — jamais publie ici non plus,
+      # et en local le lab ne le publie pas.
+      # 4002 = PORTAIL IdP : le site Caddy `https://lcd.test:4002` ECHOUTE en
+      # 4002 en interne (pas 443) — meme hote, deux ports, cookies
+      # Domain=lcd.test indifferents au port (prouve par le rd d'Authelia).
+      - "4003:80"
       - "4001:443"
+      - "4002:4002"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - deploy-caddy-data:/data
       - deploy-caddy-config:/config
     networks:
-      # front (vers web) + lab (vers gateway-parc :8443) — Caddy doit
-      # résoudre les noms sur les DEUX réseaux pour router.
+      # front (vers web + authelia) + lab (vers gateway-parc :8443) — Caddy
+      # doit résoudre les noms sur les DEUX réseaux pour router.
       - front
       - lab
     depends_on:
       web:
+        condition: service_healthy
+      authelia:
         condition: service_healthy
 
 networks:
@@ -77,3 +134,6 @@ networks:
 volumes:
   deploy-caddy-data:
   deploy-caddy-config:
+  # Etat IdP runtime (db.sqlite chiffree + notification.log) — persiste entre
+  # restarts ; jamais dans le dépôt (P1-9).
+  authelia-data:

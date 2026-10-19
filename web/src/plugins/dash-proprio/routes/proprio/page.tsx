@@ -4,7 +4,7 @@
 // moteur sont AFFICHÉS — un montant inconnu se voit, jamais maquillé en 0.
 export const instant = false;
 import { gwGet } from "@/lib/gateway";
-import { cookies } from "next/headers";
+import { lireIdentite } from "@/lib/identite";
 import { t, type Langue } from "../../i18n";
 import { Onglets } from "@/app/onglets";
 import { languePage } from "@/lib/langue";
@@ -47,11 +47,12 @@ export default async function PageProprio({
 }) {
   const sp = await searchParams;
   const lang: Langue = languePage(sp);
-  const jar = await cookies();
   const logement = typeof sp.logement === "string" ? sp.logement : "log1";
+  // Identité effective (F3 : Remote-User via IdP, sinon cookie lcd_qui lab) ;
+  // `?qui=` reste prioritaire pour les liens partagés de relevé.
   const qui =
     (typeof sp.qui === "string" && sp.qui) ||
-    jar.get("lcd_qui")?.value ||
+    (await lireIdentite()).qui ||
     "personne_05";
   const annee = typeof sp.annee === "string" ? sp.annee : "";
   const mois = typeof sp.mois === "string" ? sp.mois : "";

@@ -20,7 +20,13 @@ git checkout -- \
   lab/lab-config
 echo "OK : fixtures lab restaurees depuis le seed versionne."
 if [ "${1:-}" = "--volumes" ]; then
-  (cd lab && docker compose down -v)
-  echo "OK : volumes runtime supprimes (down -v)."
+  # --profile moli OBLIGATOIRE : les services profilés ne sont pas arrêtés
+  # par un down nu, gardent `ics-logs` monté et Docker refuse alors la
+  # suppression ("Resource is still in use") — preuves/avis/contrats du
+  # moteur decision SURVIVENT aux resets et font échouer la batterie
+  # (carnet T2 attend 2 relevés, en trouve 8 après 4 runs).
+  (cd lab && docker compose --profile moli down -v)
+  echo "OK : volumes runtime supprimes (down -v, profil moli inclus)."
 fi
-echo "Relancer : cd lab && docker compose up -d --build && python3 tests_lab.py"
+echo "Relancer : cd lab && docker compose up -d --build && docker compose --profile moli up -d && python3 tests_lab.py"
+echo "(moli SANS --build : contexte distant, image locale moli-os:lcd-lab ; rebuild via MOLI_SRC)"

@@ -5,6 +5,8 @@ import "./globals.css";
 import "./lite.css";
 import { VoirComme } from "./voir-comme";
 import { ThemeToggle } from "./theme-toggle";
+import { lireIdentite } from "@/lib/identite";
+import { libelleProfil } from "@/lib/profils";
 
 // Le layout lit le cookie de session (voir-comme) : toutes les routes sont
 // rendues à la requête — pas de prerender statique (compat /_not-found).
@@ -43,25 +45,21 @@ const NAV: [string, string, string][] = [
   ["/commercial", "Prospects", "Espace commercial"],
 ];
 
-const PERSONNES: Record<string, string> = {
-  personne_01: "Claire (super_admin)",
-  personne_02: "Alex (admin)",
-  personne_03: "Sam (opérateur)",
-  personne_04: "Ruth (comptable)",
-  personne_05: "Marc (proprio)",
-  commercial_01: "Inès (commercial)",
-};
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Session voir-comme (§14 V5/V6) : le cookie lcd_qui identifie le profil
-  // navigué ; l'unique vérité RBAC reste la passerelle à chaque écriture.
+  // Identité (F3 / §F5, source unique lib/identite.ts) : mode IdP =
+  // Remote-User prouvé (forward_auth, anti-spoof côté Caddy) ; mode lab =
+  // cookie lcd_qui (P1). `courant` = identité EFFECTIVE (voir-comme tenu) ;
+  // l'unique vérité RBAC reste la passerelle à chaque écriture.
+  const id = await lireIdentite();
+  const courant = id.qui;
+  const identifiant = courant ? libelleProfil(courant) : "";
+  // Bandeau §S3.3 : qui REGARDE réellement, quand on voit comme quelqu'un.
+  const vuPar = id.modeIdp && id.vuComme ? libelleProfil(id.quiReel) : "";
   const jar = await cookies();
-  const courant = jar.get("lcd_qui")?.value || "";
-  const identifiant = courant ? PERSONNES[courant] || courant : "";
   const theme = jar.get("lcd_theme")?.value || "";
   // Mode dégradé L1 (§F7) : cookie lcd_lite posé par /api/lite (lien <a> natif,
   // sans JS) → class html qui neutralise filtres/dégradés dans lite.css.
@@ -141,7 +139,7 @@ export default async function RootLayout({
             </form>
             {identifiant ? (
               <div className="min-w-0 flex-none rounded-full bg-(--encre) px-2 py-1 text-white">
-                <VoirComme courant={courant} personne={identifiant} />
+                <VoirComme courant={courant} personne={identifiant} vuPar={vuPar} />
               </div>
             ) : (
               <Link

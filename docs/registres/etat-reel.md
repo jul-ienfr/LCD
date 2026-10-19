@@ -3,6 +3,25 @@
 > R5 : l'état réel vit ICI, jamais mélangé aux cahiers normatifs.
 > Relevé du 2026-10-15, sans toucher au code.
 
+- **F3 IdP RÉEL 2026-10-19** : Authelia **4.39.28** (3e service `deploy`,
+  env natives `AUTHELIA_*` — 0 `${VAR}` dans le YAML, prouvé sur le binaire)
+  + Caddy `forward_auth` sur :4001 (purge des `Remote-*` client puis
+  `copy_headers`, bypasss déclarés une seule fois côté Authelia) + portail
+  :4002 (mêmes cookies Domain) + front `LCD_IDP=1` (`web/src/lib/identite.ts`
+  lit `Remote-User`, **aucun repli cookie** ; `lib/profils.ts` partagé
+  serveur/client) + voir-comme **tracé** : `POST /v1/audit`
+  {qui_reel, vu_comme, geste} fail-closed (pas de trace = pas de cookie
+  `lcd_vu`) + entrée `voir_comme` sur toute écriture (admin actif exigé
+  gateway) + bandeau §S3.3 amber `{qui} voit comme {cible}`. Preuves :
+  `deploy/test-idp.ps1` **22/22** (302 `rd` → 1FA → redirection 2FA → OTC
+  notifier réel → TOTP HMAC-SHA1 niveau 2 → chip identité Remote-User →
+  révocation decision → 403 gateway → logout → 302 + bandeau + journal),
+  `test-deploy.ps1` 7 checks fail-closed + délégation recette, batterie lab
+  `tests_lab.py` **0 KO** (reset `-Volumes` corrigé profil `moli` : sans lui
+  `ics-logs` « still in use » et les preuves decision s'accumulaient),
+  `test-front.ps1` 46/46 en mode lab (bascule `LCD_IDP` sans régression),
+  tsc 0 / eslint 0 / vitest 25/25 / build budgets OK.
+
 - **FRONT SaaS RÉEL 2026-10-17 (15 tranches, front 23/23, deploy 7/7, arbre
   propre)** : le front est passé de preuve technique à produit démontrable —
   landing marketing (forfaits §S1 149/190/290), login par rôle (cookie

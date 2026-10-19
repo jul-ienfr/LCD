@@ -1,0 +1,37 @@
+# deploy/authelia/users.yml.EXAMPLE — squelette comptes lab (F3).
+#
+# TOUT est exemple : hashs FAUX, générés pour documenter la FORME attendue.
+# La vraie copie `users.yml` est GITIGNORÉE (P1-9) et montée en bind. Un hash
+# réel se génère (jamais réutiliser un mot de passe existant) — la commande
+# du binaire 4.39.28 est `crypto` (pas `crypt`) :
+#
+#   docker run --rm authelia/authelia:4.39.28 \
+#     authelia crypto hash generate bcrypt --password 'mdp-temp-a-changer' --no-confirm
+#   # Digest: $2b$12$...
+#
+# Le username = l'id EXACT de custom/acces.yaml (personne_01…) : zéro table de
+# translation entre IdP et RBAC (Remote-User = qui LCD, lu tel quel par le front).
+# Groupes (mapping sujet -> rôle, porté ensuite par custom/acces.yaml) :
+#   parc_admin      — super_admin + admin (2FA exigé)
+#   parc_operateur  — gestionnaire/opérateur + comptable (2FA exigé)
+#   parc_tiers      — prestataire externe (accès limité, 2FA exigé)
+# Les rôles voyageur/presta/commercial n'atteignent PAS cette origine
+# (PWA/lien magique, hors forward_auth staff).
+
+users:
+  # Super admin (lab) — DOIT changer son mdp au premier login.
+  personne_01:
+    disabled: false
+    displayname: "Claire (super admin)"
+    password: "$2a$10$KxLabExampleOnlyDoNotReuse000000000000000000000000000"
+    email: "claire@example.local"
+    groups:
+      - parc_admin
+  # Opérateur terrain (lab).
+  personne_03:
+    disabled: false
+    displayname: "Sam (operateur)"
+    password: "$2a$10$KxLabExampleOnlyDoNotReuse000000000000000000000000000"
+    email: "sam@example.local"
+    groups:
+      - parc_operateur
