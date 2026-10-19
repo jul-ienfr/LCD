@@ -15,6 +15,16 @@ deploy/authelia/db.sqlite*
 # recette test-idp.ps1 pour eviter un re-enrolement a chaque passage).
 deploy/authelia/totp-secrets.json
 
+# F5 — inventaire des SLOTS de secrets (§S3.5-V5 / F5) : METADONNEES seulement
+# (aucune valeur, ni derivee), mais le fichier est ECRIT par la passerelle
+# (rotation declaree via POST /v1/secrets/rotate) = etat runtime, jamais
+# versionne, comme les registres lab. L'example documente la forme.
+custom/*/secrets-registre.yaml
+custom/*/secrets-registre.yaml.tmp
+custom/*/secrets-registre*.tmp
+!custom/*/secrets-registre.yaml.example
+!custom/*/secrets-registre.yaml.EXAMPLE
+
 # Instances privées par logement / parc (P1-7)
 docs/log1/
 docs/log2/
