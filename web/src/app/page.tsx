@@ -107,7 +107,7 @@ export default function Landing() {
               href="/login"
               className="bouton bouton-principal px-6 py-3 text-base shadow-lg shadow-black/20"
             >
-              Ouvrir la démo 1-tap →
+              Ouvrir le SAS 1-tap →
             </Link>
             <Link
               href="/voyageur"
@@ -194,11 +194,13 @@ export default function Landing() {
           Votre parc marche même pendant la panne.
         </h2>
         <p className="max-w-xl text-[var(--encre-douce)]">
-          La démo interactive tourne en ce moment sur un parc témoin : 3 logements,
-          3 boxes, réservations réelles simulées. Connectez-vous et pilotez en 1-tap.
+          Le SAS tourne en ce moment en local : 3 logements répartis sur 2 sites
+          box réels, moteurs réels (planning, prix, compta, facturation), états
+          persistants. Aucun canal externe connecté — Booking, Airbnb, banque :
+          dépendances déclarées. Connectez-vous et pilotez en 1-tap.
         </p>
         <Link href="/login" className="bouton bouton-principal px-6 py-3 text-base">
-          Ouvrir la démo →
+          Ouvrir le SAS →
         </Link>
         <Link
           href="/legales"
@@ -210,7 +212,7 @@ export default function Landing() {
           href="/aide"
           className="text-sm underline decoration-dotted underline-offset-4"
         >
-          Aide — qui utilise quoi, réel vs simulé
+          Aide — qui utilise quoi, ce qui est réel
         </Link>
       </section>
     </div>

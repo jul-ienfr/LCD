@@ -67,18 +67,38 @@ Exports et canaux réels : CSV compta, CSV planning, CSV prix, **flux iCalendar*
 (`/api/calendrier-ics`, 1 VEVENT = 1 jour occupé, `DTEND` exclusif, `conflit_ref`
 transmis) — tous en lecture seule, additions vides = `X-LCD-*`, jamais de valeur inventée.
 
+### §3 bis Topologie mesurée le 2026-10-19 (`GET /etat-parc`)
+
+| Site (`box_id`) | `site` | Logements | Vu il y a | Verdict |
+|---|---|---|---|---|
+| `box-lab` | `lab` | `log1`, `log2` | 0 s | copro vérifiée, 0 alerte |
+| `box-nord` | `nord` | `log3` | ~31 s | copro vérifiée, 0 alerte |
+
+- 3 logements suivis, `bornes_prix` = [75, 290], `stale` = false partout,
+  `nb_logements_alertes` = 0.
+- fan-out réel : `GET /calendrier-parc?jours=7` = 21 cases (3 × 7), **0 case en
+  erreur**, `lecture_seule: true` ; `GET /api/apercu-parc` sert `prix_7j` non
+  vide pour les 3 logements, aucun `erreur`.
+- parité : mêmes identifiants de logement dans `/etat-parc`, `/calendrier-parc`
+  et `/api/apercu-parc` (aucun orphelin).
+- preuve automatique : `deploy/test-sites.ps1` (**12/12 OK**, code de sortie = 0).
+- reste à faire sur cette brique (S1) : le libellé du site `lab` doit devenir un
+  nom de lieu (`sud`), et `lab/vps-sim/` doit disparaître (il n'est pas dans la
+  topologie déclarée, donc rien ne casse à le retirer — mais `lab/lab-run.ps1`
+  l'exécute encore : retrait à coordonner avec la pile box).
+
 ## §4 Inventaire des simulations résiduelles (à éliminer)
 
 C'est **le** tableau de travail. Aucune ligne ne disparaît d'ici sans preuve.
 
 | id | Objet simulé | Où | Ce qui est faux | Comment devenir réel | Vague |
 |---|---|---|---|---|---|
-| **S1** | « Faux VPS » et sa box dégradée | `lab/vps-sim/boxes-sim.yaml:1` (« registre des box du FAUX VPS »), `:9` `box-sim`, `:13` `Log1 Santa Severa (sim)`, fan-out partiel (1 seul moteur répond) | une 3ᵉ « box » qui n'existe pas, présentée à la gateway comme un site ; données « (sim) » | **supprimer** : le 2ᵉ site réel existe déjà (`moli-box-nord` + `*-nord`) ; la gateway déclare 2 sites réels, le test vps-sim devient un test de parité de sites | V1 |
+| **S1** | « Faux VPS » et sa box dégradée | `lab/vps-sim/boxes-sim.yaml:1` (« registre des box du FAUX VPS »), `:9` `box-sim`, `:13` `Log1 Santa Severa (sim)`, fan-out partiel (1 seul moteur répond) | une 3ᵉ « box » qui n'existe pas, présentée à la gateway comme un site ; données « (sim) » | **partiel (2026-10-19)** : la topologie réelle ne contient plus aucun site simulé — 2 sites réels, fan-out complet, prouvé par `deploy/test-sites.ps1` (12/12). Reste : retirer `lab/vps-sim/` et son étape dans `lab/lab-run.ps1` (pile box), renommer le site `lab` → nom de lieu | V1 |
 | **S2** | Secrets de lab « FAUSSES » | `lab/docker-compose.yml:6` (« valeurs FAUSSES de lab »), `lab/secrets.lab.yaml` | secrets d'exemple versionnés utilisés comme s'ils étaient réels | génération locale (`generer-secrets.ps1`), fichiers gitignorés, rotation datée, contrôle « aucun secret versionné » dans la batterie | V3 |
 | **S3** | Données métier fictives | `lab/inventaire.lab/` (biens fictifs, cf. `custom/inventaire/README.md:30`), `lab/prestataires.lab/` (annuaires fictifs, cf. `custom/dispatch-presta/README.md:125`), `lab/memoire.lab/`, `lab/extras.lab/`, `lab/stocks.lab/` | lignes inventées (noms, prix, quantités) dans le chemin de calcul | reprendre les données réelles disponibles (`docs/log1/infos-adresse.md`, `docs/parc/`, `docs/log1/copro/`) + saisie hôte ; ce qui manque reste **vide** et bloquant, jamais inventé | V2 |
 | **S4** | Offre marque blanche « données fictives » | `custom/passerelle-parc/crm.py:17` (« lien magique démo périmé 24 h, données fictives ») | PDF d'offre généré avec des données d'exemple, lien « démo » | offre construite sur le prospect réel + simulateur réel ; lien signé à durée de vie courte, journalisé, révocable (même mécanique que `voir-comme`) | V2 |
-| **S5** | Affirmations de vitrine | `web/src/app/page.tsx:198` (« 3 boxes, réservations réelles simulées »), `web/src/app/aide/page.tsx:54` (« 3 logements, 2 boxes simulées »), `:38` (« Communautés données (lab) — simulé volontairement — data yt ») | la vitrine décrit un état simulé | réécrire après S1/S3 : deux sites réels locaux, réservations réelles dans les moteurs, communauté = canal de support réel | V1 |
-| **S6** | Vocabulaire « maquette » | `web/src/app/legales/page.tsx:161` (« Honnêteté de la maquette ») | cadre juridique présenté comme une maquette | bloc « état de l'édition » : ce qui est édité, par qui, où (mentions réelles dès SIREN/RC connus — sinon mention explicite « non encore édité ») | V4 |
+| **S5** | Affirmations de vitrine | `web/src/app/page.tsx:198` (« 3 boxes, réservations réelles simulées »), `web/src/app/aide/page.tsx:54` (« 3 logements, 2 boxes simulées »), `:38` (« Communautés données (lab) — simulé volontairement — data yt ») | la vitrine décrivait un état simulé | **fermé (2026-10-19)** : vitrine réécrite sur les faits mesurés (2 sites box réels, 3 logements, moteurs réels, états persistants, canaux externes = dépendances déclarées) ; ligne « communautés données » supprimée (aucune preuve), ligne « comptes pré-configurés (demo) » remplacée par l'IdP réel, CTA « démo » → « SAS » ; `test-front.ps1` vérifie `/aide` | V1 |
+| **S6** | Vocabulaire « maquette » | `web/src/app/legales/page.tsx:161` (« Honnêteté de la maquette ») | cadre juridique présenté comme une maquette | **partiel (2026-10-19)** : bloc renommé « État de l'édition (LCEN) » — IdP réel, éditeur non constitué dit explicitement (SIREN/RC/carte G en prérequis hôte) ; complété à l'obtention du SIREN | V4 |
 | **S7** | Dépendances externes non locales | comptes OTA (Booking/Airbnb/Abritel), banque + payouts, SIREN, RC pro, carte G, matériel P0 | ne peuvent pas être « locales » : ce sont des tiers | hors code : chaque dépendance a son écran qui dit exactement ce qui manque, son coût et son propriétaire (cf. §6) | V5 |
 
 Règle d'usage : une ligne S1–S6 est **fermée** quand le code ne contient plus la
@@ -128,7 +148,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-front | front complet, zéro KO, deux modes (IdP et sans IdP) | `deploy/test-front.ps1` (47/47 attendu, mode IdP) |
 | G-deploy | stack + Caddy + IdP + recette | `deploy/test-deploy.ps1` (9 checks, dont recette IdP) |
 | G-box | batteries box déterministes (socle, moli, runtime) | `lab/lab-run.ps1` (5/5) |
-| G-parité (V1) | 2 sites réels, fan-out complet, zéro `vps-sim` | nouvelle batterie `parc-sites` |
+| G-parité (V1) | 2 sites réels, fan-out complet, zéro site simulé, aucun logement orphelin | `deploy/test-sites.ps1` (**12/12 OK**, 2026-10-19) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
 | G-LAN (V4) / G-public (V5) | parcours IdP 2FA depuis un autre poste / depuis Internet | recette manuelle datée + check automatique d'entrée |
 

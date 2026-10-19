@@ -1,6 +1,7 @@
-// Centre d'aide (démo) : qui fait quoi, comment se connecter, ce qui est
-// RÉEL vs simulé. Honnêteté factuelle, pas de marketing : cette page est
-// le contrat de lecture du produit de démonstration.
+// Centre d'aide : qui fait quoi, comment se connecter, ce qui est réel et ce
+// qui dépend d'un tiers. Honnêteté factuelle, pas de marketing : cette page
+// est le contrat de lecture du produit (doctrine docs/71 — R6 : toute
+// affirmation est adossée à un check de batterie).
 export const instant = false;
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -33,11 +34,10 @@ const RÉEL: [string, string][] = [
   ["Gestes 1-tap (14 actions)", "réel — tracé qui/quoi/ref, RBAC re-vérifié via gw"],
   ["Onboarding → création logement", "réel — POST /parc/logements, bornes héritées"],
   ["Relevé de période (proprio)", "réel — /finances compta questionnée par période"],
-  ["Export CSV (compta Chorus/PDP, planning, prix)", "réel — lecture stricte de la passerelle, jamais recalculé ici"],
+  ["Export CSV (compta Chorus/PDP, planning, prix) + flux iCalendar", "réel — lecture stricte de la passerelle, jamais recalculé ici"],
   ["Conflit split-brain → trancher", "réel — motif obligatoire, ref TRANCHE-*"],
-  ["Communautés données (lab)", "simulé volontairement — boîte de lab, data yt"],
-  ["Comptes de connexion", "pré-configurés (demo) — pas de mot de passe : RBAC gw garde la vérité"],
-  ["Paiements, matériel, cloud pub", "absent — checklist P0/panier chiffré"],
+  ["Comptes & connexion", "réel — IdP local (1FA + TOTP staff) ; RBAC passerelle revérifié à chaque écriture"],
+  ["Paiements en ligne, matériel, cloud public", "dépendances externes datées et chiffrées — docs/71 §6 bis"],
 ];
 
 export default function AidePage() {
@@ -45,13 +45,14 @@ export default function AidePage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-10">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--encre-faine)">
-          Aide · démo LCD Parc
+          Aide · LCD Parc
         </p>
         <h1 className="mt-1 text-3xl font-black tracking-tight md:text-4xl">
           Qui utilise quoi — et ce qui est réel
         </h1>
         <p className="mt-3 max-w-3xl text-sm text-(--encre-douce)">
-          Ce SAS tourne en continu (3 logements, 2 boxes simulées). Fonctionne
+          Ce SAS tourne en continu en local : 3 logements répartis sur 2 sites
+          box réels, moteurs réels et états persistants. Fonctionne
           sans JavaScript : chaque bouton est un formulaire natif, la passerelle
           revérifie les droits à chaque écriture. Aucune action n&apos;écrit en
           silence — le résultat s&apos;affiche, ou pas.
@@ -92,8 +93,8 @@ export default function AidePage() {
         </p>
       </section>
 
-      <section className="carte p-5 md:p-7" aria-label="Réel vs simulé">
-        <h2 className="text-xl font-extrabold">Réel ou simulé ?</h2>
+      <section className="carte p-5 md:p-7" aria-label="Ce qui est réel">
+        <h2 className="text-xl font-extrabold">Ce qui est réel — et ce qui dépend d&apos;un tiers</h2>
         <ul className="mt-3 flex flex-col gap-2 text-sm" role="list">
           {RÉEL.map(([quoi, etat]) => (
             <li key={quoi} className="flex flex-wrap items-baseline justify-between gap-2">

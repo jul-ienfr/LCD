@@ -158,13 +158,14 @@ export default async function PageLegales() {
       </section>
 
       <section className="carte p-5 md:p-7" role="note">
-        <h2 className="text-xl font-extrabold">Honnêteté de la maquette</h2>
+        <h2 className="text-xl font-extrabold">État de l&apos;édition (LCEN)</h2>
         <p className="mt-2 text-sm text-[var(--encre-douce)]">
-          Cette version locale est un <strong>SAS de démonstration</strong> :
-          profils de connexion pré-établis (la passerelle re-vérifie le rôle à
-          chaque écriture), registres réels mais données de lab. Pas de
-          réservation effective ni de décharge juridique — RC pro et carte G
-          restent des prérequis avant exploitation réelle (checklist P0/P10).
+          Cette édition tourne en local : connexion par IdP (1FA + TOTP pour le
+          staff), registres, moteurs et états persistants réels. L&apos;éditeur
+          n&apos;est pas encore constitué (SIREN, RC pro et carte G = prérequis
+          hôte, chiffrés dans la checklist P0/P10) : ces mentions seront
+          complétées dès leur obtention. Pas de réservation effective ni de
+          décharge juridique à ce stade.
         </p>
       </section>
 
