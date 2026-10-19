@@ -113,7 +113,7 @@ suppression).
 | **V1** | **Deux sites réels, zéro faux VPS** : suppression de `lab/vps-sim`, 2ᵉ site porté par `moli-box-nord` + `*-nord`, gateway déclarant 2 sites, vitrine réécrite (S1, S5) | batterie `parc` : 2 sites, 3 logements, fan-out complet par site ; `grep vps-sim` vide ; `/aide` et `/` sans « simulé » | 1 vague |
 | **V2** | **Données réelles** : registre du parc, inventaire, prestataires, stocks, mémoire, extras alimentés par la vérité terrain (S3, S4) ; ce qui manque = vide bloquant | chaque écran métier montre soit une valeur sourcée (fichier/adresse/item), soit « à saisir » ; 0 ligne « fictive » | 2 vagues (dont saisie hôte) |
 | **V3** | **Secrets réels** : génération, gitignore, rotation, aucun secret versionné (S2) + secrets IdP (`users.yml`, `totp-secrets.json`) | contrôle automatique « 0 secret dans le dépôt » ; rotation rejouée | 1 vague |
-| **V4** | **LAN** : nom d'entrée paramétrable (`LCD_HOTE`), config IdP rendue depuis un modèle, ports figés, pare-feu hôte, CA interne distribuée, sauvegardes locales (restic) + restauration chronométrée | depuis un second poste du LAN : `/login` IdP → 2FA → `/hote`, `/api/health`, sauvegarde/restauration prouvée | 1–2 vagues — **logiciel fait (2026-10-19)** : Caddy `{$LCD_HOTE}` + `{$LCD_PORT_HTTPS}`, `rendre-config.ps1` (modèle → `configuration.yml`, validé par le binaire Authelia pour `lcd.test` ET `lcd.local`), `test-lan.ps1` 13/13 avec paire jetable IdP+entrée rendue pour `lcd.local` ; **reste l'étape hôte** : `lan-ouvrir.ps1 -Poser` (admin) car les ports publiés ne sortent pas de WSL2 (0 listener Windows, loopback seul) + règle pare-feu |
+| **V4** | **LAN** : nom d'entrée paramétrable (`LCD_HOTE`), config IdP rendue depuis un modèle, ports figés, pare-feu hôte, CA interne distribuée, sauvegardes locales (restic) + restauration chronométrée | depuis un second poste du LAN : `/login` IdP → 2FA → `/hote`, `/api/health`, sauvegarde/restauration prouvée | 1–2 vagues — **logiciel fait (2026-10-19)** : Caddy `{$LCD_HOTE}` + `{$LCD_PORT_HTTPS}`, `rendre-config.ps1` (modèle → `configuration.yml`, validé par le binaire Authelia pour `lcd.test` ET `lcd.local`), `test-lan.ps1` 13/13 avec paire jetable IdP+entrée rendue pour `lcd.local` ; **sauvegarde/restauration faites** : `sauvegarde.ps1` (25 volumes + état hôte, dépôt restic chiffré, 51 Mio, 42 s, **vérifiée par volume**), `restauration.ps1 -Verifier` (**25/25 conformes au snapshot**, 86 s), `test-backup.ps1` **10/10** (dont test destructif : fichier supprimé → restauré à l'identique) ; **reste l'étape hôte** : `lan-ouvrir.ps1 -Poser` (admin) car les ports publiés ne sortent pas de WSL2 (0 listener Windows, loopback seul) + règle pare-feu |
 | **V5** | **Internet** : domaine, LE (DNS-01), durcissement (HSTS, WAF, rate-limit), accès admin par VPN seul, révocation | test externe : portail IdP, 2FA, 0 port admin exposé ; `test-deploy` en HTTPS public | 1–2 vagues |
 | **V6** | **Métrologie et exploitation** : journaux centralisés, alertes (site muet, crash-loop, disque, certificat), tableau de santé du parc, runbooks datés | une panne provoquée (conteneur arrêté) = alerte reçue < 2 min + runbook applicable à froid | 1 vague |
 
@@ -157,8 +157,28 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | SIREN / RC pro / carte G | mentions légales réelles, facturation conforme | 1–2 k€/an — hôte |
 | Expert-comptable | validation régime fiscal (micro vs réel) | ~300–500 €/an |
 
-## §7 Preuves et gates
+### §6 ter Sauvegardes et reprise (mesuré le 2026-10-19)
 
+- `deploy/sauvegarde.ps1` : dépôt **restic** chiffré (`deploy/backups/restic`,
+  gitignoré), mot de passe dans `deploy/backups/.restic-pass` (gitignoré,
+  **à conserver hors machine**). 25 volumes `lcd-*` + état hôte (`lab/`,
+  `deploy/.env`, `users.yml`) → **51 Mio, 42 s**, rétention `-Prune`
+  (7 j / 4 sem. / 6 mois).
+- `deploy/restauration.ps1 -Verifier` : restaure chaque volume dans un volume
+  jetable et compare au **contenu du snapshot** → **25/25 conformes, 86 s**.
+- `deploy/test-backup.ps1` : **10/10**, dont le test **destructif** (3 fichiers
+  → sauvegarde → suppression → restauration → contenu identique).
+- Deux pièges corrigés ici, à ne jamais réintroduire :
+  1. **paramètre nommé `$Args`** = variable automatique PowerShell : restic
+     recevait zéro argument, imprimait son aide, sortait en 0 — une
+     « sauvegarde réussie » qui n'écrivait rien. Désormais **chaque volume est
+     vérifié** (le nombre de snapshots doit augmenter) ;
+  2. **comparer à un volume vivant** ne prouve rien (98 fichiers au snapshot,
+     182 dix minutes plus tard ⇒ 16 « KO » fantômes) : on compare au snapshot.
+  Et deux mesures fausses à éviter : `find -printf` (absent de busybox) et
+  `awk '{print $1}'` (PowerShell mange `$1`).
+
+## §7 Preuves et gates
 | Gate | Critère | Commande |
 |---|---|---|
 | G-front | front complet, zéro KO, deux modes (IdP et sans IdP) | `deploy/test-front.ps1` (47/47 attendu, mode IdP) |
@@ -167,6 +187,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-parité (V1) | 2 sites réels, fan-out complet, zéro site simulé, aucun logement orphelin | `deploy/test-sites.ps1` (**12/12 OK**, 2026-10-19) |
 | G-secrets (V3) | 0 secret versionné, 0 fichier de secret suivi par git, 0 forme de secret dans les fichiers suivis, 0 valeur réelle dans une réponse HTTP | `deploy/test-secrets.ps1` (**23/23 OK**, 2026-10-19) |
 | G-LAN (V4) | aucun nom d'hôte en dur, config IdP rendue conforme et validée par le binaire pour 2 noms, même pile servie sous `lcd.local`, joignabilité LAN mesurée | `deploy/test-lan.ps1` (**13/13 OK**, 2026-10-19 ; `-Exiger` pour la joignabilité) |
+| G-sauvegarde (V4) | dépôt chiffré hors git, un snapshot par volume, `restic check`, restauration conforme au snapshot, test destructif (fichier supprimé → restauré) | `deploy/test-backup.ps1` (**10/10 OK**, 2026-10-19) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
 | G-LAN (V4) / G-public (V5) | parcours IdP 2FA depuis un autre poste / depuis Internet | recette manuelle datée + check automatique d'entrée |
 

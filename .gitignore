@@ -25,6 +25,11 @@ custom/*/secrets-registre*.tmp
 !custom/*/secrets-registre.yaml.example
 !custom/*/secrets-registre.yaml.EXAMPLE
 
+# V4 — sauvegardes restic locales : le DEPOT est chiffre mais volumineux, et
+# le MOT DE PASSE du depot ne doit jamais entrer dans git (sans lui, depot
+# illisible : c'est le but). Conserver le mot de passe hors machine.
+deploy/backups/
+
 # Instances privées par logement / parc (P1-7)
 docs/log1/
 docs/log2/
