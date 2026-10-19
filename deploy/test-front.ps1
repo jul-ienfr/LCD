@@ -42,10 +42,15 @@ if ($aid.Success) {
 }
 
 # 3. Pages SaaS 200 (session cookie personne_01)
-foreach ($p in @("/hote", "/planning", "/prix", "/compta", "/presta", "/legales", "/voyageur", "/proprio?logement=log1", "/commercial")) {
+foreach ($p in @("/hote", "/planning", "/prix", "/compta", "/presta", "/legales", "/aide", "/voyageur", "/proprio?logement=log1", "/commercial")) {
     $c = corps $p "lcd_qui=personne_01"
     Verif "page $p rendue" ($c.Length -gt 500)
 }
+# 3b. Centre d'aide : liste des ecrans a jour (coherence produit avec les
+#     exports CSV/nav : 9 ecrans listes, exports mentionnes comme reels).
+$aide = corps "/aide" "lcd_qui=personne_01"
+Verif "aide : 9 ecrans + exports CSV reels" (
+  ($aide -match "Les 9") -and ($aide -match "export CSV"))
 
 # 4. Onboarding : etape 1 bloquee puis etape 7 ouverte
 $ob1 = corps "/onboarding?etape=1" "lcd_qui=personne_01"

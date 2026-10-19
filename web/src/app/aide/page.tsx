@@ -30,10 +30,10 @@ const RÔLES: [string, string, string, string][] = [
 
 const RÉEL: [string, string][] = [
   ["Registros (logement, entités, mandats, annonces)", "réel — YAML versionné, snapshots"],
-  ["Gestionses 1-tap (14 actions)", "réel — tracé qui/quoi/ref, RBAC re-vérifié si gw"],
+  ["Gestes 1-tap (14 actions)", "réel — tracé qui/quoi/ref, RBAC re-vérifié via gw"],
   ["Onboarding → création logement", "réel — POST /parc/logements, bornes héritées"],
-  ["Relvée période (proprio)", "réel — /finances compta questionnée per période"],
-  ["Export Chorus/PDP + CSV", "réel — lecture stricte des entités"],
+  ["Relevé de période (proprio)", "réel — /finances compta questionnée par période"],
+  ["Export CSV (compta Chorus/PDP, planning, prix)", "réel — lecture stricte de la passerelle, jamais recalculé ici"],
   ["Conflit split-brain → trancher", "réel — motif obligatoire, ref TRANCHE-*"],
   ["Communautés données (lab)", "simulé volontairement — boîte de lab, data yt"],
   ["Comptes de connexion", "pré-configurés (demo) — pas de mot de passe : RBAC gw garde la vérité"],
@@ -105,11 +105,11 @@ export default function AidePage() {
       </section>
 
       <section className="carte p-5 md:p-7" aria-label="Ecrans">
-        <h2 className="text-xl font-extrabold">Les 8 écrans</h2>
+        <h2 className="text-xl font-extrabold">Les 9 écrans</h2>
         <ul className="mt-3 grid gap-2 pl-5 list-disc text-sm" role="list">
           <li><Link href="/hote" className="underline">Pilotage</Link> — KPIs, 14 actions 1-tap, journal</li>
-          <li><Link href="/planning" className="underline">Planning</Link> — grille 7-30 j, conflits ∧, vitrine</li>
-          <li><Link href="/prix" className="underline">Grille de prix</Link> — édition 7 jours en ligne</li>
+          <li><Link href="/planning" className="underline">Planning</Link> — grille 7-30 j, navigation par fenêtre, export CSV, conflits ∧, vitrine</li>
+          <li><Link href="/prix" className="underline">Grille de prix</Link> — édition 7 jours en ligne, navigation semaine, export CSV</li>
           <li><Link href="/compta" className="underline">Compta</Link> — 1 plan par SIREN, CSV Chorus</li>
           <li><Link href="/presta" className="underline">Prestataire</Link> — missions à faire, clôture</li>
           <li><Link href="/onboarding" className="underline">Onboarding</Link> — 7 étapes §L3, gates</li>
