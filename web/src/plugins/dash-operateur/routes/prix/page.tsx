@@ -110,6 +110,12 @@ export default async function PagePrix({
                   aujourd&#39;hui
                 </Link>
               )}
+              <a
+                href={`/api/prix-export${depuis === iso(auj) ? "" : `?depuis=${depuis}`}`}
+                className="text-xs underline decoration-dotted underline-offset-2"
+              >
+                CSV
+              </a>
             </div>
           </div>
           <Link href="/planning" className="bouton bouton-secondaire px-3 py-2">

@@ -78,6 +78,17 @@ $headp = (Get-Content $tmpp -TotalCount 1 -Encoding UTF8)
 Verif "csv : colonnes planning" ($headp -match "logement_id.*nom.*\d{4}-\d{2}-\d{2}")
 Remove-Item $tmpp -ErrorAction SilentlyContinue
 
+# 7c. Export CSV grille de prix (7 j x logement, ?depuis propage si passe)
+$tmpx = Join-Path $env:TEMP ("lcd-front-" + [guid]::NewGuid().ToString("N") + ".csv")
+$null = curl.exe -s -m 20 -o $tmpx "$F/api/prix-export"
+$headx = (Get-Content $tmpx -TotalCount 1 -Encoding UTF8)
+$depuis7 = (Get-Date).ToUniversalTime().AddDays(7).ToString("yyyy-MM-dd")
+$null = curl.exe -s -m 20 -o "$tmpx.2" "$F/api/prix-export?depuis=$depuis7"
+$headx2 = (Get-Content "$tmpx.2" -TotalCount 2 -Encoding UTF8)
+Verif "csv : colonnes prix" ($headx -match "logement_id.*date.*direct")
+Verif "csv prix : ?depuis propage" (($headx2 -join " | ") -match [regex]::Escape($depuis7))
+Remove-Item $tmpx, "$tmpx.2" -ErrorAction SilentlyContinue
+
 # 8. i18n 5 langues (spot h1)
 Verif "i18n fr planning" ((corps "/planning?lang=fr" $null) -match "Planning du parc")
 Verif "i18n en planning" ((corps "/planning?lang=en" $null) -match "Estate planning")
