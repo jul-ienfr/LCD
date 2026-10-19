@@ -18,7 +18,13 @@
     "/v1/pipeline",
     "/export-compta",
     "/v1/config-llm",
-    "/v1/i18n"
+    "/v1/i18n",
+    "/v1/statut",
+    "/v1/secrets",
+    "/v1/journal",
+    "/v1/recherche",
+    "/v1/tickets",
+    "/v1/messagerie"
   ],
   "ecriture": [
     "/v1/action",
@@ -28,6 +34,10 @@
     "/v1/offres",
     "/v1/llm-tester",
     "/v1/effacement",
+    "/v1/secrets/rotate",
+    "/v1/tickets",
+    "/v1/tickets/statut",
+    "/v1/messagerie",
     "/parc/logements",
     "/parc/conflits/trancher"
   ],

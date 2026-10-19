@@ -1,0 +1,14 @@
+{
+  "admin.titre": { "fr": "Supervision", "en": "Supervision", "es": "Supervisión", "it": "Supervisione", "de": "Überwachung" },
+  "admin.sante": { "fr": "Santé passerelle", "en": "Gateway health", "es": "Salud de la pasarela", "it": "Salute del gateway", "de": "Gesundheit des Gateways" },
+  "admin.pret": { "fr": "Prêt (box)", "en": "Ready (boxes)", "es": "Listo (boxes)", "it": "Pronto (box)", "de": "Bereit (Boxen)" },
+  "admin.metriques": { "fr": "Métriques", "en": "Metrics", "es": "Métricas", "it": "Metriche", "de": "Metriken" },
+  "admin.hebergement": { "fr": "Hébergement (P1/P2/P3)", "en": "Hosting (P1/P2/P3)", "es": "Alojamiento (P1/P2/P3)", "it": "Hosting (P1/P2/P3)", "de": "Hosting (P1/P2/P3)" },
+  "admin.nb_boxes": { "fr": "Box", "en": "Boxes", "es": "Boxes", "it": "Box", "de": "Boxen" },
+  "admin.nb_logements": { "fr": "Logements", "en": "Listings", "es": "Viviendas", "it": "Alloggi", "de": "Objekte" },
+  "admin.uptime": { "fr": "Uptime", "en": "Uptime", "es": "Actividad", "it": "Uptime", "de": "Laufzeit" },
+  "admin.p95": { "fr": "Latence p95", "en": "p95 latency", "es": "Latencia p95", "it": "Latenza p95", "de": "Latenz p95" },
+  "admin.ecritures": { "fr": "Écritures", "en": "Writes", "es": "Escrituras", "it": "Scritture", "de": "Schreibvorgänge" },
+  "admin.pas_secrets": { "fr": "Les secrets & rotations sont réservés à super_admin — non visibles ici (403 admin prouvé).", "en": "Secrets & rotations are super_admin-only — not shown here (403 admin proven).", "es": "Los secretos y rotaciones son solo super_admin — no visibles aquí (403 admin probado).", "it": "Segreti e rotazioni solo super_admin — non visibili qui (403 admin provato).", "de": "Secrets & Rotation nur super_admin — hier nicht sichtbar (403 admin bewiesen)." },
+  "admin.injoignable": { "fr": "Passerelle injoignable", "en": "Gateway unreachable", "es": "Pasarela inaccesible", "it": "Gateway irraggiungibile", "de": "Gateway nicht erreichbar" }
+}

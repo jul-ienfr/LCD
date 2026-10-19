@@ -1,16 +1,17 @@
 # dash-admin — V6 §S3.5 : comme super SAUF secrets/rotation (403 testé).
 # Route /supervision distincte de /systeme (dash-super) : 1 route = 1 plugin.
-# F5 : routes créées alors (actif false = route 404 + journal, §S3.2).
+# F5 : ACTIVÉ — supervision système SANS secrets : admin ne déclare ni ne lit
+# une rotation (batterie V6 : GET /v1/secrets = 403 admin, POST rotate = 403).
 id: dash-admin
-version: "0.1.0"
-actif: false
+version: "1.0.0"
+actif: true
 roles: [super_admin, admin]
 routes: [/supervision]
 apis:
   - GET /health
   - GET /ready
   - GET /metrics
-  - GET /parc/entites
+  - GET /v1/statut
 flags: []
 i18n_prefixe: admin.
 route_prefix: /systeme

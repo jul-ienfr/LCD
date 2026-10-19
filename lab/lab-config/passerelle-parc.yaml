@@ -33,6 +33,12 @@ entites: "/opt/lcd/parc-registre/entites.yaml"
 mandats: "/opt/lcd/parc-registre/mandats.yaml"
 # Routage IA/LLM (§15) : copie lab de llm.yaml, montée en lecture seule.
 llm: "/opt/lcd/lab-config/passerelle-parc-llm.yaml"
+# F5 §S3.5-V5 : registre de SLOTS de secrets (métadonnées SEULEMENT : id,
+# source env/vault, cadence, dernière rotation — JAMAIS une valeur). Le fichier
+# réel est GITIGNORE (doctrine 71 S2), l'EXAMPLE versionné documente la forme ;
+# sans fichier, la passerelle sert un registre vide (jamais un faux au-vert).
+# `seed-reset` restaure ce fichier depuis HEAD : la clé vit donc ICI, commitée.
+secrets: "/opt/lcd/custom/passerelle-parc/secrets-registre.yaml"
 # CRM prospection (§14.5, G6) : même dossier monté en LECTURE-ÉCRITURE.
 prospects: "/opt/lcd/parc-registre/prospects.yaml"
 # Documents de mandat servis par le portail propriétaire (§17 / G2bis-b) :

@@ -4430,7 +4430,7 @@ check("GET /reco-ota?depuis=invalide -> 200, grille PART AUJOURD'HUI "
       "(jamais d'erreur brute au front)",
       code == 200 and isinstance(recob, dict) and recob.get("grille_7j")
       and recob["grille_7j"][0][0].startswith(
-          dt.date.today().isoformat()),
+          dt.datetime.now(dt.timezone.utc).date().isoformat()),
       f"HTTP {code} j0={recob.get('grille_7j', [['?']])[0][0] if recob.get('grille_7j') else '?'}")
 
 print()
@@ -5256,7 +5256,8 @@ check("passerelle : depuis=invalide -> 200 SANS champ depuis "
       f"HTTP {code} depuis={_l1f.get('depuis')}")
 code, p49g = get("passerelle", "/api/apercu-parc?" +
                 urllib.parse.urlencode(
-                    {"depuis": dt.date.today().isoformat()}))
+                    {"depuis": dt.datetime.now(
+                        dt.timezone.utc).date().isoformat()}))
 _l1g = {l.get("logement_id"): l for l in p49g.get("logements", [])}.get("log1", {})
 check("passerelle : depuis=aujourd'hui -> refuse (valeur par defaut "
       "= auj, jamais une URL garde une chausse-trape)",

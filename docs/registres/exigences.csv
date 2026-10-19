@@ -6,8 +6,8 @@ REQ-S-003-V1,Vue voyageur PWA sejour lien magique J-2 checkout+12h,Socle S3.5-V1
 REQ-S-003-V2,Vue proprio SES logements releves J+5 digest lundi,Socle S3.5-V2,compta:8100 + facturation:8093,global,batterie 403 hors perimetre + releve J+5,dash-proprio,a-valider-v2
 REQ-S-003-V3,Vue operateur 14 actions prix 1-tap cloture 409,Socle S3.5-V3,gateway:8443 + dispatch:8096,global,batterie cloture 409 + prix hors bornes 422,dash-operateur,a-valider-v2
 REQ-S-003-V4,Vue presta PWA mission pointage photos AVANT/APRES,Socle S3.5-V4,dispatch:8096,global,batterie cloture sans photo 409,dash-presta,a-valider-v2
-REQ-S-003-V5,Vue super voir-comme trace + systeme + secrets,Socle S3.5-V5,gateway:8443,global,batterie secrets jamais simules + journal 90j,dash-super,a-valider-v2
-REQ-S-003-V6,Vue admin voir-comme trace sans secrets,Socle S3.5-V6,gateway:8443,global,batterie admin sans secrets 403,dash-admin,a-valider-v2
+REQ-S-003-V5,Vue super voir-comme trace + systeme + secrets + support,Socle S3.5-V5 + 30 §P8,gateway:8443,global,"batterie test-super.ps1 33/33 : secrets slots metadonnees seules (valeurs_incluses=false, 0 fuite 7 motifs) + rotation super seul + journal 90j + recherche ref 404 + tickets file unique (ref auto, cloture motif) + messagerie 3 fils ACL + rendus /systeme /secrets /journal /support",dash-super,a-valider-v2
+REQ-S-003-V6,Vue admin voir-comme trace sans secrets,Socle S3.5-V6,gateway:8443,global,"batterie test-super.ps1 : 403 admin/operateur/proprietaire sur /v1/secrets + 403 admin sur /v1/secrets/rotate + 403 comptable sur /v1/journal + rendu /supervision SANS secrets",dash-admin,a-valider-v2
 REQ-S-003-V7,Vue comptable Finances mono-SIREN Chorus/PDP,Socle S3.5-V7,compta:8100 + facturation:8093,global,batterie export mono-SIREN,dash-comptable,a-valider-v2
 REQ-S-003-V8,Vue commercial pipeline 8 etapes sans prix/couts,Socle S3.5-V8,gateway:8443 CRM,global,batterie commercial sans prix 403,dash-commercial,a-valider-v2
 REQ-P-001,Fan-out HTTPS + outbox tmp+os.replace replay ref 24h,ADR-002 + P1,passerelle:8443 + outbox/,global,batterie outbox idempotente,dash-operateur,a-valider-v2

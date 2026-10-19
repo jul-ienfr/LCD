@@ -64,6 +64,8 @@ import i18n as i18n_mod
 import crm as crm_mod
 import export_compta as exc
 import statut_h as sth
+import secrets_registre as srs
+import support as sup
 
 QUI_DEFAUT = "passerelle_parc"
 FANOUT_MAX_MESURES = 200
@@ -454,6 +456,14 @@ class Passerelle:
         self.f_idem = os.path.join(self.state_dir, "parc", "idempotence.json")
         self.f_journal = os.path.join(self.state_dir, "parc",
                                       "journal-parc.jsonl")
+        # F5 §S3.5-V5 : inventaire des SLOTS de secrets (metadonnees seule-
+        # ment, zéro valeur). Chemin relatif au dossier de config. Ecriture
+        # = declaration de rotation par super_admin seul (POST /v1/secrets).
+        self.secrets_path = self._resoudre(
+            self.cfg.get("secrets", "secrets-registre.yaml"))
+        # F5 §P8 : état des tickets support + messagerie (3 fils) — sous le
+        # state_dir (runtime gitignoré), jamais dans un fichier versionné.
+        self.dir_support = os.path.join(self.state_dir, "support")
         self.memoire = {}                # (box_id, log_id) -> apercu
         self.disque = {}                # box_id -> {log_id: apercu}
         # Cache calendrier (mémoire seule, TTL commun) : dérivé d'ics-sync,
@@ -1324,6 +1334,151 @@ class Passerelle:
                             "vu_comme": qui, "action": f"geste:{geste}"})
         return 200, {"ok": True, "trace": "voir_comme"}
 
+    # -- F5 §S3.5-V5 : inventaire secrets (metadonnees, ZER valeur) + rotation
+    # super_admin SEUL. admin reçoit 403 (batterie V6 "403 admin secrets").
+    def secrets_lire(self, qui):
+        """GET /v1/secrets : etat de rotation des slots. super_admin seul.
+
+        Renvoie id/source/cadence/derniere_rotation/statut — JAMAIS une
+        valeur, un hash ou un derive de secret (registre fail-closed)."""
+        code, err = self._verifier_parc(qui, None, "super_admin")
+        if code:
+            return code, err
+        try:
+            slots = srs.charger(self.secrets_path)
+            etats = srs.statut(slots)
+        except srs.RegistreSecretsErreur as e:
+            return 422, {"erreur": "registre secrets invalide : " + str(e),
+                         "qui": qui}
+        nb_alerte = sum(1 for e in etats if e.get("alerte"))
+        return 200, {"slots": etats, "total": len(etats),
+                     "alertes": nb_alerte, "lecture_seule": True,
+                     "valeurs_incluses": False, "qui": qui}
+
+    def secrets_rotations(self, qui, slot_id, date_iso):
+        """POST /v1/secrets/rotate : declare la rotation d'un slot (geste
+        humain hors passerelle). super_admin seul. Ne modifie QU'une date —
+        la valeur du secret reste au vault/env, jamais vue ni transmise."""
+        code, err = self._verifier_parc(qui, None, "super_admin")
+        if code:
+            return code, err
+        if not slot_id:
+            return 400, {"erreur": "slot_id requis", "qui": qui}
+        try:
+            slots = srs.charger(self.secrets_path)
+        except srs.RegistreSecretsErreur as e:
+            return 422, {"erreur": "registre secrets invalide : " + str(e),
+                         "qui": qui}
+        try:
+            maj = srs.appliquer_rotation(slots, slot_id, date_iso)
+        except ValueError:
+            return 400, {"erreur": "date ISO AAAA-MM-JJ attendue", "qui": qui}
+        if maj is None:
+            return 404, {"erreur": "slot inconnu : " + slot_id,
+                         "connus": sorted(slots), "qui": qui}
+        # Declaration tracée au journal (ref obligatoire) — le geste, jamais la
+        # valeur. On ne RECRIT PAS le yaml (fichier versionné, source de
+        # vérité du dépôt) : le constat vit au journal, consultable 90 j.
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "secret_rotate",
+                            "qui": qui, "slot": slot_id,
+                            "derniere_rotation": date_iso})
+        return 200, {"ok": True, "slot": maj, "declare_par": qui,
+                     "valeur_communiquee": False}
+
+    def recherche_ref(self, qui, ref):
+        """GET /v1/recherche?ref= (§P8) : dossier d'une ref croisée — journal
+        du parc + table d'idempotence. admin requis (_ADMINS) : une ref seule
+        ne doit JAMAIS permettre de naviguer dans les données d'un autre
+        client (anti-fuite inter-client, fail-closed). 404 si la ref est
+        inconnue — jamais de fuite ni de devinette."""
+        code, err = self._verifier_parc(qui, None, "admin")
+        if code:
+            return code, err
+        ref = (ref or "").strip()
+        if not ref:
+            return 400, {"erreur": "ref requise", "qui": qui}
+        journal, idem = [], []
+        # 1) journal du parc : lignes dont la ref matche (partielle admise).
+        try:
+            with open(self.f_journal, encoding="utf-8") as f:
+                for ligne in f:
+                    ligne = ligne.strip()
+                    if not ligne:
+                        continue
+                    try:
+                        e = json.loads(ligne)
+                    except ValueError:
+                        continue
+                    if ref in str(e.get("ref", "")):
+                        journal.append(e)
+        except FileNotFoundError:
+            pass
+        # 2) idempotence : cles `box|action|ref` contenant la ref.
+        try:
+            with open(self.f_idem, encoding="utf-8") as f:
+                table = json.load(f)
+            for cle, v in (table or {}).items():
+                if ref in cle:
+                    env = (v or {}).get("enveloppe", {})
+                    idem.append({"cle": cle, "box_id": env.get("box_id"),
+                                 "logement_id": env.get("logement_id"),
+                                 "action": env.get("action"),
+                                 "moteur_code": env.get("moteur_code"),
+                                 "ts": env.get("ts"),
+                                 "idempotent": env.get("idempotent")})
+        except (FileNotFoundError, ValueError, OSError):
+            pass
+        if not journal and not idem:
+            return 404, {"erreur": "ref introuvable", "ref": ref,
+                         "qui": qui}
+        return 200, {"ref": ref, "journal": journal[:50],
+                     "idempotence": idem[:50],
+                     "total": len(journal) + len(idem),
+                     "lecture_seule": True, "qui": qui}
+
+    def journal_lire(self, qui, quoi="", jours=90):
+        """GET /v1/journal : journal du parc (voir-comme + gestes), 90 j.
+        admin requis (_ADMINS). Filtre `quoi` (ex: voir_comme). Lecture seule,
+        metadonnees + refs — jamais un montant ni un secret."""
+        code, err = self._verifier_parc(qui, None, "admin")
+        if code:
+            return code, err
+        try:
+            nj = int(jours)
+        except (TypeError, ValueError):
+            nj = 90
+        nj = max(1, min(90, nj))
+        coupe = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(
+            days=nj)).timestamp()
+        entrees = []
+        try:
+            with open(self.f_journal, encoding="utf-8") as f:
+                for ligne in f:
+                    ligne = ligne.strip()
+                    if not ligne:
+                        continue
+                    try:
+                        e = json.loads(ligne)
+                    except ValueError:
+                        continue
+                    if quoi and e.get("quoi") != quoi:
+                        continue
+                    try:
+                        tse = dt.datetime.fromisoformat(
+                            str(e.get("ts", "")).replace("Z", "+00:00")
+                        ).timestamp()
+                    except ValueError:
+                        tse = 0
+                    if tse >= coupe:
+                        entrees.append(e)
+        except FileNotFoundError:
+            pass
+        entrees.reverse()  # plus récent en premier
+        return 200, {"entrees": entrees[:200], "total": len(entrees),
+                     "jours": nj, "quoi": quoi or None,
+                     "lecture_seule": True, "qui": qui}
+
+
     # -- CRUD logements / config générale (§6bis) --------------------------- #
     # `qui` = humain connu, non révoqué, dans le périmètre du logement touché.
     # super_admin/admin pour créer/modifier, super_admin SEUL pour archiver.
@@ -1368,6 +1523,165 @@ class Passerelle:
             return refus(403, f"{q} ({role[0]}/{role[1]}) : niveau "
                               f"{niveau} requis")
         return None, personne
+
+    # -- F5 §P8 : tickets support + messagerie 3 fils ------------------------ #
+    # File unique (P1<4h / P2<48h / P3<5j, détail §S8) + 3 fils
+    # proprio/presta/voyageur. `operateur` est CALCULÉ ici depuis le rôle —
+    # jamais demandé au client. ACL fail-closed déléguée au module `support`
+    # (auteurs des fils). Toute action est tracée au journal avec sa `ref`.
+    _STAFF_SUPPORT = _ADMINS | {("gestionnaire", "operateur")}
+
+    def _verifier_humain(self, qui):
+        """(None, personne) si `qui` est un humain connu et actif.
+
+        Aucun droit de rôle ici : sert à savoir QUI ouvre un ticket ou écrit
+        dans un fil (le support est ouvert à tous les humains du parc). Les
+        comptes machines (dashboard) sont refusés : §P8 « jamais de demande
+        SMS/WhatsApp non tracée » — une machine ne dépose pas de ticket.
+        Même ordre que `_verifier_parc` : interdit → inconnu → révoqué →
+        expiré.
+        """
+        def refus(code, message):
+            return code, {"erreur": message, "qui": qui}
+        q = (qui or "").strip()
+        if not q or re.fullmatch(r"(auto|llm|jev|systeme|inconnu|moteur-.*)",
+                                 q) or q in QUI_INTERDITS \
+                or q.startswith("moteur-"):
+            return refus(400, f"qui interdit : {q!r}")
+        personne = self.acces.get(q) if isinstance(self.acces, dict) else next(
+            (p for p in self.acces if p.get("id") == q), None)
+        if not personne:
+            return refus(400, f"qui inconnu : {q}")
+        revoc = self._revocations()
+        if revoc.get(q):
+            return refus(403, "revoque " + str(revoc[q]))
+        exp = self._expire_le(personne)
+        if exp and exp < dt.date.today():
+            return refus(403, f"compte expire le {personne.get('expire_le')}")
+        if (personne.get("role"), personne.get("sous_role")) == \
+                ("gestionnaire", "dashboard"):
+            return refus(403, f"{q} : compte machine, jamais de ticket/message")
+        return None, personne
+
+    def _est_staff_support(self, personne):
+        return (personne.get("role"),
+                personne.get("sous_role")) in self._STAFF_SUPPORT
+
+    def tickets_lire(self, qui, statut=""):
+        """GET /v1/tickets : file unique. Staff = tous ; humain = les siens."""
+        code, personne = self._verifier_humain(qui)
+        if code:
+            return code, personne
+        try:
+            liste = sup.tickets_lister(self.dir_support, statut)
+        except sup.SupportErreur as e:
+            return e.code, {"erreur": e.message, "qui": qui}
+        if not self._est_staff_support(personne):
+            liste = [t for t in liste if t.get("qui") == qui]
+        return 200, {"tickets": liste, "total": len(liste),
+                     "sla_h": sup.SLA_H, "lecture_seule": True, "qui": qui}
+
+    def ticket_creer(self, p):
+        """POST /v1/tickets : ouvrir un ticket (bug/demande/question)."""
+        qui = str(p.get("qui", "")).strip()
+        code, personne = self._verifier_humain(qui)
+        if code:
+            return code, personne
+        logement = str(p.get("logement_id", "")).strip()
+        if logement and not self._est_staff_support(personne) \
+                and logement not in personne.get("logements", []):
+            return 403, {"erreur": f"hors perimetre : {qui} n'a pas "
+                                    f"{logement}", "qui": qui}
+        try:
+            ticket = sup.ticket_creer(
+                self.dir_support, qui, str(p.get("sujet", "")),
+                str(p.get("description", "")), str(p.get("priorite", "P2")),
+                logement, str(p.get("ref", "")))
+        except sup.SupportErreur as e:
+            return e.code, {"erreur": e.message, "qui": qui}
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "ticket_creer",
+                            "ref": ticket["ref"], "qui": qui,
+                            "priorite": ticket["priorite"],
+                            "logement_id": ticket.get("logement_id", "")})
+        return 201, {"ok": True, "ticket": ticket}
+
+    def ticket_maj(self, p):
+        """POST /v1/tickets/statut : prise en charge / clôture — staff seul.
+
+        Clôture = motif obligatoire (trace opposable du POURQUOI, jamais un
+        dossier clos sans explication). Réouverture = nouveau ticket qui
+        référence la même ref (porte STATUTS_MAJ du module).
+        """
+        qui = str(p.get("qui", "")).strip()
+        code, personne = self._verifier_humain(qui)
+        if code:
+            return code, personne
+        if not self._est_staff_support(personne):
+            return 403, {"erreur": f"{qui} : prise en charge support "
+                                    "reservee au staff", "qui": qui}
+        try:
+            maj = sup.ticket_statut(self.dir_support, qui,
+                                    str(p.get("ref", "")),
+                                    str(p.get("statut", "")),
+                                    str(p.get("motif", "")))
+        except sup.SupportErreur as e:
+            return e.code, {"erreur": e.message, "qui": qui}
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "ticket_statut",
+                            "ref": maj.get("ref", ""), "qui": qui,
+                            "statut": maj.get("statut", "")})
+        return 200, {"ok": True, "ticket": maj}
+
+    def messagerie_lire(self, qui, fil_id=""):
+        """GET /v1/messagerie : liste des fils visibles, ou un fil complet.
+
+        Staff = tous les fils ; humain = SEULEMENT ses fils (auteur) — jamais
+        l'existence d'un fil d'un autre client (fail-closed, module support).
+        """
+        code, personne = self._verifier_humain(qui)
+        if code:
+            return code, personne
+        op = self._est_staff_support(personne)
+        try:
+            if fil_id:
+                fil = sup.fil_lire(self.dir_support, qui, fil_id,
+                                   operateur=op)
+                return 200, {**fil, "operateur": op, "lecture_seule": True,
+                             "qui": qui}
+            fils = sup.fils_lister(self.dir_support, qui, operateur=op)
+            return 200, {"fils": fils, "total": len(fils), "operateur": op,
+                         "lecture_seule": True, "qui": qui}
+        except sup.SupportErreur as e:
+            return e.code, {"erreur": e.message, "qui": qui}
+
+    def message_envoyer(self, p):
+        """POST /v1/messagerie : écriture dans un fil (ACL fail-closed).
+
+        Un client n'ouvre un fil que sur SON périmètre (proprio : logement du
+        sien). presta/voyageur portent des refs hors acces.yaml (mission /
+        réservation) : seule l'écriture du module (auteurs) garde la porte —
+        fail-closed, jamais d'élévation.
+        """
+        qui = str(p.get("qui", "")).strip()
+        code, personne = self._verifier_humain(qui)
+        if code:
+            return code, personne
+        op = self._est_staff_support(personne)
+        type_fil = str(p.get("type", "")).strip()
+        ref = str(p.get("ref", "")).strip()
+        if not op and type_fil == "proprio" and ref \
+                and ref not in personne.get("logements", []):
+            return 403, {"erreur": f"hors perimetre : {qui} n'a pas {ref}",
+                         "qui": qui}
+        try:
+            message = sup.message_envoyer(
+                self.dir_support, qui, type_fil, ref,
+                str(p.get("texte", "")), operateur=op)
+        except sup.SupportErreur as e:
+            return e.code, {"erreur": e.message, "qui": qui}
+        self._journal_parc({"ts": utcnow_iso(), "quoi": "message",
+                            "ref": message["fil_id"], "qui": qui,
+                            "type": type_fil})
+        return 201, {"ok": True, "message": message}
 
     def _registre(self):
         chemin = self._resoudre(self.cfg.get("logements", ""))
@@ -3640,6 +3954,32 @@ class Handler(BaseHTTPRequestHandler):
         if url.path in ("/v1/config-llm", "/config-llm"):
             code, rep = eng.config_llm_lire(qs.get("qui", [""])[0])
             return self._json(code, rep)
+        # F5 §S3.5-V5/V6 : inventaire secrets (super_admin seul, 403 admin)
+        # + journal parc 90 j (admin). Metadonnees, jamais de valeur.
+        if url.path == "/v1/secrets":
+            code, rep = eng.secrets_lire(qs.get("qui", [""])[0])
+            return self._json(code, rep)
+        if url.path == "/v1/journal":
+            code, rep = eng.journal_lire(qs.get("qui", [""])[0],
+                                         qs.get("quoi", [""])[0],
+                                         qs.get("jours", ["90"])[0])
+            return self._json(code, rep)
+        # F5 §P8 : recherche globale par ref (dossier croise), admin seul,
+        # 404 si inconnue — anti-fuite inter-client.
+        if url.path == "/v1/recherche":
+            code, rep = eng.recherche_ref(qs.get("qui", [""])[0],
+                                          qs.get("ref", [""])[0])
+            return self._json(code, rep)
+        # F5 §P8 : tickets support (file unique) + messagerie 3 fils. Toute
+        # route a son `qui` explicite (identité lab/IdP), ACL fail-closed.
+        if url.path == "/v1/tickets":
+            code, rep = eng.tickets_lire(qs.get("qui", [""])[0],
+                                         qs.get("statut", [""])[0])
+            return self._json(code, rep)
+        if url.path == "/v1/messagerie":
+            code, rep = eng.messagerie_lire(qs.get("qui", [""])[0],
+                                            qs.get("fil_id", [""])[0])
+            return self._json(code, rep)
         if url.path in ("/v1/pipeline", "/export-compta"):
             if url.path == "/v1/pipeline":
                 code, rep = eng.pipeline_lire(qs.get("qui", [""])[0])
@@ -3815,6 +4155,24 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(code, refus)
         if url.path == "/v1/audit":
             code, rep = self.engine.audit_voir_comme(p)
+            return self._json(code, rep)
+        # F5 §S3.5-V5 : declaration de rotation d'un slot — super_admin seul
+        # (verifie dans la methode), admin = 403. Jamais de valeur transmise.
+        if url.path == "/v1/secrets/rotate":
+            code, rep = self.engine.secrets_rotations(
+                p.get("qui", ""), str(p.get("slot", "")),
+                str(p.get("date", "")))
+            return self._json(code, rep)
+        # F5 §P8 : ouvrir un ticket (tout humain), le faire évoluer (staff),
+        # écrire dans un fil (ACL auteur/opérateur — module support).
+        if url.path == "/v1/tickets":
+            code, rep = self.engine.ticket_creer(p)
+            return self._json(code, rep)
+        if url.path == "/v1/tickets/statut":
+            code, rep = self.engine.ticket_maj(p)
+            return self._json(code, rep)
+        if url.path == "/v1/messagerie":
+            code, rep = self.engine.message_envoyer(p)
             return self._json(code, rep)
         if url.path in ("/v1/llm-tester", "/v1/config-llm"):
             if url.path == "/v1/llm-tester":

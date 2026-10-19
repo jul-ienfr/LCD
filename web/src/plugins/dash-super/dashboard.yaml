@@ -1,16 +1,25 @@
 # dash-super — V5 §S3.5 : pilotage groupe + voir-comme + /systeme + secrets.
-# F5 : routes créées alors (actif false = route 404 + journal, §S3.2).
+# F5 : ACTIVÉ — /systeme (santé), /secrets (rotation super seul, 403 admin),
+# /journal (voir-comme 90 j). Secrets = métadonnées uniquement, jamais valeur.
 id: dash-super
-version: "0.1.0"
-actif: false
+version: "1.0.0"
+actif: true
 roles: [super_admin]
-routes: [/systeme, /secrets, /journal]
+routes: [/systeme, /secrets, /journal, /support]
 apis:
   - GET /health
   - GET /ready
   - GET /metrics
-  - GET /parc/entites
-  - GET /parc/mandats
+  - GET /v1/statut
+  - GET /v1/secrets
+  - GET /v1/journal
+  - GET /v1/recherche
+  - GET /v1/tickets
+  - GET /v1/messagerie
+  - POST /v1/secrets/rotate
+  - POST /v1/tickets
+  - POST /v1/tickets/statut
+  - POST /v1/messagerie
 flags: []
 i18n_prefixe: super.
 route_prefix: /systeme

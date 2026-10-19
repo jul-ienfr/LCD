@@ -132,6 +132,32 @@ export async function executerAction(
   }
 }
 
+// F5 §S3.5-V5/V6 : déclaration de rotation d'un slot de secret — geste
+// super_admin SEUL (la gateway renvoie 403 pour un admin). Ne transmet JAMAIS
+// une valeur : seulement le nom du slot + la date constatée (vault/env).
+export async function declarerRotation(
+  prev: ResultatAction | null,
+  formData: FormData,
+): Promise<ResultatAction> {
+  const slot = String(formData.get("slot") || "").trim();
+  const date = String(formData.get("date") || "").trim();
+  const qui = String(formData.get("qui") || "").trim() || (await quiParDefaut());
+  if (!slot || !date)
+    return { ok: false, message: "slot et date sont requis." };
+  try {
+    const rep = await gwPost<Record<string, unknown>>("/v1/secrets/rotate", {
+      qui,
+      slot,
+      date,
+      ...(await pisteIdentite()),
+    });
+    if (rep.ok) return { ok: true, message: `Rotation déclarée : ${slot} (${date}).` };
+    return { ok: false, message: JSON.stringify(rep).slice(0, 300) };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Échec rotation." };
+  }
+}
+
 export async function creerProspect(
   prev: ResultatAction | null,
   formData: FormData,
@@ -357,6 +383,88 @@ export async function lire<T>(chemin: string): Promise<{ ok: boolean; data: T | 
     return { ok: true, data, erreur: "" };
   } catch (e) {
     return { ok: false, data: null, erreur: e instanceof Error ? e.message : "Échec." };
+  }
+}
+
+// F5 §P8 : ouvrir un ticket support (bug/demande/question) — tout humain du
+// parc, SLA P1<4h / P2<48h / P3<5j. La ref `TICKET-*` est générée par la
+// passerelle : jamais un ticket sans ref (clé de reprise).
+export async function ouvrirTicket(
+  prev: ResultatAction | null,
+  formData: FormData,
+): Promise<ResultatAction> {
+  const qui =
+    String(formData.get("qui") || "").trim() || (await quiParDefaut());
+  const sujet = String(formData.get("sujet") || "").trim();
+  const description = String(formData.get("description") || "").trim();
+  const priorite = String(formData.get("priorite") || "P2").trim() || "P2";
+  const logement_id = String(formData.get("logement_id") || "").trim();
+  if (!sujet || !description)
+    return { ok: false, message: "sujet et description sont requis." };
+  try {
+    const rep = await gwPost<{ ok?: boolean; ticket?: { ref?: string } }>(
+      "/v1/tickets",
+      { qui, sujet, description, priorite, logement_id, ...(await pisteIdentite()) },
+    );
+    const ref = rep.ticket?.ref ?? "TICKET";
+    return { ok: true, message: `Ticket ${ref} ouvert (P${priorite.slice(1)}).` };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Échec ticket." };
+  }
+}
+
+// F5 §P8 : faire évoluer un ticket — staff seul (super/admin/opérateur ;
+// la passerelle refuse un client). Clôture = motif obligatoire (trace).
+export async function majTicket(
+  prev: ResultatAction | null,
+  formData: FormData,
+): Promise<ResultatAction> {
+  const qui =
+    String(formData.get("qui") || "").trim() || (await quiParDefaut());
+  const ref = String(formData.get("ref") || "").trim();
+  const statut = String(formData.get("statut") || "").trim();
+  const motif = String(formData.get("motif") || "").trim();
+  if (!ref || !statut)
+    return { ok: false, message: "ref et statut sont requis." };
+  try {
+    const rep = await gwPost<{ ok?: boolean; ticket?: { ref?: string } }>(
+      "/v1/tickets/statut",
+      { qui, ref, statut, motif, ...(await pisteIdentite()) },
+    );
+    if (rep.ok) return { ok: true, message: `Ticket ${ref} → ${statut}.` };
+    return { ok: false, message: JSON.stringify(rep).slice(0, 300) };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Échec." };
+  }
+}
+
+// F5 §P8 : écrire dans un fil de messagerie (proprio/presta/voyageur). ACL
+// fail-closed côté passerelle : un client n'écrit QUE dans ses fils (auteur)
+// ; un opérateur peut toujours écrire. Jamais WhatsApp/SMS perso : tout ici,
+// au journal, avec ref.
+export async function envoyerMessage(
+  prev: ResultatAction | null,
+  formData: FormData,
+): Promise<ResultatAction> {
+  const qui =
+    String(formData.get("qui") || "").trim() || (await quiParDefaut());
+  const type = String(formData.get("type") || "").trim();
+  const ref = String(formData.get("ref") || "").trim();
+  const texte = String(formData.get("texte") || "").trim();
+  if (!["proprio", "presta", "voyageur"].includes(type))
+    return { ok: false, message: "type : proprio, presta ou voyageur." };
+  if (!ref || !texte)
+    return { ok: false, message: "ref (logement/mission/résa) et texte requis." };
+  try {
+    const rep = await gwPost<{ ok?: boolean; message?: { fil_id?: string } }>(
+      "/v1/messagerie",
+      { qui, type, ref, texte, ...(await pisteIdentite()) },
+    );
+    if (rep.ok)
+      return { ok: true, message: `Message envoyé dans ${rep.message?.fil_id ?? `${type}:${ref}`}.` };
+    return { ok: false, message: JSON.stringify(rep).slice(0, 300) };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Échec." };
   }
 }
 
