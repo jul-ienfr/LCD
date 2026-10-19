@@ -8,6 +8,14 @@
 > Budgets : P0 ~1 050-1 150 € log1 ; Light ~650-750 € ; FULL complet ~2 050-2 150 € ; P1 cloud 0 € ; VPS P3 ~5 €/mois ; RC pro ~1-2 k€/an ; médiation ~200-400 €/an ; juridique ~300-500 €/an ; INPI ~200 € ; 4G ~10 €/mois ; IA ~1-3,2 €/mois/logement. Jamais >200 € sans devis + 1-tap.
 > DoD (5 items) : doc MAJ + changelog ; batterie verte + CI ; runbook daté + tableau tests ; test offline/rotation ; tag git.
 > Gates §60.1 : G0 lab vert → G1 P1 0 € (:8443 + outbox vide + restore) → G2 box réelle (copro verifiee:true + n° + DPE + RC, séjour témoin zéro-touch + drill 3 h, 1 mois vitrine) → G2bis compta → G3 2e box → G4 1er mandat (P10-8 clos) → G5 parc. Copro `verifiee:false` = BLOQUÉE (REQ-L-001).
+>
+> **Cadre en vigueur depuis 2026-10-19 : `docs/71-production-locale.md`** —
+> l'étape « lab socle » est close ; la barre est « production locale intégrale »
+> (rien de simulé, box réelles complètes en local, déployable LAN puis
+> Internet). Les 55 items ci-dessous restent valides comme travail
+> terrain/externe ; tout ce qui est logiciel et local doit être réel et prouvé.
+> Les dépendances tierces sont listées et chiffrées (§6 bis du doc 71), jamais
+> simulées.
 
 ## Phase 0 — Commandes (~1 050-1 150 € log1)
 - [ ] P0-1 Compter radiateurs/vanne/cylindre/interphone + photos tableau | R hôte/A super_admin | 0 €, bloque panier | Prérequis : accès logement

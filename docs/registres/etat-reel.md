@@ -3,6 +3,28 @@
 > R5 : l'état réel vit ICI, jamais mélangé aux cahiers normatifs.
 > Relevé du 2026-10-15, sans toucher au code.
 
+- **DOCTRINE 2026-10-19 — production locale intégrale (`docs/71-production-locale.md`)** :
+  l'étape « lab socle » est close et remplacée comme cadre de référence. Règles
+  opposables : R1 rien n'est simulé ; R2 les box sont de vraies box complètes
+  exécutées en local (le matériel est la seule pièce non locale) ; R3 local
+  d'abord, puis LAN, puis Internet (couche de nommage/certificat, pas une
+  réécriture) ; R4 dégradé **dit** (?, erreurs, notes), jamais inventé ; R5 les
+  tiers (OTA, banque, SIREN, RC, matériel) sont des dépendances datées avec
+  coût/propriétaire, jamais contournées par une valeur fictive ; R6 toute
+  affirmation de la vitrine est rattachée à un check. Inventaire des
+  simulations résiduelles **S1–S7** (faux VPS `lab/vps-sim`, secrets « FAUSSES »
+  de lab, données `.lab` fictives, offre marque blanche « données fictives »,
+  phrases « simulé » de `/` et `/aide`, « maquette » dans `/legales`,
+  dépendances externes) avec vagues V1 sites réels → V6 métrologie et DoD par
+  vague. **Preuves du jour** : `deploy/test-front.ps1` **47/47** en mode IdP
+  (checks adaptatifs en mode sans IdP, aucun neutralisé) ;
+  `deploy/test-deploy.ps1` **0 KO** dont « recette IdP COMPLETE VERTE » ;
+  exports réels lecture seule : compta (CSV), planning (CSV), prix (CSV),
+  **iCalendar** (`/api/calendrier-ics` — 1 VEVENT = 1 jour occupé, `DTEND`
+  exclusif, `conflit_ref` transmis, `X-LCD-*` pour fenêtre et erreurs) ;
+  2 sites box réels en local (`moli-box` sud + `moli-box-nord` avec
+  `ics-sync-nord`, `pricing-nord`, `decision-nord`, `agent-nord`).
+
 - **F4 PWA RÉEL 2026-10-19** : service worker **maison** (`web/public/sw.js`,
   versionné `lcd-v1-…`, ~90 lignes, 0 framework) — précache des 2 dashboards
   offline (`/voyageur`, `/presta`), network-first pages, cache-first assets

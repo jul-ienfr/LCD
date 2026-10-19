@@ -142,6 +142,13 @@ export default async function PagePlanning({
           >
             CSV
           </a>
+          <a
+            href={`/api/calendrier-ics?jours=${jours}${debut === iso(auj) ? "" : `&debut=${debut}`}`}
+            className="text-xs underline decoration-dotted underline-offset-2"
+            title="S'abonner au planning depuis Google/Apple/Outlook (.ics, lecture seule)"
+          >
+            .ics
+          </a>
         </div>
         {cal.erreur && (
           <p className="mt-3 rounded-xl bg-white/15 px-3 py-2 text-sm">{cal.erreur}</p>

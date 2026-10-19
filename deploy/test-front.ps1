@@ -20,11 +20,21 @@ Verif "landing : hero ecologique" ($l -match "conciergerie")
 
 # 2. Login
 $lg = corps "/login" $null
-Verif "login : profils listes" (($lg -match "Claire") -and ($lg -match "In"))
+# Deux modes honnetes (F3) : lab sans IdP = picker de profils ; IdP
+# (LCD_IDP=1) = anneau vers le portail Authelia, AUCUN faux picker.
+$modeIdp = ($lg -match "portail IdP") -or ($lg -match "Ouvrir le portail")
+if ($modeIdp) {
+    Verif "login IdP : portail + second facteur annonces" (($lg -match "portail") -and ($lg -match "second"))
+    Verif "login IdP : lien portail present" ($lg -match ":4002|portail")
+    Verif "login IdP : aucun picker de profil" (-not ($lg -match 'name="qui"'))
+} else {
+    Verif "login lab : profils listes" (($lg -match "Claire") -and ($lg -match "In"))
+}
 
 # 2b. Login SANS JS (progressive enhancement) : extraire le $ACTION_ID du
 # formulaire login (suivi du hidden qui), POSTer multipart si identique,
-# attendre 303 + Set-Cookie lcd_qui + Location /hote.
+# attendre 303 + Set-Cookie lcd_qui + Location /hote (mode lab seulement).
+if (-not $modeIdp) {
 $aid = [regex]::Match($lg, 'name="(\$ACTION_ID_[a-f0-9]+)"\s*/><input type="hidden" name="qui"')
 if ($aid.Success) {
     $id = $aid.Groups[1].Value
@@ -39,6 +49,7 @@ if ($aid.Success) {
 } else {
     Write-Output "[KO] login sans JS : ACTION_ID introuvable (build change ?)"
     $script:KO += 3
+}
 }
 
 # 3. Pages SaaS 200 (session cookie personne_01)
@@ -60,7 +71,12 @@ Verif "onboarding etape 7 : carte creation" ($ob7 -match "REQ-L-001")
 
 # 5. Voir-comme (chip session) + theme
 $vc = corps "/hote" "lcd_qui=personne_01"
-Verif "voir-comme : chip session" ($vc -match "Voir comme")
+if ($modeIdp) {
+    # Mode IdP : sans Remote-User prouve, AUCUN voir-comme (fail-closed).
+    Verif "voir-comme : fail-closed sans identite IdP" (-not ($vc -match "Voir comme"))
+} else {
+    Verif "voir-comme : chip session" ($vc -match "Voir comme")
+}
 $th = corps "/" "lcd_theme=sombre"
 Verif "theme : classe sombre" ($th -match "theme-sombre")
 
@@ -94,6 +110,15 @@ Verif "csv : colonnes prix" ($headx -match "logement_id.*date.*direct")
 Verif "csv prix : ?depuis propage" (($headx2 -join " | ") -match [regex]::Escape($depuis7))
 Remove-Item $tmpx, "$tmpx.2" -ErrorAction SilentlyContinue
 
+# 7d. Flux iCalendar du planning (.ics) : en-tete RFC 5545 + fenetre propagee
+#     (abonnement Google/Apple/Outlook, lecture seule, 1 VEVENT = 1 jour occupe).
+$tmpi = Join-Path $env:TEMP ("lcd-front-" + [guid]::NewGuid().ToString("N") + ".ics")
+$cti = (curl.exe -s -m 25 -o $tmpi -w "%{content_type}" "$F/api/calendrier-ics?jours=7&debut=$depuis7")
+$ics = (Get-Content $tmpi -Raw -Encoding UTF8)
+Verif "ics : entete calendrier" (($cti -match "text/calendar") -and ($ics -match "BEGIN:VCALENDAR") -and ($ics -match "END:VCALENDAR"))
+Verif "ics : fenetre propagee" ($ics -match [regex]::Escape("X-LCD-FENETRE:$depuis7"))
+Remove-Item $tmpi -ErrorAction SilentlyContinue
+
 # 8. i18n 5 langues (spot h1)
 Verif "i18n fr planning" ((corps "/planning?lang=fr" $null) -match "Planning du parc")
 Verif "i18n en planning" ((corps "/planning?lang=en" $null) -match "Estate planning")
@@ -122,9 +147,9 @@ Verif "planning fenetre : jours+debut conserve" (
 Verif "prix nav : depuis +7j affiche" (
   (corps "/prix?depuis=$navd" $null) -match [regex]::Escape($navd))
 
-# 8e. Liens CSV exposes dans les barres de nav (le bouton mene au bon endpoint).
-Verif "liens CSV : planning + prix visibles" (
-  ($pf -match "planning-export") -and
+# 8e. Liens exports exposes dans les barres de nav (le bouton mene au bon endpoint).
+Verif "liens exports : planning CSV+ICS, prix CSV" (
+  ($pf -match "planning-export") -and ($pf -match "calendrier-ics") -and
   ((corps "/prix" $null) -match "prix-export"))
 
 # 9. Guide voyageur : donnees annonce reelle
