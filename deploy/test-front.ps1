@@ -101,6 +101,27 @@ Verif "i18n de prix"     ((corps "/prix?lang=de" $null) -match "Preisraster")
 $navd = (Get-Date).ToUniversalTime().AddDays(7).ToString("yyyy-MM-dd")
 Verif "planning nav : debut +7j affiche" ((corps "/planning?debut=$navd" $null) -match [regex]::Escape($navd))
 
+# 8c. Combinaison fenetre + offset : le champ cache debut SURVIT au changement
+#     de fenetre (jours=7&debut -> chip fin = debut+6 ; fin de fenetre 14 j
+#     debut+13 ABSENTE = la fenetre a bien bascule a 7 jours).
+$navd6 = (Get-Date).ToUniversalTime().AddDays(13).ToString("yyyy-MM-dd")
+$navd13 = (Get-Date).ToUniversalTime().AddDays(20).ToString("yyyy-MM-dd")
+$pf = corps "/planning?jours=7&debut=$navd" $null
+Verif "planning fenetre : jours+debut conserve" (
+  ($pf -match [regex]::Escape($navd)) -and
+  ($pf -match [regex]::Escape($navd6)) -and
+  ($pf -notmatch [regex]::Escape($navd13)))
+
+# 8d. Page prix /?depuis : chip de semaine decallee rendue (meme protocole
+#     que le CSV, meme reutilisation du param gw). Bonus : fin semaine +6 j.
+Verif "prix nav : depuis +7j affiche" (
+  (corps "/prix?depuis=$navd" $null) -match [regex]::Escape($navd))
+
+# 8e. Liens CSV exposes dans les barres de nav (le bouton mene au bon endpoint).
+Verif "liens CSV : planning + prix visibles" (
+  ($pf -match "planning-export") -and
+  ((corps "/prix" $null) -match "prix-export"))
+
 # 9. Guide voyageur : donnees annonce reelle
 $v = corps "/voyageur" $null
 Verif "voyageur : guide annonce" ($v -match "17:00")
