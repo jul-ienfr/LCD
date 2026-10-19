@@ -113,7 +113,7 @@ suppression).
 | **V1** | **Deux sites réels, zéro faux VPS** : suppression de `lab/vps-sim`, 2ᵉ site porté par `moli-box-nord` + `*-nord`, gateway déclarant 2 sites, vitrine réécrite (S1, S5) | batterie `parc` : 2 sites, 3 logements, fan-out complet par site ; `grep vps-sim` vide ; `/aide` et `/` sans « simulé » | 1 vague |
 | **V2** | **Données réelles** : registre du parc, inventaire, prestataires, stocks, mémoire, extras alimentés par la vérité terrain (S3, S4) ; ce qui manque = vide bloquant | chaque écran métier montre soit une valeur sourcée (fichier/adresse/item), soit « à saisir » ; 0 ligne « fictive » | 2 vagues (dont saisie hôte) |
 | **V3** | **Secrets réels** : génération, gitignore, rotation, aucun secret versionné (S2) + secrets IdP (`users.yml`, `totp-secrets.json`) | contrôle automatique « 0 secret dans le dépôt » ; rotation rejouée | 1 vague |
-| **V4** | **LAN** : DNS local (`lcd.local`, `lcd-idp.local`), CA interne distribuée, ports figés, mDNS, pare-feu hôte, sauvegardes locales (restic) + restauration chronométrée | depuis un second poste du LAN : `/login` IdP → 2FA → `/hote`, `/api/health`, sauvegarde/restauration prouvée | 1–2 vagues |
+| **V4** | **LAN** : nom d'entrée paramétrable (`LCD_HOTE`), config IdP rendue depuis un modèle, ports figés, pare-feu hôte, CA interne distribuée, sauvegardes locales (restic) + restauration chronométrée | depuis un second poste du LAN : `/login` IdP → 2FA → `/hote`, `/api/health`, sauvegarde/restauration prouvée | 1–2 vagues — **logiciel fait (2026-10-19)** : Caddy `{$LCD_HOTE}` + `{$LCD_PORT_HTTPS}`, `rendre-config.ps1` (modèle → `configuration.yml`, validé par le binaire Authelia pour `lcd.test` ET `lcd.local`), `test-lan.ps1` 13/13 avec paire jetable IdP+entrée rendue pour `lcd.local` ; **reste l'étape hôte** : `lan-ouvrir.ps1 -Poser` (admin) car les ports publiés ne sortent pas de WSL2 (0 listener Windows, loopback seul) + règle pare-feu |
 | **V5** | **Internet** : domaine, LE (DNS-01), durcissement (HSTS, WAF, rate-limit), accès admin par VPN seul, révocation | test externe : portail IdP, 2FA, 0 port admin exposé ; `test-deploy` en HTTPS public | 1–2 vagues |
 | **V6** | **Métrologie et exploitation** : journaux centralisés, alertes (site muet, crash-loop, disque, certificat), tableau de santé du parc, runbooks datés | une panne provoquée (conteneur arrêté) = alerte reçue < 2 min + runbook applicable à froid | 1 vague |
 
@@ -125,8 +125,24 @@ Trois couches, une seule image applicative :
    réseau de pile par site ; `lcd.test` / `lcd-idp.test` résolus par
    `--resolve` ou `/etc/hosts` ; CA interne de Caddy.
 2. **LAN (V4)** — un serveur « socle » (gateway + front + IdP) et N box, chacune
-   sur son LAN ; noms `lcd.local`, `lcd-idp.local`, `box-<site>.local` ;
-   certificats par CA interne ; aucun port public.
+   sur son LAN. **Un seul nom canonique par déploiement** (`LCD_HOTE`) : c'est
+   une décision, pas un raccourci — le cookie de session de l'IdP porte
+   `Domain=<nom>` ; deux noms (ex. `lcd.local` + `lcd-idp.local`) couperaient la
+   session entre le portail et l'app et casseraient le chaînage `forward_auth`.
+   Le nom se change sans code : `LCD_HOTE=lcd.local` (+ `LCD_PORT_HTTPS`),
+   et `deploy/authelia/rendre-config.ps1 -Hote lcd.local` pour l'IdP (le binaire
+   Authelia n'expandant pas `${VAR}`, la substitution est faite au rendu).
+   Mesuré le 2026-10-19 (`deploy/test-lan.ps1`, 13/13) : la même pile sert
+   `lcd.test` **et** `lcd.local` (paire IdP+entrée jetable rendue pour ce nom,
+   redirection anonyme vers `lcd.local:4012`).
+   **Blocage hôte restant, mesuré** : `docker port` publie bien `0.0.0.0:4001-
+   4003`, mais **aucun listener n'existe côté Windows** (`Get-NetTCPConnection`
+   vide) — les ports vivent dans la VM WSL2 et ne sortent qu'en loopback
+   (loopback 200 / IP LAN 000). Remède en administrateur, scripté et idempotent :
+   `deploy/lan-ouvrir.ps1 -Poser` (relais `netsh portproxy` + règle pare-feu
+   entrante TCP 4001-4003, profil privé), puis `deploy/test-lan.ps1 -Exiger`.
+   Côté postes clients : entrée `hosts`/DNS `lcd.test → <IP serveur>` +
+   import du certificat racine interne (`/data/caddy/pki/authorities/local/root.crt`).
 3. **Internet (V5)** — un seul point d'entrée (Caddy) avec LE ; IdP derrière ;
    accès d'administration par VPN ; les box **n'exposent rien** (elles
    initient, cf. `GET /v1/...` sortants + outbox).
@@ -150,6 +166,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-box | batteries box déterministes (socle, moli, runtime) | `lab/lab-run.ps1` (5/5) |
 | G-parité (V1) | 2 sites réels, fan-out complet, zéro site simulé, aucun logement orphelin | `deploy/test-sites.ps1` (**12/12 OK**, 2026-10-19) |
 | G-secrets (V3) | 0 secret versionné, 0 fichier de secret suivi par git, 0 forme de secret dans les fichiers suivis, 0 valeur réelle dans une réponse HTTP | `deploy/test-secrets.ps1` (**23/23 OK**, 2026-10-19) |
+| G-LAN (V4) | aucun nom d'hôte en dur, config IdP rendue conforme et validée par le binaire pour 2 noms, même pile servie sous `lcd.local`, joignabilité LAN mesurée | `deploy/test-lan.ps1` (**13/13 OK**, 2026-10-19 ; `-Exiger` pour la joignabilité) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
 | G-LAN (V4) / G-public (V5) | parcours IdP 2FA depuis un autre poste / depuis Internet | recette manuelle datée + check automatique d'entrée |
 

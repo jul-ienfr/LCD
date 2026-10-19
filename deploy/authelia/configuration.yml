@@ -1,3 +1,12 @@
+# ============================================================================
+# ATTENTION : CE FICHIER configuration.yml EST RENDU (doctrine docs/71, R3).
+#   Source versionnee : configuration.yml.template
+#   Rendu par         : deploy/authelia/rendre-config.ps1
+#   Ne pas editer le rendu a la main : editer le modele, puis relancer
+#     powershell -ExecutionPolicy Bypass -File ./rendre-config.ps1 -Hote <nom>
+#   Un hote different (LAN lcd.local, domaine public) = MEME pile, aucun
+#   changement de code applicatif.
+# ============================================================================
 # deploy/authelia/configuration.yml - IdP de LAB (F3, REQ-S-007).
 # Authelia ~50 Mo en repli leger d'Authentik (S3.2 seuil / F5 P2/P3) :
 # 1 login = 1 sujet, 2FA TOTP exigee (S3.1 staff), forward_auth Caddy en
@@ -30,6 +39,10 @@
 # displayname du portail porte le nom humain.
 #
 # Comptes regeneres par deploy/authelia/generer-secrets.ps1 (bcrypt reel).
+#
+# Le nom d'entree `lcd.test` et le port du portail `4002` sont les
+# SEULS endroits parametrables : le binaire n'expandant pas ${VAR}, la
+# substitution est faite avant demarrage par rendre-config.ps1.
 
 theme: dark
 server:
@@ -68,7 +81,7 @@ session:
 
 # Stockage local SQLite (dossier monte, gitignore). encryption_key ABSENT
 # d'ici : fourni par AUTHELIA_STORAGE_ENCRYPTION_KEY (env, exigee par le
-# schema - sans elle, fatal). Chiffre sessions + enrTLEMENTS TOTP.
+# schema - sans elle, fatal). Chiffre sessions + enrolements TOTP.
 # En prod P2/P3 : Redis dedie (voir procedure-p1).
 storage:
   local:
@@ -77,7 +90,7 @@ storage:
 # Notificateur filesystem : le schema exige smtp OU filesystem ; smtp local
 # sans relais serait une fausse promesse, le filesystem ecrit de vrai dans
 # /config/notification.log. (Reset pwd desactive ci-dessus -> jamais
-# sollicite en lab ; en prod : SMTP reel.)
+# sollicite en local ; en prod : SMTP reel.)
 notifier:
   filesystem:
     filename: /config/notification.log

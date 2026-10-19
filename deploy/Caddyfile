@@ -18,6 +18,12 @@
 # gateway REFait son RBAC a chaque ecriture (jamais de confiance a l'en-tete).
 #
 # TLS `tls internal` (CA interne, zéro ACME - meme pattern lab/vps-sim).
+# NOM D'ENTREE PARAMETRABLE (doctrine docs/71 - R3) : tous les sites
+# utilisent `{$LCD_HOTE:lcd.test}` (nom) et `{$LCD_PORT_HTTPS:4001}` (port
+# public HTTPS), fournis par l'environnement du conteneur (compose). Le meme
+# fichier sert donc en local (`lcd.test`), en LAN (`LCD_HOTE=lcd.local`) et
+# sur Internet (`LCD_HOTE=sas.exemple.fr`) SANS changement de code : un seul
+# nom canonique par deploiement, donc un seul domaine de cookie de session.
 # Ports hote : 4003 (HTTP->HTTPS) + 4001 (app) + 4002 (portail). Le socle
 # (:8090-8100, :8123, :4000 box, :8050, :8060, :8443, :3100) n'est JAMAIS
 # publie - le front n'est JOIGNABLE qu'ici : toute entree = IdP.
@@ -39,7 +45,7 @@
 }
 
 # --- Portail IdP (login, TOTP, logout) : le SEUL acces sans session --------
-https://lcd.test:4002 {
+https://{$LCD_HOTE:lcd.test}:4002 {
 	tls internal
 	import entetes_lcd
 
@@ -54,7 +60,7 @@ https://lcd.test:4002 {
 # Authelia access_control - une source de verite, auditables, jamais un
 # handle Caddy oublie. Les bypass AUTHENTIFIENT quand meme : 200 sans
 # Remote-User -> front anonyme (voyageur) ou public (health).
-https://lcd.test {
+https://{$LCD_HOTE:lcd.test} {
 	tls internal
 	import entetes_lcd
 
@@ -103,8 +109,10 @@ https://lcd.test {
 	}
 }
 
-# --- HTTP : redirection HTTPS. Port parametrable (defaut local 4001) -------
-# En LAN/Internet (procedure-p1) : LCD_PORT_HTTPS=443, aucun changement Caddy.
-http://lcd.test {
-	redir https://lcd.test:{$LCD_PORT_HTTPS:4001}{uri} permanent
+# --- HTTP : redirection HTTPS. Nom + port parametrables -------------------
+# En LAN/Internet (procedure-p1) : LCD_HOTE=sas.exemple.fr + LCD_PORT_HTTPS=443,
+# aucun changement Caddy. Le nom est repris de l'environnement pour que le
+# redirect ne renvoie JAMAIS vers un autre hote que celui appele.
+http://{$LCD_HOTE:lcd.test} {
+	redir https://{$LCD_HOTE:lcd.test}:{$LCD_PORT_HTTPS:4001}{uri} permanent
 }

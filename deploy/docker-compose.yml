@@ -35,8 +35,10 @@ services:
       # (forward_auth Authelia) ; le cookie lcd_qui n'est plus lu (aucun
       # repli sans IdP). Retirer ces 3 lignes = retour au lab P1 (batteries).
       LCD_IDP: "1"
-      # Portail visible par le navigateur (mêmes hosts que Caddy).
-      LCD_IDP_URL: https://lcd.test:4002
+      # Portail visible par le navigateur (même nom que Caddy, même source :
+      # LCD_HOTE). En LAN/Internet, le lien portail suit donc l'entrée sans
+      # edition de code (un seul cookie par deploiement).
+      LCD_IDP_URL: https://${LCD_HOTE:-lcd.test}:${LCD_PORT_IDP:-4002}
       # Endpoint INTERNE du logout serveur (réseau docker front) — le
       # navigateur ne parle jamais directement à l'IdP.
       LCD_IDP_INTERNE: http://authelia:9091
@@ -95,6 +97,12 @@ services:
   # :4001 = staff/app, :4002 = portail Authelia (cookies partages).
   caddy:
     image: caddy:2-alpine
+    # Nom d'entree + port HTTPS publics : SEULE chose a changer pour passer
+    # du local au LAN puis a Internet (doctrine docs/71, R3). Le Caddyfile ne
+    # contient aucun nom en dur ; Authelia suit via rendre-config.ps1.
+    environment:
+      LCD_HOTE: ${LCD_HOTE:-lcd.test}
+      LCD_PORT_HTTPS: ${LCD_PORT_HTTPS:-4001}
     ports:
       # 4003 = HTTP (redirect auto → HTTPS), 4001 = HTTPS (lcd.test, staff).
       # (4000 HOTE deja pris par un outil externe utilisateur (opencode.py,
