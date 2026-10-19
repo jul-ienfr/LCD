@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import "./globals.css";
 import "./lite.css";
 import { VoirComme } from "./voir-comme";
 import { ThemeToggle } from "./theme-toggle";
-import { lireIdentite } from "@/lib/identite";
+import { lireIdentite, jarSecurise } from "@/lib/identite";
 import { libelleProfil } from "@/lib/profils";
 
 // Le layout lit le cookie de session (voir-comme) : toutes les routes sont
@@ -59,11 +58,11 @@ export default async function RootLayout({
   const identifiant = courant ? libelleProfil(courant) : "";
   // Bandeau §S3.3 : qui REGARDE réellement, quand on voit comme quelqu'un.
   const vuPar = id.modeIdp && id.vuComme ? libelleProfil(id.quiReel) : "";
-  const jar = await cookies();
-  const theme = jar.get("lcd_theme")?.value || "";
+  const jar = await jarSecurise();
+  const theme = jar?.get("lcd_theme")?.value || "";
   // Mode dégradé L1 (§F7) : cookie lcd_lite posé par /api/lite (lien <a> natif,
   // sans JS) → class html qui neutralise filtres/dégradés dans lite.css.
-  const lite = jar.get("lcd_lite")?.value === "1";
+  const lite = jar?.get("lcd_lite")?.value === "1";
   return (
     <html
       lang="fr"

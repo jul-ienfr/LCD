@@ -13,7 +13,7 @@ pwsh lab/lab-run.ps1
 Verdict partagé 0-5/5 : reset fixtures → rebuild → santé 19 ports →
 batterie passerelle (74 sections) → vps-sim 7/7 → build front + stack
 self-hosted (deploy 7 checks fail-closed + recette IdP 22/22 + batterie
-front 46/46) → down -v.
+front 46/46 + recette PWA/offline 14/14) → down -v.
 Ajouter `-NoDeploy` pour sauter l'étape front.
 
 ## 2. Ou : garder le SAS durablement UP (démo continue)

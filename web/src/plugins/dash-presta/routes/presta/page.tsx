@@ -9,6 +9,7 @@ import { t, type Langue } from "../../i18n";
 import { languePage } from "@/lib/langue";
 import { Onglets } from "@/app/onglets";
 import { FormulaireAction } from "@/app/formulaire-action";
+import { PwaDashboard } from "@/lib/pwa";
 
 export const metadata: Metadata = { title: "Prestataire" };
 
@@ -45,6 +46,7 @@ export default async function PagePresta({
   return (
     <div className="flex flex-col gap-5">
       <Onglets lang={lang} ici="/presta" />
+      <PwaDashboard lang={lang} />
 
       <section className="hero" aria-label={t("prestataire", lang)}>
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -121,6 +123,7 @@ export default async function PagePresta({
               humains={HUMAINS}
               envoyer={t("envoyer", lang)}
               choisirQui={t("qui", lang)}
+              horsLigne
             />
           </div>
         </section>
@@ -141,6 +144,7 @@ export default async function PagePresta({
               humains={HUMAINS}
               envoyer={t("envoyer", lang)}
               choisirQui={t("qui", lang)}
+              horsLigne
             />
           </div>
         </section>

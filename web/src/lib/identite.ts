@@ -26,15 +26,39 @@ export type Identite = {
   qui: string;
 };
 
+export type JarSecurise = Awaited<ReturnType<typeof cookies>> | null;
+
+/**
+ * Lecture du jar cookies SANS JAMAIS faire echec d'un rendu.
+ * Bug interne Next 16.4 + cacheComponents : sur un POST d'action MPA, le
+ * RootLayout peut recevoir un objet cookies qui n'est ni `cookies` ni
+ * `mutableCookies` (InvariantError). Une lecture de confort (identite,
+ * theme, lite) ne doit jamais casser la page : degradation anonyme/claire,
+ * jamais une identite devinee ni un bandeau qui ment.
+ */
+export async function jarSecurise(): Promise<JarSecurise> {
+  try {
+    return await cookies();
+  } catch (e) {
+    console.warn("jarSecurise : cookies indisponibles sur ce rendu (degradation)", e);
+    return null;
+  }
+}
+
 export async function lireIdentite(): Promise<Identite> {
-  const jar = await cookies();
+  const jar = await jarSecurise();
   if (process.env.LCD_IDP !== "1") {
-    const qui = jar.get("lcd_qui")?.value || "";
+    const qui = jar?.get("lcd_qui")?.value || "";
     return { modeIdp: false, quiReel: qui, vuComme: "", qui };
   }
-  const hdr = await headers();
-  const quiReel = (hdr.get("remote-user") || "").trim();
-  const brut = (jar.get("lcd_vu")?.value || "").trim();
+  let quiReel = "";
+  try {
+    const hdr = await headers();
+    quiReel = (hdr.get("remote-user") || "").trim();
+  } catch (e) {
+    console.warn("lireIdentite : headers indisponibles sur ce rendu -> anonyme", e);
+  }
+  const brut = (jar?.get("lcd_vu")?.value || "").trim();
   const vuComme = brut && brut !== quiReel ? brut : "";
   return { modeIdp: true, quiReel, vuComme, qui: vuComme || quiReel };
 }

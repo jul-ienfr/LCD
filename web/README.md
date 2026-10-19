@@ -87,6 +87,24 @@ backdrop-filter, dégradés et transitions (vieilles versions Safari/Chrome).
 Aucune règle ne masque du contenu : alléger n'est pas réduire.
 L'échelle complète L0 (SMS + papier) → L3 (PWA offline) : `docs/70-front-v1.md` §F7.
 
+## PWA + offline (F4, §F8)
+
+Deux dashboards offline (`/voyageur`, `/presta`) : service worker **maison**
+`public/sw.js` (versionné `lcd-v1-…`, 0 framework) + `src/lib/pwa.tsx`
+(enregistrement SW, bandeau « hors ligne » honnête, rejeu FIFO) +
+`src/lib/outbox.ts` (file d'écritures IndexedDB, clé = **ref idempotente**).
+Le SW ne ment jamais : réseau d'abord pour les pages, assets hashés en
+cache-first, **API jamais mise en cache**, purge à la révocation. Un POST
+rejeté (4xx/5xx) n'est **jamais** retiré de l'outbox ; il faut que le serveur
+ait accepté (303/200) — sinon la file reste affichée.
+
+Recette réelle : `deploy/test-pwa.ps1` → `scripts/recette-pwa.mjs` (devDependency
+`playwright-core` : pilote Edge système `msedge`, **0 navigateur téléchargé**).
+Elle coupe le réseau au niveau CDP, prouve la lecture hors-ligne, la mise en
+attente, le rejeu puis la **preuve serveur** (rejeuter la même ref →
+`idempotent=true` sur la passerelle) et la purge. `scripts/diag-outbox.mjs` /
+`diag-native.mjs` = diagnostics de dépannage (contenu outbox, POST natif sans JS).
+
 ## Contraintes respectées
 
 - Gateway **intacte** : le front lit le JSON existant, ne modifie aucune route

@@ -56,6 +56,16 @@ lcd.test:4003 → HTTP → HTTPS 4001
   403 révocation → logout 302 + bandeau/journal voir-comme.
 - `test-front.ps1` : batterie lab P1 (sans `LCD_IDP`, contre `next start`)
   — 46 checks, la preuve que la bascule `LCD_IDP` ne casse pas le mode lab.
+- `test-pwa.ps1` : **recette PWA/offline réelle** (F4) — `sw.js` servi +
+  versionné, puis `web/scripts/recette-pwa.mjs` : Edge headless (`msedge`,
+  0 navigateur téléchargé) + coupure réseau **réelle** (`context.setOffline`
+  CDP) → guide lisible sans WAN, écriture offline mise en attente (outbox
+  IndexedDB), rejeu automatique au retour réseau, **preuve serveur non
+  simulable** (rejeuter la même ref → `idempotent=true` sur la table 24 h de
+  la passerelle = le navigateur a exécuté la ref), 3 allers-retours = 0
+  perdue / 0 doublon, purge `lcd-purge` = 0 cache restant.
+  ⚠ écrit dans le lab (`box-lab/log1` : commandes extras + sinistres) :
+  relancer `seed-reset` avant `tests_lab.py` (finances exactes).
 - `test-deploy.sh` : jumeau sh (mêmes 7 checks + délégation).
 
 ## Teardown

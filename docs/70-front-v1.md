@@ -57,8 +57,9 @@ Pages plates actuelles : `/` (landing), `/login`, `/hote`, `/planning`,
 
 Lacunes vs cible (point de départ du cahier, 2026-10-18) : ~~aucun chargeur
 plugin~~ ✅ F1 ; ~~pas d'IdP réel (cookie `lcd_qui` = mode lab)~~ ✅ F3
-(Authelia 4.39.28, lab sans IdP = batterie locale seulement) ; PWA = manifest
-seul, **0 service worker** (F4) ; ~~pas de version lite~~ ✅ F1 (L1) ; †
+(Authelia 4.39.28, lab sans IdP = batterie locale seulement) ; ~~PWA = manifest
+seul, **0 service worker**~~ ✅ F4 (`web/public/sw.js` maison versionné +
+outbox IndexedDB ref idempotente + purge révocation, `test-pwa.ps1` 14/14) ; ~~pas de version lite~~ ✅ F1 (L1) ; †
 dashboards `super`/`admin` (`/systeme`, secrets, journal voir-comme, recherche
 par `ref`) absents (F5) ; † tickets support + messagerie 3 fils (§P8) absents
 (F5). † = restant ; états dans §F10.
@@ -236,6 +237,13 @@ Règles techniques opposables (batterie dégradée, §F9) :
   `!navigator.onLine`, données horodatées affichées telles quelles.
 - Recette : offline 2 h réelle (mode avion) sur séjour témoin + batterie
   lab dédiée ; 0 écriture perdue en 3 allers-retours réseau.
+  ✅ 2026-10-19 : `deploy/test-pwa.ps1` 14/14 — coupure RÉELLE (Edge headless
+  `msedge` + `context.setOffline` CDP), guide lisible sans WAN, écriture
+  voyageur mise en attente (outbox IndexedDB), rejeu automatique au retour
+  réseau, **preuve serveur non simulable** (rejeuter la même ref →
+  `idempotent=true` sur la table 24 h de la passerelle ⇒ le navigateur a
+  exécuté la ref AVANT notre probe), 3 allers-retours = 0 perdue / 0 doublon
+  (2 refs distinctes), purge `lcd-purge` = 0 cache restant. Aucune simulation.
 
 ## §F9 Performance, a11y, batteries
 
@@ -268,7 +276,7 @@ A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 | **F1 socle** — ✅ clos 2026-10-18 | Arborescence `plugins/`, chargeur + validateur, `lite.css`, rapport bundle CI, batteries dégradées v1 | ~4 j | build vert + validateur KO sur manifeste piégé |
 | **F2 migration 6 plugins** — ✅ clos 2026-10-18 | dossiers existants → plugins (URLs stables), i18n préfixée, grep fuite | ~5 j | `test-front.ps1` étendu vert (23 → ≥35 verifs) — gate passé : 39/39 exit 0 |
 | **F3 IdP** — ✅ clos 2026-10-19 | `forward_auth` + 2FA staff + révocations (§F5) + piste voir-comme `{qui_reel, vu_comme}` | ~3 j | gate passé : `test-idp.ps1` 22/22 (302 → redir 2FA → TOTP réel niveau 2 → chip identité → 403 révocation → logout 302) + `test-front.ps1` 46/46 lab + `tests_lab.py` 0 KO |
-| **F4 PWA** | SW maison + outbox + purge révocation + recette offline 2 h | ~4 j | offline 2 h sur séjour témoin, 0 écriture perdue |
+| **F4 PWA** — ✅ clos 2026-10-19 | SW maison + outbox IndexedDB (ref idempotente) + purge révocation + bandeau « hors ligne » honnête | ~4 j | gate passé : `test-pwa.ps1` 14/14 (offline réel Edge/CDP : guide lisible hors-ligne, écriture en attente, rejeu auto, preuve serveur `idempotent=true` = le navigateur a réellement exécuté, purge caches). « 0 écriture perdue » prouvé par table d'idempotence ; « offline 2 h sur séjour témoin » = DoD manuelle (matrice §F9) |
 | **F5 dash-super/admin** | `/systeme`, secrets rotation super seul, journal voir-comme 90 j, recherche par `ref`, tickets + messagerie 3 fils (§P8) | ~6 j | batteries V5/V6 (secrets jamais simulés, 403 admin secrets) |
 | **F6 front box** | `:8060` étendu (état runtime HA\|Moli), kiosk L1, recette box HA + Moli | ~3 j | recette box offline 2 h sur les 2 runtimes |
 

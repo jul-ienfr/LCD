@@ -3,6 +3,34 @@
 > R5 : l'état réel vit ICI, jamais mélangé aux cahiers normatifs.
 > Relevé du 2026-10-15, sans toucher au code.
 
+- **F4 PWA RÉEL 2026-10-19** : service worker **maison** (`web/public/sw.js`,
+  versionné `lcd-v1-…`, ~90 lignes, 0 framework) — précache des 2 dashboards
+  offline (`/voyageur`, `/presta`), network-first pages, cache-first assets
+  hashés, **API `/_next` hors cache jamais servie depuis un cache** (le SW ne
+  ment pas), purge à l’activate + par message `lcd-purge` (checkout+12 h /
+  révocation lien magique) + purge automatique d’une page réseau-révoquée
+  (401/403/404/410). Outbox IndexedDB (`web/src/lib/outbox.ts`, backend
+  injectable = logique testée en unitaire, clé = **ref idempotente** = celle
+  du champ `ref` du formulaire 1-tap → rejeu sans doublon), bandeau « hors
+  ligne » honnête (`web/src/lib/pwa.tsx`, `useSyncExternalStore` sur
+  `navigator.onLine`), rejeu FIFO MPA au retour réseau. **3 anomalies racines
+  réelles corrigées** : (1) `/v1/audit` absente de l’allowlist ⇒ voir-comme
+  fail-closed refusait silencieusement (F3) ; (2) `jarSecurise()` — bug
+  interne Next 16.4 + `cacheComponents` : un POST d’action MPA recevait un
+  objet `cookies` n’étant ni `cookies` ni `mutableCookies` (InvariantError)
+  qui **cassait le rendu du `RootLayout` AVANT l’exécution de l’action** ⇒
+  lecture d’identité/thème dégradée en `null` au lieu d’échouer (jamais
+  d’identité devinée) ; (3) formulaire sinistre du voyageur n’envoyait pas
+  `declarant` (champ exigé par le moteur dispatch) ⇒ toujours refusé 400.
+  Preuves : `deploy/test-pwa.ps1` **14/14** — Edge headless `msedge` +
+  coupure réseau **réelle** (`context.setOffline` CDP), guide lisible sans
+  WAN, écriture offline mise en attente, rejeu auto, **preuve serveur non
+  simulable** (rejeuter la même ref ⇒ `idempotent=true` sur la table 24 h de
+  la passerelle = le navigateur a exécuté la ref AVANT notre probe), 3
+  allers-retours = 0 perdue / 0 doublon (sinistre + extras `petit_dej`),
+  purge = 0 cache restant ; vitest 30/30 (outbox dédup/FIFO/retrait) ;
+  `test-front` + `test-deploy` + `tests_lab` sans régression (voir plus bas).
+
 - **F3 IdP RÉEL 2026-10-19** : Authelia **4.39.28** (3e service `deploy`,
   env natives `AUTHELIA_*` — 0 `${VAR}` dans le YAML, prouvé sur le binaire)
   + Caddy `forward_auth` sur :4001 (purge des `Remote-*` client puis

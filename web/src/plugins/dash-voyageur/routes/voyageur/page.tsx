@@ -7,6 +7,7 @@ import { t, type Langue } from "../../i18n";
 import { languePage } from "@/lib/langue";
 import { Onglets } from "@/app/onglets";
 import { FormulaireAction } from "@/app/formulaire-action";
+import { PwaDashboard } from "@/lib/pwa";
 
 const HUMAINS: [string, string][] = [
   ["personne_03", "personne_03 (operateur)"],
@@ -31,7 +32,7 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
   }>("/api/apercu-parc").catch(() => null);
   const carte = ap?.logements?.find((l) => l.logement_id === logement) || null;
   const boxId = carte?.box_id || "box-lab";
-  const exemples: Record<string, string> = { ref_resa: "", extras: "linge-lit:1,parking:1", arrivee: "2027-11-10", motif: "dégât des eaux", description: "" };
+  const exemples: Record<string, string> = { ref_resa: "", extras: "petit_dej:1", arrivee: "2027-11-10", motif: "degat_eau_sdb", declarant: "Voyageur sur place", description: "" };
   const refVoyageur = `WEB-VOY-${logement.toUpperCase()}`;
   // Guide de séjour : annonce RÉELLE (horaires, équipements, description).
   const annonce = await gwGet<{
@@ -59,6 +60,7 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
   return (
     <div className="flex flex-col gap-5">
       <Onglets lang={lang} ici="/voyageur" />
+      <PwaDashboard lang={lang} />
 
       <section className="hero hero-voyageur" aria-label={t("voyageur", lang)}>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
@@ -131,7 +133,7 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
             </div>
           </div>
           <div className="mt-4">
-            <FormulaireAction actionId="commande_extras" libelle={t("voyageur.extras_commander", lang)} champs={["ref_resa", "extras", "arrivee"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
+            <FormulaireAction actionId="commande_extras" libelle={t("voyageur.extras_commander", lang)} champs={["ref_resa", "extras", "arrivee"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} horsLigne />
           </div>
         </section>
 
@@ -144,7 +146,7 @@ async function Sejour({ lang, logement }: { lang: Langue; logement: string }) {
             </div>
           </div>
           <div className="mt-4">
-            <FormulaireAction actionId="sinistre_declarer" libelle={t("voyageur.incident_declarer", lang)} champs={["motif", "description"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} />
+            <FormulaireAction actionId="sinistre_declarer" libelle={t("voyageur.incident_declarer", lang)} champs={["motif", "declarant", "description"]} exemples={exemples} boxId={boxId} logementId={logement} refBase={refVoyageur} humains={HUMAINS} envoyer={t("envoyer", lang)} choisirQui={t("qui", lang)} horsLigne />
           </div>
         </section>
       </div>

@@ -2,7 +2,7 @@ id,titre,source,moteur_port,flag_logements_yaml,batterie_lab,dashboard,statut
 REQ-S-001,1 logement = 1 box = 1 mandat actif,Socle S0,mandats.yaml:statut actif,global/socle,execution 60 §60.2-P0,dash-super/dash-admin,fige-v1
 REQ-S-002,Overbooking INTERDIT,Socle S5,ics-sync:8090 + booking:8095,global anti-double-resa,batterie ics double-resa,dash-operateur,fige-v1
 REQ-S-003,Multi-tenant entite_id obligatoire des J1 gateway 422 + contrat plugin dashboard.yaml,Socle S3 + 20.7,gateway:8443,global,§60 403 mandat propre + chargeur strict,dash-super,fige-v1
-REQ-S-003-V1,Vue voyageur PWA sejour lien magique J-2 checkout+12h,Socle S3.5-V1,booking:8095 + extras:8098,logX.features.assistance_voyageur,batterie sejour temoin zero-touch + offline 2h,dash-voyageur,a-valider-v2
+REQ-S-003-V1,Vue voyageur PWA sejour lien magique J-2 checkout+12h,Socle S3.5-V1,booking:8095 + extras:8098,logX.features.assistance_voyageur,offline 2h = recette test-pwa.ps1 14/14 (SW+outbox+purge, coupure reseau reelle); zero-touch sejour temoin (lien magique) = a faire (F3 suivant),dash-voyageur,a-valider-v2
 REQ-S-003-V2,Vue proprio SES logements releves J+5 digest lundi,Socle S3.5-V2,compta:8100 + facturation:8093,global,batterie 403 hors perimetre + releve J+5,dash-proprio,a-valider-v2
 REQ-S-003-V3,Vue operateur 14 actions prix 1-tap cloture 409,Socle S3.5-V3,gateway:8443 + dispatch:8096,global,batterie cloture 409 + prix hors bornes 422,dash-operateur,a-valider-v2
 REQ-S-003-V4,Vue presta PWA mission pointage photos AVANT/APRES,Socle S3.5-V4,dispatch:8096,global,batterie cloture sans photo 409,dash-presta,a-valider-v2
