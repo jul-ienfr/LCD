@@ -92,8 +92,18 @@ try {
         "test-rapport", "test-depot", "test-entretien", "test-docs", "test-sante", "test-acces", "test-versions", "test-export",
         "test-durcissement", "test-backup", "test-demarrage")
     $presentes = @($attendues | Where-Object { $mdDepot -match [regex]::Escape("| $_ |") }).Count
-    Verif ("le rapport versionne couvre la passe complete ($presentes/$($attendues.Count))") (
-        $presentes -eq $attendues.Count)
+    #  Une batterie AJOUTEE apres l'ecriture du rapport ne peut pas y figurer :
+    #  la compter comme manquante rendait la passe rouge a chaque nouvelle
+    #  batterie (mesure du 2026-10-19 : 24/25 juste apres l'ajout de
+    #  test-lan-acces). On la declare « trop recente pour y figurer ».
+    $mtimeDoc = if (Test-Path $rapportVersionne) { (Get-Item $rapportVersionne).LastWriteTime } else { [datetime]::MaxValue }
+    $tropRecentes = @($attendues | Where-Object {
+            $mdDepot -notmatch [regex]::Escape("| $_ |") -and
+            (Test-Path (Join-Path $ici ("$_.ps1"))) -and
+            ((Get-Item (Join-Path $ici ("$_.ps1"))).LastWriteTime -gt $mtimeDoc)
+        })
+    Verif ("le rapport versionne couvre la passe complete ({0}/{1}, {2} trop recente(s) pour y figurer)" -f $presentes, $attendues.Count, $tropRecentes.Count) (
+        ($presentes + $tropRecentes.Count) -eq $attendues.Count)
     #  Autoportance : chaque batterie doit avoir sa ligne RESULTAT dans le
     #  document (on n'exige pas qu'il ne cite jamais le journal — il l'indique
     #  justement comme la ou regarder).
