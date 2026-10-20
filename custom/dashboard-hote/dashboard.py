@@ -14,6 +14,7 @@ import os
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 QUI_DEFAUT = "dashboard_hote"
@@ -142,9 +143,12 @@ class Moteur:
         """
         rt = self._runtime(logement_id)
         if rt == "moli":
+            # Probe santé : 5 s comme HA (ha_vivante). Un health-check ne
+            # doit pas coûter le timeout plein (10 s) — c'est ce qui, en
+            # panne double, poussait la page rendue vers le budget navigateur.
             code, rep = appeler(
                 "GET", self._url(logement_id, "moli").rstrip("/")
-                + "/api/health")
+                + "/api/health", timeout=5)
             d = rep if isinstance(rep, dict) else None
             vivant = bool(code == 200 and d is not None
                           and d.get("name") == "moli-os")
@@ -159,26 +163,37 @@ class Moteur:
     def apercu(self, logement_id):
         if logement_id not in self._ids():
             return 404, {"erreur": f"logement inconnu: {logement_id}"}
-        _, reco = appeler(
-            "GET", self._url(logement_id, "pricing") + "/reco-ota?"
-            + urllib.parse.urlencode({"logement_id": logement_id}))
+        # F6 « dégradé, jamais blanc » : les 5 probes d'une carte (pricing,
+        # decision, dispatch, router + probe runtime) partent EN PARALLÈLE.
+        # Une box où tous les moteurs sont morts coûte UN seul timeout
+        # (~10 s), jamais la somme (4×10 + 10 = 50 s) qui dépasserait le
+        # budget navigateur et rendrait la page blanche de fait.
+        _q = urllib.parse.urlencode
+        _urls = [
+            self._url(logement_id, "pricing") + "/reco-ota?"
+            + _q({"logement_id": logement_id}),
+            self._url(logement_id, "decision") + "/journal?"
+            + _q({"logement_id": logement_id, "qui": self.qui}),
+            self._url(logement_id, "dispatch") + "/todos?"
+            + _q({"logement_id": logement_id}),
+            self._url(logement_id, "router") + "/routes",
+        ]
+        with ThreadPoolExecutor(max_workers=5) as _ex:
+            _f = [_ex.submit(appeler, "GET", u) for u in _urls]
+            _f.append(_ex.submit(self.runtime_vivant, logement_id))
+            _res = [f.result() for f in _f]
+        reco, jl, td, routes = (_res[0][1], _res[1][1],
+                                _res[2][1], _res[3][1])
+        rv = _res[4]
         brut_grille = (reco.get("grille_7j", [])
                        if isinstance(reco, dict) else [])
         grille = brut_grille if isinstance(brut_grille, (list, tuple)) else []
-        _, jl = appeler(
-            "GET", self._url(logement_id, "decision") + "/journal?"
-            + urllib.parse.urlencode({"logement_id": logement_id,
-                                      "qui": self.qui}))
         entrees = jl.get("entrees", []) if isinstance(jl, dict) else []
         if not isinstance(entrees, (list, tuple)):
             entrees = []
-        _, td = appeler(
-            "GET", self._url(logement_id, "dispatch") + "/todos?"
-            + urllib.parse.urlencode({"logement_id": logement_id}))
         dossiers = td.get("dossiers", []) if isinstance(td, dict) else []
         if not isinstance(dossiers, (list, tuple)):
             dossiers = []
-        _, routes = appeler("GET", self._url(logement_id, "router") + "/routes")
         # Pinces de lecture de secours (F6) : chaque moteur vaut « ok » si sa
         # clé de réponse attendue est présente (grille non vide pour pricing),
         # sinon « injoignable ». La page reste rendue : dégradation VISIBLE
@@ -204,7 +219,6 @@ class Moteur:
         vu = self._vu.get(logement_id)
         last_seen = (time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(vu))
                      if vu is not None else None)
-        rv = self.runtime_vivant(logement_id)
         return 200, {"logement_id": logement_id,
                      "prix_7j": grille[:7],
                      "journal_total": total,
@@ -232,8 +246,16 @@ class Moteur:
         h = html.escape
         cartes = []
         degrade = False   # ANY runtime injoignable -> bandeau global F6
-        for sys in self.systems:
-            code, ap = self.apercu(sys.get("id"))
+        # F6 : les cartes systèmes sont relevées EN PARALLÈLE (chaque
+        # apercu() l'est déjà en interne). Sans ça, 3 box en panne
+        # empileraient 3 × ~10 s ≈ 30 s, bien au-delà du budget navigateur :
+        # la page « dégradée » deviendrait blanche. Ici le pire cas = UN
+        # seul timeout (~10 s), donc la page revient toujours avec son
+        # bandeau. Le rendu HTML reste séquentiel (rapide, sans I/O).
+        _ids = [s.get("id") for s in self.systems]
+        with ThreadPoolExecutor(max_workers=max(1, len(_ids))) as _ex:
+            _ap = list(_ex.map(self.apercu, _ids))
+        for sys, (code, ap) in zip(self.systems, _ap):
             if code != 200:
                 cartes.append(f"<section><h2>{h(sys.get('nom', '?'))}</h2>"
                               "<p>indisponible</p></section>")

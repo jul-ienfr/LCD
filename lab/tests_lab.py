@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # lab/tests_lab.py — batterie de tests du lab Docker LCD (stdlib seule).
 # P2-14 : tunnel direct <60 s + conflit ICS + bornes 75/290 inviolables.
 # Usage : cd lab && docker compose up -d --build && python3 tests_lab.py
@@ -5177,6 +5177,63 @@ check("dashboard : apercu log1 moteurs pricing/decision/dispatch/router ok",
               for m in ("pricing", "decision", "dispatch", "router")),
       f"{str(ap47h)[:150]}")
 
+# --- F6 GATE : degradation visible sur LES 2 RUNTIMES (HA + Moli) ---
+# Coeur lab-visible de REQ-T-005 (§F6) : on coupe VRAIMENT les deux runtimes,
+# le pilote :8060 doit rester 200 (« degrade, jamais blanc »), afficher le
+# bandeau global + runtime_vivant=false sur chaque carte, puis RECUPERER au
+# retour. Aucune simulation : vrais docker compose stop/start.
+stop_ha = subprocess.run(
+    ["docker", "compose", "stop", "homeassistant"],
+    capture_output=True, timeout=120).returncode == 0
+stop_moli = subprocess.run(
+    ["docker", "compose", "--profile", "moli", "stop", "moli-box-nord"],
+    capture_output=True, timeout=120).returncode == 0
+check("F6 : coupure reelle des 2 runtimes (HA + Moli)",
+      stop_ha and stop_moli, f"ha={stop_ha} moli={stop_moli}")
+degr_ok = False
+for _ in range(15):
+    cd, pd = get("dashboard", "/")
+    _, ah = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
+        {"logement_id": "log1"}))
+    _, am = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
+        {"logement_id": "log3"}))
+    if (cd == 200 and isinstance(pd, str)
+            and "Box partiellement injoignable" in pd
+            and "jamais blanc" in pd
+            and isinstance(ah, dict) and ah.get("runtime") == "ha"
+            and ah.get("runtime_vivant") is False
+            and isinstance(am, dict) and am.get("runtime") == "moli"
+            and am.get("runtime_vivant") is False
+            and isinstance(ah.get("last_seen"), str) and ah.get("last_seen")):
+        degr_ok = True
+        break
+    time.sleep(5)
+check("F6 : :8060 degrade sur HA ET Moli (200 + bandeau + jamais blanc)",
+      stop_ha and stop_moli and degr_ok, f"vu={degr_ok}")
+start_ha = subprocess.run(
+    ["docker", "compose", "start", "homeassistant"],
+    capture_output=True, timeout=120).returncode == 0
+start_moli = subprocess.run(
+    ["docker", "compose", "--profile", "moli", "up", "-d",
+     "moli-box-nord"],
+    capture_output=True, timeout=180).returncode == 0
+rec_ok = False
+for _ in range(36):
+    cd, pd = get("dashboard", "/")
+    _, ah = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
+        {"logement_id": "log1"}))
+    _, am = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
+        {"logement_id": "log3"}))
+    if (cd == 200 and isinstance(pd, str)
+            and "Box partiellement injoignable" not in pd
+            and isinstance(ah, dict) and ah.get("runtime_vivant") is True
+            and isinstance(am, dict) and am.get("runtime_vivant") is True):
+        rec_ok = True
+        break
+    time.sleep(5)
+check("F6 : retour des 2 runtimes -> bandeau efface (recette box)",
+      start_ha and start_moli and rec_ok, f"vu={rec_ok}")
+
 print()
 print("== 48. passerelle parc :8443 : health + page parc (G0) ==")
 code, obj = get("passerelle", "/health")
@@ -7656,6 +7713,17 @@ stop65 = subprocess.run(["docker", "compose", "stop", "gateway-parc"],
 check("65 : passerelle stoppee (coupure simulee)", stop65, "")
 out65 = {}
 if stop65:
+    # F6 / REQ-T-005 (§F6 L178) : « SaaS/plane down -> box locale (§S2) ».
+    # Pendant la coupure de la passerelle (le plan SaaS), le pilote box :8060
+    # — stdlib, 0 dependance passerelle/Internet — doit CONTINUER a servir.
+    # C'est le coeur « recette box offline » au niveau lab : la box ne tient
+    # pas au SaaS pour exister. Jamais blanc, meme contenu.
+    c8060, p8060 = get("dashboard", "/")
+    check("F6 : SaaS coupe -> box :8060 sert encore (jamais blanc)",
+          c8060 == 200 and isinstance(p8060, str)
+          and "Vue d'ensemble" in p8060,
+          f"HTTP {c8060} len={len(p8060) if isinstance(p8060, str) else p8060}")
+if stop65:
     try:
         r65 = subprocess.run(
             ["docker", "compose", "exec", "-T", "agent-nord",
@@ -8325,5 +8393,6 @@ check("73 : 0 fuite PIN/secret/token/cle sur les routes tenant",
 if ECHECS:
     _aff(f"RÉSULTAT : {len(ECHECS)} ÉCHEC(S) : {ECHECS}")
     sys.exit(1)
+# UNE seule ligne de succès (corrige le double _aff « lab OK » qui s'ecrivait
+# deux fois — sortie parsee par les scripts = 2 resultats pour 1 passe).
 _aff("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2 + incident/offline P8-1/P8-4 + maintenance P8-10 + dashboard P1-13 + passerelle-parc G0 (health/page) + G1 (fan-out + cache + stale, lecture seule) + G2 (ecritures 1-tap allowlist + preconditions + idempotence + double log) + G2+ (allowlist menage/compta/caution + droits par role + revocation runtime RBAC) + G3 (artefacts VPS : aucun secret, aucun port du socle) + G2++ (page de pilotage : bandeau + 9 actions 1-tap sans JS, qui humain seul, ecritures desactivees si box injoignable) + G2+++ (calendrier centralise /calendrier-parc : lecture ICS jour par jour, borne 62 jours, cache TTL, degrade '?' si ics muet, 0 prix) + G2+suite (allowlist complete 14 actions : restitution caution, facture/document, extras, sinistre ; normalisation formulaire ; regression cache hit qui ne debloque plus les ecritures) + 6bis-a (CRUD logements /parc/* : creation admin, copro BLOQUEE par defaut, diff minimal, config generale groupee dry-run puis confirmee, archivage doux jamais de purge, rollback snapshot, RBAC admin vs super_admin, 0 fuite sur le registre partage) + 6bis-b (fiches annonce OTA : cycle strict brouillon→pret→publie_manuel→synchronise, dry-run dossier+checklist sans ecrire, marquer-publie = geste humain avec canaux+preuve fusionnes, export-ota 100% lecture seule, 0 route d'ecriture OTA ouverte) + 6bis-c (vue biens fusionnee /parc/biens : inventaire stats+alertes + stocks alertes, inventaire_off = information et non panne, endpoints_manquants = trou de registre distingue d'une panne moteur, 0 ligne perdue si moteur muet, transfert humain avec dossier de pertes, confirmer:true+ref cree reellement la fiche destination, re-transfert 409, source jamais supprimee) + G2bis-a (entites juridiques + mandats logement-entite (§3bis) : enums fermes nature/regime/tva, IBAN et numero de compte EN CLAIR refuses a l'ecriture (references env:/vault: seules), mandat_tiers bloque sans client/commission, rattachement a une entite inconnue 409, cycle de vie strict brouillon-pret-actif-suspendu-resolue avec saut refuse 409, resolie exige reversement_solde:true + motif declares par l'humain, rollback super_admin seul, /etat-parc signale les logements sans rattachement sans rien bloquer, filtres ?entite=/?mode= sur apercu-parc calendrier-parc export-ota et biens sans jamais filtrer en silence, 0 secret dans les fichiers versionnes, double log)" + " + G2bis-b (portail proprietaire tiers (§3bis) : lien au mandat qui PRIME sur le perimetre donc log1 au perimetre mais mandat propre = 403, releve mensuel via mois additif sur /finances, commission plateforme None et NON 0 € car la compta stocke les payouts net, inconnu[] dit le manque, mandat non actif = etat jamais tableau de zeros, 0 fuite PIN/RIB/prix/reco/HA, refus qui ne divulgue pas le client, consultation tracee au journal sans aucun montant, page HTML sans JS qui affiche « — »)" + " G4-a (seuils alerte : box_down >600 s CRITIQUE avec age ET seuil, outbox_grossit >50 et outbox_plafond_depasse >500 SEUL avec reporting evince d abord financier JAMAIS, fanout SLO p95 vs budget, rapprochement >2 %, echeance mandat/RC/confiance/couverture/cloture/copro ; box JAMAIS vue = joignabilite inconnue et non box_down, file illisible = outbox_inconnu et non 0, last_seen futur = horloge incoherente, parc sans mesure = mesures_absentes DIT, copro None != copro False, chaque alerte porte sa regle, seuils surchargeables en config, /metrics expose alertes + outbox_par_box + fanout_budget_ms sans appeler de moteur)" + " G2bis-b-2 (portail ?client= multi-clients : filtre sur le client_tiers_ref OPAQUE, meme namespace que clients_ref de l autorisation, donc aucun libelle client a enumerer ; un client NON declare = 403 qui ne cite PAS la reference demandee et ne confirme/n infirme jamais son existence ; exploitant libre, operateur refuse ; le filtre COMPTE ses gardes/ecartes au lieu de retirer en silence ; chaque releve porte le client_tiers_ref ; la page HTML annonce le filtre et son comptage)" + " (§14.3 pilotage portail : ADR = CA / nuitées vendues, RevPAR = CA / nuitées OUVERTES (occupes+libres du calendrier, JAMAIS les jours d erreur), occupation = vendues / ouvertes. Regle appliquée à la lettre : un dénominateur INCONNU rend `None`, JAMAIS 0 — donc « 0 nuitee » ne devient pas « chambre à 0 € », et une nuit en erreur calendrier n est pas comptée libre. ADR par canal NON calculable (la compta expose le CA par canal mais pas les nuitées : le diviser par le total serait faux) et c est DIT. Ecart entre la période du CA et la fenêtre calendrier bornée à 62 j = « INDICATIF » dit dans `attention`. Journal porte qui/quoi, jamais un montant ; aucune écriture moteur)" + " (G2bis-b/§17 documents de mandat SERVIS : route `GET /parc/portail/{lid}/doc/{quoi}` — mandat D'ABORD (`ptf.lien()`, la gateway ne devine pas), nom ensuite (`ptf.chemin_doc()` : whitelist extension `.pdf` vérifiée AVANT les caractères pour donner un motif précis, whitelist caractères PAR nom — le point permis seulement dans le nom de fichier, `..` rejeté — puis `realpath` confiné SOUS `docs_dir`), contenu enfin (`application/pdf` + `Content-Disposition: attachment`, `nosniff`, `no-store`, nom de fichier filtré avant d entrer dans l en-tête). La barrière extension est franchie par une traversée EN `.pdf` pour que la 2e barrière soit réellement testée. Le dépôt absent rend une liste `None`, jamais `[]` : « dépôt absent » ≠ « 0 document ». Le journal porte qui/quoi/logement/octets, jamais un montant. Un collègue déclarant le MÊME client a accès : c est le mandat qui décide, pas le nom du compte) + G4-b (§65 : box-nord log3 + agent outbox + split-brain 120/130 affiche + revue humaine motivee tracee + reconvergence explicite + digest 1 lecture, 0 fuite) + §15/§29 (routage IA : llm.yaml sans cle, 9 usages, dry-run sans ecriture/envoi/WAN, interdits 403, injection refusee, redaction PII, UUIDv7, clock_skew) + §14.5/§28 (CRM : pipeline 8 etapes, commercial scope strict, prospect 201, simulateur 422 sans entite, offre marque blanche) + §17/§30 (i18n 5 langues 0 cle manquante, pluriels, Content-Language, SMS 160, export-compta mono-SIREN, effacement RGPD trace, openapi/versions/ADRs) (file qui grandit puis rejeu idempotent) + split-brain 120/130 affiche + revue humaine motivee tracee + reconvergence explicite + digest 1 lecture, 0 fuite)")
-_aff("RÉSULTAT : lab OK — tunnel <60 s + conflit + bornes + garde-fous + dispatch P6-8 + parcours intervenant P6-2 + inventaire P6-4 + extras P6-5 + menage P6-1 + stocks P6-3 + wifi P6-10 + phrases P6-11 + memoire P6-12 + menage-date-certaine P6-13 + questionnaire P6-14 + contrat P6-15 + edl P6-16 + avis P6-17 + compta P6-18 + menage-tarif P6-19 + rbac P6-20 + carnet P6-21 + formation P6-22 + seuils P7-6 + tracabilite P7-7 + routage P7-3 + aliases P7-4 + prompts P7-10 + jev P7-11 + pricing P7-12/13 + ops P7-14 + ops-jev P7-15 + juri P7-16/17 + proxy P7-2 + garde-fous P7-19 + jev P7-5 + voix P7-1/8 + gate P8-7 + marque P8-3 + clone P8-12 + box-ha + push-ha + loop-ha + history + recette P7-9 + zero-touch P8-2 + incident/offline P8-1/P8-4 + maintenance P8-10 + dashboard P1-13 + passerelle-parc G0 (health/page) + G1 (fan-out + cache + stale, lecture seule) + G2 (ecritures 1-tap allowlist + preconditions + idempotence + double log) + G2+ (allowlist menage/compta/caution + droits par role + revocation runtime RBAC) + G3 (artefacts VPS : aucun secret, aucun port du socle) + G2++ (page de pilotage : bandeau + 9 actions 1-tap sans JS, qui humain seul, ecritures desactivees si box injoignable) + G2+++ (calendrier centralise /calendrier-parc : lecture ICS jour par jour, borne 62 jours, cache TTL, degrade '?' si ics muet, 0 prix) + 6bis-c (vue biens fusionnee /parc/biens : inventaire stats+alertes + stocks alertes, inventaire_off = information et non panne, endpoints_manquants = trou de registre distingue d'une panne moteur, 0 ligne perdue si moteur muet, transfert humain avec dossier de pertes, confirmer:true+ref cree reellement la fiche destination, re-transfert 409, source jamais supprimee) + G2bis-a (entites juridiques + mandats logement-entite (§3bis) : enums fermes nature/regime/tva, IBAN et numero de compte EN CLAIR refuses a l'ecriture (references env:/vault: seules), mandat_tiers bloque sans client/commission, rattachement a une entite inconnue 409, cycle de vie strict brouillon-pret-actif-suspendu-resolue avec saut refuse 409, resolie exige reversement_solde:true + motif declares par l'humain, rollback super_admin seul, /etat-parc signale les logements sans rattachement sans rien bloquer, filtres ?entite=/?mode= sur apercu-parc calendrier-parc export-ota et biens sans jamais filtrer en silence, 0 secret dans les fichiers versionnes, double log)" + " + G2bis-b (portail proprietaire tiers (§3bis) : lien au mandat qui PRIME sur le perimetre donc log1 au perimetre mais mandat propre = 403, releve mensuel via mois additif sur /finances, commission plateforme None et NON 0 € car la compta stocke les payouts net, inconnu[] dit le manque, mandat non actif = etat jamais tableau de zeros, 0 fuite PIN/RIB/prix/reco/HA, refus qui ne divulgue pas le client, consultation tracee au journal sans aucun montant, page HTML sans JS qui affiche « — »)" + " G4-a (seuils alerte : box_down >600 s CRITIQUE avec age ET seuil, outbox_grossit >50 et outbox_plafond_depasse >500 SEUL avec reporting evince d abord financier JAMAIS, fanout SLO p95 vs budget, rapprochement >2 %, echeance mandat/RC/confiance/couverture/cloture/copro ; box JAMAIS vue = joignabilite inconnue et non box_down, file illisible = outbox_inconnu et non 0, last_seen futur = horloge incoherente, parc sans mesure = mesures_absentes DIT, copro None != copro False, chaque alerte porte sa regle, seuils surchargeables en config, /metrics expose alertes + outbox_par_box + fanout_budget_ms sans appeler de moteur)" + " G2bis-b-2 (portail ?client= multi-clients : filtre sur le client_tiers_ref OPAQUE, meme namespace que clients_ref de l autorisation, donc aucun libelle client a enumerer ; un client NON declare = 403 qui ne cite PAS la reference demandee et ne confirme/n infirme jamais son existence ; exploitant libre, operateur refuse ; le filtre COMPTE ses gardes/ecartes au lieu de retirer en silence ; chaque releve porte le client_tiers_ref ; la page HTML annonce le filtre et son comptage)" + " (§14.3 pilotage portail : ADR = CA / nuitées vendues, RevPAR = CA / nuitées OUVERTES (occupes+libres du calendrier, JAMAIS les jours d erreur), occupation = vendues / ouvertes. Regle appliquée à la lettre : un dénominateur INCONNU rend `None`, JAMAIS 0 — donc « 0 nuitee » ne devient pas « chambre à 0 € », et une nuit en erreur calendrier n est pas comptée libre. ADR par canal NON calculable (la compta expose le CA par canal mais pas les nuitées : le diviser par le total serait faux) et c est DIT. Ecart entre la période du CA et la fenêtre calendrier bornée à 62 j = « INDICATIF » dit dans `attention`. Journal porte qui/quoi, jamais un montant ; aucune écriture moteur)" + " (G2bis-b/§17 documents de mandat SERVIS : route `GET /parc/portail/{lid}/doc/{quoi}` — mandat D'ABORD (`ptf.lien()`, la gateway ne devine pas), nom ensuite (`ptf.chemin_doc()` : whitelist extension `.pdf` vérifiée AVANT les caractères pour donner un motif précis, whitelist caractères PAR nom — le point permis seulement dans le nom de fichier, `..` rejeté — puis `realpath` confiné SOUS `docs_dir`), contenu enfin (`application/pdf` + `Content-Disposition: attachment`, `nosniff`, `no-store`, nom de fichier filtré avant d entrer dans l en-tête). La barrière extension est franchie par une traversée EN `.pdf` pour que la 2e barrière soit réellement testée. Le dépôt absent rend une liste `None`, jamais `[]` : « dépôt absent » ≠ « 0 document ». Le journal porte qui/quoi/logement/octets, jamais un montant. Un collègue déclarant le MÊME client a accès : c est le mandat qui décide, pas le nom du compte) + G4-b (§65 : box-nord log3 + agent outbox + split-brain 120/130 affiche + revue humaine motivee tracee + reconvergence explicite + digest 1 lecture, 0 fuite) + §15/§29 (routage IA : llm.yaml sans cle, 9 usages, dry-run sans ecriture/envoi/WAN, interdits 403, injection refusee, redaction PII, UUIDv7, clock_skew) + §14.5/§28 (CRM : pipeline 8 etapes, commercial scope strict, prospect 201, simulateur 422 sans entite, offre marque blanche) + §17/§30 (i18n 5 langues 0 cle manquante, pluriels, Content-Language, SMS 160, export-compta mono-SIREN, effacement RGPD trace, openapi/versions/ADRs) (file qui grandit puis rejeu idempotent) + split-brain 120/130 affiche + revue humaine motivee tracee + reconvergence explicite + digest 1 lecture, 0 fuite)")
