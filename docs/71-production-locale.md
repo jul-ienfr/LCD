@@ -248,11 +248,14 @@ démarrage à froid (le cache de rendu est vidé) :
 - `web/src/app/layout.tsx:80` conditionne pourtant la classe sur `lite` : le
   défaut est dans le découpage cache/dynamique, pas dans la condition.
 
-**Propriétaire** : tranche F6 (kiosk L1). Correctif attendu : que l'en-tête et
-la classe `<html>` soient rendus dans le **même** segment dynamique (lecture du
-cookie partagée), sinon la vérification `test-front` doit porter sur l'effet
-CSS (`lite.css` neutralise déjà les filtres) et non sur la présence de la
-classe. Tant que ce point est ouvert, la batterie front n'est pas verte.
+**Propriétaire** : tranche F6 (kiosk L1). **CLOS le 2026-10-19** : la cause n'était
+pas le rendu mais l'**image** — le conteneur `web` tournait un build antérieur
+aux commits F5/F6 (`docker inspect` : image du 2026-10-19 20:54, commits du
+2026-10-20 01:44 et 03:53). Après `docker compose build web` + recréation,
+`deploy/test-front.ps1` est **entièrement vert** (`front OK (batterie complète
+verte)`), y compris le kiosk L1 et les contrôles de marque blanche. Leçon
+retenue : une batterie verte sur une image périmée ne prouve rien ; l'état
+servi et l'état construit doivent être le même objet.
 
 ### §8 quater Exploitation automatique (2026-10-19)
 
@@ -308,3 +311,38 @@ libres, 5,2 %). Deux plafonds, tous deux mesurés :
   retombait silencieusement sur ses défauts ; un littéral
   `@( 'a'+x, 'b'+y )` a été rendu par PS 5.1 comme **une seule** chaîne (les
   deux éléments joints par une espace), produisant un JSONL invalide.
+
+### §8 sexies Hygiène d'état entre batteries (2026-10-19)
+
+Une batterie verte **isolée** peut être rouge dans la passe consolidée : c'est
+un état laissé par la précédente, pas un défaut du service. Trois cas mesurés,
+traités dans `deploy/tout-verifier.ps1` :
+
+1. **Ban de régulation IdP** — les batteries de recette échouent volontairement
+   (mauvais mot de passe) ; au 4e échec en 2 min, l'IdP bannit et la batterie
+   suivante mesure le ban (`test-idp` 7 KO en suite, vert isolé). Avant chaque
+   batterie, `deploy/outils/lever-ban-idp.py tous` remet l'état à zéro.
+2. **Code TOTP à usage unique** — un code n'est valable qu'une fois par
+   période ; la batterie suivante rejouait le même code. L'outil purge aussi
+   `totp_history`. **Incident et leçon** : une première version purgait toute
+   table contenant « totp », donc `totp_configurations` → **le 2FA de
+   l'utilisateur a été désenrôlé** (recette 2FA rouge pour tout le monde).
+   Réparation par **restauration réelle du volume** depuis un snapshot restic
+   antérieur (`restic restore <id> --target / --include /data`, conteneur
+   arrêté), puis `test-durcissement` 24/24 — la procédure de reprise a donc été
+   exercée pour de vrai, sur une panne réelle, pas en simulation. L'outil ne
+   touche plus que `banned_user`, `banned_ip` et `totp_history`.
+3. **Prérequis PWA** — le serveur `:3101` exigé par `test-pwa` ne peut pas être
+   `next start` (incompatible `output: standalone`, Next 16 le refuse) et un
+   `node server.js` lancé sur l'hôte ne survit pas à la session. `deploy/serveur-pwa.ps1`
+   sert donc **la même image que la production** dans un conteneur dédié, sans
+   IdP, sur le réseau lab ; `tout-verifier` le démarre avant la batterie et
+   l'arrête après.
+
+Troisième occurrence du piège `$args` (variable **automatique** de PowerShell,
+après `sauvegarde.ps1` et `test-backup.ps1`) : dans `serveur-pwa.ps1`, le splat
+`@args` envoyait autre chose que l'array construit, le conteneur sortait
+aussitôt et `/sw.js` ne répondait jamais — ce qui ressemblait à un conflit de
+port. Vérification ajoutée : aucun script de `deploy/` n'affecte `$args`
+(`grep` sur `^\s*\$args\s*=` ; une occurrence subsiste dans `test-front.ps1`,
+hors périmètre, signalée à son propriétaire).

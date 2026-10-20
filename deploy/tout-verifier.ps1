@@ -52,7 +52,38 @@ $totalKO = 0
 $lignes = New-Object System.Collections.Generic.List[string]
 $lignes.Add("=== " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss") + " passe de verification" + $(if ($Rapide) { " (rapide)" } else { "" }))
 
+function Natif($bloc) {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try { return (& $bloc) } finally { $ErrorActionPreference = $prev }
+}
+
+#  Etat de regulation IdP remis a zero AVANT chaque batterie : les batteries de
+#  recette echouent volontairement (mauvais mot de passe, TOTP faux) et la
+#  regulation du plan IdP (3 echecs / 2 min) les compte ; sans cette remise a
+#  zero, la batterie suivante mesure le ban laisse par la precedente (mesure du
+#  2026-10-19 : test-idp 7 KO en suite, vert isole). Le ban lui-meme reste
+#  prouve par test-durcissement, qui le provoque ET le leve.
+function EtatPropre {
+    $outil = Join-Path $ici "outils/lever-ban-idp.py"
+    if (-not (Test-Path $outil)) { return }
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & docker run --rm -v "lcd-deploy_authelia-data:/data" -v "${outil}:/outil.py:ro" `
+            python:3.12-slim python /outil.py tous 2>&1 | Out-Null
+    } finally { $ErrorActionPreference = $prev }
+}
+
 foreach ($b in $liste) {
+    EtatPropre
+    #  test-pwa exige un serveur sur :3101 en mode lab sans IdP — fourni par
+    #  serveur-pwa.ps1 (meme image que la production, conteneur dedie), sinon
+    #  la batterie mesure une connexion refusee et compte 6 KO trompeurs.
+    if ($b.nom -eq "test-pwa") {
+        $prep = (Natif { powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $ici "serveur-pwa.ps1") 2>&1 } | Out-String)
+        if ($LASTEXITCODE -ne 0) { Write-Output "[--] test-pwa : prerequisite :3101 non fourni"; Write-Output ($prep.Trim()) }
+    }
     $f = Join-Path $ici "$($b.nom).ps1"
     if (-not (Test-Path $f)) {
         Write-Output ("[--] {0} : script absent" -f $b.nom)
@@ -70,6 +101,12 @@ foreach ($b in $liste) {
     finally { $ErrorActionPreference = $prev }
     $code = $LASTEXITCODE
     $sortie = $sortie -split "\r?\n"
+    #  Le serveur :3101 n'existe que pour la recette PWA : on le retire apres
+    #  pour que la pile garde sa forme nominale (sinon la veille voit un
+    #  conteneur de plus et la comparaison de parc devient ambiguë).
+    if ($b.nom -eq "test-pwa") {
+        $null = (Natif { powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $ici "serveur-pwa.ps1") -Arreter 2>&1 } | Out-String)
+    }
     $duree = [int]((Get-Date) - $t0).TotalSeconds
     $ko = @($sortie | Select-String -SimpleMatch "[KO]").Count
     $ko = [Math]::Max($ko, [Math]::Max($code, 0))

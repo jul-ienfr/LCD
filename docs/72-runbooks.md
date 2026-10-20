@@ -282,6 +282,46 @@ Deux régimes, volontairement distingués par la veille :
 
 ---
 
+## R-11 — Une batterie est verte seule mais rouge dans la passe consolidée
+
+**Symptôme** : `deploy/tout-verifier.ps1` rapporte des KO sur `test-idp`,
+`test-pwa` (ou une 2FA qui échoue) alors que la même batterie, lancée seule,
+est verte. Ou l'inverse : elle reste rouge seule et verte en suite.
+
+**Diagnostic** (dans cet ordre — c'est presque toujours un **état** laissé par
+la batterie précédente, pas un défaut du service) :
+
+1. ban de régulation : `deploy/outils/lever-ban-idp.py tous` puis relancer.
+   Les batteries de recette échouent volontairement et l'IdP bannit après
+   3 échecs en 2 min ; le ban **survit au redémarrage du conteneur** (SQLite).
+2. code TOTP rejoué : un code n'est valable qu'une fois par période de 30 s ;
+   purger `totp_history` (l'outil le fait) et relancer.
+3. mauvais serveur : `test-pwa` exige un serveur sur `:3101` en mode lab sans
+   IdP. `next start` **ne marche pas** (front en `output: standalone`) et un
+   `node server.js` sur l'hôte meurt avec la session → utiliser
+   `deploy/serveur-pwa.ps1` (même image que la production, conteneur dédié).
+4. image périmée : comparer l'âge de l'image et la date du dernier commit
+   touchant `web/src` (`docker inspect --format "{{.Created}}"` contre
+   `git log -1 --format=%ci -- web/src`). Une batterie verte sur une image
+   antérieure ne prouve rien : reconstruire (`docker compose build web`) puis
+   recréer.
+
+**Action** : `deploy/tout-verifier.ps1` applique déjà 1 à 3 avant chaque
+batterie ; si un KO persiste après `-Batterie <nom>`, c'est un vrai défaut.
+
+**Vérification** : la batterie concernée seule, puis la passe complète
+(15 batteries, ~3 min).
+
+**Trace** : `deploy/veille/batteries.log` (gitignoré), ligne datée par passe.
+
+**Ne jamais** purger les tables contenant « totp » en bloc : cela désenrôle le
+2FA (`totp_configurations`) et toute l'entrée devient inutilisable. Réparation
+dans ce cas : `restic restore <snapshot> --target / --include /data` dans le
+volume `lcd-deploy_authelia-data`, conteneur `authelia` arrêté, puis
+`docker compose start authelia` et `test-durcissement` (24/24).
+
+---
+
 ## Ce que ces runbooks ne couvrent pas (et pourquoi)
 
 - **Perte du mot de passe restic** : non récupérable par conception. Action de
