@@ -193,6 +193,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
 | G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**15/15 OK**, 2026-10-19, 4 tâches) |
+| G-docs (V6, §8 nonies) | l'index des documents est **généré** et vérifié : il liste les 23 documents, aucun fantôme, chaque document a un titre, **les 28 scripts cités existent** réellement, **aucune des 19 batteries n'est orpheline**, les documents générés portent leur avertissement, aucun résidu ; un document ajouté rend le contrôle **rouge** (contrôle positif) | `deploy/test-docs.ps1` (**12/12 OK**, 2026-10-19) ; outil `deploy/index-docs.ps1`, produit `docs/README.md` |
 | G-entretien (V6, §8 octies, R-05) | la récupération d'espace docker est **prouvée** : une image flottante fabriquée survit à `-WhatIf` et disparaît au `-Prune` réel ; **aucune** image nommée `lcd-*`, **aucun** volume, **aucun** conteneur touché (comptages avant/après 23/23, 78/78, 32/32) | `deploy/test-entretien.ps1` (**11/11 OK**, 2026-10-19 : cache 10,13 → 7,53 Go, +93 Mo d'images flottantes) |
 | G-dépôt (V6, §8 septies, R-06) | le dépôt de sauvegarde est **contrôlé** (`restic check` + relecture de 5 % des données réelles), et une **corruption réelle est détectée** (contrôle positif : copie dont un pack est tronqué → échec nommé) ; l'âge du dernier contrôle est daté et opposable (`-Etat`, seuil 30 j) ; mot de passe jamais affiché | `deploy/test-depot.ps1` (**14/14 OK**, 2026-10-19 : 379 snapshots, 112,6 Mio) ; outil `deploy/verifier-depot.ps1`, branché sur l'entretien hebdomadaire |
 | G-rapport (V6, §7) | l'état vérifié est écrit **par** la passe (jamais à la main), ne contient que les batteries exécutées, totaux cohérents, commit et nombre de volumes **vérifiables**, un rouge réellement rouge (contrôle positif sur `test-super`), document autoportant | `deploy/test-rapport.ps1` (**10/10 OK**, 2026-10-19) ; produit : `docs/74-etat-verifie.md` |
@@ -349,9 +350,20 @@ aussitôt et `/sw.js` ne répondait jamais — ce qui ressemblait à un conflit 
 port. Vérification ajoutée : aucun script de `deploy/` n'affecte `$args`
 (`grep` sur `^\s*\$args\s*=` ; une occurrence subsiste dans `test-front.ps1`,
 hors périmètre, signalée à son propriétaire).
-### §8 octies Récupération d''espace prouvée (2026-10-19)
+### §8 octies Récupération d'espace prouvée (2026-10-19)
 
-Le disque est la ressource qui a déjà mordu sur cet hôte (R-05), et docker systemdf montrait **10,13 Go** de cache de build pour **47,6 Go libres (5,1 %)**. deploy/entretien.ps1 -Prune (opt-in, jamais par défaut) supprime le cache de plus de 7 jours et les images flottantes, puis **publie l''espace récupéré**. Mesure du jour : cache **10,13 → 7,53 Go**, images flottantes **93 Mo**, total ~2,7 Go rendus, sans toucher aux images nommées, aux volumes ni aux conteneurs. La batterie deploy/test-entretien.ps1 (**11/11**) fabrique une image flottante réelle, prouve qu''elle survit à -WhatIf, qu''elle disparaît au prune réel, et que les comptages 23/23, 78/78, 32/32 sont inchangés. Le reste (5,8 Go de cache récent, VHDX) demande soit du temps, soit l''administrateur.
+Le disque est la ressource qui a déjà mordu sur cet hôte (R-05), et docker systemdf montrait **10,13 Go** de cache de build pour **47,6 Go libres (5,1 %)**. deploy/entretien.ps1 -Prune (opt-in, jamais par défaut) supprime le cache de plus de 7 jours et les images flottantes, puis **publie l'espace récupéré**. Mesure du jour : cache **10,13 → 7,53 Go**, images flottantes **93 Mo**, total ~2,7 Go rendus, sans toucher aux images nommées, aux volumes ni aux conteneurs. La batterie deploy/test-entretien.ps1 (**11/11**) fabrique une image flottante réelle, prouve qu'elle survit à -WhatIf, qu'elle disparaît au prune réel, et que les comptages 23/23, 78/78, 32/32 sont inchangés. Le reste (5,8 Go de cache récent, VHDX) demande soit du temps, soit l'administrateur.
+
+### §8 nonies La documentation est vérifiable (2026-10-19)
+
+Vingt-trois documents, dont deux **produits par la mesure** : sans garde-fou, une documentation qui cite un script renommé devient un mensonge silencieux. Réponse : `docs/README.md` est **généré** par `deploy/index-docs.ps1` (`-Verifier` signale la dérive), et `deploy/test-docs.ps1` (**12/12**) mesure :
+
+- l'index liste **les 23 documents** et **aucun fantôme** ;
+- il est **régénérable à l'identique** — et un document ajouté le rend **rouge** (contrôle positif, puis retour au vert après suppression du témoin) ;
+- chaque document a un titre de niveau 1 ;
+- **les 28 scripts `deploy/*.ps1` cités existent** réellement sur le disque ;
+- **aucune des 19 batteries n'est orpheline** (chacune est citée quelque part) ;
+- les documents générés portent leur avertissement, aucun résidu `.tmp`/`.bak`.
 
 ### §8 septies Intégrité du dépôt de sauvegarde (2026-10-19)
 
@@ -377,4 +389,5 @@ sauvegarde fausse sans témoin — le pire état possible. Comblé par
 Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdit de
 s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
 nul.
+
 
