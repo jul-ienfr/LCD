@@ -306,7 +306,14 @@ Limites constatées et assumées (R1 — rien n'est simulé, rien n'est caché) 
    prestataire. Correction retenue : **texte d'aide honnête** qui énonce la
    règle (le presta doit figurer dans l'annuaire de ce logement, sinon 404),
    plutôt que de substituer un autre id qui « marcherait » sur un logement
-   pour casser sur le suivant.
+   pour casser sur le suivant. **Portée complète du défaut** : `/hote` pré-remplit
+   la même valeur (`EXEMPLES.presta_id`) dans un bloc par logement, donc le
+   bloc log1 échoue aussi — là, l'opérateur reçoit quand même le motif exact
+   côté client (`Moteur 404 : presta … inconnu annuaire log1`, affiché par
+   `useActionState` dès que JS prend la main) et les libellés sont génériques ;
+   aucun texte ajouté, l'erreur s'explique d'elle-même. `/presta` était le
+   seul endroit où la carte incitait explicitement (« Créer mission ménage »,
+   pré-remplissage ménage) à suivre une consigne qui échoue.
 3. `/voyageur` volontairement hors cible de comptage : sa ref a déjà réussi
    en 201, la passerelle **rejoue la réponse en cache sans écrire de ligne**
    (table d'idempotence) — un compteur y mentirait. Ce formulaire est par
