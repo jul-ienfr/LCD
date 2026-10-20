@@ -314,6 +314,8 @@ batterie ; si un KO persiste après `-Batterie <nom>`, c'est un vrai défaut.
 
 **Trace** : `deploy/veille/batteries.log` (gitignoré), ligne datée par passe.
 
+**Drill de reprise** : `deploy/reprise.ps1` restaure le volume IdP dans une pile séparée et prouve que le service revient (12/12, ~15 s) ; il est planifié chaque dimanche 05:30 (tâche `LCD reprise hebdo`) pour que la preuve se renouvelle toute seule, et journalise dans `deploy/veille/reprise.log`.
+
 **Ne jamais** purger les tables contenant « totp » en bloc : cela désenrôle le
 2FA (`totp_configurations`) et toute l'entrée devient inutilisable. Réparation
 dans ce cas : `restic restore <snapshot> --target / --include /data` dans le

@@ -5,7 +5,7 @@
 #   powershell -ExecutionPolicy Bypass -File ./test-taches.ps1
 #
 # Checks :
-#   1. les 4 taches existent et sont actives (API Windows, pas la sortie texte) ;
+#   1. les 5 taches existent et sont actives (API Windows, pas la sortie texte) ;
 #   2. chaque action appelle le SCRIPT ABSOLU attendu (pas un chemin relatif) ;
 #   3. une execution forcee de la sauvegarde ecrit VRAIMENT (snapshots en plus) ;
 #   4. une execution forcee de la veille reecrit son journal ;
@@ -52,7 +52,7 @@ function CompteurSnapshots {
 Push-Location $racine
 try {
     # --- 1-2. Taches presentes et ciblees --------------------------------
-    foreach ($nom in @("LCD sauvegarde quotidienne", "LCD veille", "LCD batteries hebdo", "LCD entretien")) {
+    foreach ($nom in @("LCD sauvegarde quotidienne", "LCD veille", "LCD batteries hebdo", "LCD entretien", "LCD reprise hebdo")) {
         $t = $null
         try { $t = Get-ScheduledTask -TaskName $nom -ErrorAction Stop } catch { }
         Verif "tache presente et active : $nom" ($null -ne $t -and $t.State -ne "Disabled")
@@ -103,7 +103,7 @@ try {
     $apresDesinstall = @(Get-ScheduledTask -TaskName "LCD *" -ErrorAction SilentlyContinue).Count
     $null = Lancer "-Installer"
     $apresInstall = @(Get-ScheduledTask -TaskName "LCD *" -ErrorAction SilentlyContinue).Count
-    Verif "desinstallation puis reinstallation (0 puis 4 taches)" ($apresDesinstall -eq 0 -and $apresInstall -eq 4)
+    Verif "desinstallation puis reinstallation (0 puis 5 taches)" ($apresDesinstall -eq 0 -and $apresInstall -eq 5)
 
 } finally {
     Pop-Location

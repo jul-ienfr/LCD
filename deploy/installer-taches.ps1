@@ -28,7 +28,11 @@ param(
     [string]$JourBatteries = "Sunday",
     [string]$HeureBatteries = "04:00",
     [string]$JourEntretien = "Saturday",
-    [string]$HeureEntretien = "04:00"
+    [string]$HeureEntretien = "04:00",
+    #  Le drill de reprise tourne TOUT SEUL : une preuve qui ne s'execute
+    #  jamais par elle-meme pourrit. Hebdomadaire, apres l'entretien.
+    [string]$JourReprise = "Sunday",
+    [string]$HeureReprise = "05:30"
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,6 +46,7 @@ $Taches = @(
     [ordered]@{ nom = "LCD veille"; script = "veille.ps1"; log = "veille.log" }
     [ordered]@{ nom = "LCD batteries hebdo"; script = "tout-verifier.ps1"; log = "batteries.log" }
     [ordered]@{ nom = "LCD entretien"; script = "entretien.ps1"; log = "entretien.log" }
+    [ordered]@{ nom = "LCD reprise hebdo"; script = "reprise.ps1"; log = "reprise.log" }
 )
 
 function Natif($bloc) {
@@ -96,6 +101,7 @@ if ($Installer) {
                     -RepetitionDuration (New-TimeSpan -Days 3650)
             }
             "LCD entretien" { New-ScheduledTaskTrigger -Weekly -DaysOfWeek $JourEntretien -At $HeureEntretien }
+            "LCD reprise hebdo" { New-ScheduledTaskTrigger -Weekly -DaysOfWeek $JourReprise -At $HeureReprise }
             default { New-ScheduledTaskTrigger -Weekly -DaysOfWeek $JourBatteries -At $HeureBatteries }
         }
         $reglages = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew `
