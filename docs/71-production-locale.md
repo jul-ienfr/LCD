@@ -114,7 +114,7 @@ suppression).
 | **V2** | **Données réelles** : registre du parc, inventaire, prestataires, stocks, mémoire, extras alimentés par la vérité terrain (S3, S4) ; ce qui manque = vide bloquant | chaque écran métier montre soit une valeur sourcée (fichier/adresse/item), soit « à saisir » ; 0 ligne « fictive » | 2 vagues (dont saisie hôte) |
 | **V3** | **Secrets réels** : génération, gitignore, rotation, aucun secret versionné (S2) + secrets IdP (`users.yml`, `totp-secrets.json`) | contrôle automatique « 0 secret dans le dépôt » ; rotation rejouée | 1 vague |
 | **V4** | **LAN** : nom d'entrée paramétrable (`LCD_HOTE`), config IdP rendue depuis un modèle, ports figés, pare-feu hôte, CA interne distribuée, sauvegardes locales (restic) + restauration chronométrée | depuis un second poste du LAN : `/login` IdP → 2FA → `/hote`, `/api/health`, sauvegarde/restauration prouvée | 1–2 vagues — **logiciel fait (2026-10-19)** : Caddy `{$LCD_HOTE}` + `{$LCD_PORT_HTTPS}`, `rendre-config.ps1` (modèle → `configuration.yml`, validé par le binaire Authelia pour `lcd.test` ET `lcd.local`), `test-lan.ps1` 13/13 avec paire jetable IdP+entrée rendue pour `lcd.local` ; **sauvegarde/restauration faites** : `sauvegarde.ps1` (25 volumes + état hôte, dépôt restic chiffré, 51 Mio, 42 s, **vérifiée par volume**), `restauration.ps1 -Verifier` (**25/25 conformes au snapshot**, 86 s), `test-backup.ps1` **10/10** (dont test destructif : fichier supprimé → restauré à l'identique) ; **reste l'étape hôte** : `lan-ouvrir.ps1 -Poser` (admin) car les ports publiés ne sortent pas de WSL2 (0 listener Windows, loopback seul) + règle pare-feu |
-| **V5** | **Internet** : domaine, LE (DNS-01), durcissement (HSTS, WAF, rate-limit), accès admin par VPN seul, révocation | test externe : portail IdP, 2FA, 0 port admin exposé ; `test-deploy` en HTTPS public | 1–2 vagues |
+| **V5** | **Internet** : domaine, LE (DNS-01), durcissement (HSTS, WAF, rate-limit), accès admin par VPN seul, révocation | test externe : portail IdP, 2FA, 0 port admin exposé ; `test-deploy` en HTTPS public | 1–2 vagues — **durcissement local fait (2026-10-19)** : en-têtes Caddy (HSTS, nosniff, XFO, Referrer-Policy, COOP, CORP, Server masqué), **CSP** sans domaine externe, `protocols tls1.2 tls1.3`, limite de corps 12 Mo, régulation Authelia explicite (3 essais / 2 min → ban 5 min) ; `deploy/test-durcissement.ps1` **24/24** (TLS 1.1 refusé, TLS 1.3 OK, TRACE refusé, `/metrics` fermé sans session, ban **réellement appliqué** puis **levé** par `outils/lever-ban-idp.py`, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle, corps surdimensionné jamais accepté). **Reste, non local** : domaine + Let's Encrypt + WAF/supervision externe |
 | **V6** | **Métrologie et exploitation** : journaux centralisés, alertes (site muet, crash-loop, disque, certificat), tableau de santé du parc, runbooks datés | une panne provoquée (conteneur arrêté) = alerte reçue < 2 min + runbook applicable à froid | 1 vague — **veille faite (2026-10-19)** : `deploy/veille.ps1` (10 contrôles réels : `/health`, `/ready`, front, entrée TLS, portail IdP, conteneurs + restart-count, box muette, logements en alerte, disque, certificat lu sur la vraie connexion TLS, fraîcheur de la sauvegarde ; `-Boucle` pour la surveillance continue ; journal `deploy/veille/alertes.jsonl` + `etat.json`, gitignorés) et `deploy/test-veille.ps1` **11/11** : panne **induite** (front arrêté) détectée puis retour à la normale prouvé, et chaque règle prouvée capable de se déclencher. **Alerte réelle en cours** : 5,1 % de disque libre (§8) |
 
 ## §6 Architecture cible : local → LAN → Internet
@@ -190,6 +190,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-sauvegarde (V4) | dépôt chiffré hors git, un snapshot par volume, `restic check`, restauration conforme au snapshot, test destructif (fichier supprimé → restauré) | `deploy/test-backup.ps1` (**10/10 OK**, 2026-10-19) |
 | G-veille (V6) | pile saine = 0 alerte critique, chaque règle capable de crier, **panne induite détectée**, journal écrit, retour à la normale | `deploy/test-veille.ps1` (**11/11 OK**, 2026-10-19) |
 | G-démarrage (V6) | après un arrêt **réel**, les sondes tombent à zéro, puis une seule commande remet la pile debout et le prouve (santé + 3 endpoints + 302 vers l'IdP), en < 1 min | `deploy/test-demarrage.ps1` (**14/14 OK**, 2026-10-19, 20 s) |
+| G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
 | G-LAN (V4) / G-public (V5) | parcours IdP 2FA depuis un autre poste / depuis Internet | recette manuelle datée + check automatique d'entrée |
 
@@ -228,3 +229,24 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 - Preuve : `deploy/test-demarrage.ps1` **14/14** — arrêt réel (sondes à 000),
   redémarrage en **20 s**, veille sans alerte critique, entrée TLS qui renvoie
   l'anonyme vers le portail IdP avec retour (`rd=`).
+
+### §8 ter Défaut ouvert, mesuré (2026-10-19) — mode lite et cache
+
+`deploy/test-front.ps1` signale **1 KO** : « kiosk L1 : aucune classe backdrop ».
+Ce n'est pas une régression du durcissement (le front est joint en direct sur
+3100, sans Caddy) mais un **défaut réel du mode lite**, mis au jour par un
+démarrage à froid (le cache de rendu est vidé) :
+
+- avec le cookie `lcd_lite=1`, `<html>` porte bien `mode-lite` **mais** l'en-tête
+  porte encore `backdrop-blur` **dans le même document** ;
+- deux rendus différents dans une seule réponse ⇒ l'en-tête vient d'un
+  **segment mis en cache** (`cacheComponents`) rendu quand `lite` valait faux,
+  tandis que la classe `<html>` est calculée dynamiquement ;
+- `web/src/app/layout.tsx:80` conditionne pourtant la classe sur `lite` : le
+  défaut est dans le découpage cache/dynamique, pas dans la condition.
+
+**Propriétaire** : tranche F6 (kiosk L1). Correctif attendu : que l'en-tête et
+la classe `<html>` soient rendus dans le **même** segment dynamique (lecture du
+cookie partagée), sinon la vérification `test-front` doit porter sur l'effet
+CSS (`lite.css` neutralise déjà les filtres) et non sur la présence de la
+classe. Tant que ce point est ouvert, la batterie front n'est pas verte.

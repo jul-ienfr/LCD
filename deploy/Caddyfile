@@ -38,16 +38,34 @@
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Resource-Policy "same-origin"
+		# CSP : rien d'externe. L'app est un Next SSR avec styles/scripts
+		# inline (pas de nonce : le shell serait casse), d'ou 'unsafe-inline'
+		# sur style-src/script-src — assume et documente, pas oublie.
+		# object-src/frame-ancestors/base-uri verrouilles, aucune eval.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'"
 		-Server
 	}
 	header Cache-Control "no-store"
 }
 
+# Limite de corps : les seuls envois legitimes sont des formulaires et des
+# photos de menage. Au-dela, c'est une tentative d'epuisement memoire/disque.
+(limites_lcd) {
+	request_body {
+		max_size 12MB
+	}
+}
+
 # --- Portail IdP (login, TOTP, logout) : le SEUL acces sans session --------
 https://{$LCD_HOTE:lcd.test}:4002 {
-	tls internal
+	tls internal {
+		protocols tls1.2 tls1.3
+	}
 	import entetes_lcd
+	import limites_lcd
 
 	reverse_proxy authelia:9091 {
 		header_up X-Forwarded-Proto https
@@ -61,8 +79,11 @@ https://{$LCD_HOTE:lcd.test}:4002 {
 # handle Caddy oublie. Les bypass AUTHENTIFIENT quand meme : 200 sans
 # Remote-User -> front anonyme (voyageur) ou public (health).
 https://{$LCD_HOTE:lcd.test} {
-	tls internal
+	tls internal {
+		protocols tls1.2 tls1.3
+	}
 	import entetes_lcd
+	import limites_lcd
 
 	route {
 		# 1. Defense anti-spoof : un Remote-* fourni par le client est

@@ -63,6 +63,15 @@ authentication_backend:
   file:
     path: /config/users.yml
 
+# Regulation des tentatives : EXPLICITE (les valeurs par defaut d'Authelia
+# existent, mais une limite non ecrite n'est pas une limite documentee).
+# 3 essais rates en 2 min -> ban 5 min (HTTP 429), par utilisateur/adresse.
+# Prouve par deploy/test-durcissement.ps1 (6 mauvais mots de passe -> 429).
+regulation:
+  max_retries: 3
+  find_time: 2m
+  ban_time: 5m
+
 # Session : cookie signe, couvrant les DEUX origines par le PORT :
 #   lcd.test:4001 = app protegee (forward_auth verifie cette session)
 #   lcd.test:4002 = portail de login Authelia (pose cette session)
