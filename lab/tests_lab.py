@@ -5146,6 +5146,36 @@ code, obj = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
     {"logement_id": "logX"}))
 check("dashboard : apercu logement inconnu -> 404", code == 404,
       f"HTTP {code} {obj}")
+# --- F6 "front box" : runtime multi-box (ADR-007) + horloge last_seen ---
+# log3 = box-nord (runtime moli, URLs moteurs dédiées en config système).
+code, ap47m = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
+    {"logement_id": "log3"}))
+check("dashboard : apercu log3 runtime moli detecte + vivant (box-nord)",
+      code == 200 and isinstance(ap47m, dict)
+      and ap47m.get("runtime") == "moli"
+      and ap47m.get("runtime_vivant") is True,
+      f"HTTP {code} {str(ap47m)[:150]}")
+# log1 reste HA : runtime_vivant (probe HA) + last_seen non null (fraîcheur).
+code, ap47h = get("dashboard", "/api/apercu?" + urllib.parse.urlencode(
+    {"logement_id": "log1"}))
+check("dashboard : apercu log1 runtime ha vivant + last_seen horloge",
+      code == 200 and isinstance(ap47h, dict)
+      and ap47h.get("runtime") == "ha"
+      and ap47h.get("runtime_vivant") is True
+      and isinstance(ap47h.get("last_seen"), str) and ap47h.get("last_seen"),
+      f"HTTP {code} {str(ap47h)[:150]}")
+# Bandeau de fraîcheur rendu dans la page (literal last_seen + runtime moli).
+code, pg47m = get("dashboard", "/")
+check("dashboard : page porte bandeau literal last_seen + Runtime moli (F6)",
+      code == 200 and isinstance(pg47m, str)
+      and "last_seen" in pg47m and "Runtime moli" in pg47m,
+      f"HTTP {code} len={len(pg47m) if isinstance(pg47m, str) else pg47m}")
+# Pinces par moteur (F6) : les 4 moteurs de log1 répondent = "ok".
+check("dashboard : apercu log1 moteurs pricing/decision/dispatch/router ok",
+      isinstance(ap47h, dict) and isinstance(ap47h.get("moteurs"), dict)
+      and all(ap47h["moteurs"].get(m) == "ok"
+              for m in ("pricing", "decision", "dispatch", "router")),
+      f"{str(ap47h)[:150]}")
 
 print()
 print("== 48. passerelle parc :8443 : health + page parc (G0) ==")

@@ -7,6 +7,7 @@ qui: "dashboard_hote"
 systems:
   - id: "log1"
     nom: "Log1 Santa Severa"
+    # runtime: "moli"   # ADR-007 : runtime de la box, par système ("ha" = défaut si omis, "moli" = base Moli)
   - id: "log2"
     nom: "Log2 futur"
 urls:
@@ -15,3 +16,4 @@ urls:
   dispatch: "http://127.0.0.1:8096"
   router: "http://127.0.0.1:8050"
   homeassistant: "http://127.0.0.1:8123"
+  # moli: "http://moli-box-nord:8790"   # ADR-007 : base de la box Moli (health = GET /api/health, name=moli-os)

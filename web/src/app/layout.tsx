@@ -75,7 +75,9 @@ export default async function RootLayout({
         >
           Aller au contenu
         </a>
-        <header className="sticky top-0 z-20 border-b border-[var(--bordure)] bg-[var(--surface)]/90 backdrop-blur">
+        <header
+          className={`sticky top-0 z-20 border-b border-[var(--bordure)] bg-[var(--surface)]/90${lite ? "" : " backdrop-blur"}`}
+        >
           <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
             <Link
               href="/"

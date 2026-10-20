@@ -214,6 +214,34 @@ Verif "lite : open-redirect refuse" ($liteEvil -notmatch "evil\.org")
 $liteOff = (curl.exe -s -D - -o NUL -m 15 "$F/api/lite?on=0&retour=/") -join " "
 Verif "lite : retour complet (on=0)" ($liteOff -match "lcd_lite=0")
 
+# 13. KIOSK L1 (cahier 70 §F6 + §F9, REQ-T-005) : la page kiosk = l'espace
+#     voyageur (Authelia BYPASS = aucun compte IdP, cf. authelia
+#     configuration.yml `^/voyageur policy: bypass`). Elle doit tourner sur
+#     une tablette/ancien tel en L1 : HTML simple, SANS compte, SANS donnée
+#     perso a l'ecran, et le mode lite n'y porte NI classe backdrop NI grille.
+# 13a. AUCUN compte requis : la page voyageur rend SANS aucun cookie.
+$vNoK = corps "/voyageur" $null
+Verif "kiosk : /voyageur rend SANS compte (0 cookie)" ($vNoK.Length -gt 500)
+#     ... et sans chip de session (pas d'identite affichee sur un ecran public).
+Verif "kiosk : aucun chip session / voir-comme" (-not ($vNoK -match "Voir comme"))
+#     Le mode IdP ne doit PAS exiger de session sur ce chemin bypass.
+Verif "kiosk : pas de bouton Connexion oblige" (($vNoK -match "guide") -or ($vNoK -match "17:00"))
+# 13b. L1 : la page kiosk en mode lite porte la classe mode-lite ET n'y a
+#      AUCUNE classe backdrop (spec §F9 : « page rendue sans classe backdrop
+#      ni grille critique »). Le header conditionne maintenant backdrop-blur
+#      sur `lite` (layout.tsx), donc le retrait est observable.
+$vLite = corps "/voyageur" "lcd_lite=1"
+Verif "kiosk L1 : classe mode-lite rendue" ($vLite -match "mode-lite")
+Verif "kiosk L1 : aucune classe backdrop" (-not ($vLite -match "backdrop"))
+# 13c. Aucune donnee perso a l'ecran kiosk : ni email, ni champ mot de passe,
+#      ni PIN — un ecran public ne montre que le guide/sejour. (Boundaries
+#      seuls : sans \b, "pin" matche "spinning" et "token" le runtime JS.)
+Verif "kiosk : 0 fuite email" (-not ($vLite -match "(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}"))
+Verif "kiosk : 0 champ password" (-not ($vLite -match '(?i)type="password"'))
+Verif "kiosk : 0 PIN ni secret affiche" (-not ($vLite -match "(?i)\b(PIN|secret|password|mot de passe)\b"))
+# 13d. Formulaires natifs (sans JS) presents : ecrire reste possible en L1.
+Verif "kiosk L1 : formulaires natifs presents" ($vLite -match "<form")
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO

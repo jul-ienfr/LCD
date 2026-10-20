@@ -8,9 +8,22 @@ systems:
     nom: "Log1 Santa Severa (lab)"
   - id: "log2"
     nom: "Log2 futur (lab)"
+  # F6/ADR-007 : box-nord = box Moli (pas de HA), moteurs dédiés — chaque
+  # système peut surcharger les URLs globales (pricing/decision/dispatch/
+  # router/homeassistant/moli) pour LUI SEUL. Pas de `homeassistant:` ici :
+  # une box Moli n'a pas de HA ; le runtime probe {moli}/api/health.
+  - id: "log3"
+    nom: "Log3 box-nord (moli)"
+    runtime: "moli"
+    pricing: "http://pricing-nord:8191"
+    decision: "http://decision-nord:8192"
+    dispatch: "http://dispatch-presta:8096"
+    router: "http://llm-router-ui:8050"
+    moli: "http://moli-box-nord:8790"
 urls:
   pricing: "http://pricing:8091"
   decision: "http://decision:8092"
-  dispatch: "http://dispatch:8096"
+  dispatch: "http://dispatch-presta:8096"
   router: "http://llm-router-ui:8050"
   homeassistant: "http://homeassistant:8123"
+  moli: "http://moli-box-nord:8790"

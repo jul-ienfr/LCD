@@ -38,6 +38,29 @@ html.mode-lite .prix-7j span {
   background: var(--accent-fonce);
 }
 
+/* §F7 L1 : 0 grille auto, BLOCS EMPILES. Un vieux moteur sans `display:grid`
+   (Chrome <57) ignore la classe `grid` et retombe sur `block` — ici on
+   l'empile VOLONTAIREMENT en mode lite pour que le rendu soit identique sur
+   un moteur qui SAIT faire de la grille : mêmes blocs lisibles, même ordre,
+   jamais de colonne écrasée à 320 px. Le `gap` devient une marge basse. */
+html.mode-lite .grid,
+html.mode-lite .kpis {
+  display: block;
+}
+html.mode-lite .grid > *,
+html.mode-lite .kpis > * {
+  margin-bottom: 0.75rem;
+}
+
+/* §F7 : aucun filtre `backdrop` dans le chemin critique en L1 (les vieux
+   moteurs l'ignorent de toute façon ; on le retire aussi de ceux qui
+   l'écrivent, pour que la page lite ne porte AUCUN effet coûteux). */
+html.mode-lite * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html.mode-lite .bouton { transition: none; }
 }
