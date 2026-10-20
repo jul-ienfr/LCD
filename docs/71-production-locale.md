@@ -189,6 +189,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-LAN (V4) | aucun nom d'hôte en dur, config IdP rendue conforme et validée par le binaire pour 2 noms, même pile servie sous `lcd.local`, joignabilité LAN mesurée | `deploy/test-lan.ps1` (**13/13 OK**, 2026-10-19 ; `-Exiger` pour la joignabilité) |
 | G-sauvegarde (V4) | dépôt chiffré hors git, un snapshot par volume, `restic check`, restauration conforme au snapshot, test destructif (fichier supprimé → restauré) | `deploy/test-backup.ps1` (**10/10 OK**, 2026-10-19) |
 | G-veille (V6) | pile saine = 0 alerte critique, chaque règle capable de crier, **panne induite détectée**, journal écrit, retour à la normale | `deploy/test-veille.ps1` (**11/11 OK**, 2026-10-19) |
+| G-démarrage (V6) | après un arrêt **réel**, les sondes tombent à zéro, puis une seule commande remet la pile debout et le prouve (santé + 3 endpoints + 302 vers l'IdP), en < 1 min | `deploy/test-demarrage.ps1` (**14/14 OK**, 2026-10-19, 20 s) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
 | G-LAN (V4) / G-public (V5) | parcours IdP 2FA depuis un autre poste / depuis Internet | recette manuelle datée + check automatique d'entrée |
 
@@ -213,3 +214,17 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
   `wsl --shutdown` puis `Optimize-VHD -Path "$env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx" -Mode Full`
   (ou `diskpart` → `compact vdisk`). La veille (`veille.ps1`) signale ce point
   à chaque passage tant qu'il dure : c'est une alerte **réelle**, pas un bruit.
+
+### §8 bis Exploitation à froid (2026-10-19)
+
+- `deploy/demarrer.ps1` : **une** commande pour démarrer (ou `-Arreter` pour
+  arrêter proprement), avec vérification des prérequis, de la conformité de la
+  config IdP au modèle, de la santé réelle et des trois endpoints ; code de
+  sortie non nul si le SAS n'est pas réellement servi.
+- `docs/72-runbooks.md` : dix runbooks datés (démarrage, 502, IdP, box muette,
+  disque, restauration, rotation de secret, LAN, Internet, certificat), chacun
+  avec symptôme → diagnostic → action → vérification, et la batterie qui
+  tranche.
+- Preuve : `deploy/test-demarrage.ps1` **14/14** — arrêt réel (sondes à 000),
+  redémarrage en **20 s**, veille sans alerte critique, entrée TLS qui renvoie
+  l'anonyme vers le portail IdP avec retour (`rd=`).
