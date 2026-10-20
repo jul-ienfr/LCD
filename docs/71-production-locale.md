@@ -193,6 +193,8 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
 | G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**15/15 OK**, 2026-10-19, 4 tâches) |
+| G-lan-accès (V6, §8 quindecies) | l'accès **depuis le réseau local** est **mesuré et classé**, jamais supposé : adresse LAN identifiée (192.168.31.59), entrée 302 en boucle locale, Docker publie bien les trois ports sur **0.0.0.0**, et l'état est **FERMÉ-PAR-PARE-FEU** — 0/3 ports répondent sur l'adresse LAN, aucune règle n'existe, un seul geste d'administrateur est imprimé (
+etsh advfirewall firewall add rule … localport=4001,4002,4003) | deploy/test-lan-acces.ps1 (**6/6 OK**, 2026-10-19) |
 | G-export (V6, §8 quaterdecies) | la sauvegarde **sort de la machine** : export complet du dépôt (1483 fichiers, 188 Mio) + manifeste SHA256 + mode d'emploi, vérification qui recalcule les 1483 empreintes, **phrase de passe absente de l'export**, dépôt relu et une **donnée réelle extraite** depuis l'export, contrôles positifs (octet modifié, fichier supprimé), destination non vide refusée | deploy/test-export.ps1 (**12/12 OK**, 2026-10-19) ; outil deploy/exporter.ps1 (-Vers, -Verifier, -Ecraser) |
 | G-versions (V6, §8 terdecies) | **rien ne change en douce** : le journal docs/75-versions-verifiees.md enregistre l'identifiant d'image **réellement exécuté** des trois services ; -Verifier sort en code 1 dès qu'il diffère ; contrôle positif sur une copie falsifiée (le service fautif est nommé) ; l'identifiant cité est relu indépendamment dans Docker ; le document est versionné | deploy/test-versions.ps1 (**10/10 OK**, 2026-10-19) ; outil deploy/versions.ps1 (-Verifier, -Accepter) |
 | G-accès (V6, §8 duodecies) | les secrets locaux (.env, phrase de passe restic, secret TOTP) ne sont lisibles que par le compte d''exploitation, SYSTEM et les administrateurs : **héritage d''ACL coupé**, aucune entrée hors liste — un **SID orphelin qui gardait la lecture de la phrase de passe a été trouvé et retiré** ; contrôle positif sur un fichier rendu lisible par Tout le monde ; idempotence ; la pile et restic fonctionnent toujours après | deploy/test-acces.ps1 (**11/11 OK**, 2026-10-19) ; outil deploy/durcir-secrets.ps1 (-Verifier, -WhatIf, ACL sauvegardées avant toute modification) |
@@ -414,6 +416,19 @@ La **phrase de passe doit voyager séparément** (coffre, papier, gestionnaire) 
 
 `deploy/test-export.ps1` (**12/12**) : export réel (1483 fichiers, 188 Mio), manifeste et mode d'emploi écrits, 1483 empreintes recalculées, phrase de passe absente, dépôt relu, **une donnée réelle extraite depuis l'export** (`restic dump` du `db.sqlite` du volume IdP, en-tête `SQLite format 3`), contrôles positifs (octet modifié → vu et nommé, fichier supprimé → vu), destination non vide refusée sans `-Ecraser`. Deux pièges mesurés : les packs restic sont en **lecture seule** (`WriteAllBytes` refuse tant que l'attribut n'est pas levé) et le **premier** snapshot d'un `--json` n'est pas celui du volume voulu (il faut le tag, comme dans le drill de reprise).
 
+### §8 quindecies L'accès LAN est mesuré, pas supposé (2026-10-19)
+
+« Prêt pour le LAN » n'est pas une opinion. `deploy/test-lan-acces.ps1` (**6/6**) classe l'état en trois catégories et n'en accepte que deux :
+
+- **OUVERT** — l'entrée répond sur l'adresse LAN : rien à faire ;
+- **FERMÉ-PAR-PARE-FEU** — elle ne répond pas, mais Docker publie bien sur `0.0.0.0` et **aucune** règle de pare-feu n'existe pour ces ports : il manque **un** geste d'administrateur, imprimé par la batterie (`netsh advfirewall firewall add rule … localport=4001,4002,4003`) ;
+- **CASSE** — la boucle locale ne répond pas, ou Docker est lié à `127.0.0.1`, ou une règle existe et bloque quand même. **Rouge.**
+
+Mesure du 2026-10-19 : adresse LAN `192.168.31.59`, entrée 302 en boucle locale, `docker port` montre `0.0.0.0:4001/4002/4003`, **0/3** ports répondent sur l'adresse LAN, aucune règle de pare-feu, pare-feu actif sur les trois profils → état **FERMÉ-PAR-PARE-FEU**. Autrement dit : tout le logiciel est en place, **une commande** sépare le SAS du réseau local, et elle demande les droits d'administrateur (les seuls que ce poste n'a pas).
+
+Piège mesuré : `Get-NetIPAddress` est **cassé** sur cet hôte (« Classe non valide » : la classe CIM `MSFT_NetIPAddress` manque) ; la batterie lit `ipconfig`, qui ne dépend de rien.
+
+
 ### §8 septies Intégrité du dépôt de sauvegarde (2026-10-19)
 
 La sauvegarde était **prouvée** (restauration réelle, 10/10) mais **rien ne
@@ -438,6 +453,7 @@ sauvegarde fausse sans témoin — le pire état possible. Comblé par
 Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdit de
 s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
 nul.
+
 
 
 

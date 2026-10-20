@@ -88,7 +88,7 @@ try {
     # --- Rapport versionne ------------------------------------------------
     $mdDepot = if (Test-Path $rapportVersionne) { Get-Content $rapportVersionne -Raw } else { "" }
     $attendues = @("test-deploy", "test-front", "test-idp", "test-sites", "test-secrets", "test-donnees",
-        "test-journaux", "test-taches", "test-pwa", "test-super", "test-lan", "test-veille",
+        "test-journaux", "test-taches", "test-pwa", "test-super", "test-lan", "test-lan-acces", "test-veille",
         "test-rapport", "test-depot", "test-entretien", "test-docs", "test-sante", "test-acces", "test-versions", "test-export",
         "test-durcissement", "test-backup", "test-demarrage")
     $presentes = @($attendues | Where-Object { $mdDepot -match [regex]::Escape("| $_ |") }).Count
