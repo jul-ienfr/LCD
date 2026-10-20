@@ -324,8 +324,10 @@ ce qui a fait échouer les premières tentatives de rejeu), soumet le
 passerelle** : la ref de cette soumission y gagne une occurrence. Couvertures :
 1-tap `confirmer` (ref unique par rendu, 0→1), incident `sinistre_declarer`
 (0→1), départ `cloture_menage` (4→5), mission (20→21) ; login déjà prouvé §2b
-(303 + `Set-Cookie` + `Location /hote`). Batterie : **125 lignes vertes, 0 KO**
-(101 `Verif` + 24 sous-vérifications de la recette).
+(303 + `Set-Cookie` + `Location /hote`). À la tranche §16, la batterie comptait
+**125 lignes vertes, 0 KO** (101 `Verif` + 24 sous-vérifications de la recette) ;
+elle en compte **135 depuis §18** (111 `Verif` + les mêmes 24) — le chiffre de
+cette phrase est historique, le compte courant est celui de §F9 ci-dessus.
 
 Limites constatées et assumées (R1 — rien n'est simulé, rien n'est caché) :
 
