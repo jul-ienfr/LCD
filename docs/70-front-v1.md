@@ -1,6 +1,11 @@
 # 70 — Frontend v1 (SaaS `web/` + front box + mode dégradé)
 
-> Statut : v1 du 2026-10-18. Nouveau cahier (aucun prédécesseur).
+> Statut : v1.5 du 2026-10-20 — **cahier clos** : F1→F6 ✅, et les
+> promesses mesurables de §F9 ont désormais une assertion (JS, tierces,
+> images, a11y, POST natif, 0 fuite). Restent les **DoD manuelles**
+> (matériel réel) : tabulation physique, offline 2 h, 55 items terrain/box
+> du `checklist-taches-restantes.md` — jamais du code à écrire.
+> Nouveau cahier (aucun prédécesseur).
 > Renvois DRY (jamais recopiés, R1) : fiches vues = §S3.5 ; exigences
 > communes = §S3.4 ; login/périmètres = §S3.1 ; contrat plugin = §20.7 ;
 > budgets perf = §S3.4.6 ; box technique (Lovelace, dashboards, stockage
@@ -271,6 +276,31 @@ fabrique portant un CDN doit être signalé, sinon la vérification passerait
 §F15 silencieuses avant qu'elles ne soient mesurées. Mesure aujourd'hui :
 **0 URL absolue** sur les 6 surfaces.
 
+✅ livré 2026-10-20 (§18) : même traitement pour le budget **images <150 Ko**
+— la *quatrième* promesse de cette liste, elle aussi jamais mesurée
+(`budget-bundle.mjs` ne couvre que le JS ; ni LCP ni images n'avaient
+d'assertion). La batterie relève les refs d'image (`png|jpe?g|svg|ico|webp|
+gif|avif`) des 5 surfaces clientes, **les télécharge pour de vrai** et compte
+les octets **sur disque** (`curl.exe` renvoie une chaîne passée par
+PowerShell : la longueur de chaîne n'est **pas** la taille d'un binaire).
+Deux garde-fous anti-caoutchouc : la mesure doit être **strictement
+positive** (un fetch échoué lit « 0 o » et passerait sous un simple
+« < 150 Ko ») et une ref doit être relevée au départ (sinon la boucle est
+vide et la vérification ne prouve rien). Mesure du jour : `/favicon.ico`
+15 086 o, `/icon.svg` 252 o. **Reste hors mesure, assumé** : LCP <2,5 s et
+offline <1 s exigent un navigateur réel sur matériel — DoD de la matrice
+§F9, pas une assertion de banc.
+
+**Mesure reproductible (2026-10-20)** : les 111 `Verif` (135 lignes vertes)
+tournent en **mode lab sans IdP** — `deploy/serveur-pwa.ps1` sert la même
+image sur `:3101` — parce que l'identité cookie `lcd_qui` n'existe que dans
+ce mode : la pile nominale (`LCD_IDP=1`) n'accepte que `Remote-User`. La
+passe `tout-verifier` sert donc `test-front` (et `test-super`) depuis
+`:3101` ; le mode IdP reste couvert par `test-idp.ps1` (22/22). Sans cela,
+la passe affichait **7 KO front + 3 KO super permanents** : un artefact de
+mode, pas un défaut de rendu — et un rouge permanent masque les vrais. Le
+compte se lit dans la sortie, pas dans une promesse : 135 `[OK]`, 0 `[KO]`.
+
 Batterie dégradée (extension `test-front.ps1`, 0 outil payant) :
 
 - HTML rendu sans JS (existant) + **POST natif complet sur 1 écriture par
@@ -344,9 +374,10 @@ A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 ✅ livré : `test-front.ps1` §15, 27 checks (skip-link présent ET premier
 focusable + cible `main#contenu tabindex=-1` + feuille de style **servie**
 : `focus-visible` / `prefers-reduced-motion` / `sr-only` + 1 seule `h1` +
-`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **108/108**
-(98 à la tranche a11y, 101 depuis §16, 108 depuis §17) — 132 lignes vertes
-au total comptant les 24 sous-vérifications de la recette sans JS.
+`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **111/111**
+(98 à la tranche a11y, 101 depuis §16, 108 depuis §17, 111 depuis §18) —
+135 lignes vertes au total comptant les 24 sous-vérifications de la recette
+sans JS.
 L'implémentation datait de 2026-10-17 (changelog) mais **aucune batterie ne
 la mesurait** : un retrait de `:focus-visible` serait passé inaperçu.
 Limite assumée : la structure qui rend le clavier utilisable, pas la

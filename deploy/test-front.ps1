@@ -415,6 +415,38 @@ foreach ($pgT in @("/", "/voyageur", "/presta", "/proprio", "/login", "/aide")) 
     Verif "tierce $pgT : 0 URL absolue" ($aT.Count -eq 0)
 }
 
+# 18. BUDGET IMAGE < 150 Ko (cahier 70 F9, §S3.4.6) : quatrieme promesse de
+#     la meme liste (LCP / JS / offline / images), elle aussi jamais
+#     mesuree -- budget-bundle.mjs ne couvre que le JS. On releve les refs
+#     d'image (src/href finissant en png|jpe?g|svg|ico|webp|gif|avif) des
+#     surfaces clientes, on les TELECHARGE pour de vrai, on compte les
+#     octets sur disque (curl.exe rend une chaine passee par PowerShell :
+#     la longueur de chaine n'est PAS la taille du fichier binaire).
+#     GARDE-FOU ANTI-CAOUTCHOUC : un fetch echoue (0 octet) passerait a
+#     tout va sous un simple « < 150 Ko » ; la mesure doit donc etre
+#     STRICTEMENT POSITIVE, sinon KO. Et une ref doit etre relevee au
+#     depart : sinon la boucle est vide et la verification ne prouve rien.
+$refsImg = New-Object System.Collections.Generic.HashSet[string]
+foreach ($pgI in @("/", "/voyageur", "/presta", "/proprio", "/login")) {
+    $hI = corps $pgI "lcd_qui=personne_01"
+    foreach ($mI in [regex]::Matches(
+        $hI, '(?:src|href)\s*=\s*["'']([^"'']+\.(?:png|jpe?g|svg|ico|webp|gif|avif))["'']')) {
+        [void]$refsImg.Add($mI.Groups[1].Value)
+    }
+}
+Verif "image : des refs d'image sont relevees (boucle non vide)" (
+    $refsImg.Count -gt 0)
+foreach ($rI in ($refsImg | Sort-Object)) {
+    $uI = if ($rI -match '^https?://') { $rI } else { "$F$rI" }
+    $nomI = (($rI -split '\?')[0])
+    $fI = Join-Path $env:TEMP ("lcd-img-" + $PID + "-" + ($nomI -replace '[\\/]', '_'))
+    curl.exe -s -m 15 -o $fI $uI | Out-Null
+    $octI = if (Test-Path -LiteralPath $fI) { (Get-Item -LiteralPath $fI).Length } else { 0 }
+    Remove-Item -LiteralPath $fI -Force -ErrorAction SilentlyContinue
+    Verif ("image " + $nomI + " : " + $octI + " octets (< 150 Ko)") (
+        ($octI -gt 0) -and ($octI -lt 150 * 1024))
+}
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO
