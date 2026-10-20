@@ -1,0 +1,33 @@
+# reprise/docker-compose.reprise.yml — SURCHARGE utilisee par le drill de
+# reprise (deploy/reprise.ps1). Elle ne sert JAMAIS en exploitation.
+#
+# Trois differences, toutes voulues :
+#   1. reseau `front` PROPRE (lcd-reprise_front) : sans cela les conteneurs du
+#      drill rejoindraient lcd-deploy_front et publieraient les alias `web` /
+#      `caddy` / `authelia` sur le meme reseau que la production — Docker
+#      repondrait alors au hasard l'un ou l'autre, ce qui casserait la
+#      production depuis un test. Isolation stricte.
+#   2. ports decales (4101/4102/4103 + 3110) : la pile de production garde les
+#      siens (4001/4002/4003/3100) et continue de servir pendant le drill.
+#   3. image `lcd-deploy-web` imposee : on rejoue le build reellement construit,
+#      on ne reconstruit pas une image differente pour le test.
+services:
+  web:
+    image: lcd-deploy-web
+    #  !override est OBLIGATOIRE : docker compose FUSIONNE les sequences de
+    #  `ports` (les ports de base restent, les notres s'ajoutent) et le drill
+    #  echoue alors sur « Bind for 0.0.0.0:3100 failed: port is already
+    #  allocated » — mesure du 2026-10-19. Avec !override, la liste est
+    #  remplacee, ce qui est le but.
+    ports: !override
+      - "3110:3100"
+  caddy:
+    ports: !override
+      - "4103:80"
+      - "4101:443"
+      - "4102:4002"
+
+networks:
+  front:
+    name: lcd-reprise_front
+    external: false

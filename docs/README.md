@@ -1,6 +1,6 @@
 # Index des documents du SAS
 
-**Genere le** : 2026-10-20 15:43 par `deploy/index-docs.ps1`.
+**Genere le** : 2026-10-20 16:28 par `deploy/index-docs.ps1`.
 **Ne pas editer a la main** : relancer l'outil (`-Verifier` dit si l'index est a jour).
 
 **23 documents** : 12 numerotes (l'ordre raconte le projet) et 11 autres.
@@ -19,10 +19,10 @@ Deux documents sont **produits par la mesure** : les editer a la main est perdu 
 | 50 | `50-technique-box-v5.md` | box et technique terrain | 123 |
 | 60 | `60-execution-v6.md` | plan d'execution V6 | 137 |
 | 70 | `70-front-v1.md` | front (vues, PWA) | 305 |
-| 71 | `71-production-locale.md` | ETAT DE PRODUCTION LOCAL : doctrine, portes de preuve | 393 |
+| 71 | `71-production-locale.md` | ETAT DE PRODUCTION LOCAL : doctrine, portes de preuve | 407 |
 | 72 | `72-runbooks.md` | runbooks d'exploitation et de reprise (R-01 a R-11) | 332 |
 | 73 | `73-inventaire-donnees.md` | inventaire des donnees (GENERE) | 326 |
-| 74 | `74-etat-verifie.md` | etat verifie du SAS (GENERE par la passe) | 52 |
+| 74 | `74-etat-verifie.md` | etat verifie du SAS (GENERE par la passe) | 54 |
 
 ## Autres documents
 
