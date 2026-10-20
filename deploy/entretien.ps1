@@ -24,6 +24,12 @@ param(
     [string]$DossierAlertes,
     [int]$TailleMoLog = 5,
     [int]$JoursAlerte = 30,
+    #  -Prune : recupere l'espace des artefacts docker REJOUABLES (cache de
+    #  build de plus de 7 jours, images flottantes). Opt-in et jamais par
+    #  defaut : le cache accelere les builds, on ne le jette que sur decision.
+    #  Ne touche NI aux images nommees, NI aux volumes, NI aux conteneurs.
+    [switch]$Prune,
+    [int]$JoursCache = 7,
     [switch]$WhatIf
 )
 
@@ -36,6 +42,15 @@ New-Item -ItemType Directory -Force -Path $DossierLog | Out-Null
 
 $plafond = $TailleMoLog * 1MB
 $rapport = New-Object System.Collections.Generic.List[string]
+
+function Natif($bloc) {
+    #  Les outils natifs ecrivent sur stderr (docker, node) : with
+    #  ErrorActionPreference=Stop, le moindre message tuerait l'entretien alors
+    #  que l'operation a reussi. On isole ces appels.
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try { return (& $bloc) } finally { $ErrorActionPreference = $prev }
+}
 
 # --- 1. Rotation des journaux ------------------------------------------------
 $journaux = @(Get-ChildItem $DossierLog -Filter "*.log" -File -ErrorAction SilentlyContinue)
@@ -118,6 +133,33 @@ if ((Test-Path $verifDepot) -and -not $WhatIf) {
     $rapport.Add(("  depot de sauvegarde : {0}" -f $(if ($ligne) { $ligne.Trim() } else { "sortie inattendue" })))
 } elseif (Test-Path $verifDepot) {
     $rapport.Add("  depot de sauvegarde : controle non execute [whatif]")
+}
+
+# --- 5. Espace recuperable (-Prune, opt-in) -----------------------------------
+#  Mesure d'abord, agit ensuite, et dit ce qui a ete recupere : un entretien
+#  qui ne prouve pas son effet ne vaut rien. Le disque de cet hote a deja
+#  mordu (R-05) : c'est la ressource la plus rare.
+if ($Prune) {
+    $heure = $JoursCache * 24
+    $av = (Natif { & docker system df --format "{{.Type}}={{.Size}} (reclaimable {{.Reclaimable}})" 2>$null } | Out-String).Trim()
+    if ($WhatIf) {
+        $rapport.Add("  espace recuperable [whatif] :")
+        $rapport.Add("    cache de build > ${JoursCache} j et images flottantes SERAIENT supprimes (rien n'a ete fait)")
+        foreach ($l in ($av -split "\r?\n")) { $rapport.Add("    docker : " + $l.Trim()) }
+    } else {
+        $cache = (Natif { & docker builder prune -f --filter "until=${heure}h" 2>&1 } | Out-String)
+        $flottantes = (Natif { & docker image prune -f 2>&1 } | Out-String)
+        $rapport.Add("  espace recuperable :")
+        foreach ($l in (($cache + $flottantes) -split "\r?\n")) {
+            if ($l.Trim() -match "reclaimed|space|deleted|Total") { $rapport.Add("    " + $l.Trim()) }
+        }
+        $apres = (Natif { & docker system df --format "{{.Type}}={{.Size}} (reclaimable {{.Reclaimable}})" 2>$null } | Out-String).Trim()
+        foreach ($l in ($apres -split "\r?\n")) { $rapport.Add("    docker apres : " + $l.Trim()) }
+    }
+} elseif ($WhatIf) {
+    $rapport.Add("  espace recuperable : non demande (relancer avec -Prune pour mesurer/supprimer)")
+} else {
+    $rapport.Add("  espace recuperable : non demande (-Prune pour liberer le cache de build ancien et les images flottantes)")
 }
 
 Write-Output "== entretien du $(Get-Date -Format 'yyyy-MM-dd HH:mm')"

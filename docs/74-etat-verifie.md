@@ -1,18 +1,18 @@
 # 74 - Etat verifie du SAS (genere)
 
-**Genere le** : 2026-10-20 14:53 par `deploy/tout-verifier.ps1`.
+**Genere le** : 2026-10-20 15:15 par `deploy/tout-verifier.ps1`.
 **Ne pas editer a la main** : relancer la passe pour actualiser (c'est le seul mode d'ecriture).
 
 ## Environnement mesure
 
 | Fait | Valeur |
 |---|---|
-| Commit | `101cfa7` sur `lab/docker` |
-| Fichiers non commites | 28 |
+| Commit | `2bcaa5f` sur `lab/docker` |
+| Fichiers non commites | 29 |
 | Volumes `lcd-*` | 25 |
-| Image lcd-deploy-web-1 | `5633c599aa7e` (creee 2026-10-20T12:52) |
-| Image lcd-deploy-authelia-1 | `b44a326fced1` (creee 2026-10-20T12:52) |
-| Image lcd-deploy-caddy-1 | `f77f856a30f0` (creee 2026-10-20T12:52) |
+| Image lcd-deploy-web-1 | `5633c599aa7e` (creee 2026-10-20T13:15) |
+| Image lcd-deploy-authelia-1 | `b44a326fced1` (creee 2026-10-20T13:15) |
+| Image lcd-deploy-caddy-1 | `f77f856a30f0` (creee 2026-10-20T13:15) |
 
 ## Resultat de la passe
 
@@ -24,19 +24,20 @@
 | test-sites | 0 s | 0 | RESULTAT : 2 sites reels, 3 logements, fan-out complet (12/12 OK) |
 | test-secrets | 1 s | 0 | RESULTAT : 0 secret versionne, 0 fuite (23/23 OK) |
 | test-donnees | 1 s | 0 | RESULTAT : inventaire des donnees exact et regenerable (9/9 OK) |
-| test-rapport | 4 s | 1 | RESULTAT : 1 ECHEC(S) sur 10 checks |
-| test-journaux | 48 s | 0 | RESULTAT : journaux plafonnes et rotation prouvee (9/9 OK) |
+| test-rapport | 5 s | 1 | RESULTAT : 1 ECHEC(S) sur 10 checks |
+| test-journaux | 50 s | 0 | RESULTAT : journaux plafonnes et rotation prouvee (9/9 OK) |
 | test-taches | 22 s | 0 | RESULTAT : exploitation automatique posee et prouvee (15/15 OK) |
 | test-pwa | 9 s | 0 | RESULTAT : PWA OK (SW + offline reel + outbox + purge) |
 | test-super | 1 s | 3 | RESULTAT : 3 ECHEC(S) |
 | test-lan | 17 s | 0 | RESULTAT : entree parametrable prouvee, LAN pret cote logiciel (13/13 OK) |
 | test-veille | 40 s | 0 | RESULTAT : veille operationnelle, panne detectee puis retour a la normale (11/11 OK) |
 | test-durcissement | 13 s | 0 | RESULTAT : entree durcie, mesures conformes, environnement laisse propre (24/24 OK) |
-| test-depot | 45 s | 0 | RESULTAT : integrite du depot prouvee, corruption detectee (14/14 OK) |
+| test-depot | 46 s | 0 | RESULTAT : integrite du depot prouvee, corruption detectee (14/14 OK) |
+| test-entretien | 27 s | 0 | RESULTAT : entretien prouve (espace recupere, rien de vivant touche) (11/11 OK) |
 | test-backup | 18 s | 0 | RESULTAT : sauvegarde chiffree + restauration prouvee (10/10 OK) |
-| test-demarrage | 24 s | 0 | RESULTAT : demarrage a froid prouve (14/14 OK) |
+| test-demarrage | 25 s | 0 | RESULTAT : demarrage a froid prouve (14/14 OK) |
 
-**Total : 4 KO sur 17 batteries, 275 s.**
+**Total : 4 KO sur 18 batteries, 307 s.**
 
 _La ligne `test-rapport` refere l'etat du rapport precedent : la batterie verifie le document, donc elle ne peut pas valider sa propre ecriture dans la meme passe (controle circulaire assume, dit ici)._
 
