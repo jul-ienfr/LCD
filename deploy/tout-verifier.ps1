@@ -60,8 +60,16 @@ foreach ($b in $liste) {
         continue
     }
     $t0 = Get-Date
-    $sortie = & powershell -NoProfile -ExecutionPolicy Bypass -File $f 2>&1
+    #  EAP Continue le temps de l'appel : un enfant qui ecrit sur stderr
+    #  (ex. node qui affiche une trace) produit un ErrorRecord et, avec EAP
+    #  Stop, tuait la passe ENTIERE au milieu (mesure du 2026-10-19 : la suite
+    #  s'arretait apres test-journaux, code de sortie 0 trompeur).
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try { $sortie = & powershell -NoProfile -ExecutionPolicy Bypass -File $f 2>&1 | Out-String }
+    finally { $ErrorActionPreference = $prev }
     $code = $LASTEXITCODE
+    $sortie = $sortie -split "\r?\n"
     $duree = [int]((Get-Date) - $t0).TotalSeconds
     $ko = @($sortie | Select-String -SimpleMatch "[KO]").Count
     $ko = [Math]::Max($ko, [Math]::Max($code, 0))

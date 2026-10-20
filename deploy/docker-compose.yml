@@ -152,7 +152,7 @@ networks:
     name: lcd-lab_default
     external: true
   front:
-    name: lcd-deploy
+    name: lcd-deploy_front
 
 volumes:
   deploy-caddy-data:
