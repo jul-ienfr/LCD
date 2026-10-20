@@ -263,6 +263,38 @@ Batterie dégradée (extension `test-front.ps1`, 0 outil payant) :
   14 checks (LCD + IP/interne + déclaration stack sur
   `/voyageur` `/presta` `/proprio` + 5 manifeste PWA), battery 71/71.
 
+✅ livré 2026-10-20 : **POST natif complet sans JS** sur les 4 écritures du
+cahier (`test-front.ps1` §16 + `web/scripts/recette-sans-js.mjs`, 24 checks).
+Edge headless réel (`channel: msedge`, playwright-core déjà présent, **0
+outil payant**) avec `javascriptEnabled:false` : le navigateur ouvre le
+`<details>` par son `<summary>` (HTML natif), renseigne le `<select name="qui">`
+**requis** (sinon `checkValidity()` échoue et **aucun POST ne part** — c'est
+ce qui a fait échouer les premières tentatives de rejeu), soumet le
+`<form method=POST>` tel quel, puis **l'écriture est jugée au journal de la
+passerelle** : la ref de cette soumission y gagne une occurrence. Couvertures :
+1-tap `confirmer` (ref unique par rendu, 0→1), incident `sinistre_declarer`
+(0→1), départ `cloture_menage` (4→5), mission (20→21) ; login déjà prouvé §2b
+(303 + `Set-Cookie` + `Location /hote`). Batterie : **125 lignes vertes, 0 KO**
+(101 `Verif` + 24 sous-vérifications de la recette).
+
+Limites constatées et assumées (R1 — rien n'est simulé, rien n'est caché) :
+
+1. **Aucun retour visible sans JS** : la server action s'exécute bien (le
+   journal de la passerelle le prouve) mais l'état renvoyé par
+   `useActionState` n'est pas repris dans le HTML servi : le
+   `<p role="status">` reste vide tant que JS n'a pas pris la main. L'écriture
+   a lieu, le confort d'affichage non.
+2. `/presta` : `mission` (presta par défaut `lab_menage_01`) et
+   `cloture_menage` reviennent en `moteur_code: 404` côté dispatch. Le relais
+   front → passerelle est **prouvé** (une ligne de journal écrite à chaque
+   soumission), c'est le moteur qui refuse : `lab_menage_01` figure bien dans
+   l'annuaire dispatch, mais la route `/mission` n'accepte que les métiers
+   (contrôle A/B : `lab_plomb_01` → 201, `lab_menage_01` → 404).
+3. `/voyageur` volontairement hors cible de comptage : sa ref a déjà réussi
+   en 201, la passerelle **rejoue la réponse en cache sans écrire de ligne**
+   (table d'idempotence) — un compteur y mentirait. Ce formulaire est par
+   ailleurs `horsLigne` (outbox §F8, `test-pwa.ps1` 14/14).
+
 Matrice matérielle (budget ~40 €, 1 fois) : 2 appareils réels d'occasion —
 Android 6 (~25 €) + iPhone SE 1 (~15 €) — parcourus manuellement à chaque
 phase DoD (démo + écriture + offline), + simulateurs Chrome. Aucun
@@ -273,7 +305,9 @@ A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 ✅ livré : `test-front.ps1` §15, 27 checks (skip-link présent ET premier
 focusable + cible `main#contenu tabindex=-1` + feuille de style **servie**
 : `focus-visible` / `prefers-reduced-motion` / `sr-only` + 1 seule `h1` +
-`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **98/98**.
+`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **101/101**
+(98 à la tranche a11y, 101 depuis §16) — 125 lignes vertes au total
+comptant les 24 sous-vérifications de la recette sans JS.
 L'implémentation datait de 2026-10-17 (changelog) mais **aucune batterie ne
 la mesurait** : un retrait de `:focus-visible` serait passé inaperçu.
 Limite assumée : la structure qui rend le clavier utilisable, pas la
@@ -299,7 +333,7 @@ chaque revue mensuelle.
 | ID | Exigence | Batterie |
 |---|---|---|
 | REQ-S-007 | Front SaaS : chargeur plugin strict (§20.7 front) + cœur sans connaissance de dashboard + session réelle (IdP 2FA staff) | recette `test-idp.ps1` (302 redir + redir 2FA + TOTP + 403 révocation + logout) + `test-front.ps1` + validateur manifeste KO + 403 admin sur secrets |
-| REQ-S-008 | Mode dégradé L0-L3 : sans-JS complet, `?lite=1`, matrice appareils réels, voyageur L0 = SMS/papier | batterie dégradée §F9 + 2 appareils réels parcourus |
+| REQ-S-008 | Mode dégradé L0-L3 : sans-JS complet, `?lite=1`, matrice appareils réels, voyageur L0 = SMS/papier | `test-front.ps1` §16 + `web/scripts/recette-sans-js.mjs` : **4 écritures natives sans JS** (Edge réel, `javascriptEnabled:false`) prouvées au journal passerelle (1-tap, incident, départ, mission) + login 303 §2b + `?lite=1` (§F9) + `test-pwa.ps1` 14/14 (outbox/offline réel) ; 2 appareils réels parcourus = DoD manuelle |
 | REQ-S-009 | Marque blanche : 0 fuite « LCD / stack / IP » côté voyageur/presta/proprio, re-thème **sans code** (env seul) | `test-front.ps1` 71/71 dont §14 (14 checks marque) + preuve A/B même build (A `Séjour` → B `Marque Client XYZ`, 0 LCD, manifeste suit) + 5 SVG template (vercel/next/…) supprimés = 404 |
-| REQ-S-010 | A11y WCAG 2.2 AA : skip-link 1ᵉʳ focusable vers `main#contenu tabindex=-1`, focus visible, mouvement réduit, 1 seule `h1` par page, `aria-current`, tests clavier structurels sur les 8 plugins | `test-front.ps1` 98/98 dont §15 (27 checks a11y) + CSS servi vérifié par href hashé. Limite assumée : structure, pas traversee Tab physique (DoD manuelle §F9) |
+| REQ-S-010 | A11y WCAG 2.2 AA : skip-link 1ᵉʳ focusable vers `main#contenu tabindex=-1`, focus visible, mouvement réduit, 1 seule `h1` par page, `aria-current`, tests clavier structurels sur les 8 plugins | `test-front.ps1` 101/101 dont §15 (27 checks a11y) + CSS servi vérifié par href hashé. Limite assumée : structure, pas traversee Tab physique (DoD manuelle §F9) |
 | REQ-T-005 | Front box runtime-agnostique : Lovelace (HA seul) + `:8060` (HA\|Moli) + kiosk QR, 0 fonction obligatoire dépendante d'une UI box | `tests_lab.py` 1142/1142 (coupure réelle des 2 runtimes → bandeau + retour ; §65 :8060 pendant coupure passerelle) + `test-front.ps1` 57/57 (kiosk L1) ; offline 2 h = DoD manuelle §F9 |

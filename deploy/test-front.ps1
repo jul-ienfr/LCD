@@ -346,6 +346,42 @@ Verif "a11y : aria-current=page sur l'onglet actif" (
     ((corps "/hote" "lcd_qui=personne_01") -match 'aria-current="page"') -and
     ((corps "/voyageur" "lcd_qui=personne_01") -match 'aria-current="page"'))
 
+# 16. POST NATIF COMPLE SANS JAVASCRIPT (cahier 70 F9) : Edge headless reel
+#     via playwright-core (channel msedge, aucun navigateur telecharge = 0
+#     outil payant) avec javascriptEnabled:false. Le navigateur ouvre le
+#     <details> par son <summary> (HTML natif, 0 JS), remplit le select
+#     "qui" requis (sans lui le navigateur BLOQUE la soumission native et
+#     aucun POST ne part : checkValidity false), soumet le form method=POST
+#     tel quel, puis ON JUGE L'ECRITURE AU JOURNAL DE LA PASSERELLE : la
+#     ref de CE soumission doit y gagner une occurrence. Couvre les 4
+#     ecritures nommees au cahier (1-tap, incident, depart, mission) ;
+#     login est deja prouve en 2b (303 + Set-Cookie + Location /hote).
+Write-Output "== POST natif sans JS (Edge reel, javascript desactive) =="
+$node16 = Get-Command node -ErrorAction SilentlyContinue
+if (-not $node16) {
+    Verif "node present (recette POST natif sans JS)" $false
+} else {
+    $rec16 = Join-Path (Split-Path $PSScriptRoot) "web\scripts\recette-sans-js.mjs"
+    if (-not (Test-Path -LiteralPath $rec16)) {
+        Verif "recette-sans-js.mjs presente" $false
+    } else {
+        $out16 = (node $rec16 $F) -join "`n"
+        $code16 = $LASTEXITCODE
+        Write-Output $out16
+        $ko16 = ([regex]::Matches($out16, "(?m)^\[KO\]")).Count
+        $ok16 = ([regex]::Matches($out16, "(?m)^\[OK\]")).Count
+        if ($code16 -ne 0 -and $ko16 -eq 0) {
+            Verif "recette-sans-js.mjs execute sans crash" $false
+        }
+        $script:KO += $ko16
+        Verif "sans-JS : recette verte (0 KO + exit 0)" ($ko16 -eq 0 -and $code16 -eq 0)
+        Verif "sans-JS : 4 ecritures completes (1-tap, incident, depart, mission)" (
+            ($ok16 -ge 20) -and ($out16 -match "4 ecritures natives soumises"))
+        Verif "sans-JS : chaque ecriture prouvee au journal passerelle" (
+            ([regex]::Matches($out16, "ecriture journalisee")).Count -ge 4)
+    }
+}
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO
