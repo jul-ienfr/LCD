@@ -256,6 +256,21 @@ Budgets (§S3.4.6 seul fait foi) : LCP <2,5 s, JS <200 Ko/page, offline
 <1 s, images <150 Ko. Ajouts front : rapport de bundle en CI (`next build`
 + taille page échoue si budget dépassé), 0 requête tierce au chargement.
 
+✅ livré 2026-10-20 : le budget JS est mesuré à chaque `next build`
+(`budget-bundle.mjs`, 20 pages < 200 Ko, échec si dépassé) et la promesse
+**« 0 requête tierce au chargement »** — présente dans le cahier depuis le
+départ **sans une seule assertion** — est désormais mesurée par
+`test-front.ps1` §17 (7 checks) : chaque surface cliente (`/`, `/voyageur`,
+`/presta`, `/proprio`, `/login`, `/aide`) est analysée pour toute **URL
+absolue** dans `src`/`href`/`srcset`/`action`/`@import` ; seule une URL
+absolue déclenche la sortie du navigateur vers un hôte étranger. Chemins
+relatifs admis (dont `/_next/static`, exigé par le precache SW de F4),
+`data:`, `#`, `mailto:`. **Contrôle positif obligatoire** : un fragment
+fabrique portant un CDN doit être signalé, sinon la vérification passerait
+à tout va — c'est exactement le vice qui a rendu les promesses §F0.6 et
+§F15 silencieuses avant qu'elles ne soient mesurées. Mesure aujourd'hui :
+**0 URL absolue** sur les 6 surfaces.
+
 Batterie dégradée (extension `test-front.ps1`, 0 outil payant) :
 
 - HTML rendu sans JS (existant) + **POST natif complet sur 1 écriture par
@@ -329,9 +344,9 @@ A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 ✅ livré : `test-front.ps1` §15, 27 checks (skip-link présent ET premier
 focusable + cible `main#contenu tabindex=-1` + feuille de style **servie**
 : `focus-visible` / `prefers-reduced-motion` / `sr-only` + 1 seule `h1` +
-`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **101/101**
-(98 à la tranche a11y, 101 depuis §16) — 125 lignes vertes au total
-comptant les 24 sous-vérifications de la recette sans JS.
+`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **108/108**
+(98 à la tranche a11y, 101 depuis §16, 108 depuis §17) — 132 lignes vertes
+au total comptant les 24 sous-vérifications de la recette sans JS.
 L'implémentation datait de 2026-10-17 (changelog) mais **aucune batterie ne
 la mesurait** : un retrait de `:focus-visible` serait passé inaperçu.
 Limite assumée : la structure qui rend le clavier utilisable, pas la

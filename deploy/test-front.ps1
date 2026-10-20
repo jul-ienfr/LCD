@@ -382,6 +382,39 @@ if (-not $node16) {
     }
 }
 
+# 17. 0 REQUETE TIERCE AU CHARGEMENT (cahier 70 F9) : la page ne cite AUCUNE
+#     URL absolue -- ni fonte tierce, ni CDN, ni script distant, ni @import.
+#     La promesse figure dans le cahier depuis le depart SANS UNE SEULE
+#     assertion : rien ne l'aurait empêchée de devenir fausse en silence
+#     (meme mecanisme que §F0.6 et §F15 avant eux). Pourquoi ca compte : une
+#     URL absolue = une requete sortante vers un hote etranger -- vie privee
+#     du voyageur (0 tiers = 0 pisteur) et hors-ligne F4 (un CDN injoignable
+#     casserait le guide hors-ligne, la SW ne pouvant pas le precacher).
+#     Admis : chemins relatifs (dont /_next/static exigé par le precache SW),
+#     data:, #, mailto:. Suspect : http(s):// ou //. Mesure sur les surfaces
+#     CLIENTES ; /hote reste hors perimetre (console operateur LCD, §F0.6).
+#     CONTROLE POSITIF obligatoire : un fragment fabrique portant un CDN
+#     doit etre signale, sans quoi la verification passerait a tout va.
+function refsAbsolues($html) {
+    $liste = New-Object System.Collections.Generic.List[string]
+    foreach ($m in [regex]::Matches(
+        $html, '(?:src|href|srcset|action)\s*=\s*["'']([^"'']+)["'']')) {
+        $liste.Add($m.Groups[1].Value)
+    }
+    foreach ($m in [regex]::Matches($html, '@import\s+url\(([^)]+)\)')) {
+        $liste.Add((($m.Groups[1].Value) -replace '[\x22\x27]', ''))
+    }
+    return @($liste | Where-Object { $_ -match '^(https?:)?//' })
+}
+$controle = refsAbsolues '<script src="https://cdn.example.com/x.js"></script><a href="/relatif">a</a><img src="/i.png" srcset="/i2.png 2x">'
+Verif "tierce : controle positif (le CDN fabrique est bien signale)" (
+    $controle.Count -eq 1)
+foreach ($pgT in @("/", "/voyageur", "/presta", "/proprio", "/login", "/aide")) {
+    $hT = corps $pgT "lcd_qui=personne_01"
+    $aT = refsAbsolues $hT
+    Verif "tierce $pgT : 0 URL absolue" ($aT.Count -eq 0)
+}
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO
