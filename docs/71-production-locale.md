@@ -193,6 +193,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
 | G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**15/15 OK**, 2026-10-19, 4 tâches) |
+| G-export (V6, §8 quaterdecies) | la sauvegarde **sort de la machine** : export complet du dépôt (1483 fichiers, 188 Mio) + manifeste SHA256 + mode d'emploi, vérification qui recalcule les 1483 empreintes, **phrase de passe absente de l'export**, dépôt relu et une **donnée réelle extraite** depuis l'export, contrôles positifs (octet modifié, fichier supprimé), destination non vide refusée | deploy/test-export.ps1 (**12/12 OK**, 2026-10-19) ; outil deploy/exporter.ps1 (-Vers, -Verifier, -Ecraser) |
 | G-versions (V6, §8 terdecies) | **rien ne change en douce** : le journal docs/75-versions-verifiees.md enregistre l'identifiant d'image **réellement exécuté** des trois services ; -Verifier sort en code 1 dès qu'il diffère ; contrôle positif sur une copie falsifiée (le service fautif est nommé) ; l'identifiant cité est relu indépendamment dans Docker ; le document est versionné | deploy/test-versions.ps1 (**10/10 OK**, 2026-10-19) ; outil deploy/versions.ps1 (-Verifier, -Accepter) |
 | G-accès (V6, §8 duodecies) | les secrets locaux (.env, phrase de passe restic, secret TOTP) ne sont lisibles que par le compte d''exploitation, SYSTEM et les administrateurs : **héritage d''ACL coupé**, aucune entrée hors liste — un **SID orphelin qui gardait la lecture de la phrase de passe a été trouvé et retiré** ; contrôle positif sur un fichier rendu lisible par Tout le monde ; idempotence ; la pile et restic fonctionnent toujours après | deploy/test-acces.ps1 (**11/11 OK**, 2026-10-19) ; outil deploy/durcir-secrets.ps1 (-Verifier, -WhatIf, ACL sauvegardées avant toute modification) |
 | G-santé (V6, §8 undecies) | l'exploitation **tourne vraiment** : 5 tâches présentes, aucune désactivée ni en échec, fraîcheur mesurée de chaque preuve automatique (snapshot < 36 h, batteries / dépôt / entretien / état vérifié < 8 j, veille < 15 min), et la tâche de reprise est **déclenchée** puis son journal lu jusqu'à sa conclusion | `deploy/test-sante.ps1` (**11/11 OK**, 2026-10-19) |
@@ -403,6 +404,16 @@ Une image peut changer sans que personne ne l'ait décidé : un `docker compose 
 
 `deploy/test-versions.ps1` (**10/10**) prouve l'outil et le document : les trois services décrits, le vérificateur vert, **contrôle positif** sur une copie falsifiée (le service fautif est nommé, puis la copie régénérée redevient verte), l'identifiant cité **relu indépendamment** dans Docker, l'avertissement de document généré, le fichier **versionné** (une trace non commitée ne prouve rien), et l'image à tag flottant bien couverte — c'est précisément pour elle que ce journal existe.
 
+### §8 quaterdecies Sortir la sauvegarde de la machine (2026-10-19)
+
+Une sauvegarde qui vit sur la même machine que ce qu'elle protège ne protège de rien : panne disque, ransomware, vol. Rien, jusqu'ici, ne produisait un **export** ni ne prouvait qu'il était remontable ailleurs — c'est pourtant la condition du passage en LAN puis sur Internet.
+
+`deploy/exporter.ps1 -Vers <dossier>` copie le dépôt restic entier (chiffré), écrit `MANIFESTE.txt` (une empreinte SHA256 par fichier) et `RESTAURER.txt` (mode d'emploi auto-suffisant). `-Verifier` recalcule les empreintes, et prouve que le dépôt exporté est **chiffré** : avec une mauvaise phrase de passe, restic refuse (code 12, « wrong password or no key found » — mesuré).
+
+La **phrase de passe doit voyager séparément** (coffre, papier, gestionnaire) : sans elle l'export est illisible, avec elle dans le même sac l'export est inutile. La batterie le vérifie littéralement — aucun fichier de l'export ne contient la phrase.
+
+`deploy/test-export.ps1` (**12/12**) : export réel (1483 fichiers, 188 Mio), manifeste et mode d'emploi écrits, 1483 empreintes recalculées, phrase de passe absente, dépôt relu, **une donnée réelle extraite depuis l'export** (`restic dump` du `db.sqlite` du volume IdP, en-tête `SQLite format 3`), contrôles positifs (octet modifié → vu et nommé, fichier supprimé → vu), destination non vide refusée sans `-Ecraser`. Deux pièges mesurés : les packs restic sont en **lecture seule** (`WriteAllBytes` refuse tant que l'attribut n'est pas levé) et le **premier** snapshot d'un `--json` n'est pas celui du volume voulu (il faut le tag, comme dans le drill de reprise).
+
 ### §8 septies Intégrité du dépôt de sauvegarde (2026-10-19)
 
 La sauvegarde était **prouvée** (restauration réelle, 10/10) mais **rien ne
@@ -427,6 +438,7 @@ sauvegarde fausse sans témoin — le pire état possible. Comblé par
 Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdit de
 s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
 nul.
+
 
 
 
