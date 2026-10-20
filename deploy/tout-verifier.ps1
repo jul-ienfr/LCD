@@ -108,19 +108,19 @@ foreach ($b in $liste) {
     #  permanent qui masque les vrais). On les sert depuis :3101 en mode lab
     #  sans IdP — MEME image que la production, conteneur dedie — comme
     #  test-pwa ; le mode IdP reste couvert par test-idp.ps1.
-    $frontLab = $b.nom -in @("test-front", "test-super")
-    if ($b.nom -eq "test-pwa" -or $frontLab) {
+    $estFrontLab = $b.nom -in @("test-front", "test-super")
+    if ($b.nom -eq "test-pwa" -or $estFrontLab) {
         $prep = (Natif { powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $ici "serveur-pwa.ps1") 2>&1 } | Out-String)
         if ($LASTEXITCODE -ne 0) { Write-Output "[--] $($b.nom) : prerequisite :3101 non fourni"; Write-Output ($prep.Trim()) }
-        if ($frontLab) { $env:FRONT = $FrontLab }
+        if ($estFrontLab) { $env:FRONT = $FrontLab }
     }
     $f = Join-Path $ici "$($b.nom).ps1"
     if (-not (Test-Path $f)) {
         Write-Output ("[--] {0} : script absent" -f $b.nom)
         $resultats += [ordered]@{ nom = $b.nom; ko = -1; resultat = "script absent"; duree = 0 }
         #  Ne pas laisser le serveur lab ni FRONT derriere un script absent.
-        if ($b.nom -eq "test-pwa" -or $frontLab) {
-            if ($frontLab) {
+        if ($b.nom -eq "test-pwa" -or $estFrontLab) {
+            if ($estFrontLab) {
                 if ($null -eq $frontAvant) { Remove-Item Env:FRONT -ErrorAction SilentlyContinue }
                 else { $env:FRONT = $frontAvant }
             }
@@ -138,7 +138,7 @@ foreach ($b in $liste) {
     try { $sortie = & powershell -NoProfile -ExecutionPolicy Bypass -File $f 2>&1 | Out-String }
     finally {
         $ErrorActionPreference = $prev
-        if ($frontLab) {
+        if ($estFrontLab) {
             #  Restaure l'environnement de l'appelant et rend la pile a sa
             #  forme nominale : le conteneur :3101 n'existe que le temps de la
             #  batterie (sinon la veille voit un conteneur de plus).
@@ -151,7 +151,7 @@ foreach ($b in $liste) {
     #  Le serveur :3101 n'existe que pour les batteries front/PWA : on le retire
     #  apres pour que la pile garde sa forme nominale (sinon la veille voit un
     #  conteneur de plus et la comparaison de parc devient ambiguë).
-    if ($b.nom -eq "test-pwa" -or $frontLab) {
+    if ($b.nom -eq "test-pwa" -or $estFrontLab) {
         $null = (Natif { powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $ici "serveur-pwa.ps1") -Arreter 2>&1 } | Out-String)
     }
     $duree = [int]((Get-Date) - $t0).TotalSeconds
