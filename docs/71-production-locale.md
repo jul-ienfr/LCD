@@ -440,6 +440,29 @@ Le `Caddyfile` utilise desormais `tls {$LCD_TLS:internal}` : en local la variabl
 Autrement dit : ce qui reste pour Internet n'est plus technique -- un **domaine**, un **DNS** qui pointe, un **e-mail** pour ACME, et les ports 80/443 ouverts. Les trois premiers sont des comptes, le dernier est le meme geste d'administrateur que pour le LAN.
 
 
+### §8 octodecies L'espace disque : 40 Go prisonniers dans le VHDX (2026-10-19)
+
+La veille tire une alerte **critique** : `3.7% libre (seuil 10%)`. Elle est reelle, et sa cause est mesurable :
+
+| Mesure | Valeur |
+|---|---|
+| Disque C: libre | **34,88 Go (3,7 %)** |
+| `docker_data.vhdx` sur le disque | **49,95 Go** |
+| Donnees Docker reelles (images 8,2 Go + volumes 0,4 Go) | ~9 Go |
+| Cache de build purge par `docker builder prune -af` | **6,28 Go annonces** |
+| Gain reel pour Windows | **0,00 Go** |
+| Exports temporaires de mes tests supprimes | 0,56 Go (le seul gain reel) |
+
+Autrement dit : **~40 Go du VHDX sont de l'air**. Docker libere des blocs *a l'interieur* de sa machine virtuelle, mais un disque virtuel dynamique **ne rend jamais ses blocs a Windows** tout seul. Tout entretien interne (purge d'images, de volumes, de cache) est donc **sans effet sur l'hote** -- la mesure le montre : 6,28 Go annonces, 0 octet rendu.
+
+**Le seul geste qui rend l'espace est une compaction du VHDX, et il demande les droits d'administrateur :**
+
+1. arreter Docker Desktop (pas seulement la pile) ;
+2. en administrateur, sur le fichier `%LOCALAPPDATA%\Docker\wsl\data\ext4.vhdx` : `diskpart`, puis `select vdisk file=CHEMIN`, `attach vdisk readonly`, `compact vdisk`, `detach vdisk` ;
+3. redemarrer Docker Desktop et relancer `deploy/tout-verifier.ps1` ; l'alerte doit passer sous le seuil.
+
+En attendant, la marge est de 3,7 % : toute construction d'image ou tout export peut echouer sur disque plein. C'est pourquoi les batteries nettoient leurs propres artefacts (`test-export` supprime son dossier dans un `finally`).
+
 ### §8 septies Intégrité du dépôt de sauvegarde (2026-10-19)
 
 La sauvegarde était **prouvée** (restauration réelle, 10/10) mais **rien ne
@@ -464,6 +487,7 @@ sauvegarde fausse sans témoin — le pire état possible. Comblé par
 Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdit de
 s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
 nul.
+
 
 
 
