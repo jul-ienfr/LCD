@@ -192,6 +192,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-démarrage (V6) | après un arrêt **réel**, les sondes tombent à zéro, puis une seule commande remet la pile debout et le prouve (santé + 3 endpoints + 302 vers l'IdP), en < 1 min | `deploy/test-demarrage.ps1` (**14/14 OK**, 2026-10-19, 20 s) |
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
+| G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**13/13 OK**, 2026-10-19) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
 | G-LAN (V4) / G-public (V5) | parcours IdP 2FA depuis un autre poste / depuis Internet | recette manuelle datée + check automatique d'entrée |
 
@@ -251,3 +252,32 @@ la classe `<html>` soient rendus dans le **même** segment dynamique (lecture du
 cookie partagée), sinon la vérification `test-front` doit porter sur l'effet
 CSS (`lite.css` neutralise déjà les filtres) et non sur la présence de la
 classe. Tant que ce point est ouvert, la batterie front n'est pas verte.
+
+### §8 quater Exploitation automatique (2026-10-19)
+
+- `deploy/installer-taches.ps1` : trois tâches Windows de l'utilisateur courant
+  (aucune élévation) — **sauvegarde quotidienne 03:00** (`-StartWhenAvailable` :
+  un poste éteint rattrape au rallumage), **veille toutes les 5 min**,
+  **batteries le dimanche 04:00**. `-Etat`, `-ExecuterMaintenant`,
+  `-Desinstaller`.
+- Piège corrigé, mesuré : `schtasks /create /tr "\"chemin avec espaces\""`
+  crée une tâche qui **ne démarre jamais** (code `267011`, aucun journal
+  écrit). L'installation passe par l'API Windows
+  (`New-ScheduledTaskAction` / `Register-ScheduledTask`), et la preuve se fait
+  par **effet** : `-ExecuterMaintenant` déclenche puis vérifie que le nombre de
+  snapshots augmente et que le journal de veille est réécrit.
+- `deploy/tout-verifier.ps1` : **une** commande pour tout vérifier
+  (`-Rapide` saute les batteries longues, `-Batterie <nom>` en lance une), avec
+  tableau consolidé, code de sortie = total des KO et journal daté dans
+  `deploy/veille/batteries.log` (gitignoré). Plus de « c'est vert » partiel.
+- Preuve : `deploy/test-taches.ps1` **13/13**, dont réinstallation idempotente
+  (0 puis 3 tâches) et journaux hors git.
+- **État consolidé de la passe `tout-verifier -Rapide` (2026-10-19, 9 batteries,
+  63 s)** : 5 KO, tous **hors des vagues closes ici** et tous dans la tranche
+  F5/F6 : `test-front` 1 KO (mode lite, §8 ter) et `test-super` 3 KO (pages
+  `/secrets` et `/support`). Mesures pour ce dernier : le registre
+  `custom/passerelle-parc/secrets-registre.yaml` **contient bien**
+  `authelia_session_secret` ; la page `/secrets` se rend (39 Ko) **mais sans le
+  slot** ; `/v1/secrets` en direct répond **400** sans identité. Défaut de la
+  chaîne slot → page, propriétaire F5 ; à corriger avant toute revendication de
+  vitrine sur `/secrets`.

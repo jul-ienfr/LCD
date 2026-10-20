@@ -52,8 +52,8 @@ try {
     # --- 2. Les regles savent crier ---------------------------------------
     Verif "regle site muet : declenchee avec -SeuilSite 0" ((LancerVeille @("-SeuilSite", "0", "-SeuilDisque", "0")) -match "site-muet-")
     Verif "regle disque : declenchee avec -SeuilDisque 100" ((LancerVeille @("-SeuilDisque", "100")) -match "\] disque -")
-    Verif "regle sauvegarde : declenchee avec -SeuilSauvegardeHeures 0" (
-        (LancerVeille @("-SeuilDisque", "0", "-SeuilSauvegardeHeures", "0")) -match "sauvegarde trop ancienne")
+    Verif "regle sauvegarde : declenchee avec -SeuilSauvegardeHeures -1" (
+        (LancerVeille @("-SeuilDisque", "0", "-SeuilSauvegardeHeures", "-1")) -match "sauvegarde trop ancienne")
 
     # --- 3. Panne INDUITE : le front tombe --------------------------------
     $etatConteneur = (& docker inspect --format "{{.State.Running}}" $FRONT_CT 2>$null | Out-String).Trim()
