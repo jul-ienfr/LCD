@@ -14,7 +14,11 @@
 
 param(
     [switch]$Rapide,
-    [string]$Batterie
+    [string]$Batterie,
+    #  Etat verifie versionne : le rapport est ECRIT par la passe elle-meme, donc
+    #  il ne peut pas mentir (il n'est jamais edite a la main). -Rapport "" le
+    #  desactive.
+    [string]$Rapport = "docs/74-etat-verifie.md"
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,6 +35,7 @@ $toutes = @(
     [ordered]@{ nom = "test-sites"; lent = $false }
     [ordered]@{ nom = "test-secrets"; lent = $false }
     [ordered]@{ nom = "test-donnees"; lent = $false }
+    [ordered]@{ nom = "test-rapport"; lent = $false }
     [ordered]@{ nom = "test-journaux"; lent = $false }
     [ordered]@{ nom = "test-taches"; lent = $true }
     [ordered]@{ nom = "test-pwa"; lent = $false }
@@ -43,6 +48,9 @@ $toutes = @(
 )
 
 $liste = if ($Batterie) { @($toutes | Where-Object { $_.nom -eq $Batterie }) } else { $toutes }
+#  @() garantit un TABLEAU : un [ordered] seul a un .Count egal au nombre de ses
+#  cles (2), ce qui faisait afficher « 2 batteries » pour une seule executee.
+$liste = @($liste)
 if ($Rapide) { $liste = @($liste | Where-Object { -not $_.lent }) }
 if ($liste.Count -eq 0) { Write-Error "batterie inconnue : $Batterie" }
 
@@ -122,6 +130,69 @@ $total = Get-Date
 $lignes.Add("total : $totalKO KO sur $($liste.Count) batteries en $([int]($total - $debut).TotalSeconds)s")
 $lignes.Add("")
 [IO.File]::AppendAllText($journal, ($lignes -join "`r`n"), [Text.UTF8Encoding]::new($false))
+
+
+# --- Etat verifie versionne --------------------------------------------------
+if ($Rapport) {
+    $cheminRapport = if ([IO.Path]::IsPathRooted($Rapport)) { $Rapport } else { Join-Path (Split-Path -Parent $ici) $Rapport }
+    $commit = (Natif { git -C (Split-Path -Parent $ici) rev-parse --short HEAD 2>$null } | Out-String).Trim()
+    $branche = (Natif { git -C (Split-Path -Parent $ici) rev-parse --abbrev-ref HEAD 2>$null } | Out-String).Trim()
+    $sales = @(Natif { git -C (Split-Path -Parent $ici) status --porcelain 2>$null }).Count
+    $volumes = @(Natif { docker volume ls --filter "name=lcd-" --format "{{.Name}}" 2>$null }).Count
+
+    $md = New-Object System.Collections.Generic.List[string]
+    $md.Add("# 74 - Etat verifie du SAS (genere)")
+    $md.Add("")
+    $md.Add("**Genere le** : " + (Get-Date -Format "yyyy-MM-dd HH:mm") + " par ``deploy/tout-verifier.ps1``.")
+    $md.Add("**Ne pas editer a la main** : relancer la passe pour actualiser (c'est le seul mode d'ecriture).")
+    $md.Add("")
+    $md.Add("## Environnement mesure")
+    $md.Add("")
+    $md.Add("| Fait | Valeur |")
+    $md.Add("|---|---|")
+    $md.Add("| Commit | ``$commit`` sur ``$branche`` |")
+    $md.Add("| Fichiers non commites | $sales |")
+    $md.Add("| Volumes ``lcd-*`` | $volumes |")
+    foreach ($svc in @("lcd-deploy-web-1", "lcd-deploy-authelia-1", "lcd-deploy-caddy-1")) {
+        $id = (Natif { docker inspect --format "{{.Image}}" $svc 2>$null } | Out-String).Trim()
+        $cree = (Natif { docker inspect --format "{{.Created}}" $svc 2>$null } | Out-String).Trim()
+        if ($id) {
+            $court = $id.Replace("sha256:", "").Substring(0, 12)
+            $quand = if ($cree.Length -ge 16) { $cree.Substring(0, 16) } else { $cree }
+            $md.Add("| Image $svc | ``$court`` (creee $quand) |")
+        }
+    }
+    $md.Add("")
+    $md.Add("## Resultat de la passe")
+    $md.Add("")
+    $md.Add("| Batterie | Duree | KO | Ligne RESULTAT |")
+    $md.Add("|---|---:|---:|---|")
+    foreach ($r in $resultats) {
+        $md.Add(("| {0} | {1} s | {2} | {3} |" -f $r.nom, $r.duree, $r.ko, ($r.resultat -replace '\|', '\|')))
+    }
+    $md.Add("")
+    $md.Add(("**Total : {0} KO sur {1} batteries, {2} s.**" -f $totalKO, $liste.Count, [int]($total - $debut).TotalSeconds))
+    $md.Add("")
+    $md.Add("_La ligne ``test-rapport`` refere l'etat du rapport precedent : la batterie verifie le document, donc elle ne peut pas valider sa propre ecriture dans la meme passe (controle circulaire assume, dit ici)._")
+    $md.Add("")
+    $rouges = @($resultats | Where-Object { $_.ko -ne 0 })
+    $md.Add("## Ce qui est rouge, et ou c'est suivi")
+    $md.Add("")
+    if ($rouges.Count -eq 0) {
+        $md.Add("_Aucun echec : toutes les batteries mesurees sont vertes._")
+    } else {
+        $md.Add("| Batterie | KO | A suivre |")
+        $md.Add("|---|---:|---|")
+        foreach ($r in $rouges) {
+            $md.Add(("| {0} | {1} | voir la ligne RESULTAT et le journal ``deploy/veille/batteries.log`` |" -f $r.nom, $r.ko))
+        }
+        $md.Add("")
+        $md.Add("Un rouge n'est jamais masque : il est compte dans le code de sortie de la passe.")
+    }
+    $md.Add("")
+    [IO.File]::WriteAllText($cheminRapport, (($md -join "`n") + "`n"), [Text.UTF8Encoding]::new($false))
+    Write-Output ("etat verifie ecrit : {0}" -f $cheminRapport)
+}
 
 Write-Output ""
 Write-Output ("{0}  {1} batterie(s)  {2} KO  {3}s" -f (Get-Date -Format "HH:mm:ss"), $liste.Count, $totalKO, [int]($total - $debut).TotalSeconds)
