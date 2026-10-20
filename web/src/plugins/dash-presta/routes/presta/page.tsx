@@ -110,6 +110,10 @@ export default async function PagePresta({
           <h2 className="text-lg font-extrabold">Créer mission (dispatch)</h2>
           <p className="text-sm text-[var(--encre-douce)]">
             presta_id + motif — geste humain tracé, la box refuse si DST.
+            Le presta_id doit figurer dans l&apos;annuaire de ce logement :
+            sinon la passerelle répond « presta … inconnu annuaire » (404).
+            La valeur pré-remplie n&apos;est qu&apos;un exemple, valide pour le
+            logement qui la porte.
           </p>
           <div className="mt-4">
             <FormulaireAction

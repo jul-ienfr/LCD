@@ -59,10 +59,15 @@ Lacunes vs cible (point de départ du cahier, 2026-10-18) : ~~aucun chargeur
 plugin~~ ✅ F1 ; ~~pas d'IdP réel (cookie `lcd_qui` = mode lab)~~ ✅ F3
 (Authelia 4.39.28, lab sans IdP = batterie locale seulement) ; ~~PWA = manifest
 seul, **0 service worker**~~ ✅ F4 (`web/public/sw.js` maison versionné +
-outbox IndexedDB ref idempotente + purge révocation, `test-pwa.ps1` 14/14) ; ~~pas de version lite~~ ✅ F1 (L1) ; †
-dashboards `super`/`admin` (`/systeme`, secrets, journal voir-comme, recherche
-par `ref`) absents (F5) ; † tickets support + messagerie 3 fils (§P8) absents
-(F5). † = restant ; états dans §F10.
+outbox IndexedDB ref idempotente + purge révocation, `test-pwa.ps1` 14/14) ; ~~pas de version lite~~ ✅ F1 (L1) ;
+~~dashboards `super`/`admin` (`/systeme`, secrets, journal voir-comme, recherche
+par `ref`) absents~~ ✅ F5 (`test-super.ps1` 34/34) ; ~~tickets support +
+messagerie 3 fils (§P8) absents~~ ✅ F5 (idem). Aucune lacune de ce
+paragraphe n'est restée ouverte : les `† = restant` initiaux ont été levés à
+la clôture F5 (2026-10-20). Ce qui reste ouvert n'est plus du code mais des
+**DoD manuelles** (traversee Tab physique, offline 2 h sur appareils réels,
+55 items terrain/box du `checklist-taches-restantes.md`) — états §F10, bornes
+§F9.
 
 ## §F2 Stack cible — choix datés fin octobre 2026
 
@@ -284,12 +289,24 @@ Limites constatées et assumées (R1 — rien n'est simulé, rien n'est caché) 
    `useActionState` n'est pas repris dans le HTML servi : le
    `<p role="status">` reste vide tant que JS n'a pas pris la main. L'écriture
    a lieu, le confort d'affichage non.
-2. `/presta` : `mission` (presta par défaut `lab_menage_01`) et
-   `cloture_menage` reviennent en `moteur_code: 404` côté dispatch. Le relais
-   front → passerelle est **prouvé** (une ligne de journal écrite à chaque
-   soumission), c'est le moteur qui refuse : `lab_menage_01` figure bien dans
-   l'annuaire dispatch, mais la route `/mission` n'accepte que les métiers
-   (contrôle A/B : `lab_plomb_01` → 201, `lab_menage_01` → 404).
+2. `/presta` : la mission au presta pré-rempli `lab_menage_01` revient en
+   `moteur_code: 404` **sur log1**. Cause mesurée, et surtout **différente de
+   ce que j'ai écrit d'abord** (« la route `/mission` n'accepte que les
+   métiers » — faux, contredit par la mesure) : `presta_id` est recherché
+   dans l'**annuaire du logement affiché**, un fichier par logement
+   (`lab/prestataires.lab/log{1,2}.yaml`). log1 n'y a que `lab_plomb_01`,
+   `lab_plomb_02`, `lab_elec_hz`, `lab_serr_expire` (aucun ménage) ; log2 n'y
+   a que `lab_menage_01`. Même requête mesurée sur les deux :
+   `presta lab_menage_01 inconnu annuaire log1` → 404 sur log1, **201 sur
+   log2**. Le relais front → passerelle est **prouvé** (une ligne de journal
+   à chaque soumission). **Le front ne peut pas deviner la liste valable** :
+   la passerelle n'expose **aucune route `/annuaire`** (contrat
+   `gateway.py` : `GET /health /ready / /api/apercu* /etat-parc /metrics` +
+   `POST /v1/action`) et `/api/apercu-parc` ne porte aucune donnée
+   prestataire. Correction retenue : **texte d'aide honnête** qui énonce la
+   règle (le presta doit figurer dans l'annuaire de ce logement, sinon 404),
+   plutôt que de substituer un autre id qui « marcherait » sur un logement
+   pour casser sur le suivant.
 3. `/voyageur` volontairement hors cible de comptage : sa ref a déjà réussi
    en 201, la passerelle **rejoue la réponse en cache sans écrire de ligne**
    (table d'idempotence) — un compteur y mentirait. Ce formulaire est par
