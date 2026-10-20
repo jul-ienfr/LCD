@@ -259,7 +259,9 @@ Batterie dégradée (extension `test-front.ps1`, 0 outil payant) :
 - `?lite=1` : page rendue sans classe `backdrop` ni grille critique.
 - SW : présent, versionné, purge à révocation (test lab).
 - 403/404 anti-énumération + 422 sans `entite_id` (existant, étendu 8 plugins).
-- Grep 0 fuite marque/stack (§F0.6).
+- Grep 0 fuite marque/stack (§F0.6) — ✅ livré : `test-front.ps1` §14,
+  14 checks (LCD + IP/interne + déclaration stack sur
+  `/voyageur` `/presta` `/proprio` + 5 manifeste PWA), battery 71/71.
 
 Matrice matérielle (budget ~40 €, 1 fois) : 2 appareils réels d'occasion —
 Android 6 (~25 €) + iPhone SE 1 (~15 €) — parcourus manuellement à chaque
@@ -290,4 +292,5 @@ chaque revue mensuelle.
 |---|---|---|
 | REQ-S-007 | Front SaaS : chargeur plugin strict (§20.7 front) + cœur sans connaissance de dashboard + session réelle (IdP 2FA staff) | recette `test-idp.ps1` (302 redir + redir 2FA + TOTP + 403 révocation + logout) + `test-front.ps1` + validateur manifeste KO + 403 admin sur secrets |
 | REQ-S-008 | Mode dégradé L0-L3 : sans-JS complet, `?lite=1`, matrice appareils réels, voyageur L0 = SMS/papier | batterie dégradée §F9 + 2 appareils réels parcourus |
+| REQ-S-009 | Marque blanche : 0 fuite « LCD / stack / IP » côté voyageur/presta/proprio, re-thème **sans code** (env seul) | `test-front.ps1` 71/71 dont §14 (14 checks marque) + preuve A/B même build (A `Séjour` → B `Marque Client XYZ`, 0 LCD, manifeste suit) + 5 SVG template (vercel/next/…) supprimés = 404 |
 | REQ-T-005 | Front box runtime-agnostique : Lovelace (HA seul) + `:8060` (HA\|Moli) + kiosk QR, 0 fonction obligatoire dépendante d'une UI box | `tests_lab.py` 1142/1142 (coupure réelle des 2 runtimes → bandeau + retour ; §65 :8060 pendant coupure passerelle) + `test-front.ps1` 57/57 (kiosk L1) ; offline 2 h = DoD manuelle §F9 |

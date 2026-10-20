@@ -7,6 +7,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { lireIdentite } from "@/lib/identite";
+import { marque } from "@/lib/branding";
 import { CarteCreation } from "./carte-creation";
 
 export const instant = false;
@@ -98,7 +99,7 @@ function gates(de: number, cible: number, sp: SP): string[] {
     if (!dpe) r.push("Classe DPE requis (E minimum, F/G refusés).");
     if (!sp.reglement_pv) r.push("Règlement de copro lu + PV visite signé (sinon STOP).");
     if (!sp.detecteurs) r.push("Détecteurs fumée (+CO) installés requis.");
-    if (!sp.assurance) r.push("Assurance habitation + RC LCD requises.");
+    if (!sp.assurance) r.push(`Assurance habitation + RC ${marque()} requises.`);
     if (de >= 1 && !sp.presta_ok)
       r.push("≥ 2 prestataires / métier critique à ~10 km requis (sinon pas de FULL).");
     if (de >= 1 && !sp.photos)
@@ -243,7 +244,7 @@ function formulaireEtape(
             </label>
             <Gate nom="reglement_pv" label="Règlement copro lu + PV visite signé" cocher={!!sp.reglement_pv} />
             <Gate nom="detecteurs" label="Détecteurs fumée (obligatoire) + CO installés" cocher={!!sp.detecteurs} />
-            <Gate nom="assurance" label="Assurance habitation + RC LCD actives" cocher={!!sp.assurance} />
+            <Gate nom="assurance" label={`Assurance habitation + RC ${marque()} actives`} cocher={!!sp.assurance} />
             <Gate nom="presta_ok" label="≥2 prestas / métier critique à ~10 km" cocher={!!sp.presta_ok} />
             <Gate nom="photos" label="Photos + mesures + commerces locaux relevés" cocher={!!sp.photos} />
           </>

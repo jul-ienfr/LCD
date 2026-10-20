@@ -2,6 +2,7 @@
 // Tout vient de GET /export-compta de la passerelle — rien n'est enrichi
 // ici, aucune écriture. SIREN manquant reste une colonne explicite.
 import { gwGet } from "@/lib/gateway";
+import { slugMarque } from "@/lib/branding";
 
 type Facture = {
   entite_id?: string;
@@ -81,7 +82,7 @@ export async function GET(): Promise<Response> {
     status: 200,
     headers: {
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition": 'attachment; filename="lcd-export-compta.csv"',
+      "content-disposition": `attachment; filename="${slugMarque()}-export-compta.csv"`,
     },
   });
 }

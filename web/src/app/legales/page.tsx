@@ -6,6 +6,7 @@ export const instant = false;
 import type { Metadata } from "next";
 import Link from "next/link";
 import { gwGet } from "@/lib/gateway";
+import { marque } from "@/lib/branding";
 
 export const metadata: Metadata = {
   title: "Mentions légales & CGV",
@@ -61,7 +62,7 @@ export default async function PageLegales() {
       <section className="carte p-5 md:p-7">
         <h2 className="text-xl font-extrabold">Éditeur de la plateforme</h2>
         <p className="mt-2 text-sm text-(--encre-douce)">
-          La plateforme LCD Parc est exploitée par{" "}
+          La plateforme {marque()} est exploitée par{" "}
           <strong>l&apos;entité gestionnaire</strong> du parc ci-dessous
           (registre réel de la passerelle — SIREN visibles sur développeur) :
         </p>
@@ -101,7 +102,7 @@ export default async function PageLegales() {
       <section className="carte p-5 md:p-7">
         <h2 className="text-xl font-extrabold">Mandat de conciergerie</h2>
         <p className="mt-2 text-sm text-(--encre-douce)">
-          Les services LCD Parc s&apos;exercent sous mandat écrit selon deux
+          Les services {marque()} s&apos;exercent sous mandat écrit selon deux
           formes possibles (conditions générales du mandat) :
         </p>
         <ul className="mt-3 flex flex-col gap-2 list-disc pl-5 text-sm" role="list">

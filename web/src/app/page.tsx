@@ -4,9 +4,11 @@
 // PILOTAGE 190 €, FULL 290 €) — jamais de promesse hors doc.
 import type { Metadata } from "next";
 import Link from "next/link";
+import { marque } from "@/lib/branding";
 
 export const metadata: Metadata = {
-  title: "LCD — la conciergerie courte durée pilotée en 1-tap",
+  // Marque §S3.4.3 : lue à la requête (lib/branding.ts), jamais en dur.
+  title: `${marque()} — la conciergerie courte durée pilotée en 1-tap`,
 };
 
 const FEATURES: { icone: string; titre: string; texte: string }[] = [

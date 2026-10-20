@@ -242,6 +242,58 @@ Verif "kiosk : 0 PIN ni secret affiche" (-not ($vLite -match "(?i)\b(PIN|secret|
 # 13d. Formulaires natifs (sans JS) presents : ecrire reste possible en L1.
 Verif "kiosk L1 : formulaires natifs presents" ($vLite -match "<form")
 
+# 14. MARQUE BLANCHE (cahier 70 §F0.6 + socle §S3.4.3) : 0 fuite « LCD /
+#     stack / IP » côté voyageur/presta/proprio — les 3 SEULES surfaces
+#     clientes (§F4). Recette normative §S3.4.3 : « changer branding ->
+#     re-theme SANS CODE + grep 0 fuite ». La marque vient de l'env
+#     (web/src/lib/branding.ts, meme pattern que LCD_GATEWAY_URL), donc ce
+#     grep mesure le front SERVI, jamais le build.
+#
+#     Perimetre HONNETE : les chemins /_next/static/* et le payload RSC
+#     ($Sreact.fragment, turbopack-*.js) sont les PROPS assets Next — les
+#     retirer casserait le precache SW (§F8, test-pwa 14/14) et l'offline
+#     2 h. Ils ne portent AUCUNE marque : une fuite = marque / stack / IP
+#     dans le CONTENU rendu, jamais le chemin d'asset qui l' transporte.
+#     (/hote reste hors perimetre : console operateur, pas une surface
+#     cliente — elle garde LCD_GATEWAY_URL pour le debogage du deployeur.)
+$SURFACES = @("/voyageur", "/presta", "/proprio")
+foreach ($pg in $SURFACES) {
+    $h = corps $pg $null
+    # 14a. Marque : aucun « LCD » (insensible casse) dans le HTML servi.
+    #      Les cookies lcd_* / en-tetes X-LCD-* ne sont PAS dans le corps
+    #      rendu, donc un \blcd sur la page ne peut matcher qu'une fuite.
+    Verif "marque : 0 fuite LCD sur $pg" (-not ($h -match "(?i)\blcd"))
+    # 14b. IP / interne : ni loopback, ni RFC1918, ni TLD .local, ni port
+    #      de socle, ni nom de service interne (authelia / home assistant).
+    Verif "marque : 0 fuite IP/interne sur $pg" (-not ($h -match "(?i)(127\.0\.0\.1|0\.0\.0\.0|\b192\.168\.\d{1,3}\.\d{1,3}\b|\b10\.\d{1,3}\.\d{1,3}\.\d{1,3}\b|\b172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}\b|lcd\.local|lcd\.test|\.local\b|:8443|:8060|:9091|:4002|home\s*assistant)"))
+    # 14c. Stack : aucune declaration de framework dans le contenu (meta
+    #      generator / « powered by » / « built with »). Les chemins
+    #      /_next/ restent admis : requis par le SW, sans marque.
+    Verif "marque : 0 declaration stack sur $pg" (-not ($h -match "(?i)(<meta[^>]+name=.generator.|powered\s+by|built\s+with|\bvercel\b)"))
+}
+# 14d. Manifeste PWA : l'ecran d'accueil du voyageur porte la marque, pas
+#      « LCD » — c'est LE nom installe sur son telephone (§S3.4.3).
+#      Filet anti-vide : on lit le short_name DANS le manifeste puis on
+#      l'exige dans la page /voyageur. Sans ce croisement, un manifeste
+#      prerendu au build (Next traite manifest.ts comme cache par defaut)
+#      passe le test alors que son nom est gele sur la marque d'avant :
+#      nom gele "Sejour" vs page "Marque Client XYZ" -> croisement KO.
+#      NB aucun caractere non-ASCII dans un LITERAL de chaine : la
+#      batterie est lue sans BOM (codepage console), un tiret cadratin
+#      dans des guillemets cassait le parsing du fichier entier.
+$mf  = corps "/manifest.webmanifest" $null
+$voy = corps "/voyageur" $null
+$titreVoy = [regex]::Match($voy, "<title>(.*?)</title>").Groups[1].Value
+$nomCourt = [regex]::Match($mf, '"short_name"\s*:\s*"([^"]+)"').Groups[1].Value
+$nomLong  = [regex]::Match($mf, '"name"\s*:\s*"([^"]+)"').Groups[1].Value
+Verif "marque : manifeste PWA servi (JSON)" ($mf -match "voyageur")
+Verif "marque : manifeste PWA sans LCD" (-not ($mf -match "(?i)\blcd"))
+Verif "marque : manifeste short_name non vide" ($nomCourt.Length -gt 0)
+Verif "marque : manifeste name porte le short_name" (
+    $nomLong.Length -gt 0 -and $nomLong.Contains($nomCourt))
+Verif "marque : page /voyageur re-themee au short_name du manifeste" (
+    $nomCourt.Length -gt 0 -and $titreVoy.Contains($nomCourt))
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO

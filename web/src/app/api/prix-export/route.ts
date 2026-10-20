@@ -4,6 +4,7 @@
 // une date invalide à aujourd'hui) : la même fenêtre que /prix.
 // Colonnes : logement_id, date, direct, puis 1 colonne par canal connu.
 import { gwGet } from "@/lib/gateway";
+import { slugMarque } from "@/lib/branding";
 
 type LigneBrute = unknown;
 type Logement = {
@@ -85,7 +86,7 @@ export async function GET(req: Request): Promise<Response> {
     headers: {
       "content-type": "text/csv; charset=utf-8",
       "content-disposition":
-        `attachment; filename="lcd-prix-${depuis || "aujourdhui"}.csv"`,
+        `attachment; filename="${slugMarque()}-prix-${depuis || "aujourdhui"}.csv"`,
     },
   });
 }

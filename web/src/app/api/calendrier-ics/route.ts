@@ -5,6 +5,7 @@
 // Jamais d'événement inventé : un jour en erreur (box muette) est ignoré et
 // signalé en X-LCD-NOTE.
 import { gwGet } from "@/lib/gateway";
+import { marque, slugMarque } from "@/lib/branding";
 
 type Case = {
   jour?: string;
@@ -82,10 +83,13 @@ export async function GET(req: Request): Promise<Response> {
   const lignes: string[] = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//LCD Parc//Planning occupation//FR",
+    // PRODID/CALNAME = marque affichée dans l'app calendrier (§S3.4.3) :
+    // lus à la requête, jamais en dur. Les X-LCD-* restent en dur : en-têtes
+    // de protocole internes, jamais rendus (test-front.ps1:119 les lit).
+    `PRODID:-//${marque()}//Planning occupation//FR`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    "X-WR-CALNAME:LCD Parc — occupation",
+    `X-WR-CALNAME:${marque()} — occupation`,
     "X-WR-CALDESC:Occupation du parc (lecture seule). 1 VEVENT = 1 séjour occupé ou 1 conflit à trancher.",
     "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
     "X-PUBLISHED-TTL:PT1H",
@@ -107,7 +111,11 @@ export async function GET(req: Request): Promise<Response> {
       const nom = l.nom || l.logement_id || "logement";
       lignes.push(
         "BEGIN:VEVENT",
-        `UID:lcd-${echapper(l.logement_id)}-${courant.de}@lcd.local`,
+        // UID visible dans « source de l'événement » des apps calendrier :
+        // marque (§S3.4.3) + TLD réservé RFC 2606 `.invalid` (jamais
+        // résoluble → aucun indice de réseau interne, contrairement à
+        // l'ancien `@lcd.local`). Stabilité conservée (même jour = même UID).
+        `UID:${slugMarque()}-${echapper(l.logement_id)}-${courant.de}@sejour.${slugMarque()}.invalid`,
         `DTSTAMP:${horodatage}`,
         `DTSTART;VALUE=DATE:${courant.de}`,
         `DTEND;VALUE=DATE:${courant.fin}`,
@@ -154,7 +162,7 @@ export async function GET(req: Request): Promise<Response> {
     headers: {
       "content-type": "text/calendar; charset=utf-8",
       "cache-control": "no-store",
-      "content-disposition": `inline; filename="lcd-planning-${debut || "aujourdhui"}.ics"`,
+      "content-disposition": `inline; filename="${slugMarque()}-planning-${debut || "aujourdhui"}.ics"`,
     },
   });
 }

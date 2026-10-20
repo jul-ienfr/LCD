@@ -3,6 +3,7 @@
 // aucune écriture. Bornes : 3-30 j (fenêtre permanente) + ?debut ISO <=90 j
 // (la passerelle borne elle-même à JOURS_MAX 62 j et ignore une date invalide).
 import { gwGet } from "@/lib/gateway";
+import { slugMarque } from "@/lib/branding";
 
 type Case = { jour?: string; disponible?: boolean; conflit_ref?: string | null; erreur?: string };
 type Logement = { box_id?: string; logement_id?: string; nom?: string; jours?: Case[] };
@@ -58,7 +59,7 @@ export async function GET(req: Request): Promise<Response> {
     headers: {
       "content-type": "text/csv; charset=utf-8",
       "content-disposition":
-        `attachment; filename="lcd-planning-${(base || "aujourdhui")}.csv"`,
+        `attachment; filename="${slugMarque()}-planning-${(base || "aujourdhui")}.csv"`,
     },
   });
 }

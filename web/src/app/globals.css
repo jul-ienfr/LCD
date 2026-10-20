@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-/* Design system LCD Parc — octobre 2026.
+/* Design system — octobre 2026 (marque blanche §S3.4.3 : la marque ne
+   figure dans AUCUN artefact servi, y compris les commentaires CSS).
    Mobile-first, dark/light natif (prefers-color-scheme + .theme-clair/.theme-sombre),
    tokens sémantiques (jamais de couleur brute dans les pages). */
 

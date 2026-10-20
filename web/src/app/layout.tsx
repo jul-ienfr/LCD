@@ -6,15 +6,18 @@ import { VoirComme } from "./voir-comme";
 import { ThemeToggle } from "./theme-toggle";
 import { lireIdentite, jarSecurise } from "@/lib/identite";
 import { libelleProfil } from "@/lib/profils";
+import { marque } from "@/lib/branding";
 
 // Le layout lit le cookie de session (voir-comme) : toutes les routes sont
 // rendues à la requête — pas de prerender statique (compat /_not-found).
 export const instant = false;
 
 export const metadata: Metadata = {
+  // Marque §S3.4.3 : lue À LA REQUÊTE (lib/branding.ts), jamais figée au
+  // build — le SW précache le HTML, une constante garderait l'ancienne marque.
   title: {
-    default: "LCD Parc — Conciergerie",
-    template: "%s — LCD Parc",
+    default: `${marque()} — Conciergerie`,
+    template: `%s — ${marque()}`,
   },
   description:
     "Pilotage conciergerie : hôte, voyageur, propriétaire, commercial. Fonctionne sans JavaScript.",
@@ -82,7 +85,7 @@ export default async function RootLayout({
             <Link
               href="/"
               className="flex items-center gap-2 text-lg font-extrabold tracking-tight"
-              aria-label="LCD Parc — accueil pilotage"
+              aria-label={`${marque()} — accueil pilotage`}
             >
               <span
                 aria-hidden
@@ -94,7 +97,7 @@ export default async function RootLayout({
               >
                 ⌂
               </span>
-              LCD&nbsp;Parc
+              {marque()}
             </Link>
             <nav
               className="hidden items-center gap-1 text-sm md:flex"
@@ -175,7 +178,7 @@ export default async function RootLayout({
         <footer className="border-t border-[var(--bordure)] px-4 py-5">
           <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-2 text-xs text-[var(--encre-faine)]">
             <span className="font-semibold text-[var(--encre-douce)]">
-              LCD Parc — conciergerie
+              {marque()} — conciergerie
             </span>
             <span aria-hidden>·</span>
             <span>Fonctionne sans JavaScript — formulaires natifs.</span>

@@ -5,6 +5,7 @@
 export const instant = false;
 import type { Metadata } from "next";
 import Link from "next/link";
+import { marque } from "@/lib/branding";
 
 export const metadata: Metadata = { title: "Aide" };
 
@@ -45,7 +46,7 @@ export default function AidePage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-10">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--encre-faine)">
-          Aide · LCD Parc
+          Aide · {marque()}
         </p>
         <h1 className="mt-1 text-3xl font-black tracking-tight md:text-4xl">
           Qui utilise quoi — et ce qui est réel
