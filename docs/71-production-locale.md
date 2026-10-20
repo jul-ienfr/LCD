@@ -193,6 +193,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
 | G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**15/15 OK**, 2026-10-19, 4 tâches) |
+| G-versions (V6, §8 terdecies) | **rien ne change en douce** : le journal docs/75-versions-verifiees.md enregistre l'identifiant d'image **réellement exécuté** des trois services ; -Verifier sort en code 1 dès qu'il diffère ; contrôle positif sur une copie falsifiée (le service fautif est nommé) ; l'identifiant cité est relu indépendamment dans Docker ; le document est versionné | deploy/test-versions.ps1 (**10/10 OK**, 2026-10-19) ; outil deploy/versions.ps1 (-Verifier, -Accepter) |
 | G-accès (V6, §8 duodecies) | les secrets locaux (.env, phrase de passe restic, secret TOTP) ne sont lisibles que par le compte d''exploitation, SYSTEM et les administrateurs : **héritage d''ACL coupé**, aucune entrée hors liste — un **SID orphelin qui gardait la lecture de la phrase de passe a été trouvé et retiré** ; contrôle positif sur un fichier rendu lisible par Tout le monde ; idempotence ; la pile et restic fonctionnent toujours après | deploy/test-acces.ps1 (**11/11 OK**, 2026-10-19) ; outil deploy/durcir-secrets.ps1 (-Verifier, -WhatIf, ACL sauvegardées avant toute modification) |
 | G-santé (V6, §8 undecies) | l'exploitation **tourne vraiment** : 5 tâches présentes, aucune désactivée ni en échec, fraîcheur mesurée de chaque preuve automatique (snapshot < 36 h, batteries / dépôt / entretien / état vérifié < 8 j, veille < 15 min), et la tâche de reprise est **déclenchée** puis son journal lu jusqu'à sa conclusion | `deploy/test-sante.ps1` (**11/11 OK**, 2026-10-19) |
 | G-reprise (V6, §8 decies, R-06) | reprise **complète prouvée** : snapshot du volume IdP identifié, restauration réelle dans un volume neuf, **base lisible avec ses enrôlements**, pile séparée debout en **15 s**, entrée protégée 302, portail IdP 200, front 200, HTTP 301, **3/3 services**, production intacte avant et après, nettoyage complet | `deploy/reprise.ps1` (**12/12 OK**, 2026-10-19) ; surcharge `deploy/reprise/docker-compose.reprise.yml` (réseau dédié, ports décalés, `!override`) |
@@ -394,6 +395,14 @@ Les fichiers de secrets du dépôt local doivent être lisibles par le compte qu
 
 `deploy/test-acces.ps1` (**11/11**) prouve l'état et l'effet : aucun droit hors liste, héritage coupé sur les trois, **contrôle positif** (un fichier rendu lisible par Tout le monde est signalé, puis ne l'est plus après durcissement), **idempotence**, secrets toujours lisibles, `docker compose config` et un vrai `restic snapshots` toujours fonctionnels, sauvegardes d'ACL hors de git.
 
+### §8 terdecies Rien ne change en douce (2026-10-19)
+
+Une image peut changer sans que personne ne l'ait décidé : un `docker compose build`, un tag flottant (`caddy:2-alpine`), un rebuild local du front. Un SAS « définitif » ne doit pas se modifier tout seul, et pourtant rien ne le signalait : `test-front` comparait déjà les dates d'image aux commits, mais aucun document ne disait **ce qui tourne réellement**.
+
+`deploy/versions.ps1` écrit `docs/75-versions-verifiees.md` (généré, versionné) avec, pour chaque service, l'image **demandée** et l'identifiant d'image **exécuté**. `-Verifier` sort en **code 1** dès qu'un identifiant diffère : une mise à jour subie n'est pas une mise à jour acceptée. Le geste d'acceptation est `-Accepter` — explicite, daté, et laissé dans l'historique du document.
+
+`deploy/test-versions.ps1` (**10/10**) prouve l'outil et le document : les trois services décrits, le vérificateur vert, **contrôle positif** sur une copie falsifiée (le service fautif est nommé, puis la copie régénérée redevient verte), l'identifiant cité **relu indépendamment** dans Docker, l'avertissement de document généré, le fichier **versionné** (une trace non commitée ne prouve rien), et l'image à tag flottant bien couverte — c'est précisément pour elle que ce journal existe.
+
 ### §8 septies Intégrité du dépôt de sauvegarde (2026-10-19)
 
 La sauvegarde était **prouvée** (restauration réelle, 10/10) mais **rien ne
@@ -418,6 +427,7 @@ sauvegarde fausse sans témoin — le pire état possible. Comblé par
 Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdit de
 s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
 nul.
+
 
 
 

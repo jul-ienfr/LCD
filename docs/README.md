@@ -1,9 +1,9 @@
 # Index des documents du SAS
 
-**Genere le** : 2026-10-20 18:25 par `deploy/index-docs.ps1`.
+**Genere le** : 2026-10-20 18:47 par `deploy/index-docs.ps1`.
 **Ne pas editer a la main** : relancer l'outil (`-Verifier` dit si l'index est a jour).
 
-**23 documents** : 12 numerotes (l'ordre raconte le projet) et 11 autres.
+**24 documents** : 13 numerotes (l'ordre raconte le projet) et 11 autres.
 
 Deux documents sont **produits par la mesure** : les editer a la main est perdu a la regeneration.
 
@@ -23,6 +23,7 @@ Deux documents sont **produits par la mesure** : les editer a la main est perdu 
 | 72 | `72-runbooks.md` | runbooks d'exploitation et de reprise (R-01 a R-11) |
 | 73 | `73-inventaire-donnees.md` | inventaire des donnees (GENERE) |
 | 74 | `74-etat-verifie.md` | etat verifie du SAS (GENERE par la passe) |
+| 75 | `75-versions-verifiees.md` | Genere le : 2026-10-20 18:45 par deploy/versions.ps1. |
 
 ## Autres documents
 
