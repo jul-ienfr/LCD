@@ -90,23 +90,27 @@ $md.Add(("**{0} documents** : {1} numerotes (l'ordre raconte le projet) et {2} a
 $md.Add("")
 $md.Add("Deux documents sont **produits par la mesure** : les editer a la main est perdu a la regeneration.")
 $md.Add("")
+#  Pas de nombre de lignes dans l'index : les documents generes changent a
+#  chaque passe et l'index deriverait sans arret (mesure du 2026-10-19 :
+#  test-docs rouge a chaque passe pour cette seule raison). L'index doit
+#  deriver quand un DOCUMENT apparait, pas quand il grandit.
 $md.Add("## Documents numerotes")
 $md.Add("")
-$md.Add("| # | Document | Role | Lignes |")
-$md.Add("|---|---|---|---:|")
+$md.Add("| # | Document | Role |")
+$md.Add("|---|---|---|")
 foreach ($f in $numerotes) {
     $n = ($f.BaseName -split "-")[0]
     $role = if ($roles.ContainsKey($f.Name)) { $roles[$f.Name] } else { (PremierePhrase $f.FullName) }
-    $md.Add(("| {0} | ``{1}`` | {2} | {3} |" -f $n, $f.Name, $role, (Get-Content $f.FullName).Count))
+    $md.Add(("| {0} | ``{1}`` | {2} |" -f $n, $f.Name, $role))
 }
 $md.Add("")
 $md.Add("## Autres documents")
 $md.Add("")
-$md.Add("| Document | Role | Lignes |")
+$md.Add("| Document | Role |")
 $md.Add("|---|---|---:|")
 foreach ($f in $autres) {
     $role = if ($roles.ContainsKey($f.Name)) { $roles[$f.Name] } else { (PremierePhrase $f.FullName) }
-    $md.Add(("| ``{0}`` | {1} | {2} |" -f $f.Name, $role, (Get-Content $f.FullName).Count))
+    $md.Add(("| ``{0}`` | {1} |" -f $f.Name, $role))
 }
 $md.Add("")
 $md.Add("## Comment lire dans l'urgence")

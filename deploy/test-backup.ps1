@@ -106,7 +106,11 @@ try {
     }
 
     # --- 2. Completude : un snapshot par volume --------------------------
-    $volumes = @(& docker volume ls --format "{{.Name}}" | Where-Object { $_ -match "^lcd-" -and $_ -notmatch "^lcd-(restaure|test-backup)-" })
+    #  Les volumes EPHEMERES du drill de reprise (lcd-reprise_*) et des batteries
+#  sont exclus : ils existent quelques minutes et n'ont pas a avoir de
+#  snapshot — sinon la batterie devient instable des qu'un drill tourne
+#  (mesure du 2026-10-19 : 1 KO transitoire, vert seul juste apres).
+$volumes = @(& docker volume ls --format "{{.Name}}" | Where-Object { $_ -match "^lcd-" -and $_ -notmatch "^lcd-(restaure|test-backup|reprise)" })
     $snapJson = (ResticCli @("snapshots", "--json")).sortie
     $tagues = @()
     if ($snapJson.Trim().StartsWith("[")) {

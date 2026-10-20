@@ -193,6 +193,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
 | G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**15/15 OK**, 2026-10-19, 4 tâches) |
+| G-santé (V6, §8 undecies) | l'exploitation **tourne vraiment** : 5 tâches présentes, aucune désactivée ni en échec, fraîcheur mesurée de chaque preuve automatique (snapshot < 36 h, batteries / dépôt / entretien / état vérifié < 8 j, veille < 15 min), et la tâche de reprise est **déclenchée** puis son journal lu jusqu'à sa conclusion | `deploy/test-sante.ps1` (**11/11 OK**, 2026-10-19) |
 | G-reprise (V6, §8 decies, R-06) | reprise **complète prouvée** : snapshot du volume IdP identifié, restauration réelle dans un volume neuf, **base lisible avec ses enrôlements**, pile séparée debout en **15 s**, entrée protégée 302, portail IdP 200, front 200, HTTP 301, **3/3 services**, production intacte avant et après, nettoyage complet | `deploy/reprise.ps1` (**12/12 OK**, 2026-10-19) ; surcharge `deploy/reprise/docker-compose.reprise.yml` (réseau dédié, ports décalés, `!override`) |
 | G-docs (V6, §8 nonies) | l'index des documents est **généré** et vérifié : il liste les 23 documents, aucun fantôme, chaque document a un titre, **les 28 scripts cités existent** réellement, **aucune des 19 batteries n'est orpheline**, les documents générés portent leur avertissement, aucun résidu ; un document ajouté rend le contrôle **rouge** (contrôle positif) | `deploy/test-docs.ps1` (**12/12 OK**, 2026-10-19) ; outil `deploy/index-docs.ps1`, produit `docs/README.md` |
 | G-entretien (V6, §8 octies, R-05) | la récupération d'espace docker est **prouvée** : une image flottante fabriquée survit à `-WhatIf` et disparaît au `-Prune` réel ; **aucune** image nommée `lcd-*`, **aucun** volume, **aucun** conteneur touché (comptages avant/après 23/23, 78/78, 32/32) | `deploy/test-entretien.ps1` (**11/11 OK**, 2026-10-19 : cache 10,13 → 7,53 Go, +93 Mo d'images flottantes) |
@@ -378,6 +379,12 @@ Les batteries prouvaient que la sauvegarde est **restaurable** et que le dépôt
 
 La preuve est son propre résumé : le compte final doit être cohérent avec les lignes. Une version antérieure affichait « 0 échec » en exécutant la branche d'échec — une preuve qui ment sur son résultat est pire qu'aucune preuve, d'où le contrat d'appel à deux arguments.
 
+### §8 undecies L'exploitation tourne-t-elle vraiment ? (2026-10-19)
+
+Une automatisation morte ne se plaint pas : elle ne fait plus rien, et les preuves qu'elle produisait restent en place, **périmées mais crédibles**. `deploy/test-sante.ps1` (**11/11**) mesure donc la **fraîcheur** de chaque preuve et va jusqu'à **déclencher** la tâche de reprise pour lire sa conclusion : 5 tâches présentes, aucune désactivée, aucune en échec (code 0 ou « jamais exécutée »), snapshot < 36 h, batteries / dépôt / entretien / état vérifié < 8 j, veille < 15 min, et le journal de reprise contient bien « reprise complète prouvée ».
+
+Deux pièges mesurés en écrivant cette batterie : lire un journal **pendant** que la tâche l'écrit échoue (« en cours d'utilisation ») — il faut une lecture partagée ; et attendre la **date** du fichier ne suffit pas, la première ligne est écrite avant la conclusion : on attend la ligne `RESULTAT :`.
+
 ### §8 septies Intégrité du dépôt de sauvegarde (2026-10-19)
 
 La sauvegarde était **prouvée** (restauration réelle, 10/10) mais **rien ne
@@ -402,6 +409,7 @@ sauvegarde fausse sans témoin — le pire état possible. Comblé par
 Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdit de
 s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
 nul.
+
 
 
 
