@@ -1,18 +1,18 @@
 # 74 - Etat verifie du SAS (genere)
 
-**Genere le** : 2026-10-20 22:50 par `deploy/tout-verifier.ps1`.
+**Genere le** : 2026-10-20 23:11 par `deploy/tout-verifier.ps1`.
 **Ne pas editer a la main** : relancer la passe pour actualiser (c'est le seul mode d'ecriture).
 
 ## Environnement mesure
 
 | Fait | Valeur |
 |---|---|
-| Commit | `171cedc` sur `lab/docker` |
-| Fichiers non commites | 19 |
+| Commit | `df9ba89` sur `lab/docker` |
+| Fichiers non commites | 16 |
 | Volumes `lcd-*` | 25 |
-| Image lcd-deploy-web-1 | `5633c599aa7e` (creee 2026-10-20T20:50) |
-| Image lcd-deploy-authelia-1 | `b44a326fced1` (creee 2026-10-20T20:50) |
-| Image lcd-deploy-caddy-1 | `f77f856a30f0` (creee 2026-10-20T20:50) |
+| Image lcd-deploy-web-1 | `5633c599aa7e` (creee 2026-10-20T21:11) |
+| Image lcd-deploy-authelia-1 | `b44a326fced1` (creee 2026-10-20T21:11) |
+| Image lcd-deploy-caddy-1 | `f77f856a30f0` (creee 2026-10-20T21:11) |
 
 ## Resultat de la passe
 
@@ -27,25 +27,25 @@
 | test-versions | 3 s | 0 | RESULTAT : les versions deployees sont journalisees et verifiees (10/10 OK) |
 | test-export | 22 s | 0 | RESULTAT : la sauvegarde peut sortir de la machine et etre remontee (12/12 OK) |
 | test-donnees | 1 s | 0 | RESULTAT : inventaire des donnees exact et regenerable (9/9 OK) |
-| test-rapport | 4 s | 0 | RESULTAT : etat verifie fiable et versionne (10/10 OK) |
-| test-journaux | 64 s | 0 | RESULTAT : journaux plafonnes et rotation prouvee (9/9 OK) |
+| test-rapport | 5 s | 0 | RESULTAT : etat verifie fiable et versionne (10/10 OK) |
+| test-journaux | 66 s | 0 | RESULTAT : journaux plafonnes et rotation prouvee (9/9 OK) |
 | test-taches | 24 s | 0 | RESULTAT : exploitation automatique posee et prouvee (17/17 OK) |
 | test-pwa | 9 s | 0 | RESULTAT : PWA OK (SW + offline reel + outbox + purge) |
 | test-super | 1 s | 3 | RESULTAT : 3 ECHEC(S) |
 | test-lan | 17 s | 0 | RESULTAT : entree parametrable prouvee, LAN pret cote logiciel (13/13 OK) |
 | test-lan-acces | 16 s | 0 | RESULTAT : acces LAN mesure (FERME-PAR-PARE-FEU, 6/6 OK) |
 | test-tls | 3 s | 0 | RESULTAT : TLS parametre, bascule ACME validee, CA interne en service (9/9 OK) |
-| test-veille | 44 s | 0 | RESULTAT : veille operationnelle, panne detectee puis retour a la normale (11/11 OK) |
-| test-durcissement | 13 s | 0 | RESULTAT : entree durcie, mesures conformes, environnement laisse propre (24/24 OK) |
-| test-depot | 61 s | 0 | RESULTAT : integrite du depot prouvee, corruption detectee (14/14 OK) |
-| test-entretien | 34 s | 0 | RESULTAT : entretien prouve (espace recupere, rien de vivant touche) (11/11 OK) |
+| test-veille | 45 s | 0 | RESULTAT : veille operationnelle, panne detectee puis retour a la normale (11/11 OK) |
+| test-durcissement | 21 s | 0 | RESULTAT : entree durcie, mesures conformes, environnement laisse propre (24/24 OK) |
+| test-depot | 62 s | 0 | RESULTAT : integrite du depot prouvee, corruption detectee (14/14 OK) |
+| test-entretien | 35 s | 0 | RESULTAT : entretien prouve (espace recupere, rien de vivant touche) (11/11 OK) |
 | test-docs | 1 s | 0 | RESULTAT : documentation coherente et index a jour (12/12 OK) |
 | test-sante | 8 s | 0 | RESULTAT : l'exploitation tourne vraiment, preuves fraiches (11/11 OK) |
 | test-backup | 25 s | 0 | RESULTAT : sauvegarde chiffree + restauration prouvee (10/10 OK) |
-| reprise | 21 s | 0 | RESULTAT : reprise complete prouvee, 13 s pour resservir, production intacte (12/12 OK) |
-| test-demarrage | 26 s | 0 | RESULTAT : demarrage a froid prouve (14/14 OK) |
+| reprise | 34 s | 0 | RESULTAT : reprise complete prouvee, 15 s pour resservir, production intacte (16/16 OK) |
+| test-demarrage | 25 s | 0 | RESULTAT : demarrage a froid prouve (14/14 OK) |
 
-**Total : 10 KO sur 26 batteries, 444 s.**
+**Total : 10 KO sur 26 batteries, 470 s.**
 
 _La ligne `test-rapport` refere l'etat du rapport **precedent** : la batterie verifie un document ecrit, donc elle ne peut pas valider sa propre ecriture dans la meme passe. Ce n'est plus une source de rouge permanent depuis que le controle du nombre de volumes accepte les deux lectures (avant et apres la sous-passe) : des volumes apparaissent et disparaissent pendant une mesure._
 

@@ -123,6 +123,31 @@ $sante = (Natif { & docker ps --filter "label=com.docker.compose.project=$Projet
 $enHaut = @($sante -split "\r?\n" | Where-Object { $_ -match "Up" }).Count
 Verif ("les trois services de la pile de reprise sont demarres (" + $enHaut + "/3)") ([bool]($enHaut -ge 3))
 
+# --- 3 bis. La CONFIGURATION est restaurable elle aussi ----------------------
+#  Restaurer les volumes ne suffit pas : sans `.env` ni `users.yml`, la pile
+#  redemarre avec des secrets vides et aucun compte. La sauvegarde « etat hote »
+#  (tag hote=lcd) doit donc contenir ces fichiers A L'IDENTIQUE.
+$tmpHote = Join-Path ([IO.Path]::GetTempPath()) ("lcd-hote-" + [guid]::NewGuid().ToString("N"))
+New-Item -ItemType Directory -Force -Path $tmpHote | Out-Null
+$idHote = ""
+$listeHote = Restic @("snapshots", "--tag", "hote=lcd", "--latest", "1", "--json")
+if ($listeHote -match '"id":"([0-9a-f]{16,})"') { $idHote = $Matches[1] }
+elseif ($listeHote -match '"short_id":"([0-9a-f]+)"') { $idHote = $Matches[1] }
+Verif ("le snapshot de la configuration hote est identifie (" + $(if ($idHote) { $idHote.Substring(0, 8) } else { "aucun" }) + ")") ([bool]($idHote -ne ""))
+if ($idHote) {
+    $null = Restic @("restore", $idHote, "--target", "/sortie") @("-v", "${tmpHote}:/sortie")
+    $envR = Join-Path $tmpHote "src/env"
+    $usersR = Join-Path $tmpHote "src/users.yml"
+    Verif "la configuration hote restauree contient .env et users.yml" (
+        [bool]((Test-Path $envR) -and (Test-Path $usersR)))
+    if ((Test-Path $envR) -and (Test-Path $usersR)) {
+        $memeEnv = (Get-FileHash $envR -Algorithm SHA256).Hash -eq (Get-FileHash (Join-Path $ici ".env") -Algorithm SHA256).Hash
+        $memeUsers = (Get-FileHash $usersR -Algorithm SHA256).Hash -eq (Get-FileHash (Join-Path $ici "authelia/users.yml") -Algorithm SHA256).Hash
+        Verif "le .env restaure est identique a celui en service" ([bool]$memeEnv)
+        Verif "le users.yml restaure est identique a celui en service" ([bool]$memeUsers)
+    }
+}
+Remove-Item $tmpHote -Recurse -Force -ErrorAction SilentlyContinue
 # --- 4. La production n'a pas bouge ------------------------------------------
 $prodApres = Code "https://lcd.test:4001/hote" @("-k", "--resolve", "lcd.test:4001:127.0.0.1")
 Verif ("la production repond APRES le drill (mesure " + $prodApres + ")") ([bool]($prodApres -eq "302"))
