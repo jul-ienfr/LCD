@@ -115,7 +115,7 @@ suppression).
 | **V3** | **Secrets réels** : génération, gitignore, rotation, aucun secret versionné (S2) + secrets IdP (`users.yml`, `totp-secrets.json`) | contrôle automatique « 0 secret dans le dépôt » ; rotation rejouée | 1 vague |
 | **V4** | **LAN** : nom d'entrée paramétrable (`LCD_HOTE`), config IdP rendue depuis un modèle, ports figés, pare-feu hôte, CA interne distribuée, sauvegardes locales (restic) + restauration chronométrée | depuis un second poste du LAN : `/login` IdP → 2FA → `/hote`, `/api/health`, sauvegarde/restauration prouvée | 1–2 vagues — **logiciel fait (2026-10-19)** : Caddy `{$LCD_HOTE}` + `{$LCD_PORT_HTTPS}`, `rendre-config.ps1` (modèle → `configuration.yml`, validé par le binaire Authelia pour `lcd.test` ET `lcd.local`), `test-lan.ps1` 13/13 avec paire jetable IdP+entrée rendue pour `lcd.local` ; **sauvegarde/restauration faites** : `sauvegarde.ps1` (25 volumes + état hôte, dépôt restic chiffré, 51 Mio, 42 s, **vérifiée par volume**), `restauration.ps1 -Verifier` (**25/25 conformes au snapshot**, 86 s), `test-backup.ps1` **10/10** (dont test destructif : fichier supprimé → restauré à l'identique) ; **reste l'étape hôte** : `lan-ouvrir.ps1 -Poser` (admin) car les ports publiés ne sortent pas de WSL2 (0 listener Windows, loopback seul) + règle pare-feu |
 | **V5** | **Internet** : domaine, LE (DNS-01), durcissement (HSTS, WAF, rate-limit), accès admin par VPN seul, révocation | test externe : portail IdP, 2FA, 0 port admin exposé ; `test-deploy` en HTTPS public | 1–2 vagues |
-| **V6** | **Métrologie et exploitation** : journaux centralisés, alertes (site muet, crash-loop, disque, certificat), tableau de santé du parc, runbooks datés | une panne provoquée (conteneur arrêté) = alerte reçue < 2 min + runbook applicable à froid | 1 vague |
+| **V6** | **Métrologie et exploitation** : journaux centralisés, alertes (site muet, crash-loop, disque, certificat), tableau de santé du parc, runbooks datés | une panne provoquée (conteneur arrêté) = alerte reçue < 2 min + runbook applicable à froid | 1 vague — **veille faite (2026-10-19)** : `deploy/veille.ps1` (10 contrôles réels : `/health`, `/ready`, front, entrée TLS, portail IdP, conteneurs + restart-count, box muette, logements en alerte, disque, certificat lu sur la vraie connexion TLS, fraîcheur de la sauvegarde ; `-Boucle` pour la surveillance continue ; journal `deploy/veille/alertes.jsonl` + `etat.json`, gitignorés) et `deploy/test-veille.ps1` **11/11** : panne **induite** (front arrêté) détectée puis retour à la normale prouvé, et chaque règle prouvée capable de se déclencher. **Alerte réelle en cours** : 5,1 % de disque libre (§8) |
 
 ## §6 Architecture cible : local → LAN → Internet
 
@@ -188,6 +188,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-secrets (V3) | 0 secret versionné, 0 fichier de secret suivi par git, 0 forme de secret dans les fichiers suivis, 0 valeur réelle dans une réponse HTTP | `deploy/test-secrets.ps1` (**23/23 OK**, 2026-10-19) |
 | G-LAN (V4) | aucun nom d'hôte en dur, config IdP rendue conforme et validée par le binaire pour 2 noms, même pile servie sous `lcd.local`, joignabilité LAN mesurée | `deploy/test-lan.ps1` (**13/13 OK**, 2026-10-19 ; `-Exiger` pour la joignabilité) |
 | G-sauvegarde (V4) | dépôt chiffré hors git, un snapshot par volume, `restic check`, restauration conforme au snapshot, test destructif (fichier supprimé → restauré) | `deploy/test-backup.ps1` (**10/10 OK**, 2026-10-19) |
+| G-veille (V6) | pile saine = 0 alerte critique, chaque règle capable de crier, **panne induite détectée**, journal écrit, retour à la normale | `deploy/test-veille.ps1` (**11/11 OK**, 2026-10-19) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
 | G-LAN (V4) / G-public (V5) | parcours IdP 2FA depuis un autre poste / depuis Internet | recette manuelle datée + check automatique d'entrée |
 
@@ -204,3 +205,11 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 - **Risque principal** : la tentation de « remplir » les trous de données avec
   des valeurs rondes. Toute valeur sans source dans le dépôt ou dans un relevé
   daté est un défaut bloquant pour V2.
+- **Risque mesuré, en cours (2026-10-19)** : le disque de l'hôte est à **5,1 %
+  libre** (47,8 Go / 930 Go). `docker builder prune` + `docker image prune` ont
+  libéré 21 Go **dans la VM WSL2** sans rendre un octet à Windows : le VHDX de
+  Docker Desktop ne se compacte pas tout seul. Remède (étape hôte, admin,
+  Docker Desktop arrêté) :
+  `wsl --shutdown` puis `Optimize-VHD -Path "$env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx" -Mode Full`
+  (ou `diskpart` → `compact vdisk`). La veille (`veille.ps1`) signale ce point
+  à chaque passage tant qu'il dure : c'est une alerte **réelle**, pas un bruit.

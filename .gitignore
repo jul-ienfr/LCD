@@ -30,6 +30,10 @@ custom/*/secrets-registre*.tmp
 # illisible : c'est le but). Conserver le mot de passe hors machine.
 deploy/backups/
 
+# V6 — veille : etat runtime et journal d'alertes (jamais dans git ; le code
+# de veille et la batterie, eux, sont versionnes).
+deploy/veille/
+
 # Instances privées par logement / parc (P1-7)
 docs/log1/
 docs/log2/
