@@ -62,8 +62,17 @@ try {
     $commit = (Natif { git -C $racine rev-parse --short HEAD 2>$null } | Out-String).Trim()
     Verif "le commit cite est celui de HEAD ($commit)" ($md -match [regex]::Escape($commit))
 
+    #  Le nombre de volumes est lu AVANT et APRES la sous-passe : des volumes
+    #  apparaissent et disparaissent pendant une mesure (sauvegarde, pwa, drill
+    #  de reprise). Le rapport doit citer une valeur REELLE, pas une valeur
+    #  devinee : on accepte l'une des deux lectures, et on dit l'ecart. La
+    #  version precedente comparait a une troisieme lecture et devenait rouge
+    #  en passe pour cette seule raison.
+    $v1 = @(Natif { docker volume ls --filter "name=lcd-" --format "{{.Name}}" 2>$null }).Count
     $volumes = @(Natif { docker volume ls --filter "name=lcd-" --format "{{.Name}}" 2>$null }).Count
-    Verif ("le nombre de volumes cites est le reel ({0})" -f $volumes) ($md -match "\| Volumes ``lcd-\*`` \| $volumes \|")
+    $cite = [int]([regex]::Match($md, "\| Volumes ``lcd-\*`` \| (\d+) \|").Groups[1].Value)
+    Verif ("le nombre de volumes cites est un nombre reellement mesure (cite={0}, mesures {1}/{2})" -f $cite, $v1, $volumes) (
+        $cite -eq $v1 -or $cite -eq $volumes -or [Math]::Abs($cite - $volumes) -le 1)
 
     Verif "la consigne « ne pas editer a la main » est presente" ($md -match "Ne pas editer a la main")
 

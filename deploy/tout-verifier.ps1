@@ -181,7 +181,7 @@ if ($Rapport) {
     $md.Add("")
     $md.Add(("**Total : {0} KO sur {1} batteries, {2} s.**" -f $totalKO, $liste.Count, [int]($total - $debut).TotalSeconds))
     $md.Add("")
-    $md.Add("_La ligne ``test-rapport`` refere l'etat du rapport precedent : la batterie verifie le document, donc elle ne peut pas valider sa propre ecriture dans la meme passe (controle circulaire assume, dit ici)._")
+    $md.Add("_La ligne ``test-rapport`` refere l'etat du rapport **precedent** : la batterie verifie un document ecrit, donc elle ne peut pas valider sa propre ecriture dans la meme passe. Ce n'est plus une source de rouge permanent depuis que le controle du nombre de volumes accepte les deux lectures (avant et apres la sous-passe) : des volumes apparaissent et disparaissent pendant une mesure._")
     $md.Add("")
     $rouges = @($resultats | Where-Object { $_.ko -ne 0 })
     $md.Add("## Ce qui est rouge, et ou c'est suivi")
