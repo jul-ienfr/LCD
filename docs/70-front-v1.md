@@ -151,14 +151,14 @@ pages à mesure.
 
 | Plugin | Routes (cible) | État | Jalons |
 |---|---|---|
-| `dash-operateur` | `/hote`, `/planning`, `/prix`, `/onboarding` | existants (4 pages) | migration F2 |
-| `dash-voyageur` | `/voyageur` (+PWA `/s/<token>`) | existant | F2 + F4 (SW) |
-| `dash-presta` | `/presta` (+PWA mission) | existant | F2 + F4 (SW) |
-| `dash-proprio` | `/proprio` | existant | F2 |
-| `dash-comptable` | `/compta` | existant | F2 |
-| `dash-commercial` | `/commercial` | existant | F2 |
-| `dash-super` | `/systeme`, `/journal`, `/secrets`, recherche `ref` | **à créer** | F5 |
-| `dash-admin` | `/supervision` (système sans secrets), voir-comme tracé | **à créer** | F5 |
+| `dash-operateur` | `/hote`, `/planning`, `/prix`, `/onboarding` | migré plugin (4 pages) | F2 ✅ |
+| `dash-voyageur` | `/voyageur` (+PWA `/s/<token>`) | migré + SW | F2 ✅ + F4 ✅ |
+| `dash-presta` | `/presta` (+PWA mission) | migré + SW | F2 ✅ + F4 ✅ |
+| `dash-proprio` | `/proprio` | migré | F2 ✅ |
+| `dash-comptable` | `/compta` | migré | F2 ✅ |
+| `dash-commercial` | `/commercial` | migré | F2 ✅ |
+| `dash-super` | `/systeme`, `/journal`, `/secrets`, recherche `ref` | **créé** (F5) | F5 ✅ |
+| `dash-admin` | `/supervision` (système sans secrets), voir-comme tracé | **créé** (F5) | F5 ✅ |
 
 Transverse (cœur, jamais plugin) : landing `/`, `/login` (IdP), `/aide`,
 `/legales`, 404/erreur, tickets support + messagerie 3 fils (§P8) — créés

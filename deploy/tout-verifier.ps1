@@ -18,7 +18,12 @@ param(
     #  Etat verifie versionne : le rapport est ECRIT par la passe elle-meme, donc
     #  il ne peut pas mentir (il n'est jamais edite a la main). -Rapport "" le
     #  desactive.
-    [string]$Rapport = "docs/74-etat-verifie.md"
+    [string]$Rapport = "docs/74-etat-verifie.md",
+    #  Front « lab sans IdP » (meme image, conteneur dedie) servant test-front
+    #  et test-super : leur identite est un cookie lcd_qui, que la pile
+    #  nominale (LCD_IDP=1, Remote-User seul) ignore. Parametrable pour la
+    #  batterie G-rapport, qui a besoin d'un rouge REEL et deterministe.
+    [string]$FrontLab = "http://127.0.0.1:3101"
 )
 
 $ErrorActionPreference = "Stop"
@@ -107,7 +112,7 @@ foreach ($b in $liste) {
     if ($b.nom -eq "test-pwa" -or $frontLab) {
         $prep = (Natif { powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $ici "serveur-pwa.ps1") 2>&1 } | Out-String)
         if ($LASTEXITCODE -ne 0) { Write-Output "[--] $($b.nom) : prerequisite :3101 non fourni"; Write-Output ($prep.Trim()) }
-        if ($frontLab) { $env:FRONT = "http://127.0.0.1:3101" }
+        if ($frontLab) { $env:FRONT = $FrontLab }
     }
     $f = Join-Path $ici "$($b.nom).ps1"
     if (-not (Test-Path $f)) {

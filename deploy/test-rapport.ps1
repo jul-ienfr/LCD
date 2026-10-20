@@ -10,8 +10,12 @@
 #   3. les totaux sont coherents (somme des KO = total annonce) ;
 #   4. le commit cite est celui de HEAD (fait d'environnement verifiable) ;
 #   5. le nombre de volumes cites est celui reellement present ;
-#   6. CONTROLE POSITIF : une batterie reelement rouge (test-super) apparait
-#      avec ses KO et figure dans la section « ce qui est rouge » ;
+#   6. CONTROLE POSITIF : un rouge REEL et deterministe apparait avec ses KO
+#      et figure dans la section « ce qui est rouge » — obtenu en servant
+#      test-super depuis un front mort (port 9), jamais en dependant d'un
+#      defaut du jour (l'ancien controle exigeait test-super reellement rouge :
+#      le jour ou ce defaut a ete corrige, le controle est devenu rouge a son
+#      tour — un controle positif ne doit pas dependre de l'etat mesure) ;
 #   7. la consigne « ne pas editer a la main » est presente (le rapport est un
 #      produit, pas un document libre) ;
 #   8. le rapport versionne du depot contient toutes les batteries de la passe ;
@@ -36,10 +40,11 @@ function Natif($bloc) {
     $ErrorActionPreference = "Continue"
     try { return (& $bloc) } finally { $ErrorActionPreference = $prev }
 }
-function Passe($batterie, $sortie) {
+function Passe($batterie, $sortie, $front = "") {
     #  Arguments construits explicitement (voir lecon de serveur-pwa.ps1 : ni
     #  splat d'array a la main, ni variable nommee $args).
     $a = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $verif, "-Batterie", $batterie, "-Rapport", $sortie)
+    if ($front) { $a += @("-FrontLab", $front) }
     return (Natif { & powershell @a 2>&1 } | Out-String)
 }
 
@@ -76,9 +81,15 @@ try {
 
     Verif "la consigne « ne pas editer a la main » est presente" ($md -match "Ne pas editer a la main")
 
-    # --- Controle positif : un rouge doit apparaitre rouge ----------------
+    # --- Controle positif : un rouge REEL doit apparaitre rouge -------------
+    #  On le FABRIQUE par un front mort (port 9) : test-super ne peut plus
+    #  joindre son front, donc il echoue pour de vrai — la passe ecrit alors
+    #  ses KO dans le tableau et le nomme dans la section rouge. Aucune
+    #  dependance a un defaut existant : un controle qui exige une batterie
+    #  rouge « du jour » devient rouge quand on repare le defaut (mesure du
+    #  2026-10-20, apres la correction du mode de mesure front).
     $tmpRouge = Join-Path $env:TEMP ("lcd-rapport-rouge-" + [guid]::NewGuid().ToString("N") + ".md")
-    $null = Passe "test-super" $tmpRouge
+    $null = Passe "test-super" $tmpRouge "http://127.0.0.1:9"
     $mdRouge = if (Test-Path $tmpRouge) { Get-Content $tmpRouge -Raw } else { "" }
     $koSuper = [regex]::Match($mdRouge, "(?m)^\| test-super \| \d+ s \| (\d+) \|").Groups[1].Value
     Verif ("controle positif : test-super apparait avec ses KO (ko=$koSuper)") ([int]$koSuper -gt 0)
