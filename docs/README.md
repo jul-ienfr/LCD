@@ -1,6 +1,6 @@
 # Index des documents du SAS
 
-**Genere le** : 2026-10-20 21:38 par `deploy/index-docs.ps1`.
+**Genere le** : 2026-10-20 22:42 par `deploy/index-docs.ps1`.
 **Ne pas editer a la main** : relancer l'outil (`-Verifier` dit si l'index est a jour).
 
 **24 documents** : 13 numerotes (l'ordre raconte le projet) et 11 autres.

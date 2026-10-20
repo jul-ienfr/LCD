@@ -193,6 +193,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
 | G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**15/15 OK**, 2026-10-19, 4 tâches) |
+| G-tls (V6, §8 sexdecies) | le mode TLS est **paramétré** (`tls {$LCD_TLS:internal}`) : aucun `tls internal` en dur, la configuration actuelle **valide**, la **variante ACME** (`LCD_TLS=admin@domaine`) **valide aussi**, l'entrée répond 302 avec la CA interne, **sans `-k` le client refuse** (code 60 : preuve qu'aucun certificat public n'est en service), HSTS servi, rechargement appliqué | `deploy/test-tls.ps1` (**9/9 OK**, 2026-10-19) |
 | G-lan-accès (V6, §8 quindecies) | l'accès **depuis le réseau local** est **mesuré et classé**, jamais supposé : adresse LAN identifiée (192.168.31.59), entrée 302 en boucle locale, Docker publie bien les trois ports sur **0.0.0.0**, et l'état est **FERMÉ-PAR-PARE-FEU** — 0/3 ports répondent sur l'adresse LAN, aucune règle n'existe, un seul geste d'administrateur est imprimé (
 etsh advfirewall firewall add rule … localport=4001,4002,4003) | deploy/test-lan-acces.ps1 (**6/6 OK**, 2026-10-19) |
 | G-export (V6, §8 quaterdecies) | la sauvegarde **sort de la machine** : export complet du dépôt (1483 fichiers, 188 Mio) + manifeste SHA256 + mode d'emploi, vérification qui recalcule les 1483 empreintes, **phrase de passe absente de l'export**, dépôt relu et une **donnée réelle extraite** depuis l'export, contrôles positifs (octet modifié, fichier supprimé), destination non vide refusée | deploy/test-export.ps1 (**12/12 OK**, 2026-10-19) ; outil deploy/exporter.ps1 (-Vers, -Verifier, -Ecraser) |
@@ -428,6 +429,16 @@ Mesure du 2026-10-19 : adresse LAN `192.168.31.59`, entrée 302 en boucle locale
 
 Piège mesuré : `Get-NetIPAddress` est **cassé** sur cet hôte (« Classe non valide » : la classe CIM `MSFT_NetIPAddress` manque) ; la batterie lit `ipconfig`, qui ne dépend de rien.
 
+### §8 sexdecies La bascule TLS est deja validee (2026-10-19)
+
+Le passage sur Internet ne demande pas de reecrire Caddy : il demande de changer **une** variable. Tant que `tls internal` est ecrit en dur, cette bascule est une modification de code **non testee** -- et c'est exactement le genre de detail qui casse au moment ou on en a besoin.
+
+Le `Caddyfile` utilise desormais `tls {$LCD_TLS:internal}` : en local la variable vaut `internal` (CA interne, zero ACME), en LAN/Internet elle vaudra `admin@domaine` et Caddy passera a **ACME / Let's Encrypt** -- meme fichier, aucun nom ni mode en dur.
+
+`deploy/test-tls.ps1` (**9/9**) le prouve : zero `tls internal` en dur, configuration actuelle **valide**, **variante ACME valide aussi** (`LCD_TLS=admin@sas.exemple.fr` -> `Valid configuration`, code 0), entree 302 avec la CA interne, et surtout **sans `-k` le client refuse** (code 60) : preuve qu'aucun certificat public n'est en service, donc qu'ACME n'est pas actif en local. HSTS et anti-sniffing servis, rechargement applique, entree toujours debout apres.
+
+Autrement dit : ce qui reste pour Internet n'est plus technique -- un **domaine**, un **DNS** qui pointe, un **e-mail** pour ACME, et les ports 80/443 ouverts. Les trois premiers sont des comptes, le dernier est le meme geste d'administrateur que pour le LAN.
+
 
 ### §8 septies Intégrité du dépôt de sauvegarde (2026-10-19)
 
@@ -453,6 +464,7 @@ sauvegarde fausse sans témoin — le pire état possible. Comblé par
 Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdit de
 s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
 nul.
+
 
 
 

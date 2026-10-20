@@ -61,7 +61,10 @@
 
 # --- Portail IdP (login, TOTP, logout) : le SEUL acces sans session --------
 https://{$LCD_HOTE:lcd.test}:4002 {
-	tls internal {
+	# TLS : {} vaut « internal » en local (CA interne, zero ACME) et
+	# « admin@domaine » en LAN/Internet (ACME Let's Encrypt) : le MEME fichier sert
+	# aux trois etages, aucun nom ni mode en dur (doctrine docs/71, R3).
+	tls {$LCD_TLS:internal} {
 		protocols tls1.2 tls1.3
 	}
 	import entetes_lcd
@@ -79,7 +82,10 @@ https://{$LCD_HOTE:lcd.test}:4002 {
 # handle Caddy oublie. Les bypass AUTHENTIFIENT quand meme : 200 sans
 # Remote-User -> front anonyme (voyageur) ou public (health).
 https://{$LCD_HOTE:lcd.test} {
-	tls internal {
+	# TLS : {} vaut « internal » en local (CA interne, zero ACME) et
+	# « admin@domaine » en LAN/Internet (ACME Let's Encrypt) : le MEME fichier sert
+	# aux trois etages, aucun nom ni mode en dur (doctrine docs/71, R3).
+	tls {$LCD_TLS:internal} {
 		protocols tls1.2 tls1.3
 	}
 	import entetes_lcd
