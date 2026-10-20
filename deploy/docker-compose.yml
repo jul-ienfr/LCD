@@ -22,8 +22,21 @@
 
 name: lcd-deploy
 
+# Retention des journaux conteneurs (doctrine 71, runbook R-05 « disque plein »).
+# Sans plafond, un conteneur bavard remplit le disque de l'hote : mesure du
+# 2026-10-19, `docker builder prune` a libere 19,86 Go DANS WSL2 sans rendre un
+# octet a C: (47,8 Go libres, 5,1 %) car le VHDX ne se retrecit pas. Le plafond
+# est donc pose par le demon (json-file 10 Mo x 3 par conteneur = 30 Mo max),
+# pas par un script qui passerait apres coup.
+x-journal: &journal
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   web:
+    logging: *journal
     build:
       context: ..
       dockerfile: web/Dockerfile
@@ -72,6 +85,7 @@ services:
   # son RBAC a chaque ecriture).
   authelia:
     image: authelia/authelia:4.39.28
+    logging: *journal
     environment:
       AUTHELIA_SESSION_SECRET: ${LCD_AUTHELIA_SESSION_SECRET:?voir deploy/authelia/README.md}
       AUTHELIA_STORAGE_ENCRYPTION_KEY: ${LCD_AUTHELIA_STORAGE_KEY:?voir deploy/authelia/README.md}
@@ -96,6 +110,7 @@ services:
   # portail — jamais de rendu protege a l'aveugle. meme hote lcd.test :
   # :4001 = staff/app, :4002 = portail Authelia (cookies partages).
   caddy:
+    logging: *journal
     image: caddy:2-alpine
     # Nom d'entree + port HTTPS publics : SEULE chose a changer pour passer
     # du local au LAN puis a Internet (doctrine docs/71, R3). Le Caddyfile ne
@@ -137,7 +152,7 @@ networks:
     name: lcd-lab_default
     external: true
   front:
-    name: lcd-deploy_front
+    name: lcd-deploy
 
 volumes:
   deploy-caddy-data:

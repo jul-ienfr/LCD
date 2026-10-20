@@ -31,6 +31,8 @@ $toutes = @(
     [ordered]@{ nom = "test-sites"; lent = $false }
     [ordered]@{ nom = "test-secrets"; lent = $false }
     [ordered]@{ nom = "test-donnees"; lent = $false }
+    [ordered]@{ nom = "test-journaux"; lent = $false }
+    [ordered]@{ nom = "test-taches"; lent = $true }
     [ordered]@{ nom = "test-pwa"; lent = $false }
     [ordered]@{ nom = "test-super"; lent = $false }
     [ordered]@{ nom = "test-lan"; lent = $true }

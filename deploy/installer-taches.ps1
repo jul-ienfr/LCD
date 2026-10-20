@@ -26,7 +26,9 @@ param(
     [string]$HeureSauvegarde = "03:00",
     [int]$MinutesVeille = 5,
     [string]$JourBatteries = "Sunday",
-    [string]$HeureBatteries = "04:00"
+    [string]$HeureBatteries = "04:00",
+    [string]$JourEntretien = "Saturday",
+    [string]$HeureEntretien = "04:00"
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,6 +41,7 @@ $Taches = @(
     [ordered]@{ nom = "LCD sauvegarde quotidienne"; script = "sauvegarde.ps1"; log = "sauvegarde.log" }
     [ordered]@{ nom = "LCD veille"; script = "veille.ps1"; log = "veille.log" }
     [ordered]@{ nom = "LCD batteries hebdo"; script = "tout-verifier.ps1"; log = "batteries.log" }
+    [ordered]@{ nom = "LCD entretien"; script = "entretien.ps1"; log = "entretien.log" }
 )
 
 function Natif($bloc) {
@@ -92,6 +95,7 @@ if ($Installer) {
                     -RepetitionInterval (New-TimeSpan -Minutes $MinutesVeille) `
                     -RepetitionDuration (New-TimeSpan -Days 3650)
             }
+            "LCD entretien" { New-ScheduledTaskTrigger -Weekly -DaysOfWeek $JourEntretien -At $HeureEntretien }
             default { New-ScheduledTaskTrigger -Weekly -DaysOfWeek $JourBatteries -At $HeureBatteries }
         }
         $reglages = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew `

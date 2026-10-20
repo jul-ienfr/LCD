@@ -192,7 +192,8 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-démarrage (V6) | après un arrêt **réel**, les sondes tombent à zéro, puis une seule commande remet la pile debout et le prouve (santé + 3 endpoints + 302 vers l'IdP), en < 1 min | `deploy/test-demarrage.ps1` (**14/14 OK**, 2026-10-19, 20 s) |
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
-| G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**13/13 OK**, 2026-10-19) |
+| G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**15/15 OK**, 2026-10-19, 4 tâches) |
+| G-journaux (V6, R-05) | plafond `json-file` 10 Mo × 3 rendu par compose **et** appliqué aux conteneurs vivants, aucun journal au-delà, rotation prouvée sur un journal fabriqué de 6 Mo, chaîne bornée à 3 archives, purge des alertes (60 j) prouvée avec sauvegarde `.bak`, `-WhatIf` inoffensif | `deploy/test-journaux.ps1` (**9/9 OK**, 2026-10-19) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
 | G-LAN (V4) / G-public (V5) | parcours IdP 2FA depuis un autre poste / depuis Internet | recette manuelle datée + check automatique d'entrée |
 
@@ -281,3 +282,29 @@ classe. Tant que ce point est ouvert, la batterie front n'est pas verte.
   slot** ; `/v1/secrets` en direct répond **400** sans identité. Défaut de la
   chaîne slot → page, propriétaire F5 ; à corriger avant toute revendication de
   vitrine sur `/secrets`.
+
+### §8 quinquies Rétention des journaux (2026-10-19)
+
+La ressource qui a déjà mordu sur cet hôte est le **disque** (R-05 : 48,3 Go
+libres, 5,2 %). Deux plafonds, tous deux mesurés :
+
+- **conteneurs** : `deploy/docker-compose.yml` déclare une ancre `x-journal`
+  (`json-file`, `max-size: 10m`, `max-file: 3`) importée par `web`,
+  `authelia` et `caddy` → 30 Mo maximum par conteneur, posé par le **démon**,
+  pas par un script qui passerait après coup. Vérifié en exécution par
+  `docker inspect` sur les trois conteneurs, pas seulement dans le YAML.
+- **journaux de nos scripts** (`deploy/veille/*.log`, `alertes.jsonl`) : aucun
+  plafond naturel, d'où `deploy/entretien.ps1` — rotation `.log → .1 → .2 → .3`
+  (la plus ancienne jetée, journal courant recréé vide), purge des alertes de
+  plus de `-JoursAlerte` jours (30 par défaut) avec copie `.bak` avant
+  réécriture, rapport d'espace disque et `docker system df`. `-WhatIf` montre
+  sans agir. Quatrième tâche planifiée : `LCD entretien`, **samedi 04:00**.
+- Défauts de banc corrigés en route, tous mesurés : une variable de boucle
+  nommée `$n` écrasait le compteur `$N` (PowerShell est insensible à la casse) ;
+  compter `max-size` dans le texte de `docker compose config` donnait 4 au lieu
+  de 3 (l'ancre `x-journal` compte aussi) → lecture par service dans
+  `--format json` ; `@args` **dans un scriptblock** est celui du scriptblock
+  (vide), et un paramètre unique ne capte que le premier argument → l'entretien
+  retombait silencieusement sur ses défauts ; un littéral
+  `@( 'a'+x, 'b'+y )` a été rendu par PS 5.1 comme **une seule** chaîne (les
+  deux éléments joints par une espace), produisant un JSONL invalide.
