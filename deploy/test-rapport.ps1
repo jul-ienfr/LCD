@@ -80,6 +80,7 @@ try {
     $mdDepot = if (Test-Path $rapportVersionne) { Get-Content $rapportVersionne -Raw } else { "" }
     $attendues = @("test-deploy", "test-front", "test-idp", "test-sites", "test-secrets", "test-donnees",
         "test-journaux", "test-taches", "test-pwa", "test-super", "test-lan", "test-veille",
+        "test-rapport", "test-depot",
         "test-durcissement", "test-backup", "test-demarrage")
     $presentes = @($attendues | Where-Object { $mdDepot -match [regex]::Escape("| $_ |") }).Count
     Verif ("le rapport versionne couvre la passe complete ($presentes/$($attendues.Count))") (

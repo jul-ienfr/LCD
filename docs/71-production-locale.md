@@ -193,6 +193,7 @@ Dépendances externes (§6 bis, R5) — jamais simulées, jamais contournées :
 | G-durcissement (V5 local) | HTTP→HTTPS, TLS 1.1 refusé / 1.3 OK, en-têtes + CSP sans domaine externe, TRACE refusé, `/metrics` fermé, **ban réellement appliqué puis levé**, cookie Secure+HttpOnly+SameSite après 2FA TOTP réelle | `deploy/test-durcissement.ps1` (**24/24 OK**, 2026-10-19) |
 | G-données (V2) | inventaire régénérable et **sans dérive**, détecteur prouvé par témoin (placeholder dénoncé, valeur sourcée reconnue, nombre/`?` non jugés), placeholders réels cités, compteurs cohérents | `deploy/test-donnees.ps1` (**9/9 OK**, 2026-10-19) |
 | G-tâches (V6) | trois tâches planifiées actives ciblant des scripts **absolus**, sauvegarde forcée qui écrit vraiment, veille forcée qui réécrit son journal, code de retour 0, journaux hors git, pose idempotente | `deploy/test-taches.ps1` (**15/15 OK**, 2026-10-19, 4 tâches) |
+| G-dépôt (V6, §8 septies, R-06) | le dépôt de sauvegarde est **contrôlé** (`restic check` + relecture de 5 % des données réelles), et une **corruption réelle est détectée** (contrôle positif : copie dont un pack est tronqué → échec nommé) ; l'âge du dernier contrôle est daté et opposable (`-Etat`, seuil 30 j) ; mot de passe jamais affiché | `deploy/test-depot.ps1` (**14/14 OK**, 2026-10-19 : 379 snapshots, 112,6 Mio) ; outil `deploy/verifier-depot.ps1`, branché sur l'entretien hebdomadaire |
 | G-rapport (V6, §7) | l'état vérifié est écrit **par** la passe (jamais à la main), ne contient que les batteries exécutées, totaux cohérents, commit et nombre de volumes **vérifiables**, un rouge réellement rouge (contrôle positif sur `test-super`), document autoportant | `deploy/test-rapport.ps1` (**10/10 OK**, 2026-10-19) ; produit : `docs/74-etat-verifie.md` |
 | G-journaux (V6, R-05) | plafond `json-file` 10 Mo × 3 rendu par compose **et** appliqué aux conteneurs vivants, aucun journal au-delà, rotation prouvée sur un journal fabriqué de 6 Mo, chaîne bornée à 3 archives, purge des alertes (60 j) prouvée avec sauvegarde `.bak`, `-WhatIf` inoffensif | `deploy/test-journaux.ps1` (**9/9 OK**, 2026-10-19) |
 | G-zéro-simulation (V2/V3) | aucun « simulé/fictif/faux/démo » dans le code livré hors tests + inventaire | `grep` + revue d'inventaire |
@@ -347,3 +348,29 @@ aussitôt et `/sw.js` ne répondait jamais — ce qui ressemblait à un conflit 
 port. Vérification ajoutée : aucun script de `deploy/` n'affecte `$args`
 (`grep` sur `^\s*\$args\s*=` ; une occurrence subsiste dans `test-front.ps1`,
 hors périmètre, signalée à son propriétaire).
+
+### §8 septies Intégrité du dépôt de sauvegarde (2026-10-19)
+
+La sauvegarde était **prouvée** (restauration réelle, 10/10) mais **rien ne
+vérifiait le dépôt lui-même** : un pack tronqué ou un disque qui pourrit rend la
+sauvegarde fausse sans témoin — le pire état possible. Comblé par
+`deploy/verifier-depot.ps1` :
+
+- `restic check` (index + packs) et, avec `-Donnees`, relecture de **5 %** des
+  données réelles ; mesure du 2026-10-19 : **379 snapshots, 112,6 Mio,
+  15 packs, aucune erreur** ;
+- `-Etat` date la dernière vérification et sort en **code 1** au-delà de
+  `-SeuilJours 30` : l'absence de contrôle devient une alerte, pas un oubli ;
+- **contrôle positif** (`deploy/test-depot.ps1`, 14/14) : une copie du dépôt
+  dont un pack est tronqué **échoue**, avec un message nommant la corruption.
+  Le dépôt réel n'est jamais touché ;
+- le mot de passe restic n'est jamais affiché (vérifié), l'historique de
+  contrôle vit hors de git ;
+- l'entretien hebdomadaire (tâche `LCD entretien`, samedi 04:00) exécute le
+  contrôle complet : la preuve est **renouvelée chaque semaine** sans
+  intervention.
+
+Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdit de
+s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
+nul.
+

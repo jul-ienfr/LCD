@@ -107,6 +107,19 @@ if ($disque) {
 $df = (& docker system df --format "{{.Type}}={{.Size}}" 2>$null | Out-String).Trim()
 if ($df) { $rapport.Add(("  docker : {0}" -f ($df -replace "`r?`n", " | "))) }
 
+# --- 4. Integrite du depot de sauvegarde (doctrine 71, §8 septies) ---------
+#  Une sauvegarde dont on ne verifie jamais l'integrite n'est qu'une
+#  esperance : ce controle hebdomadaire relit la structure ET 5% des donnees
+#  reelles, et date la verification (verifier-depot.ps1 -Etat ensuite).
+$verifDepot = Join-Path (Split-Path -Parent (Resolve-Path $MyInvocation.MyCommand.Path)) "verifier-depot.ps1"
+if ((Test-Path $verifDepot) -and -not $WhatIf) {
+    $sortieDepot = (& powershell -NoProfile -ExecutionPolicy Bypass -File $verifDepot -Donnees 2>&1 | Out-String)
+    $ligne = (@($sortieDepot -split "`r?`n") | Where-Object { $_ -match "RESULTAT :|\[KO\]" }) -join " / "
+    $rapport.Add(("  depot de sauvegarde : {0}" -f $(if ($ligne) { $ligne.Trim() } else { "sortie inattendue" })))
+} elseif (Test-Path $verifDepot) {
+    $rapport.Add("  depot de sauvegarde : controle non execute [whatif]")
+}
+
 Write-Output "== entretien du $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
 $rapport | ForEach-Object { Write-Output $_ }
 if ($WhatIf) { Write-Output "RESULTAT : simulation (aucune ecriture)" } else { Write-Output "RESULTAT : entretien applique" }
