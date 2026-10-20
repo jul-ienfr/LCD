@@ -9,9 +9,12 @@ function Verif($label, $ok) {
     else { Write-Output "[KO] $label"; $script:KO += 1 }
 }
 function corps($chemin, $cookie) {
-    $args = @("-s", "-m", "20", "$F$chemin")
-    if ($cookie) { $args += @("-H", "Cookie: $cookie") }
-    return (curl.exe @args) -join " "
+    # $cmd et non $args : $args est une VARIABLE AUTOMATIQUE (arguments non
+    # liees) — lui assigner puis splatter @args a deja casse serveur-pwa.ps1
+    # (doc 71, 3e occurrence du piege). Nom local non ambigu, memes octets.
+    $cmd = @("-s", "-m", "20", "$F$chemin")
+    if ($cookie) { $cmd += @("-H", "Cookie: $cookie") }
+    return (curl.exe @cmd) -join " "
 }
 
 # 1. Landing marketing
@@ -293,6 +296,55 @@ Verif "marque : manifeste name porte le short_name" (
     $nomLong.Length -gt 0 -and $nomLong.Contains($nomCourt))
 Verif "marque : page /voyageur re-themee au short_name du manifeste" (
     $nomCourt.Length -gt 0 -and $titreVoy.Contains($nomCourt))
+
+# 15. A11Y WCAG 2.2 AA (cahier 70, paragraphe A11y) : le cahier promettait
+#     « tests clavier sur les 8 plugins » mais AUCUNE batterie ne mesurait
+#     rien — l'implementation existait (donc aucun regression-free), et un
+#     retrait silencieux de :focus-visible serait passe inapercu. On asserte
+#     ici la STRUCTURE qui rend le clavier utilisable, sur les pages deja
+#     rendues par la batterie.
+#
+#     Perimetre HONNETE : ceci mesure la STRUCTURE (cible existante, focus
+#     visible, une seule h1, langue, aria-current) — pas la traversee Tab
+#     reellement effectuee au clavier. La traversee physique reste une DoD
+#     manuelle (matrice §F9), comme l'offline 2 h de F4.
+# 15a. Skip-link : premier focusable du body, avant tout autre lien.
+$a11yH = corps "/voyageur" "lcd_qui=personne_01"
+$ib     = $a11yH.IndexOf("<body")
+$iskip  = $a11yH.IndexOf("Aller au contenu")
+Verif "a11y : skip-link present" ($iskip -gt 0)
+Verif "a11y : skip-link APRES <body>" ($ib -ge 0 -and $iskip -gt $ib)
+#      Le seul <a> autorise avant lui est son propre tag d'ouverture.
+$avant = ""
+if ($ib -ge 0 -and $iskip -gt $ib) { $avant = $a11yH.Substring($ib, $iskip - $ib) }
+Verif "a11y : skip-link = 1er focusable (0 lien avant lui)" (
+    $iskip -gt 0 -and ([regex]::Matches($avant, "<a[ >]")).Count -le 1)
+# 15b. Sa cible existe et prend le focus (tabindex=-1 sinon le saut echoue).
+Verif "a11y : cible main#contenu tabindex=-1" (
+    $a11yH -match '<main[^>]*id="contenu"' -and $a11yH -match '<main[^>]*tabindex="-1"')
+# 15c. Focus visible + mouvement reduit + mecanisme sr-only SERVIS par la
+#      feuille de style (on lit le href hashé dans le HTML, jamais en dur).
+$a11yCss = ""
+foreach ($m in [regex]::Matches($a11yH, '<link[^>]+href="([^"]+\.css[^"]*)"')) {
+    $u = $m.Groups[1].Value
+    if ($u -match "^/") { $a11yCss += " " + (corps $u "lcd_qui=personne_01") }
+}
+Verif "a11y : feuille de style servie" ($a11yCss.Length -gt 100)
+Verif "a11y : focus-visible servi" ($a11yCss.Contains(":focus-visible"))
+Verif "a11y : prefers-reduced-motion servi" ($a11yCss.Contains("prefers-reduced-motion"))
+Verif "a11y : mecanisme sr-only servi" ($a11yCss.Contains("sr-only"))
+# 15d. Une SEULE h1 par page (structure de titres = base de la navigation
+#      clavier et lecteur d'ecran) sur chaque surface plugin, + langue.
+foreach ($p in @("/hote", "/planning", "/prix", "/compta", "/presta", "/voyageur", "/proprio?logement=log1", "/commercial", "/onboarding")) {
+    $c = corps $p "lcd_qui=personne_01"
+    $n = ([regex]::Matches($c, "<h1[ >]")).Count
+    Verif "a11y $p : une seule h1" ($n -eq 1)
+    Verif "a11y $p : html lang pose" ($c -match '<html[^>]*lang="[a-z]{2}"')
+}
+# 15e. aria-current="page" : l'onglet courant est annonce (navigation clavier).
+Verif "a11y : aria-current=page sur l'onglet actif" (
+    ((corps "/hote" "lcd_qui=personne_01") -match 'aria-current="page"') -and
+    ((corps "/voyageur" "lcd_qui=personne_01") -match 'aria-current="page"'))
 
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }

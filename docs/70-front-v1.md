@@ -269,7 +269,15 @@ phase DoD (démo + écriture + offline), + simulateurs Chrome. Aucun
 navigateur payant, aucun device cloud.
 
 A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
-`prefers-reduced-motion`, skip-link, tests clavier sur les 8 plugins.
+`prefers-reduced-motion`, skip-link, tests clavier sur les 8 plugins —
+✅ livré : `test-front.ps1` §15, 27 checks (skip-link présent ET premier
+focusable + cible `main#contenu tabindex=-1` + feuille de style **servie**
+: `focus-visible` / `prefers-reduced-motion` / `sr-only` + 1 seule `h1` +
+`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **98/98**.
+L'implémentation datait de 2026-10-17 (changelog) mais **aucune batterie ne
+la mesurait** : un retrait de `:focus-visible` serait passé inaperçu.
+Limite assumée : la structure qui rend le clavier utilisable, pas la
+traversee Tab physique = DoD manuelle matrice §F9 (comme offline 2 h F4).
 
 ## §F10 Jalons F1→F6 (DoD : 60 §60.4 seul, jamais recopié)
 
@@ -279,7 +287,7 @@ A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 | **F2 migration 6 plugins** — ✅ clos 2026-10-18 | dossiers existants → plugins (URLs stables), i18n préfixée, grep fuite | ~5 j | `test-front.ps1` étendu vert (23 → ≥35 verifs) — gate passé : 39/39 exit 0 |
 | **F3 IdP** — ✅ clos 2026-10-19 | `forward_auth` + 2FA staff + révocations (§F5) + piste voir-comme `{qui_reel, vu_comme}` | ~3 j | gate passé : `test-idp.ps1` 22/22 (302 → redir 2FA → TOTP réel niveau 2 → chip identité → 403 révocation → logout 302) + `test-front.ps1` 46/46 lab + `tests_lab.py` 0 KO |
 | **F4 PWA** — ✅ clos 2026-10-19 | SW maison + outbox IndexedDB (ref idempotente) + purge révocation + bandeau « hors ligne » honnête | ~4 j | gate passé : `test-pwa.ps1` 14/14 (offline réel Edge/CDP : guide lisible hors-ligne, écriture en attente, rejeu auto, preuve serveur `idempotent=true` = le navigateur a réellement exécuté, purge caches). « 0 écriture perdue » prouvé par table d'idempotence ; « offline 2 h sur séjour témoin » = DoD manuelle (matrice §F9) |
-| **F5 dash-super/admin** — ✅ clos 2026-10-20 | `/systeme` (santé agrégée), `/secrets` (rotation super seul, 403 admin, zéro valeur), `/journal` (voir-comme 90 j) + recherche par `ref` (404 inconnue, 403 non-admin), `/support` tickets file unique (ref auto, clôture motif tracé) + messagerie 3 fils ACL fail-closed (§P8) | ~6 j | gate passé : `test-super.ps1` 33/33 (V5 secrets jamais simulés 12 checks + V6 403 admin/secrets/journal + §P8 tickets 6 + messagerie 6 + recherche 3 + 5 rendus front + 2 fuites) + `tests_lab.py` 0 KO + `test-front.ps1` 46/46 + `test-pwa.ps1` 14/14 + `test-secrets.ps1` 23/23 + tsc/eslint/vitest 30/30 + budgets 20 pages < 200 Ko |
+| **F5 dash-super/admin** — ✅ clos 2026-10-20 | `/systeme` (santé agrégée), `/secrets` (rotation super seul, 403 admin, zéro valeur), `/journal` (voir-comme 90 j) + recherche par `ref` (404 inconnue, 403 non-admin), `/support` tickets file unique (ref auto, clôture motif tracé) + messagerie 3 fils ACL fail-closed (§P8) | ~6 j | gate passé : `test-super.ps1` 34/34 (V5 secrets jamais simulés 12 checks + V6 403 admin/secrets/journal + §P8 tickets 6 + messagerie 6 + recherche 3 + 5 rendus front + 2 fuites ; noté 33/33 à la clôture F5, les 34 `Verif` mesurés en 2026-10-20 — le bloc sante gateway conditionnel ne s'était pas declenché) + `tests_lab.py` 0 KO + `test-front.ps1` 46/46 + `test-pwa.ps1` 14/14 + `test-secrets.ps1` 23/23 + tsc/eslint/vitest 30/30 + budgets 20 pages < 200 Ko |
 | **F6 front box** — ✅ clos 2026-10-20 | `:8060` étendu (état runtime HA\|Moli), kiosk L1, recette box HA + Moli | ~3 j | gate passé : `tests_lab.py` 1142/1142 exit 0 — 0 fonction obligatoire dépendante d'une UI box PRUVÉ dans les 2 sens (box tombée → SaaS visible : coupure réelle des 2 runtimes → bandeau dégradé, jamais blanc, retour → effacé ; SaaS tombé → box locale : `:8060` sert pendant la coupure passerelle §65) + Lovelace HA-seul + kiosk L1 sans compte. Latence panne double GET / 10.08 s < 15 s. « offline 2 h sur appareils réels » = DoD manuelle (matrice §F9), comme F4 |
 
 Ordre strict F1→F6 ; un jalon non DoD = suivant bloqué. Chaque jalon = 1
@@ -293,4 +301,5 @@ chaque revue mensuelle.
 | REQ-S-007 | Front SaaS : chargeur plugin strict (§20.7 front) + cœur sans connaissance de dashboard + session réelle (IdP 2FA staff) | recette `test-idp.ps1` (302 redir + redir 2FA + TOTP + 403 révocation + logout) + `test-front.ps1` + validateur manifeste KO + 403 admin sur secrets |
 | REQ-S-008 | Mode dégradé L0-L3 : sans-JS complet, `?lite=1`, matrice appareils réels, voyageur L0 = SMS/papier | batterie dégradée §F9 + 2 appareils réels parcourus |
 | REQ-S-009 | Marque blanche : 0 fuite « LCD / stack / IP » côté voyageur/presta/proprio, re-thème **sans code** (env seul) | `test-front.ps1` 71/71 dont §14 (14 checks marque) + preuve A/B même build (A `Séjour` → B `Marque Client XYZ`, 0 LCD, manifeste suit) + 5 SVG template (vercel/next/…) supprimés = 404 |
+| REQ-S-010 | A11y WCAG 2.2 AA : skip-link 1ᵉʳ focusable vers `main#contenu tabindex=-1`, focus visible, mouvement réduit, 1 seule `h1` par page, `aria-current`, tests clavier structurels sur les 8 plugins | `test-front.ps1` 98/98 dont §15 (27 checks a11y) + CSS servi vérifié par href hashé. Limite assumée : structure, pas traversee Tab physique (DoD manuelle §F9) |
 | REQ-T-005 | Front box runtime-agnostique : Lovelace (HA seul) + `:8060` (HA\|Moli) + kiosk QR, 0 fonction obligatoire dépendante d'une UI box | `tests_lab.py` 1142/1142 (coupure réelle des 2 runtimes → bandeau + retour ; §65 :8060 pendant coupure passerelle) + `test-front.ps1` 57/57 (kiosk L1) ; offline 2 h = DoD manuelle §F9 |
