@@ -347,7 +347,15 @@ export async function voirComme(formData: FormData): Promise<void> {
         maxAge: 60 * 60 * 24 * 30,
       });
     }
-    redirect(retour);
+    // ARRIVEE DU ROLE EMPRUNTE (2026-10-19) : « voir en tant que » depuis une
+    // entree generique (racine, login, tableau de bord par defaut) laissait le
+    // super admin sur SON dashboard - il devait changer d'ecran a la main pour
+    // voir celui du role emprunte, ce qui vide le geste de son sens. Depuis un
+    // ecran precis, on y reste (on veut voir CET ecran comme l'autre). Depuis
+    // une entree generique, on atterrit chez le role emprunte.
+    const entrees = ["/", "/login", "/hote"];
+    const vise = entrees.includes(retour) ? COMPTES[cible] : retour;
+    redirect(vise || retour);
   }
   jar.set("lcd_qui", cible, {
     httpOnly: true,
