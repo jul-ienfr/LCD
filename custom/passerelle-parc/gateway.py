@@ -3891,9 +3891,52 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, eng.apercu_logement(box, logement_id,
                                                        force=force))
         if url.path == "/etat-parc":
-            return self._json(200, eng.etat_parc(force=force))
+            rep = eng.etat_parc(force=force)
+            # CLOISONNEMENT DES LECTURES (2026-10-19) : cette lecture servait le
+            # parc ENTIER a tout le monde -- mesure : un proprietaire dont le
+            # perimetre est [log1, log2] voyait log3. Le perimetre declare dans
+            # acces.yaml est applique ICI, avant serialisation.
+            qui_etat = qs.get("qui", [""])[0].strip()
+            if qui_etat and isinstance(rep, dict):
+                p_etat = eng.acces.get(qui_etat)
+                if not p_etat:
+                    return self._json(400, {"erreur": f"qui inconnu: {qui_etat}"})
+                per_etat = set(p_etat.get("logements", []))
+                # `sans_entite` liste les logements rattaches a aucune entite :
+                # mesure du 2026-10-19, c'est PAR LA que log3 fuyait encore
+                # (un proprietaire [log1, log2] voyait « sans_entite: [log3] »).
+                for cle_etat in ("sans_entite", "alertes"):
+                    if isinstance(rep.get(cle_etat), list):
+                        rep[cle_etat] = [
+                            x for x in rep[cle_etat]
+                            if (x.get("logement_id") if isinstance(x, dict) else x) in per_etat]
+                if isinstance(rep.get("logements"), list):
+                    rep["logements"] = [
+                        x for x in rep["logements"]
+                        if (x.get("logement_id") if isinstance(x, dict) else x) in per_etat]
+                if isinstance(rep.get("boxes"), list):
+                    gardees = []
+                    for b in rep["boxes"]:
+                        if not isinstance(b, dict):
+                            continue
+                        dedans = [l for l in b.get("logements", []) if l in per_etat]
+                        if dedans:
+                            gardees.append({**b, "logements": dedans})
+                    rep["boxes"] = gardees
+            return self._json(200, rep)
         # --- G2bis-b : portail propriétaire tiers (§3bis), lecture seule ---
         if url.path == "/portail-proprio":
+            # Un logement DEMANDE hors perimetre est REFUSE (403), plus ignore :
+            # repondre 200 en ignorant le parametre laissait croire a un acces.
+            qui_pp = qs.get("qui", [""])[0].strip()
+            log_pp = qs.get("logement", [""])[0].strip()
+            if qui_pp and log_pp:
+                p_pp = eng.acces.get(qui_pp)
+                if not p_pp:
+                    return self._json(400, {"erreur": f"qui inconnu: {qui_pp}"})
+                if log_pp not in p_pp.get("logements", []):
+                    return self._json(403, {"erreur":
+                                            f"hors perimetre : {qui_pp} n'a pas {log_pp}"})
             return self._html(200, eng.portail_page(
                 qs.get("qui", [""])[0],
                 client=qs.get("client", [""])[0].strip()))
@@ -3937,7 +3980,21 @@ class Handler(BaseHTTPRequestHandler):
         # --- CRUD logements : LECTURE seule en GET (§6bis) ---
         if url.path == "/parc/logements":
             try:
-                return self._json(200, eng.parc_lister())
+                rep = eng.parc_lister()
+                # Meme cloisonnement que /etat-parc : la liste ne sert que les
+                # logements du perimetre declare (acces.yaml) quand `qui` est
+                # fourni. Sinon un proprietaire lisait tout le parc.
+                qui_lg = qs.get("qui", [""])[0].strip()
+                if qui_lg and isinstance(rep, dict):
+                    p_lg = eng.acces.get(qui_lg)
+                    if not p_lg:
+                        return self._json(400, {"erreur": f"qui inconnu: {qui_lg}"})
+                    per_lg = set(p_lg.get("logements", []))
+                    if isinstance(rep.get("logements"), list):
+                        rep["logements"] = [
+                            x for x in rep["logements"]
+                            if (x.get("logement_id") if isinstance(x, dict) else x) in per_lg]
+                return self._json(200, rep)
             except ErreurRegistre as e:
                 return self._json(e.code, {"erreur": e.message})
         if url.path == "/parc/snapshots":

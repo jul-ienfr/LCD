@@ -88,7 +88,7 @@ et pour les décisions du moteur : `decision:403 qui=… hors perimetre`.
 **Ce que cela garantit** : un propriétaire qui fabrique l'URL d'un autre logement reçoit **403**.
 Le cloisonnement n'est donc pas visuel, il est serveur.
 
-### MESURE (2026-10-19) — le cloisonnement des **lectures** n'est PAS tenu
+### MESURE puis CORRECTION (2026-10-19) — lectures : d'abord NON tenu, **aujourd'hui tenu**
 Batterie dédiée : `deploy/test-perimetres.ps1` (mesure par le réseau interne, la passerelle n'étant pas publiée).
 
 ```
@@ -114,6 +114,37 @@ biens » n'est pas satisfaite aujourd'hui**, elle est satisfaite pour les écrit
 - `/portail-proprio` — refuser en **403** un `logement` hors périmètre au lieu de l'ignorer.
 
 Tant que ce n'est pas fait, la batterie reste **rouge** : c'est voulu, elle décrit l'état réel.
+
+### CORRECTION APPLIQUEE — la batterie est passee au VERT
+
+Trois filtres ajoutes dans la passerelle (`custom/passerelle-parc/gateway.py`), **avant** serialisation,
+appliques des que `qui` est fourni (perimetre lu dans `acces.yaml`) :
+
+| Endpoint | Correction |
+|---|---|
+| `/etat-parc` | `logements`, `boxes` (box vide -> retiree), `sans_entite`, `alertes` filtres par perimetre |
+| `/parc/logements` | liste reduite au perimetre |
+| `/portail-proprio` | un `logement` hors perimetre est **refuse en 403** (il etait ignore) |
+
+Enseignement utile : le logement fuyait encore par un champ inattendu (`sans_entite`), pas par
+`logements` — c'est un **parcours recursif des cles** qui l'a nomme, pas une relecture a l'oeil.
+
+Sortie finale de `deploy/test-perimetres.ps1` :
+```
+[OK] personne_05 : ses propres logements sont servis (log1, log2)
+[OK] personne_05 : aucun logement hors perimetre dans les reponses
+[OK] personne_03 : ses propres logements sont servis (log1)
+[OK] personne_03 : aucun logement hors perimetre dans les reponses
+[OK] portail-proprio sur log3 (hors perimetre) refuse
+[OK] ecriture hors perimetre refusee (403 attendu)
+RESULTAT : perimetres tenus (lecture + ecriture)
+```
+
+Deux details de methode, appris a la dure :
+- une **403 cite le logement refuse** dans son message ; compter ces mots comme une fuite fait
+  echouer la batterie sur son propre refus -> seules les reponses **200** sont analysees ;
+- le code de la passerelle vit dans l'**image** (pas en volume) : un `docker restart` ne suffit pas,
+  il faut `docker compose -f lab/docker-compose.yml up -d --build gateway-parc`.
 ## 4. Ce qui reste, dans l'ordre
 
 1. **Débloquer la redirection par rôle** (§2) — une mesure d'en-tête sur `/login`, puis correction.

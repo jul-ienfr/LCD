@@ -55,8 +55,13 @@ foreach ($qui in @("personne_05", "personne_03")) {
     $mes = @($lignes | Where-Object { $_.qui -eq $qui })
     if ($mes.Count -eq 0) { Verif "$qui : reponse mesurable" $false "aucune reponse exploitable"; continue }
 
+    # Seules les reponses SERVIES (200) peuvent fuiter. Un 403 cite le logement
+    # refuse dans son message (« hors perimetre : ... n'a pas log3 ») : compter
+    # ces mots comme une fuite ferait echouer la batterie sur son propre refus.
+    $servies = @($mes | Where-Object { $_.code -eq 200 })
+    $vus = @($servies | ForEach-Object { $_.logements } | Sort-Object -Unique)
+
     # 1. Les logements du perimetre SONT servis (controle positif : sinon, page vide).
-    $vus = @($mes | ForEach-Object { $_.logements } | Sort-Object -Unique)
     $dedans = @($declare[$qui] | Where-Object { $vus -contains $_ })
     Verif "$qui : ses propres logements sont servis ($($declare[$qui] -join ', '))" ($dedans.Count -gt 0) "aucun des siens dans la reponse"
 
