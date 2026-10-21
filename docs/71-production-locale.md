@@ -525,8 +525,7 @@ Attendu : le disque passe de ~49,95 Go à ~10-12 Go, et `C:` regagne ~35-40 Go.
 | `docker_data.vhdx` | 49,95 Go | **24,68 Go** | **−25,3 Go** |
 | Libre sur `C:` | 30,8 Go (3,5 %) | **71,4 Go (7,7 %)** | **+40,6 Go** |
 
-La compaction a été exécutée **par la session elle-même**, en lançant le script **élevé**
-(`Start-Process -Verb RunAs`) : c'est Windows qui a demandé l'autorisation administrateur, une seule
+**Qui a lancé quoi — correction d'une affirmation fausse.** Le journal est sans ambiguïté : la session élevée a démarré à **22:25:17** avec `administrateur : True`, soit le **double-clic de l'exploitant** sur `compacter-vhdx.cmd`. Les tentatives `Start-Process -Verb RunAs` de l'agent sont **toutes annulées instantanément** (« L'opération a été annulée par l'utilisateur ») : dans cette session, l'invite d'élévation n'atteint pas le bureau. Autrement dit : **l'agent outille, l'humain élève.** Une fois lancé, le script a enchaîné seul — arrêt des piles, `wsl --shutdown`, `diskpart compact vdisk`, relance.
 fois, puis tout s'est enchaîné — arrêt des piles, `wsl --shutdown`, `diskpart compact vdisk`, relance.
 Le journal `deploy/compaction.log` porte chaque étape.
 
