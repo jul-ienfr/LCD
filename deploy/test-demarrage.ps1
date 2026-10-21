@@ -81,12 +81,15 @@ try {
     $marqueur = 'href="/login"'
     $corpsFront = Corps "http://127.0.0.1:3100/"
     Verif "front : page d'accueil servie (marqueur present)" ($corpsFront -match [regex]::Escape($marqueur))
-    $redir = (Natif { curl.exe @("--resolve", "${Hote}:4001:127.0.0.1", "-k") -s -o NUL -w "%{http_code}|%{redirect_url}" -m 10 "https://${Hote}:4001/" 2>$null } | Out-String).Trim()
+    #  Racine PUBLIQUE depuis 2026-10-21 (vitrine) : l application est la
+    #  surface FERMEE -- on prouve les DEUX contrats sur / et /hote.
+    $racine = (Natif { curl.exe @("--resolve", "${Hote}:4001:127.0.0.1", "-k") -s -o NUL -w "%{http_code}" -m 10 "https://${Hote}:4001/" 2>$null } | Out-String).Trim()
+    $redir = (Natif { curl.exe @("--resolve", "${Hote}:4001:127.0.0.1", "-k") -s -o NUL -w "%{http_code}|%{redirect_url}" -m 10 "https://${Hote}:4001/hote" 2>$null } | Out-String).Trim()
     $parties = $redir -split "\|"
     $codeEntree = $parties[0]
     $cible = if ($parties.Count -gt 1) { $parties[1] } else { "" }
-    Verif "entree TLS : anonyme renvoye vers le portail IdP ($codeEntree -> $cible)" (
-        ($codeEntree -eq "302" -or $codeEntree -eq "303") -and $cible -match ":4002")
+    Verif "entree TLS : racine publique (200) MAIS application /hote fermee -> portail IdP ($codeEntree -> $cible)" (
+        $racine -eq "200" -and ($codeEntree -eq "302" -or $codeEntree -eq "303") -and $cible -match ":4002")
     $corpsEntree = Corps "https://${Hote}:4001/api/health" @("--resolve", "${Hote}:4001:127.0.0.1", "-k")
     Verif "entree TLS : la passerelle repond a travers Caddy (/api/health)" ($corpsEntree -match '"ok"')
 

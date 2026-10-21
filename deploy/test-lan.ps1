@@ -95,9 +95,13 @@ try {
     # --- 5. Entree par defaut (celle qui tourne) --------------------------
     Verif "defaut : app /api/health 200" (200 -eq (& curl.exe --resolve "lcd.test:4001:127.0.0.1" -k -s -o NUL -w "%{http_code}" https://lcd.test:4001/api/health))
     Verif "defaut : portail 200" (200 -eq (& curl.exe --resolve "lcd.test:4002:127.0.0.1" -k -s -o NUL -w "%{http_code}" https://lcd.test:4002/api/health))
-    $locDefaut = & curl.exe --resolve "lcd.test:4001:127.0.0.1" -k -s -o NUL -w "%{http_code} %{redirect_url}" https://lcd.test:4001/
-    Verif "defaut : anonyme redirige vers le portail lcd.test:4002" (
-        $locDefaut -match "^302" -and $locDefaut -match "lcd\.test:4002")
+    #  Racine PUBLIQUE depuis 2026-10-21 (vitrine, cf. test-deploy) : les deux
+    #  contrats se verifient SEPAREMENT -- vitrine 200 sur /, application
+    #  FERMEE sur /hote (302 vers le portail).
+    $racDefaut = & curl.exe --resolve "lcd.test:4001:127.0.0.1" -k -s -o NUL -w "%{http_code}" https://lcd.test:4001/
+    $locDefaut = & curl.exe --resolve "lcd.test:4001:127.0.0.1" -k -s -o NUL -w "%{http_code} %{redirect_url}" https://lcd.test:4001/hote
+    Verif "defaut : racine publique (200 vitrine) ET application /hote fermee (302 portail lcd.test:4002)" (
+        $racDefaut -eq "200" -and $locDefaut -match "^302" -and $locDefaut -match "lcd\.test:4002")
 
     # --- 6. MEME pile servie sous lcd.local (paire jetable) ---------------
     $caddyLan = Join-Path $temp "Caddyfile"
@@ -122,9 +126,11 @@ try {
     $appOk = Attendre "https://${HOTE_LAN}:$PORT_APP/api/health" "${HOTE_LAN}:${PORT_APP}:127.0.0.1"
     Verif "LAN : entree $HOTE_LAN sert la passerelle (health 200)" $appOk
 
-    $locLan = & curl.exe --resolve "${HOTE_LAN}:${PORT_APP}:127.0.0.1" -k -s -o NUL -w "%{http_code} %{redirect_url}" "https://${HOTE_LAN}:$PORT_APP/"
-    Verif "LAN : anonyme redirige vers le portail de CE nom (${HOTE_LAN}:${PORT_IDP})" (
-        $locLan -match "^302" -and $locLan -match [regex]::Escape("${HOTE_LAN}:${PORT_IDP}"))
+    #  Meme contrat que par defaut : racine publique, application fermee.
+    $racLan = & curl.exe --resolve "${HOTE_LAN}:${PORT_APP}:127.0.0.1" -k -s -o NUL -w "%{http_code}" "https://${HOTE_LAN}:$PORT_APP/"
+    $locLan = & curl.exe --resolve "${HOTE_LAN}:${PORT_APP}:127.0.0.1" -k -s -o NUL -w "%{http_code} %{redirect_url}" "https://${HOTE_LAN}:$PORT_APP/hote"
+    Verif "LAN : racine publique (200) ET application /hote fermee -> portail de CE nom (${HOTE_LAN}:${PORT_IDP})" (
+        $racLan -eq "200" -and $locLan -match "^302" -and $locLan -match [regex]::Escape("${HOTE_LAN}:${PORT_IDP}"))
     if (-not ($locLan -match "^302")) { Write-Output "      recu : $locLan" }
 
     # --- 7. Joignabilite depuis l'IP LAN (etape hote) ---------------------
