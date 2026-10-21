@@ -148,8 +148,18 @@ access_control:
         - "^/_next/static/"
       policy: bypass
     - domain: lcd.test
+      resources:
+        - '^/$'
+      policy: bypass
+    - domain: lcd.test
+      resources:
+        - '^/favicon[.]ico$'
+        - '^/icon[.]svg$'
+      policy: bypass
+    - domain: lcd.test
       policy: two_factor
       subject:
         - "group:parc_admin"
         - "group:parc_operateur"
         - "group:parc_tiers"
+
