@@ -447,6 +447,35 @@ foreach ($rI in ($refsImg | Sort-Object)) {
         ($octI -gt 0) -and ($octI -lt 150 * 1024))
 }
 
+# 19. MODE DEGRADE 320 px (cahier 70 §F0.5 et §F7) : « 320 px sans defilement
+#     horizontal » est ecrit depuis la premiere version du cahier et AUCUNE
+#     batterie ne le mesurait -- meme vice que §17 et §18 avant lui. Edge
+#     headless reel (playwright-core, channel msedge, 0 navigateur telecharge)
+#     charge les 6 surfaces clientes a 320x568 et lit scrollWidth contre
+#     clientWidth : c'est la definition du debordement. CONTROLE POSITIF
+#     OBLIGATOIRE : un bloc fabrique de 600 px doit etre VU en debordement,
+#     sinon une mesure qui ne detecte jamais rien passerait a tout va.
+Write-Output "== 320 px sans defilement horizontal (Edge reel, surfaces clientes) =="
+$node19 = Get-Command node -ErrorAction SilentlyContinue
+if (-not $node19) {
+    Verif "node present (recette 320 px)" $false
+} else {
+    $rec19 = Join-Path (Split-Path $PSScriptRoot) "web\scripts\recette-320.mjs"
+    if (-not (Test-Path -LiteralPath $rec19)) {
+        Verif "recette-320.mjs presente" $false
+    } else {
+        $out19 = (node $rec19 $F) -join "`n"
+        $code19 = $LASTEXITCODE
+        Write-Output $out19
+        $ko19 = ([regex]::Matches($out19, "(?m)^\[KO\]")).Count
+        $ok19 = ([regex]::Matches($out19, "(?m)^\[OK\]")).Count
+        $script:KO += $ko19
+        Verif "320 px : 6 surfaces + temoin sans debordement (7 checks)" (
+            ($ko19 -eq 0) -and ($code19 -eq 0) -and ($ok19 -eq 7) -and
+            ($out19 -match "controle positif"))
+    }
+}
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : front OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO

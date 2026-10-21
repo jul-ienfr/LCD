@@ -1,10 +1,11 @@
 # 70 — Frontend v1 (SaaS `web/` + front box + mode dégradé)
 
-> Statut : v1.5 du 2026-10-20 — **cahier clos** : F1→F6 ✅, et les
+> Statut : v1.6 du 2026-10-21 — **cahier clos** : F1→F6 ✅, et les
 > promesses mesurables de §F9 ont désormais une assertion (JS, tierces,
-> images, a11y, POST natif, 0 fuite). Restent les **DoD manuelles**
-> (matériel réel) : tabulation physique, offline 2 h, 55 items terrain/box
-> du `checklist-taches-restantes.md` — jamais du code à écrire.
+> images, a11y, POST natif, 0 fuite, **320 px mesuré**). Restent les
+> **DoD manuelles** (matériel réel) : tabulation physique, offline 2 h,
+> 55 items terrain/box du `checklist-taches-restantes.md` — jamais du code
+> à écrire.
 > Nouveau cahier (aucun prédécesseur).
 > Renvois DRY (jamais recopiés, R1) : fiches vues = §S3.5 ; exigences
 > communes = §S3.4 ; login/périmètres = §S3.1 ; contrat plugin = §20.7 ;
@@ -218,7 +219,8 @@ Règles techniques opposables (batterie dégradée, §F9) :
    Lecture guide/urgence/Wi-Fi = HTML dans le premier octet utile.
 2. CSS : valeurs de repli avant `var()` ; `@supports` pour grid/backdrop ;
    pas de `:has()` ni container queries dans le chemin critique ; 320 px
-   sans défilement horizontal ; cibles tactiles ≥44 px.
+   sans défilement horizontal (**✅ mesuré §F9 §19**, 6 surfaces + témoin) ;
+   cibles tactiles ≥44 px.
 3. Polices : stack système (jamais de `@font-face` bloquant) ; `Inter`
    optionnelle non référencée en L1.
 4. Images : `<picture>` AVIF → WebP → JPEG ; `width/height` obligatoires ;
@@ -291,7 +293,7 @@ vide et la vérification ne prouve rien). Mesure du jour : `/favicon.ico`
 offline <1 s exigent un navigateur réel sur matériel — DoD de la matrice
 §F9, pas une assertion de banc.
 
-**Mesure reproductible (2026-10-20)** : les 111 `Verif` (135 lignes vertes)
+**Mesure reproductible (2026-10-20)** : les 112 `Verif` (143 lignes vertes)
 tournent en **mode lab sans IdP** — `deploy/serveur-pwa.ps1` sert la même
 image sur `:3101` — parce que l'identité cookie `lcd_qui` n'existe que dans
 ce mode : la pile nominale (`LCD_IDP=1`) n'accepte que `Remote-User`. La
@@ -299,7 +301,20 @@ passe `tout-verifier` sert donc `test-front` (et `test-super`) depuis
 `:3101` ; le mode IdP reste couvert par `test-idp.ps1` (22/22). Sans cela,
 la passe affichait **7 KO front + 3 KO super permanents** : un artefact de
 mode, pas un défaut de rendu — et un rouge permanent masque les vrais. Le
-compte se lit dans la sortie, pas dans une promesse : 135 `[OK]`, 0 `[KO]`.
+compte se lit dans la sortie, pas dans une promesse : 143 `[OK]`, 0 `[KO]`.
+
+✅ livré 2026-10-21 (§19) : la **cinquième** promesse de cette liste —
+« 320 px sans défilement horizontal » (§F0.5 et §F7) — n'avait elle non plus
+**aucune assertion** (ni `test-front`, ni les recettes navigateur, ni
+`test-pwa`). `web/scripts/recette-320.mjs` (Edge réel, playwright-core, 0
+navigateur téléchargé) charge les **6 surfaces clientes** à 320×568 et
+compare `scrollWidth` à `clientWidth` : 1 px d'écart toléré (arrondi
+sous-pixel), au-delà c'est un débordement réel. **Contrôle positif
+obligatoire** : un bloc fabriqué de 600 px doit être **VU** en débordement
+(mesure 608 > 320), sinon une mesure qui ne détecte jamais rien passerait à
+tout va. `/hote` et `/systeme` sont exclus (consoles opérateur, §F0.6).
+Mesure du jour : les 6 surfaces à `scroll=320 / client=320`, **0
+débordement** ; la batterie passe **112 `Verif` / 143 lignes vertes**.
 
 Batterie dégradée (extension `test-front.ps1`, 0 outil payant) :
 
@@ -326,8 +341,9 @@ passerelle** : la ref de cette soumission y gagne une occurrence. Couvertures :
 (0→1), départ `cloture_menage` (4→5), mission (20→21) ; login déjà prouvé §2b
 (303 + `Set-Cookie` + `Location /hote`). À la tranche §16, la batterie comptait
 **125 lignes vertes, 0 KO** (101 `Verif` + 24 sous-vérifications de la recette) ;
-elle en compte **135 depuis §18** (111 `Verif` + les mêmes 24) — le chiffre de
-cette phrase est historique, le compte courant est celui de §F9 ci-dessus.
+elle en compte **143 depuis §19** (112 `Verif` + les mêmes 24 + les 7 mesures
+320 px) — le chiffre de cette phrase est historique, le compte courant est
+celui de §F9 ci-dessus.
 
 Limites constatées et assumées (R1 — rien n'est simulé, rien n'est caché) :
 
@@ -376,10 +392,10 @@ A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 ✅ livré : `test-front.ps1` §15, 27 checks (skip-link présent ET premier
 focusable + cible `main#contenu tabindex=-1` + feuille de style **servie**
 : `focus-visible` / `prefers-reduced-motion` / `sr-only` + 1 seule `h1` +
-`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **111/111**
-(98 à la tranche a11y, 101 depuis §16, 108 depuis §17, 111 depuis §18) —
-135 lignes vertes au total comptant les 24 sous-vérifications de la recette
-sans JS.
+`lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **112/112**
+(98 à la tranche a11y, 101 depuis §16, 108 depuis §17, 111 depuis §18,
+112 depuis §19) — 143 lignes vertes au total comptant les 24
+sous-vérifications de la recette sans JS et les 7 mesures 320 px.
 L'implémentation datait de 2026-10-17 (changelog) mais **aucune batterie ne
 la mesurait** : un retrait de `:focus-visible` serait passé inaperçu.
 Limite assumée : la structure qui rend le clavier utilisable, pas la
