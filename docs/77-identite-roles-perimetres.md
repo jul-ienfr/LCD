@@ -56,7 +56,7 @@ Mesure apres deploiement (trois sessions reelles, mot de passe seul pour les rol
 | `personne_03` | operateur | `/planning` | `/planning` | OK |
 | `personne_04` | comptable | `/compta` | `/compta` | OK |
 | `personne_05` | proprietaire | `/proprio?logement=log1&qui=personne_05` | idem | OK |
-| `commercial_01` | commercial | non teste — **mot de passe absent de `deploy/.env`** | `/commercial` | a completer |
+| `commercial_01` | commercial | `/commercial` | `/commercial` | OK |
 
 Controle du a la politique d'authentification (le point qui compte) :
 
