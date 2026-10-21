@@ -68,6 +68,11 @@ Controle du a la politique d'authentification (le point qui compte) :
 **Note d'outillage** : l'appel direct a `/api/authz/forward-auth` en ligne de commande renvoie
 `400 Bad Request` (jeu d'en-tetes `X-Original-*` incomplet). Cette voie de mesure est inutilisable
 en l'etat — ne pas la retenter a l'identique.
+**Erreur de ma part, corrigée** : j'avais annoncé que ``commercial_01`` n'avait pas de mot de passe.
+C'était faux — il figure en clair dans ``deploy/.env`` comme les cinq autres, et son parcours est
+vert (``firstfactor`` OK, ``/login`` -> 307 ``/commercial``, ``/commercial`` -> 200). J'avais conclu
+trop vite sur une lecture partielle du fichier. **Une affirmation non mesurée reste une erreur, même
+quand elle est prudente.**
 ## 3. Périmètres : « un propriétaire ne voit que ses biens »
 
 **Déclaré** dans `custom/acces.yaml` (une ligne par personne, `logements:`) :
