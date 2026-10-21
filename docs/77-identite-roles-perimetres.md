@@ -39,28 +39,35 @@ l'authentification le portail renvoyait sur `/login`, où une carte « Connecté
 `voirComme` (super admin → rôle emprunté) : depuis `/`, `/login` ou `/hote`, on atterrit chez le rôle
 emprunté ; depuis un écran précis, on y reste (on veut voir **cet** écran avec d'autres yeux).
 
-### Etat mesuré — **la redirection ne part pas**
-```
-session valide (personne_03) :
-  GET https://lcd.test/hote   -> 200, la page affiche « Sam · opérateur »   (identité REÇUE)
-  GET https://lcd.test/login  -> 200, aucune redirection, pas de carte « Connecté »
-```
-Conclusion honnête : **l'en-tête d'identité arrive au front sur `/hote`, mais la page `/login`
-ne le voit pas** dans cette mesure. La redirection écrite ne peut donc pas se déclencher.
-Deux hypothèses restent ouvertes, aucune n'est prouvée :
-1. la page `/login` est rendue depuis un cache statique (le rendu ne dépendrait pas de la requête) ;
-2. la requête `/login` n'obtient pas `Remote-User` de l'IdP là où `/hote` l'obtient.
+### RESOLU et MESURE (meme jour) — la redirection part
+Premiere mesure : `/hote` affichait l'identite (« Sam · operateur ») mais `/login` n'en voyait
+aucune. **Cause** : `/login` est servie sans dependre de la requete (rendu anticipe), donc
+`headers()` n'y voit pas le `Remote-User` pose par Caddy. Une redirection ecrite **dans la page**
+ne pouvait donc pas se declencher.
+**Correction** : la redirection est deplacee dans `web/src/middleware.ts`, qui tourne AVANT le
+rendu et voit toujours les en-tetes. Regle : un utilisateur authentifie qui atterrit sur `/login`
+repart chez lui ; jamais de redirection sans identite, avec un parametre d'erreur, ou vers `/login`.
+La table `PROFILS` reste la seule source de verite (aucun `if` par role).
 
-Prochaine mesure (une seule) : journal d'accès Caddy activé sur `/login` **ou** page de diagnostic
-temporaire qui affiche l'en-tête reçu. Tant que ce n'est pas fait, ne pas annoncer l'arrivée par
-rôle comme acquise.
+Mesure apres deploiement (trois sessions reelles, mot de passe seul pour les roles non-admin) :
 
-**Note d'outillage** : l'appel direct à `/api/authz/forward-auth` en ligne de commande renvoie
-`400 Bad Request` (jeu d'en-têtes `X-Original-*` incomplet). Cette voie de mesure est donc
-inutilisable en l'état — c'est noté pour ne pas la retenter à l'identique.
+| Compte | Role | `/login` renvoie | Attendu | |
+|---|---|---|---|---|
+| `personne_03` | operateur | `/planning` | `/planning` | OK |
+| `personne_04` | comptable | `/compta` | `/compta` | OK |
+| `personne_05` | proprietaire | `/proprio?logement=log1&qui=personne_05` | idem | OK |
+| `commercial_01` | commercial | non teste — **mot de passe absent de `deploy/.env`** | `/commercial` | a completer |
 
----
+Controle du a la politique d'authentification (le point qui compte) :
 
+| Session | `/hote` | Lecture |
+|---|---|---|
+| `personne_01` (admin) **sans** second facteur | **302** vers le portail | le 2FA est bien **obligatoire** pour un admin |
+| `personne_03` (operateur) sans second facteur | **200** | le 2FA est bien **optionnel** hors admin |
+
+**Note d'outillage** : l'appel direct a `/api/authz/forward-auth` en ligne de commande renvoie
+`400 Bad Request` (jeu d'en-tetes `X-Original-*` incomplet). Cette voie de mesure est inutilisable
+en l'etat — ne pas la retenter a l'identique.
 ## 3. Périmètres : « un propriétaire ne voit que ses biens »
 
 **Déclaré** dans `custom/acces.yaml` (une ligne par personne, `logements:`) :
