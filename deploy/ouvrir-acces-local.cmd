@@ -36,9 +36,9 @@ REM  Vider le cache DNS pour que le nom soit pris en compte immediatement.
 ipconfig /flushdns >nul 2>&1
 
 echo.
-echo   Adresse du SAS : https://lcd.test:4001
+echo   Adresse du SAS : https://lcd.test   (sans port)
 echo   (le navigateur affichera un avertissement de certificat : le SAS utilise
 echo    sa propre autorite de certification locale. Cliquez sur "Avance ^> Continuer".)
 echo.
-start "" "https://lcd.test:4001"
+start "" "https://lcd.test"
 endlocal

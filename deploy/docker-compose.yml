@@ -129,6 +129,7 @@ services:
       # 4002 en interne (pas 443) — meme hote, deux ports, cookies
       # Domain=lcd.test indifferents au port (prouve par le rd d'Authelia).
       - "4003:80"
+      - "443:443"
       - "4001:443"
       - "4002:4002"
     volumes:
