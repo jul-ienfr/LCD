@@ -156,10 +156,19 @@ access_control:
         - '^/favicon[.]ico$'
         - '^/icon[.]svg$'
       policy: bypass
+    # 2FA OBLIGATOIRE pour les administrateurs seulement (decision d'exploitation
+    # du 2026-10-19) : un admin peut TOUT changer, il ne doit pas pouvoir se
+    # connecter avec un mot de passe seul. Les autres roles (operateur, terrain,
+    # proprietaire tiers) ont le 2FA en OPTION -- ils peuvent l'activer depuis le
+    # portail, personne ne le leur impose. Regle d'ordre : le groupe admin est
+    # teste AVANT la regle one_factor, sinon il tomberait dans la regle large.
     - domain: lcd.test
       policy: two_factor
       subject:
         - "group:parc_admin"
+    - domain: lcd.test
+      policy: one_factor
+      subject:
         - "group:parc_operateur"
         - "group:parc_tiers"
 
