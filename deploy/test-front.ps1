@@ -36,7 +36,7 @@ if ($modeIdp) {
 
 # 2b. Login SANS JS (progressive enhancement) : extraire le $ACTION_ID du
 # formulaire login (suivi du hidden qui), POSTer multipart si identique,
-# attendre 303 + Set-Cookie lcd_qui + Location /hote (mode lab seulement).
+# attendre 303 + Set-Cookie lcd_qui + Location de SON role (ici /planning : personne_03 = operatrice ; contrat « chacun arrive chez lui » du 2026-10-21, PATTERNS PROFILS).
 if (-not $modeIdp) {
 $aid = [regex]::Match($lg, 'name="(\$ACTION_ID_[a-f0-9]+)"\s*/><input type="hidden" name="qui"')
 if ($aid.Success) {
@@ -48,7 +48,7 @@ if ($aid.Success) {
     $hj = $hdrs -join " "
     Verif "login sans JS : 303 redirect" ($hj -match "303")
     Verif "login sans JS : cookie pose" ($hj -match "lcd_qui=personne_03")
-    Verif "login sans JS : Location /hote" ($hj -match "Location: /hote")
+    Verif "login sans JS : Location /planning (operatrice)" ($hj -match "Location: /planning")
 } else {
     Write-Output "[KO] login sans JS : ACTION_ID introuvable (build change ?)"
     $script:KO += 3
@@ -470,9 +470,9 @@ if (-not $node19) {
         $ko19 = ([regex]::Matches($out19, "(?m)^\[KO\]")).Count
         $ok19 = ([regex]::Matches($out19, "(?m)^\[OK\]")).Count
         $script:KO += $ko19
-        Verif "320 px : 6 surfaces + temoin sans debordement (7 checks)" (
-            ($ko19 -eq 0) -and ($code19 -eq 0) -and ($ok19 -eq 7) -and
-            ($out19 -match "controle positif"))
+        Verif "320 px + cibles 44 px : 6 surfaces, 2 temoins (14 checks)" (
+            ($ko19 -eq 0) -and ($code19 -eq 0) -and ($ok19 -eq 14) -and
+            ($out19 -match "controle positif") -and ($out19 -match "controles tous"))
     }
 }
 

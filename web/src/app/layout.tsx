@@ -84,7 +84,7 @@ export default async function RootLayout({
           <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
             <Link
               href="/"
-              className="flex items-center gap-2 text-lg font-extrabold tracking-tight"
+              className="flex min-h-11 items-center gap-2 text-lg font-extrabold tracking-tight"
               aria-label={`${marque()} — accueil pilotage`}
             >
               <span
@@ -108,7 +108,7 @@ export default async function RootLayout({
                   key={href}
                   href={href}
                   title={title}
-                  className="rounded-full px-3 py-1.5 font-medium text-[var(--encre-douce)] hover:bg-[var(--surface-2)] hover:text-[var(--encre)]"
+                  className="inline-flex min-h-11 items-center rounded-full px-3 font-medium text-[var(--encre-douce)] hover:bg-[var(--surface-2)] hover:text-[var(--encre)]"
                 >
                   {lib}
                 </Link>
@@ -148,7 +148,7 @@ export default async function RootLayout({
             ) : (
               <Link
                 href="/login"
-                className="rounded-full bg-(--accent) px-3 py-1.5 text-xs font-bold text-white"
+                className="inline-flex min-h-11 items-center rounded-full bg-(--accent) px-3 text-xs font-bold text-white"
               >
                 Connexion
               </Link>
@@ -164,7 +164,7 @@ export default async function RootLayout({
                 <Link
                   key={href}
                   href={href}
-                  className="flex-1 whitespace-nowrap rounded-full bg-[var(--surface-2)] px-3 py-1.5 text-center font-medium text-[var(--encre-douce)]"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded-full bg-[var(--surface-2)] px-3 text-center font-medium text-[var(--encre-douce)]"
                 >
                   {lib}
                 </Link>

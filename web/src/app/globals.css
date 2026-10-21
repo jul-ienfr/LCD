@@ -171,6 +171,8 @@ body {
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
+  /* Cible tactile §F7 règle 2 : 44 px minimum (aujourd'hui ~41 px sans ça). */
+  min-height: 2.75rem;
   transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 .bouton:active { transform: scale(0.98); }
@@ -192,6 +194,8 @@ body {
   color: var(--encre);
   padding: 0.6rem 0.8rem;
   font-size: 0.9rem;
+  /* Champ = cible tactile §F7 règle 2 : 44 px de haut minimum. */
+  min-height: 2.75rem;
 }
 .champ::placeholder { color: var(--encre-faine); }
 

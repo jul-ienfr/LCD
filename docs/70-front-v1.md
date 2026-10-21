@@ -1,11 +1,11 @@
 # 70 — Frontend v1 (SaaS `web/` + front box + mode dégradé)
 
-> Statut : v1.6 du 2026-10-21 — **cahier clos** : F1→F6 ✅, et les
+> Statut : v1.7 du 2026-10-21 — **cahier clos** : F1→F6 ✅, et les
 > promesses mesurables de §F9 ont désormais une assertion (JS, tierces,
-> images, a11y, POST natif, 0 fuite, **320 px mesuré**). Restent les
-> **DoD manuelles** (matériel réel) : tabulation physique, offline 2 h,
-> 55 items terrain/box du `checklist-taches-restantes.md` — jamais du code
-> à écrire.
+> images, a11y, POST natif, 0 fuite, **320 px ET cibles ≥44 px mesurés**).
+> Restent les **DoD manuelles** (matériel réel) : tabulation physique,
+> offline 2 h, 55 items terrain/box du `checklist-taches-restantes.md` —
+> jamais du code à écrire.
 > Nouveau cahier (aucun prédécesseur).
 > Renvois DRY (jamais recopiés, R1) : fiches vues = §S3.5 ; exigences
 > communes = §S3.4 ; login/périmètres = §S3.1 ; contrat plugin = §20.7 ;
@@ -220,7 +220,8 @@ Règles techniques opposables (batterie dégradée, §F9) :
 2. CSS : valeurs de repli avant `var()` ; `@supports` pour grid/backdrop ;
    pas de `:has()` ni container queries dans le chemin critique ; 320 px
    sans défilement horizontal (**✅ mesuré §F9 §19**, 6 surfaces + témoin) ;
-   cibles tactiles ≥44 px (**écart mesuré, §F9 limites n° 4**).
+   cibles tactiles ≥44 px (**✅ mesuré §F9 §19** : 43/43 contrôles, + témoin
+   10×10 ; liens de texte inline hors périmètre).
 3. Polices : stack système (jamais de `@font-face` bloquant) ; `Inter`
    optionnelle non référencée en L1.
 4. Images : `<picture>` AVIF → WebP → JPEG ; `width/height` obligatoires ;
@@ -296,7 +297,7 @@ vide et la vérification ne prouve rien). Mesure du jour : `/favicon.ico`
 offline <1 s exigent un navigateur réel sur matériel — DoD de la matrice
 §F9, pas une assertion de banc.
 
-**Mesure reproductible (2026-10-20)** : les 112 `Verif` (143 lignes vertes)
+**Mesure reproductible (2026-10-20)** : les 112 `Verif` (150 lignes vertes)
 tournent en **mode lab sans IdP** — `deploy/serveur-pwa.ps1` sert la même
 image sur `:3101` — parce que l'identité cookie `lcd_qui` n'existe que dans
 ce mode : la pile nominale (`LCD_IDP=1`) n'accepte que `Remote-User`. La
@@ -304,7 +305,7 @@ passe `tout-verifier` sert donc `test-front` (et `test-super`) depuis
 `:3101` ; le mode IdP reste couvert par `test-idp.ps1` (22/22). Sans cela,
 la passe affichait **7 KO front + 3 KO super permanents** : un artefact de
 mode, pas un défaut de rendu — et un rouge permanent masque les vrais. Le
-compte se lit dans la sortie, pas dans une promesse : 143 `[OK]`, 0 `[KO]`.
+compte se lit dans la sortie, pas dans une promesse : 150 `[OK]`, 0 `[KO]`.
 
 ✅ livré 2026-10-21 (§19) : la **cinquième** promesse de cette liste —
 « 320 px sans défilement horizontal » (§F0.5 et §F7) — n'avait elle non plus
@@ -317,7 +318,16 @@ obligatoire** : un bloc fabriqué de 600 px doit être **VU** en débordement
 (mesure 608 > 320), sinon une mesure qui ne détecte jamais rien passerait à
 tout va. `/hote` et `/systeme` sont exclus (consoles opérateur, §F0.6).
 Mesure du jour : les 6 surfaces à `scroll=320 / client=320`, **0
-débordement** ; la batterie passe **112 `Verif` / 143 lignes vertes**.
+débordement**.
+
+La **même recette** mesure la seconde moitié de la règle §F7 — les **cibles
+tactiles** : tout contrôle (`button`, `select`, `input` visible, `textarea`)
+doit faire ≥44 px dans chaque dimension, avec son **contrôle positif** (un
+bouton fabriqué de 10×10 doit être **VU** trop petit). Mesure : **43
+contrôles sur 43 ≥ 44 px** sur les 6 surfaces (avant la correction du jour :
+chips 28-34 px, `.bouton` ~41 px). Les liens de texte inline restent hors
+périmètre — une cible tactile est un bouton, pas une phrase. La batterie
+passe **112 `Verif` / 150 lignes vertes**.
 
 Batterie dégradée (extension `test-front.ps1`, 0 outil payant) :
 
@@ -344,8 +354,8 @@ passerelle** : la ref de cette soumission y gagne une occurrence. Couvertures :
 (0→1), départ `cloture_menage` (4→5), mission (20→21) ; login déjà prouvé §2b
 (303 + `Set-Cookie` + `Location /hote`). À la tranche §16, la batterie comptait
 **125 lignes vertes, 0 KO** (101 `Verif` + 24 sous-vérifications de la recette) ;
-elle en compte **143 depuis §19** (112 `Verif` + les mêmes 24 + les 7 mesures
-320 px) — le chiffre de cette phrase est historique, le compte courant est
+elle en compte **150 depuis §19** (112 `Verif` + les mêmes 24 + les 14 mesures
+320 px/cibles) — le chiffre de cette phrase est historique, le compte courant est
 celui de §F9 ci-dessus.
 
 Limites constatées et assumées (R1 — rien n'est simulé, rien n'est caché) :
@@ -384,17 +394,17 @@ Limites constatées et assumées (R1 — rien n'est simulé, rien n'est caché) 
    en 201, la passerelle **rejoue la réponse en cache sans écrire de ligne**
    (table d'idempotence) — un compteur y mentirait. Ce formulaire est par
    ailleurs `horsLigne` (outbox §F8, `test-pwa.ps1` 14/14).
-4. **Cibles tactiles 44 px : la règle n'est pas tenue telle qu'écrite.**
-   Mesure du 2026-10-21 à 320×568 (Edge réel, 6 surfaces clientes) : **161
-   cibles visibles dont 144 sous 44 px**, mais l'essentiel de l'écart porte
-   sur les **liens de texte inline** (hors périmètre d'une cible tactile) ;
-   les éléments de navigation mesurent **28 à 34 px de haut** (chips
-   d'onglets, bouton thème, lien Connexion) et le select de langue **43 px**.
-   **Plancher WCAG 2.2 AA (2.5.8, 24 px) respecté** : 31 contrôles
-   `button`/`select`, **0 sous 24 px**. Décision : la cible 44 px reste une
-   **cible de conception** (DoD design), pas une assertion de banc — un test
-   à 44 px ferait échouer un rendu pourtant conforme AA. Écrit ici pour que
-   personne ne croie la règle vérifiée.
+4. **Cibles tactiles 44 px : corrigé, la mesure reste.** La règle §F7
+   disait ≥44 px et le rendu ne la tenait pas : mesure **avant** correction
+   (2026-10-21, 320×568, Edge réel, 6 surfaces) — 161 cibles dont 144 sous
+   44 px ; navigation 28-34 px de haut (chips, thème, Connexion), select
+   43 px, `.bouton` ~41 px. **Corrigé le même jour** : `.bouton` et `.champ`
+   portent `min-height: 2.75rem`, chips/liens de nav, bascule de thème et
+   bouton Connexion passent en `min-h-11` + centrage, et `recette-320.mjs`
+   **assert** maintenant que tout contrôle des 6 surfaces fait ≥44 px
+   (**43/43 mesurés**, contrôle positif 10×10 détecté). Ce qui reste sous
+   44 px : les **liens de texte inline**, hors périmètre par définition. Le
+   plancher WCAG 2.2 AA (2.5.8, 24 px) était déjà respecté.
 
 Matrice matérielle (budget ~40 €, 1 fois) : 2 appareils réels d'occasion —
 Android 6 (~25 €) + iPhone SE 1 (~15 €) — parcourus manuellement à chaque
@@ -446,8 +456,8 @@ focusable + cible `main#contenu tabindex=-1` + feuille de style **servie**
 : `focus-visible` / `prefers-reduced-motion` / `sr-only` + 1 seule `h1` +
 `lang` sur 9 surfaces plugin + `aria-current="page"`), batterie **112/112**
 (98 à la tranche a11y, 101 depuis §16, 108 depuis §17, 111 depuis §18,
-112 depuis §19) — 143 lignes vertes au total comptant les 24
-sous-vérifications de la recette sans JS et les 7 mesures 320 px.
+112 depuis §19) — 150 lignes vertes au total comptant les 24
+sous-vérifications de la recette sans JS et les 14 mesures 320 px/cibles.
 L'implémentation datait de 2026-10-17 (changelog) mais **aucune batterie ne
 la mesurait** : un retrait de `:focus-visible` serait passé inaperçu.
 Limite assumée : la structure qui rend le clavier utilisable, pas la

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // recette-320.mjs — LE MODE DEGRADE L1 A 320 px (cahier 70 §F0.5 et §F7 :
-// « 320 px sans defilement horizontal »).
+// « 320 px sans defilement horizontal ») ET LES CIBLES TACTILES 44 px
+// (§F7 règle 2).
 //
-// POURQUOI CE SCRIPT EXISTE : la promesse est ecrite depuis la premiere
+// POURQUOI CE SCRIPT EXISTE : la promesse 320 px est ecrite depuis la premiere
 // version du cahier 70 et AUCUNE batterie ne la mesurait — ni test-front, ni
 // les recettes navigateur, ni test-pwa. C'est exactement le vice que §F0.5
 // interdit : une promesse non mesuree peut devenir fausse en silence.
@@ -14,8 +15,15 @@
 // definition du defilement horizontal. Un ecart de 1 px est tolere (arrondi
 // sous-pixel du rendu), au-dela c'est un debordement reel.
 //
-// CONTROLE POSITIF OBLIGATOIRE : une page fabriquee portant un bloc de 600 px
-// doit etre VUE en debordement a 320 px. Sans ce temoin, une mesure qui ne
+// DEUXIEME MESURE : tout CONTROLE (button, select, input visible, textarea)
+// doit mesurer >= 44 px dans chaque dimension (§F7 regle 2). Les liens de
+// texte inline sont hors perimetre : une cible tactile est un bouton, pas une
+// phrase. Garde-fou : si une surface ne rend AUCUN controle, la verification
+// echoue (boucle vide = preuve de rien).
+//
+// CONTROLES POSITIFS OBLIGATOIRES : une page fabriquee portant un bloc de
+// 600 px doit etre VUE en debordement a 320 px, et un bouton fabrique de
+// 10x10 px doit etre VU sous 44 px. Sans ces temoins, une mesure qui ne
 // detecte jamais rien passerait a tout va.
 //
 // Usage : node scripts/recette-320.mjs [url-front]
@@ -75,10 +83,60 @@ for (const chemin of surfaces) {
   );
 }
 
+// --- Cibles tactiles >= 44 px (cahier 70 §F7 regle 2) ---------------------
+const ciblesDe = () =>
+  page.evaluate(() => {
+    const sel = "button, select, input, textarea, [role=button]";
+    return [...document.querySelectorAll(sel)]
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        const st = getComputedStyle(el);
+        const visible =
+          r.width > 0 &&
+          r.height > 0 &&
+          st.visibility !== "hidden" &&
+          st.display !== "none" &&
+          el.type !== "hidden";
+        if (!visible) return null;
+        return {
+          tag: el.tagName.toLowerCase(),
+          w: Math.round(r.width),
+          h: Math.round(r.height),
+        };
+      })
+      .filter(Boolean);
+  });
+
+// Controle positif : un bouton fabrique de 10x10 px DOIT etre vu trop petit.
+await page.setContent(
+  `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1">` +
+    `<button style="width:10px;height:10px">x</button>`,
+);
+const temoinCibles = await ciblesDe();
+verif(
+  "controle positif : un bouton de 10x10 px est VU sous 44 px",
+  temoinCibles.some((c) => c.w < 44 || c.h < 44),
+  `controles=${temoinCibles.length}`,
+);
+
+for (const chemin of surfaces) {
+  await page.goto(BASE + chemin, { waitUntil: "load", timeout: 30000 });
+  const cibles = await ciblesDe();
+  const petits = cibles.filter((c) => c.w < 44 || c.h < 44);
+  verif(
+    `44 px ${chemin} : controles tous >= 44 px`,
+    cibles.length > 0 && petits.length === 0,
+    `${cibles.length} controles, ${petits.length} sous 44` +
+      (petits.length
+        ? ` (${petits.map((c) => `${c.tag} ${c.w}x${c.h}`).join(", ")})`
+        : ""),
+  );
+}
+
 await navigateur.close();
 console.log(
   KO === 0
-    ? `320 OK (${surfaces.length} surfaces + 1 temoin mesures)`
-    : `320 : ${KO} ECHEC(S)`,
+    ? `320/cibles OK (${surfaces.length} surfaces + 2 temoins mesures)`
+    : `320/cibles : ${KO} ECHEC(S)`,
 );
 process.exit(KO);

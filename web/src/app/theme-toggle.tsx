@@ -11,7 +11,7 @@ export function ThemeToggle({ theme }: { theme: string }) {
       <input type="hidden" name="retour" value={chemin} />
       <button
         type="submit"
-        className="rounded-full border border-[var(--bordure)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
+        className="inline-flex min-h-11 items-center rounded-full border border-[var(--bordure)] bg-[var(--surface)] px-2.5 text-sm"
         aria-label={theme === "sombre" ? "Passer en clair" : "Passer en sombre"}
         title={theme === "sombre" ? "Thème : sombre (manuel)" : theme === "clair" ? "Thème : clair (manuel)" : "Thème : auto (OS)"}
       >
