@@ -264,7 +264,10 @@ Budgets (§S3.4.6 seul fait foi) : LCP <2,5 s, JS <200 Ko/page, offline
 + taille page échoue si budget dépassé), 0 requête tierce au chargement.
 
 ✅ livré 2026-10-20 : le budget JS est mesuré à chaque `next build`
-(`budget-bundle.mjs`, 20 pages < 200 Ko, échec si dépassé) et la promesse
+(`budget-bundle.mjs` : la liste des routes est lue dans
+`app-path-routes-manifest.json`, **jamais figée à la main** — 21 entrées
+mesurées le 2026-10-21, dont 3 assets statiques, toutes < 200 Ko ; échec si
+dépassé) et la promesse
 **« 0 requête tierce au chargement »** — présente dans le cahier depuis le
 départ **sans une seule assertion** — est désormais mesurée par
 `test-front.ps1` §17 (7 checks) : chaque surface cliente (`/`, `/voyageur`,
