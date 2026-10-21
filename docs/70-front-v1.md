@@ -220,7 +220,7 @@ Règles techniques opposables (batterie dégradée, §F9) :
 2. CSS : valeurs de repli avant `var()` ; `@supports` pour grid/backdrop ;
    pas de `:has()` ni container queries dans le chemin critique ; 320 px
    sans défilement horizontal (**✅ mesuré §F9 §19**, 6 surfaces + témoin) ;
-   cibles tactiles ≥44 px.
+   cibles tactiles ≥44 px (**écart mesuré, §F9 limites n° 4**).
 3. Polices : stack système (jamais de `@font-face` bloquant) ; `Inter`
    optionnelle non référencée en L1.
 4. Images : `<picture>` AVIF → WebP → JPEG ; `width/height` obligatoires ;
@@ -381,6 +381,17 @@ Limites constatées et assumées (R1 — rien n'est simulé, rien n'est caché) 
    en 201, la passerelle **rejoue la réponse en cache sans écrire de ligne**
    (table d'idempotence) — un compteur y mentirait. Ce formulaire est par
    ailleurs `horsLigne` (outbox §F8, `test-pwa.ps1` 14/14).
+4. **Cibles tactiles 44 px : la règle n'est pas tenue telle qu'écrite.**
+   Mesure du 2026-10-21 à 320×568 (Edge réel, 6 surfaces clientes) : **161
+   cibles visibles dont 144 sous 44 px**, mais l'essentiel de l'écart porte
+   sur les **liens de texte inline** (hors périmètre d'une cible tactile) ;
+   les éléments de navigation mesurent **28 à 34 px de haut** (chips
+   d'onglets, bouton thème, lien Connexion) et le select de langue **43 px**.
+   **Plancher WCAG 2.2 AA (2.5.8, 24 px) respecté** : 31 contrôles
+   `button`/`select`, **0 sous 24 px**. Décision : la cible 44 px reste une
+   **cible de conception** (DoD design), pas une assertion de banc — un test
+   à 44 px ferait échouer un rendu pourtant conforme AA. Écrit ici pour que
+   personne ne croie la règle vérifiée.
 
 Matrice matérielle (budget ~40 €, 1 fois) : 2 appareils réels d'occasion —
 Android 6 (~25 €) + iPhone SE 1 (~15 €) — parcourus manuellement à chaque
