@@ -104,3 +104,4 @@ Thumbs.db
 !.claude/skills/
 !.claude/skills/**
 deploy/compaction.log
+deploy/pare-feu.log

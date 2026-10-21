@@ -24,7 +24,7 @@ $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $false
 $script:KO = 0
 $script:N = 0
-$ports = @(4001, 4002, 4003)
+$ports = @(443)   # porte unique : l'app et le portail partagent 443
 
 function Verif([string]$label, [bool]$ok) {
     $script:N++
@@ -50,16 +50,16 @@ $lan = $ips | Where-Object { $_ -notmatch "^(127\.|169\.254\.)" } | Select-Objec
 Verif ("adresse LAN identifiee (" + $(if ($lan) { $lan } else { "aucune" }) + " ; candidates : " + ($ips -join ", ") + ")") ([bool]($lan))
 
 # --- 2. Boucle locale --------------------------------------------------------
-$local = Code "https://lcd.test:4001/hote" @("-k", "--resolve", "lcd.test:4001:127.0.0.1")
+$local = Code "https://lcd.test/hote" @("-k", "--resolve", "lcd.test:443:127.0.0.1")
 Verif ("l'entree repond en boucle locale (mesure " + $local + ")") ([bool]($local -eq "302"))
 
 # --- 3. Liaisons Docker ------------------------------------------------------
 $lies = (Natif { & docker port "lcd-deploy-caddy-1" 2>&1 } | Out-String)
 $surTout = @($ports | Where-Object { $lies -match ("0\.0\.0\.0:" + $_) }).Count
 $surLocal = @($ports | Where-Object { $lies -match ("127\.0\.0\.1:" + $_) }).Count
-Verif ("Docker publie les trois ports sur 0.0.0.0 (" + $surTout + "/3, dont " + $surLocal + " sur 127.0.0.1)") (
-    [bool]($surTout -eq 3 -and $surLocal -eq 0))
-if ($surTout -ne 3 -or $surLocal -ne 0) { Write-Output ("       liaisons : " + (($lies -split "`r?`n" | Where-Object { $_ }) -join " ; ")) }
+Verif ("Docker publie le(s) port(s) sur 0.0.0.0 (" + $surTout + "/" + $ports.Count + ", dont " + $surLocal + " sur 127.0.0.1)") (
+    [bool]($surTout -eq $ports.Count -and $surLocal -eq 0))
+if ($surTout -ne $ports.Count -or $surLocal -ne 0) { Write-Output ("       liaisons : " + (($lies -split "`r?`n" | Where-Object { $_ }) -join " ; ")) }
 
 # --- 4. Classement de l'acces LAN -------------------------------------------
 $codes = @{}
@@ -68,12 +68,20 @@ $repondSurLan = @($ports | Where-Object { $codes[$_] -ne "000" }).Count
 $profils = (Natif { & netsh advfirewall show allprofiles state 2>&1 } | Out-String)
 $pareFeuActif = [bool]($profils -match "(?i)actif|on")
 $regles = (Natif { & netsh advfirewall firewall show rule name=all dir=in 2>&1 } | Out-String)
-$reglePorts = [bool](@($ports | Where-Object { $regles -match ("\b" + $_ + "\b") }).Count -gt 0)
+# Une regle ne compte que si elle AUTORISE en entrant sur le port : chercher le
+# numero dans tout le texte trouvait des regles sortantes ou d'autres
+# programmes, et classait l'acces « CASSE » alors qu'aucune regle utile
+# n'existait (mesure du 2026-10-21). On decoupe donc en blocs, un par regle.
+$blocs = @(($regles -split "(?m)^\s*(?:Nom de la r.le|Rule Name)\s*:") | Select-Object -Skip 1)
+$reglePorts = [bool](@($blocs | Where-Object {
+    ($_ -match ("(?m)^\s*(?:Ports locaux|LocalPort)\s*:.*\b" + $ports[0] + "\b")) -and
+    ($_ -match "(?i)\b(autoriser|allow)\b")
+}).Count -gt 0)
 
-$etat = if ($repondSurLan -eq 3) { "OUVERT" }
+$etat = if ($repondSurLan -eq $ports.Count) { "OUVERT" }
         elseif ($repondSurLan -eq 0 -and $pareFeuActif -and -not $reglePorts) { "FERME-PAR-PARE-FEU" }
         elseif ($repondSurLan -eq 0) { "CASSE" } else { "PARTIEL" }
-Verif ("acces LAN classe : " + $etat + " (" + $repondSurLan + "/3 ports repondent sur " + $lan + ")") (
+Verif ("acces LAN classe : " + $etat + " (" + $repondSurLan + "/" + $ports.Count + " port(s) repondent sur " + $lan + ")") (
     [bool]($etat -eq "OUVERT" -or $etat -eq "FERME-PAR-PARE-FEU"))
 
 # --- 5. Coherence regle / acces ---------------------------------------------
