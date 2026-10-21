@@ -88,6 +88,10 @@ web/out/
 web/next-env.d.ts
 web/tsconfig.tsbuildinfo
 
+# CA racine Caddy exportee pour un poste client (artefact local, jamais versionne :
+# reproduite par la commande imprimee par deploy/lan-ouvrir.ps1)
+deploy/*.crt
+
 # OS / éditeurs
 .DS_Store
 Thumbs.db
