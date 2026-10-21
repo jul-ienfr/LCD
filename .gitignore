@@ -103,3 +103,4 @@ Thumbs.db
 # Skills replica (radar concurrentiel §S10 — versionnés, MIT, outillage lab)
 !.claude/skills/
 !.claude/skills/**
+deploy/compaction.log

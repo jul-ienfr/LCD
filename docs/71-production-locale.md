@@ -488,12 +488,32 @@ Runbook associé : **R-06** (restauration). Un dépôt déclaré abîmé interdi
 s'appuyer sur ces sauvegardes : la sortie le dit et le code de sortie est non
 nul.
 
+### 8 novodecies — Compaction du disque Docker : l'espace est recuperable, le geste est humain
 
+**Constat mesuré (2026-10-21)** : `docker_data.vhdx` occupe **49,95 Go** pour ~9 Go de données réelles ;
+`C:` est tombé à **30,8 Go libres (3,7 %)**. Un disque virtuel ne rétrécit jamais tout seul : les
+images supprimées ne rendent **rien** à Windows (`docker builder prune` a libéré 6,28 Go *à
+l'intérieur* du disque, et 0 octet pour l'hôte).
 
+**Ce qui est livré** — deux fichiers, un double-clic :
 
+| Fichier | Rôle |
+|---|---|
+| `deploy/compacter-vhdx.cmd` | demande l'**élévation** (Windows ne l'accorde qu'au lancement d'un programme) puis appelle le script |
+| `deploy/compacter-vhdx.ps1` | arrête les piles → Docker Desktop → WSL → attend que le fichier soit **libéré** → `Optimize-VHD -Mode Full` (repli `diskpart compact vdisk`) → relance Docker → vérifie que les données sont revenues |
 
+**Garde-fous** : refuse de compacter si le disque est encore ouvert (sinon échec ou corruption) ;
+journalise chaque étape dans `deploy/compaction.log` ; mesure l'espace **avant/après** et n'annonce
+un succès que si Docker répond **et** que le gain est positif. Mode `-Simuler` vérifié : il n'arrête
+rien et affiche le plan.
 
+**Pourquoi l'agent ne le fait pas lui-même** : la compaction exige les droits administrateur, que
+cette session n'a pas (`administrateur : False`). Le geste est donc humain, une fois, et l'agent
+mesure ensuite la taille du fichier pour prouver le gain.
 
-
-
-
+**Vérification après le geste** (commande de l'agent) :
+```powershell
+(Get-Item "$env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx").Length / 1GB
+(Get-PSDrive C).Free / 1GB
+```
+Attendu : le disque passe de ~49,95 Go à ~10-12 Go, et `C:` regagne ~35-40 Go.
