@@ -8,6 +8,7 @@
 //   passerelle, à chaque écriture.
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { loginAction, logoutAction } from "../actions";
 import { lireIdentite, portailIdp } from "@/lib/identite";
@@ -35,6 +36,17 @@ export default async function Login({
 
   // --- Mode IdP (F3) : anneau vers le portail, jamais de faux picker. -----
   if (id.modeIdp) {
+    // ARRIVEE PAR ROLE (2026-10-19) : apres authentification, le portail
+    // renvoie ici (rd=/login). Sans cette redirection, tout le monde restait
+    // sur une page « vous etes connecte » - quatre roles sur six avaient en
+    // plus la meme cible (/hote). Chacun repart donc chez lui, et la table
+    // PROFILS reste la seule source de verite (pas de if par role ici).
+    // Jamais de redirection juste apres une deconnexion (l'utilisateur doit
+    // voir la confirmation), et jamais vers /login (boucle).
+    if (id.quiReel && sp.erreur !== "deconnexion") {
+      const chezSoi = PROFILS[id.quiReel]?.cible;
+      if (chezSoi && !chezSoi.startsWith("/login")) redirect(chezSoi);
+    }
     const moi = id.qui ? PROFILS[id.qui] : undefined;
     return (
       <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">

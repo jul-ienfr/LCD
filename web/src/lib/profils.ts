@@ -34,7 +34,8 @@ export const PROFILS: Record<string, Profil> = {
     titre: "Opérateur — terrain",
     court: "S. opérateur",
     icone: "🧰",
-    cible: "/hote",
+    // Terrain : son planning, pas le tableau de bord de l'hotel.
+    cible: "/planning",
   },
   personne_04: {
     nom: "Ruth",
@@ -42,7 +43,8 @@ export const PROFILS: Record<string, Profil> = {
     titre: "Comptable — lecture/validate",
     court: "R. comptable",
     icone: "📊",
-    cible: "/hote",
+    // Comptabilite : sa page, pas le tableau de bord de l'hotel.
+    cible: "/compta",
   },
   personne_05: {
     nom: "Marc",
