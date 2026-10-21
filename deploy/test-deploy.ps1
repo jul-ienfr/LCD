@@ -46,8 +46,7 @@ function Get-ViaCurl($hote, $port, $chemin) {
 
 Write-Host "== Anonyme : fail-closed (302 portail) + seuls bypasss reels =="
 $R1 = Get-ViaCurl "lcd.test" 4001 "/"
-Check "anonyme / -> 302 portail (jamais de rendu protege)" (
-  $R1.code -eq 302 -and "$($R1.headers)" -match "lcd.test:4002") $R1.code
+Check "anonyme / -> 200 vitrine publique (racine ouverte, application protegee)" ($R1.code -eq 200) $R1.code
 $R3 = Get-ViaCurl "lcd.test" 4001 "/api/v1/statut"
 Check "anonyme /api/v1/statut -> 302 (ecriture moteur fermee)" (
   $R3.code -eq 302) $R3.code
@@ -68,6 +67,17 @@ $FUITE = @('"pin"', '"secret"', '"token"', '"password"', '"api_key"', 'LCD_HA_')
   Where-Object { $TOUT -match [regex]::Escape($_) }
 Check "0 fuite secret sur reponses" ($FUITE.Count -eq 0) ($FUITE -join " ")
 
+Write-Host "== Vitrine publique vs application fermée =="
+# Defaut produit corrige le 2026-10-19 : un visiteur tombait sur un mur de login.
+# La propriete doit tenir EN CONTINU, pas seulement le jour de la correction :
+#   - la racine est PUBLIQUE (200, la vitrine) ;
+#   - une route applicative reste FERMEE (302 vers le portail).
+# Une regression ici referme la vitrine ou ouvre l'application : les deux sont graves.
+$hote = "lcd.test"
+$pub = (& curl.exe -s -o NUL -w "%{http_code}" -m 12 -k --resolve "${hote}:443:127.0.0.1" "https://${hote}/" 2>$null)
+$pro = (& curl.exe -s -o NUL -w "%{http_code}" -m 12 -k --resolve "${hote}:443:127.0.0.1" "https://${hote}/hote" 2>$null)
+Check "racine publique (vitrine, 200)" ($pub -eq "200") "HTTP $pub"
+Check "route applicative fermee (302)" ($pro -eq "302") "HTTP $pro"
 Write-Host "== Chaîne authentifiée (déléguée à test-idp.ps1) =="
 if ($KO -eq 0) {
   powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test-idp.ps1")
