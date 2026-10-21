@@ -88,12 +88,32 @@ et pour les décisions du moteur : `decision:403 qui=… hors perimetre`.
 **Ce que cela garantit** : un propriétaire qui fabrique l'URL d'un autre logement reçoit **403**.
 Le cloisonnement n'est donc pas visuel, il est serveur.
 
-**Ce qui n'est pas encore prouvé** : qu'un test automatique vérifie les deux côtés
-(le propriétaire ne voit que `log1, log2` **et** une requête sur `log3` est refusée). C'est la
-prochaine batterie à écrire ; elle doit utiliser deux sessions réelles, pas des identités simulées.
+### MESURE (2026-10-19) — le cloisonnement des **lectures** n'est PAS tenu
+Batterie dédiée : `deploy/test-perimetres.ps1` (mesure par le réseau interne, la passerelle n'étant pas publiée).
 
----
+```
+[OK] personne_05 : ses propres logements sont servis (log1, log2)
+[KO] personne_05 : aucun logement hors perimetre -- fuite : log3, log66496, xq6649701, xq6649702
+[OK] personne_03 : ses propres logements sont servis (log1)
+[KO] personne_03 : aucun logement hors perimetre -- fuite : log2, log3, log66496, xq6649701, xq6649702
+[KO] portail-proprio sur log3 (hors perimetre) refuse -- HTTP 200, le parametre est ignore
+[OK] ecriture hors perimetre refusee (403 attendu)
+RESULTAT : 3 ECHEC(S) -- cloisonnement des LECTURES non tenu
+```
 
+**Lecture du résultat, sans détour** : l'autorisation en **écriture** est bien appliquée (403),
+mais les **lectures** servent le parc entier — `/etat-parc`, `/parc/logements` — et
+`/portail-proprio` accepte n'importe quel `logement` sans vérifier le périmètre. Un propriétaire
+voit donc `log3`, qui n'est pas à lui, et un opérateur voit tout le parc. **L'exigence « chacun ses
+biens » n'est pas satisfaite aujourd'hui**, elle est satisfaite pour les écritures seulement.
+
+**Où corriger** (passerelle, pas le front) : les trois gestionnaires de lecture doivent filtrer par
+`personne["logements"]` **avant** de sérialiser :
+- `/etat-parc` — retirer les `boxes` et `logements` hors périmètre ;
+- `/parc/logements` — ne renvoyer que les logements du périmètre ;
+- `/portail-proprio` — refuser en **403** un `logement` hors périmètre au lieu de l'ignorer.
+
+Tant que ce n'est pas fait, la batterie reste **rouge** : c'est voulu, elle décrit l'état réel.
 ## 4. Ce qui reste, dans l'ordre
 
 1. **Débloquer la redirection par rôle** (§2) — une mesure d'en-tête sur `/login`, puis correction.
