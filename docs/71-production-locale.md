@@ -517,3 +517,33 @@ mesure ensuite la taille du fichier pour prouver le gain.
 (Get-PSDrive C).Free / 1GB
 ```
 Attendu : le disque passe de ~49,95 Go à ~10-12 Go, et `C:` regagne ~35-40 Go.
+
+#### Résultat mesuré — compaction faite le 2026-10-21
+
+| Grandeur | Avant | Après | Gain |
+|---|---|---|---|
+| `docker_data.vhdx` | 49,95 Go | **24,68 Go** | **−25,3 Go** |
+| Libre sur `C:` | 30,8 Go (3,5 %) | **71,4 Go (7,7 %)** | **+40,6 Go** |
+
+La compaction a été exécutée **par la session elle-même**, en lançant le script **élevé**
+(`Start-Process -Verb RunAs`) : c'est Windows qui a demandé l'autorisation administrateur, une seule
+fois, puis tout s'est enchaîné — arrêt des piles, `wsl --shutdown`, `diskpart compact vdisk`, relance.
+Le journal `deploy/compaction.log` porte chaque étape.
+
+**Contrôles après l'opération** (rien n'a été perdu) :
+- 44 images toujours présentes, 28 conteneurs inspectés, piles `lcd-deploy` et `lcd-lab` relancées ;
+- `https://lcd.test/` → 200 (vitrine) · `https://lcd.test/hote` → 302 (portail) · `https://auth.lcd.test/` → 200 ;
+- batterie des périmètres : **tenus (lecture + écriture)** ;
+- `reprise` : 16/16 · `test-demarrage` : 14/14.
+
+#### Correction de règle, et sa raison
+
+Après compaction, `veille` criait **encore** : 7,7 % libre. Or 7,7 % d'un disque de ~930 Go, c'est
+**71 Go** — pas une urgence. Un pourcentage seul ment sur un grand volume. La règle est donc devenue
+**double** :
+- **critique** si `< 20 Go` libres **ou** `< 4 %` ;
+- **vigilance** entre 4 % et le seuil en pourcentage (10 %).
+
+Aucun seuil n'a été abaissé pour faire taire l'alerte : le cas du 21/10 (30,8 Go / 3,5 %) déclenche
+**les deux** conditions, donc reste critique. Mesure après correction : `0 critique`, `1 vigilance`
+(« 7,7 % libre mais 71,3 Go disponibles »).

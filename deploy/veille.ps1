@@ -146,12 +146,32 @@ function PasserUneFois {
     $controles["sites"] = "$($boxes.Count) box(s)"
 
     # 8. Disque (la ou vivent les volumes docker)
+    #
+    # REGLE DOUBLE, et sa raison : un pourcentage seul ment sur un grand volume.
+    # Mesure du 2026-10-21 : disque de ~930 Go. AVANT compaction 30,8 Go libres
+    # = 3,5 % (danger reel, alerte justifiee) ; APRES compaction 71,4 Go libres
+    # = 7,7 %, donc encore « critique » a 10 % alors que 71 Go ne sont pas une
+    # urgence. On alerte donc :
+    #   - CRITIQUE si moins de 20 Go libres (plancher absolu : de quoi ecrire,
+    #     sauvegarder et compacter) ou moins de 4 % (vraie saturation) ;
+    #   - VIGILANCE entre 4 % et le seuil en pourcentage (-SeuilDisque, 10 %).
+    # Le cas du 2026-10-21 reste attrape : 30,8 Go / 3,5 % -> critique les deux
+    # fois. Aucun seuil n'est abaisse pour faire taire une alerte : les deux
+    # conditions sont cumulatives.
     try {
         $d = Get-PSDrive -Name ((Get-Location).Path.Substring(0, 1)) -ErrorAction Stop
         $libre = [math]::Round(100 * $d.Free / ($d.Free + $d.Used), 1)
+        $libreGo = [math]::Round($d.Free / 1GB, 1)
         $controles["disque_libre_pct"] = $libre
-        if ($libre -lt $SeuilDisque) {
-            $alertes += Alerte "disque" "critique" "espace disque faible" "$libre% libre (seuil ${SeuilDisque}%)"
+        $controles["disque_libre_go"] = $libreGo
+        $plancherGo = 20
+        $pctCritique = 4
+        if ($libreGo -lt $plancherGo -or $libre -lt $pctCritique) {
+            $alertes += Alerte "disque" "critique" "espace disque faible" `
+                "$libre% libre, $libreGo Go (plancher ${plancherGo} Go / ${pctCritique}%)"
+        } elseif ($libre -lt $SeuilDisque) {
+            $alertes += Alerte "disque" "vigilance" "espace disque a surveiller" `
+                "$libre% libre mais $libreGo Go disponibles (seuil ${SeuilDisque}%)"
         }
     } catch { $controles["disque_libre_pct"] = "?" }
 
