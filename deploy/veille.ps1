@@ -8,7 +8,7 @@
 #   1. passerelle : /health et /ready (ok + erreurs vides),
 #   2. front : http://127.0.0.1:3100/,
 #   3. entree TLS : https://$HOTE:4001/api/health (Caddy -> passerelle),
-#   4. portail IdP : https://$HOTE:4002/api/health,
+#   4. portail IdP : https://auth.$HOTE/api/health,
 #   5. conteneurs : etat (running/restarting/unhealthy), redemarrages repetes,
 #   6. parc : chaque box doit avoir ete vue il y a moins de -SeuilSite s
 #      (site muet = alerte), logements en alerte remontes,
@@ -89,7 +89,7 @@ function PasserUneFois {
     $r = Sonder "http-entree" "https://${Hote}:4001/api/health" @("--resolve", "${Hote}:4001:127.0.0.1", "-k")
     $controles["entree_tls"] = if ($r) { "KO" } else { "OK" }
     if ($r) { $alertes += $r }
-    $r = Sonder "http-portail" "https://${Hote}:4002/api/health" @("--resolve", "${Hote}:4002:127.0.0.1", "-k")
+    $r = Sonder "http-portail" "https://auth.${Hote}/api/health" @("--resolve", "auth.${Hote}:443:127.0.0.1", "-k")
     $controles["portail"] = if ($r) { "KO" } else { "OK" }
     if ($r) { $alertes += $r }
 

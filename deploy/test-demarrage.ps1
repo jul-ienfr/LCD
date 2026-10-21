@@ -65,7 +65,7 @@ try {
     Verif "web healthy ($sWeb)" ($sWeb -eq "healthy")
     Verif "authelia healthy ($sIdp)" ($sIdp -eq "healthy")
     Verif "front 200" ((Code "http://127.0.0.1:3100/") -eq "200")
-    Verif "portail IdP 200" ((Code "https://${Hote}:4002/api/health" @("--resolve", "${Hote}:4002:127.0.0.1", "-k")) -eq "200")
+    Verif "portail IdP 200" ((Code "https://auth.${Hote}/api/health" @("--resolve", "auth.${Hote}:443:127.0.0.1", "-k")) -eq "200")
     Verif "entree TLS 200" ((Code "https://${Hote}:4001/api/health" @("--resolve", "${Hote}:4001:127.0.0.1", "-k")) -eq "200")
 
     # --- 5. Veille : aucune alerte critique (disque neutralise par seuil) -
@@ -89,7 +89,7 @@ try {
     $codeEntree = $parties[0]
     $cible = if ($parties.Count -gt 1) { $parties[1] } else { "" }
     Verif "entree TLS : racine publique (200) MAIS application /hote fermee -> portail IdP ($codeEntree -> $cible)" (
-        $racine -eq "200" -and ($codeEntree -eq "302" -or $codeEntree -eq "303") -and $cible -match ":4002")
+        $racine -eq "200" -and ($codeEntree -eq "302" -or $codeEntree -eq "303") -and $cible -match "auth\.")
     $corpsEntree = Corps "https://${Hote}:4001/api/health" @("--resolve", "${Hote}:4001:127.0.0.1", "-k")
     Verif "entree TLS : la passerelle repond a travers Caddy (/api/health)" ($corpsEntree -match '"ok"')
 

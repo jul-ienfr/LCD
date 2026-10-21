@@ -93,7 +93,7 @@ try {
     # --- 3. Endpoints servis ---------------------------------------------
     Etape "endpoints"
     $controles = [ordered]@{
-        "portail IdP (4002)"   = @("--resolve", "${Hote}:4002:127.0.0.1", "-k", "https://${Hote}:4002/api/health")
+        "portail IdP (auth)" = @("--resolve", "auth.${Hote}:443:127.0.0.1", "-k", "https://auth.${Hote}/api/health")
         "front (3100)"         = @("http://127.0.0.1:3100/")
         "entree TLS (4001)"    = @("--resolve", "${Hote}:4001:127.0.0.1", "-k", "https://${Hote}:4001/api/health")
     }
