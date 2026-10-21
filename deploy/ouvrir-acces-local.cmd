@@ -28,7 +28,7 @@ if not errorlevel 1 (
     echo   Le nom lcd.test est deja connu de cet ordinateur. Rien a faire.
 ) else (
     echo.>> "%HOSTS%"
-    echo 127.0.0.1    lcd.test>> "%HOSTS%"
+    echo 127.0.0.1    lcd.test auth.lcd.test>> "%HOSTS%"
     echo   Nom lcd.test ajoute.
 )
 

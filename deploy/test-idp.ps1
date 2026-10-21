@@ -16,9 +16,9 @@ param([switch]$ResetTotp)
 $ErrorActionPreference = "Continue"
 $QUI = "personne_01"
 $APP = "https://lcd.test:4001"
-$POTAIL = "https://lcd.test:4002"
+$POTAIL = "https://auth.lcd.test"
 $RA = @("--resolve", "lcd.test:4001:127.0.0.1", "-k")
-$RP = @("--resolve", "lcd.test:4002:127.0.0.1", "-k")
+$RP = @("--resolve", "auth.lcd.test:443:127.0.0.1", "-k")
 $JAR = Join-Path $env:TEMP "lcd-recette-jar.txt"
 $FSECR = Join-Path $PSScriptRoot "authelia\totp-secrets.json"
 $script:KO = 0
@@ -112,13 +112,13 @@ Write-Output "== Recette IdP (F3) : $($APP) =="
 # -- 1. Anonyme : fail-closed (302 portail, rd conserve) + bypass publics ----
 $h = Head "$APP/hote" $null $RA
 Verif "anonyme /hote -> 302 portail (fail-closed)" (
-    $h.code -eq "302" -and $h.t -match "lcd.test:4002")
+    $h.code -eq "302" -and $h.t -match "auth.lcd.test")
 Verif "anonyme /hote : rd conserve (hote)" ($h.t -match "rd=.*hote")
 $s = GetJson $APP "/api/health" $null $RA
 Verif "bypass /api/health -> 200 ok" ($s -match '"ok":\s*true')
 $s = GetJson $APP "/voyageur" $null $RA
 Verif "bypass /voyageur -> 200 (lien signe, sans session)" (
-    $s.Length -gt 500 -and $s -notmatch "lcd.test:4002")
+    $s.Length -gt 500 -and $s -notmatch "auth.lcd.test")
 
 # -- 2. 1FA reel (mot de passe deploy/.env) -> niveau 1 ----------------------
 Remove-Item $JAR -ErrorAction SilentlyContinue
@@ -135,7 +135,7 @@ Verif "1FA : authentication_level = 1" ($lvl -eq 1)
 # -- 3. Niveau 1 insuffisant : redirection 2FA sur page protegee ------------
 $h = Head "$APP/hote" $JAR $RA
 Verif "/hote avec niveau 1 -> 302 (redirection 2FA)" (
-    $h.code -eq "302" -and $h.t -match "lcd.test:4002")
+    $h.code -eq "302" -and $h.t -match "auth.lcd.test")
 
 # -- 4. TOTP : secret = app d'authentif. ; sinon enrolement reel ------------
 $secret = ""

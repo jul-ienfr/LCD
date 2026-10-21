@@ -51,7 +51,7 @@ services:
       # Portail visible par le navigateur (même nom que Caddy, même source :
       # LCD_HOTE). En LAN/Internet, le lien portail suit donc l'entrée sans
       # edition de code (un seul cookie par deploiement).
-      LCD_IDP_URL: https://${LCD_HOTE:-lcd.test}:${LCD_PORT_IDP:-4002}
+      LCD_IDP_URL: https://auth.${LCD_HOTE:-lcd.test}
       # Endpoint INTERNE du logout serveur (réseau docker front) — le
       # navigateur ne parle jamais directement à l'IdP.
       LCD_IDP_INTERNE: http://authelia:9091

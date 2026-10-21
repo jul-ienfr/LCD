@@ -60,7 +60,7 @@
 }
 
 # --- Portail IdP (login, TOTP, logout) : le SEUL acces sans session --------
-https://{$LCD_HOTE:lcd.test}:4002 {
+https://auth.{$LCD_HOTE:lcd.test} {
 	# TLS : {} vaut « internal » en local (CA interne, zero ACME) et
 	# « admin@domaine » en LAN/Internet (ACME Let's Encrypt) : le MEME fichier sert
 	# aux trois etages, aucun nom ni mode en dur (doctrine docs/71, R3).

@@ -86,7 +86,7 @@ session:
   inactivity: 5m
   cookies:
     - domain: lcd.test
-      authelia_url: https://lcd.test:4002
+      authelia_url: https://auth.lcd.test
 
 # Stockage local SQLite (dossier monte, gitignore). encryption_key ABSENT
 # d'ici : fourni par AUTHELIA_STORAGE_ENCRYPTION_KEY (env, exigee par le
