@@ -401,6 +401,44 @@ Android 6 (~25 €) + iPhone SE 1 (~15 €) — parcourus manuellement à chaque
 phase DoD (démo + écriture + offline), + simulateurs Chrome. Aucun
 navigateur payant, aucun device cloud.
 
+### Protocole des DoD manuelles (matériel réel — non remplaçable par le banc)
+
+Le banc prouve la mécanique (SW, outbox, focus structurel) ; il ne prouve pas
+**l'appareil**. Trois épreuves, une fois par version majeure, sur les 2
+appareils de la matrice :
+
+**A. Offline 2 h (F4/§F8).**
+1. Servir le front (`deploy/serveur-pwa.ps1`, `:3101`), ouvrir `/voyageur`,
+   laisser le SW s'installer (2e visite : activation + precache).
+2. Activer le mode avion, laisser l'appareil **2 h** (écran éteint accepté).
+3. Rouvrir `/voyageur` hors ligne : la page s'affiche (< 1 s), le guide est
+   servi par le SW, les actions hors ligne s'empilent (outbox visible).
+4. Revenir en ligne : l'outbox se vide ; vérifier la ligne d'écriture au
+   `journal` de la passerelle (ref horodatée).
+Critères : page servie sans réseau, 0 erreur console, outbox vidée au
+retour. Preuves : captures avant/après + heure + ref au journal.
+
+**B. Traversée Tab (clavier physique).**
+Sur `/hote` puis `/voyageur`, depuis la barre d'URL :
+1. 1er `Tab` → skip-link « Aller au contenu » **visible** (pas seulement
+   présent) ; `Entrée` → focus sur `main#contenu`.
+2. `Tab`/`Shift+Tab` parcourent onglets et actions ; le focus est
+   **toujours visible** ; l'onglet courant est annoncé (`aria-current`).
+3. Aucun piège : on peut toujours sortir d'un groupe au clavier.
+Critères : 1er focusable = skip-link, cible = `main`, ordre = DOM, anneau
+visible, 0 piège.
+
+**C. Cibles tactiles (design, §F7 règle 2).**
+Au doigt, sur les 3 écrans principaux : viser sans erreur les onglets, le
+bouton thème et « Connexion ». Si doute : mesurer (cf. §F9 limite n° 4) et
+remonter au design — la cible 44 px **n'est pas tenue** aujourd'hui sur les
+chips (28-34 px).
+
+**Où écrire le résultat** : une ligne datée dans
+`docs/registres/etat-reel.md` (épreuve, appareil, verdict, preuves) + ligne
+au changelog. Un verdict KO ouvre un item de
+`checklist-taches-restantes.md` — jamais un « à suivre » oral.
+
 A11y : WCAG 2.2 AA (§T5) — focus visible, `aria-current`, contrastes tokens,
 `prefers-reduced-motion`, skip-link, tests clavier sur les 8 plugins —
 ✅ livré : `test-front.ps1` §15, 27 checks (skip-link présent ET premier
