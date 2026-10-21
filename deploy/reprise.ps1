@@ -112,7 +112,7 @@ if (-not $enLigne) { Write-Output (($up -split "`r?`n" | Where-Object { $_ -matc
 # --- 3. Requetes de service (le trajet complet) ------------------------------
 $entree = Code "https://lcd.test:${PortHttps}/hote" @("-k", "--resolve", "lcd.test:${PortHttps}:127.0.0.1")
 Verif ("l'entree protegee redirige vers l'IdP (mesure " + $entree + ")") ([bool]($entree -eq "302"))
-$portail = Code "https://lcd.test:${PortIdp}/" @("-k", "--resolve", "lcd.test:${PortIdp}:127.0.0.1")
+$portail = Code "https://auth.lcd.test/" @("-k", "--resolve", "auth.lcd.test:443:127.0.0.1")
 Verif ("le portail IdP repond (mesure " + $portail + ")") ([bool]($portail -eq "200"))
 $front = Code ("http://127.0.0.1:" + $PortWeb + "/")
 Verif ("le front repond en direct (mesure " + $front + ")") ([bool]($front -eq "200"))

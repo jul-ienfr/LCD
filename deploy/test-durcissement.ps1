@@ -28,9 +28,9 @@ $script:N = 0
 $ici = Split-Path -Parent (Resolve-Path $MyInvocation.MyCommand.Path)
 $Hote = "lcd.test"
 $APEX = "https://${Hote}:4001"
-$POTAIL = "https://${Hote}:4002"
+$POTAIL = "https://auth.${Hote}"
 $RES = @("--resolve", "${Hote}:4001:127.0.0.1", "-k")
-$RES2 = @("--resolve", "${Hote}:4002:127.0.0.1", "-k")
+$RES2 = @("--resolve", "auth.${Hote}:443:127.0.0.1", "-k")
 $RES3 = @("--resolve", "${Hote}:4003:127.0.0.1")
 $COBAYE = "personne_05"   # compte reel utilise pour le test de ban, puis leve
 
@@ -136,7 +136,7 @@ try {
     # --- 6. Route interne fermee sans session -----------------------------
     $m = (Natif { curl.exe @RES -s -o NUL -w "%{http_code}|%{redirect_url}" -m 8 "$APEX/metrics" 2>$null } | Out-String).Trim() -split "\|"
     Verif "route /metrics fermee sans session ($($m[0]))" (
-        ($m[0] -in @("302", "401")) -and ($m[1] -match ":4002"))
+        ($m[0] -in @("302", "401")) -and ($m[1] -match "auth\."))
 
     # --- 7. Regulation REELLEMENT appliquee ------------------------------
     #  NB mesuree le 2026-10-19 : Authelia repond 401 meme quand il bannit (il

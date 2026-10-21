@@ -40,6 +40,7 @@ $toutes = @(
     [ordered]@{ nom = "test-sites"; lent = $false }
     [ordered]@{ nom = "test-secrets"; lent = $false }
     [ordered]@{ nom = "test-acces"; lent = $false }
+[ordered]@{ nom = "test-perimetres"; lent = $false }
     [ordered]@{ nom = "test-versions"; lent = $false }
     [ordered]@{ nom = "test-export"; lent = $true }
     [ordered]@{ nom = "test-donnees"; lent = $false }

@@ -90,18 +90,18 @@ try {
     $txtCompose = Get-Content $compose -Raw -Encoding utf8
     Verif "compose : LCD_HOTE fourni a Caddy" ($txtCompose -match '(?m)^\s*LCD_HOTE:\s*\$\{LCD_HOTE(:-lcd\.test)?\}')
     Verif "compose : lien portail derive de LCD_HOTE" (
-        $txtCompose -match 'LCD_IDP_URL:\s*https://\$\{LCD_HOTE')
+        $txtCompose -match 'LCD_IDP_URL:\s*https://auth\.\$\{LCD_HOTE')
 
     # --- 5. Entree par defaut (celle qui tourne) --------------------------
     Verif "defaut : app /api/health 200" (200 -eq (& curl.exe --resolve "lcd.test:4001:127.0.0.1" -k -s -o NUL -w "%{http_code}" https://lcd.test:4001/api/health))
-    Verif "defaut : portail 200" (200 -eq (& curl.exe --resolve "lcd.test:4002:127.0.0.1" -k -s -o NUL -w "%{http_code}" https://lcd.test:4002/api/health))
+    Verif "defaut : portail 200" (200 -eq (& curl.exe --resolve "auth.lcd.test:443:127.0.0.1" -k -s -o NUL -w "%{http_code}" https://auth.lcd.test/api/health))
     #  Racine PUBLIQUE depuis 2026-10-21 (vitrine, cf. test-deploy) : les deux
     #  contrats se verifient SEPAREMENT -- vitrine 200 sur /, application
     #  FERMEE sur /hote (302 vers le portail).
     $racDefaut = & curl.exe --resolve "lcd.test:4001:127.0.0.1" -k -s -o NUL -w "%{http_code}" https://lcd.test:4001/
     $locDefaut = & curl.exe --resolve "lcd.test:4001:127.0.0.1" -k -s -o NUL -w "%{http_code} %{redirect_url}" https://lcd.test:4001/hote
     Verif "defaut : racine publique (200 vitrine) ET application /hote fermee (302 portail lcd.test:4002)" (
-        $racDefaut -eq "200" -and $locDefaut -match "^302" -and $locDefaut -match "lcd\.test:4002")
+        $racDefaut -eq "200" -and $locDefaut -match "^302" -and $locDefaut -match "auth\.lcd\.test")
 
     # --- 6. MEME pile servie sous lcd.local (paire jetable) ---------------
     $caddyLan = Join-Path $temp "Caddyfile"
@@ -113,14 +113,14 @@ try {
         -v "${temp}:/config" $AUTHELIA --config /config/configuration.yml *> $null
 
     & docker run --rm -d --name lcd-lan-caddy --network lcd-deploy_front `
-        -p "${PORT_APP}:443" -p "${PORT_IDP}:4002" `
+        -p "${PORT_APP}:443" `
         -e "LCD_HOTE=$HOTE_LAN" -e "LCD_PORT_HTTPS=$PORT_APP" `
         -v "${caddyLan}:/etc/caddy/Caddyfile:ro" caddy:2-alpine *> $null
     & docker network connect lcd-lab_default lcd-lan-caddy 2>$null | Out-Null
 
     # Le portail jetable n'existe QUE derriere l'entree jetable (Authelia n'est
     # pas publiee directement) : on le sonde via l'entree, apres demarrage.
-    $idpOk = Attendre "https://${HOTE_LAN}:$PORT_IDP/api/health" "${HOTE_LAN}:${PORT_IDP}:127.0.0.1"
+    $idpOk = Attendre "https://auth.${HOTE_LAN}:$PORT_APP/api/health" "auth.${HOTE_LAN}:${PORT_APP}:127.0.0.1"
     Verif "LAN : IdP rendu pour $HOTE_LAN repond via l'entree (health 200)" $idpOk
 
     $appOk = Attendre "https://${HOTE_LAN}:$PORT_APP/api/health" "${HOTE_LAN}:${PORT_APP}:127.0.0.1"
@@ -129,8 +129,8 @@ try {
     #  Meme contrat que par defaut : racine publique, application fermee.
     $racLan = & curl.exe --resolve "${HOTE_LAN}:${PORT_APP}:127.0.0.1" -k -s -o NUL -w "%{http_code}" "https://${HOTE_LAN}:$PORT_APP/"
     $locLan = & curl.exe --resolve "${HOTE_LAN}:${PORT_APP}:127.0.0.1" -k -s -o NUL -w "%{http_code} %{redirect_url}" "https://${HOTE_LAN}:$PORT_APP/hote"
-    Verif "LAN : racine publique (200) ET application /hote fermee -> portail de CE nom (${HOTE_LAN}:${PORT_IDP})" (
-        $racLan -eq "200" -and $locLan -match "^302" -and $locLan -match [regex]::Escape("${HOTE_LAN}:${PORT_IDP}"))
+    Verif "LAN : racine publique (200) ET application /hote fermee -> portail de CE nom (auth.${HOTE_LAN})" (
+        $racLan -eq "200" -and $locLan -match "^302" -and $locLan -match [regex]::Escape("auth.${HOTE_LAN}"))
     if (-not ($locLan -match "^302")) { Write-Output "      recu : $locLan" }
 
     # --- 7. Joignabilite depuis l'IP LAN (etape hote) ---------------------
