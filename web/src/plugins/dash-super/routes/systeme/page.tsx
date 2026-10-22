@@ -7,6 +7,7 @@ import type { Langue } from "@/lib/i18n";
 import { t } from "../../i18n";
 import { languePage } from "@/lib/langue";
 import { Onglets } from "@/app/onglets";
+import { SectionDesign } from "./design";
 
 type Health = { ok?: boolean };
 type Ready = { ok?: boolean; boxes?: { box_id?: string; site?: string; logements?: unknown[]; last_seen?: string }[]; erreurs?: string[] };
@@ -40,7 +41,7 @@ function duree(s?: number): string {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ lang?: string }>;
+  searchParams: Promise<{ lang?: string; design?: string }>;
 }) {
   const sp = await searchParams;
   const lang: Langue = languePage(sp);
@@ -60,6 +61,7 @@ export default async function Page({
           <h1 className="text-xl font-extrabold">{t("super.injoignable", lang)}</h1>
           {erreur && <p className="mt-2 text-xs text-[var(--danger)]">{erreur}</p>}
         </div>
+        <SectionDesign choix={sp.design} />
       </div>
     );
   }
@@ -174,6 +176,8 @@ export default async function Page({
           </table>
         </div>
       </section>
+
+      <SectionDesign choix={sp.design} />
     </div>
   );
 }

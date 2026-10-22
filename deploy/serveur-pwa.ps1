@@ -95,8 +95,18 @@ if (ConteneurExiste) {
 #  (3e occurrence du meme piege dans ce depot, apres sauvegarde.ps1 et
 #  test-backup.ps1 : ici le conteneur sortait aussitot et /sw.js ne repondait
 #  jamais, ce qui ressemblait a un probleme de port).
+#  Design du site : même fichier runtime que la stack (super_admin, /systeme).
+#  On le monte pour que les batteries puissent PROUVER le basculement depuis
+#  l'hôte ; s'il manque, on part de l'example — sinon Docker créerait un
+#  DOSSIER à sa place et l'écriture échouerait (piège mesuré sur les mounts).
+$fichierDesign = Join-Path (Split-Path $ici -Parent) "custom\design.yaml"
+if (-not (Test-Path -LiteralPath $fichierDesign)) {
+    Copy-Item -LiteralPath (Join-Path (Split-Path $ici -Parent) "custom\design.yaml.example") -Destination $fichierDesign -Force
+}
+
 $cmdDocker = @("run", "-d", "--name", $Nom, "-p", "${Port}:${PortInterne}",
-    "--network", "lcd-lab_default", "-e", "LCD_GATEWAY_URL=http://gateway-parc:8443", "-e", "LCD_IDP=", $Image)
+    "--network", "lcd-lab_default", "-e", "LCD_GATEWAY_URL=http://gateway-parc:8443", "-e", "LCD_IDP=",
+    "-v", "${fichierDesign}:/app/custom/design.yaml", $Image)
 $sortie = (Natif { & docker @cmdDocker 2>&1 } | Out-String).Trim()
 if ($LASTEXITCODE -ne 0) {
     #  Le port peut etre encore tenu par le conteneur precedent qui s'arrete :

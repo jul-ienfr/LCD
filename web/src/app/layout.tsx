@@ -7,6 +7,8 @@ import { ThemeToggle } from "./theme-toggle";
 import { lireIdentite, jarSecurise } from "@/lib/identite";
 import { libelleProfil } from "@/lib/profils";
 import { marque } from "@/lib/branding";
+import { lireDesign } from "@/lib/design";
+import { styleDesign } from "@/lib/themes";
 
 // Le layout lit le cookie de session (voir-comme) : toutes les routes sont
 // rendues à la requête — pas de prerender statique (compat /_not-found).
@@ -66,12 +68,22 @@ export default async function RootLayout({
   // Mode dégradé L1 (§F7) : cookie lcd_lite posé par /api/lite (lien <a> natif,
   // sans JS) → class html qui neutralise filtres/dégradés dans lite.css.
   const lite = jar?.get("lcd_lite")?.value === "1";
+  // Design du site (choix super_admin, /systeme) : lu à chaque requête dans
+  // custom/design.yaml → le changement s'applique en quelques secondes, sans
+  // rebuild ni redémarrage. Les jetons injectés portent une spécificité
+  // supérieure (:root:root) aux palettes clair/sombre de globals.css.
+  const design = lireDesign();
   return (
     <html
       lang="fr"
+      data-design={design.id}
       className={`h-full${lite ? " mode-lite" : ""}${theme === "sombre" ? " theme-sombre" : theme === "clair" ? " theme-clair" : ""}`}
     >
       <body className="flex min-h-full flex-col">
+        <style
+          id="design-tokens"
+          dangerouslySetInnerHTML={{ __html: styleDesign(design) }}
+        />
         <a
           href="#contenu"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-[var(--encre)] focus:px-4 focus:py-2 focus:text-sm focus:text-[var(--fond)]"

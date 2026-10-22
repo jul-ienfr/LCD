@@ -4,10 +4,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { gwGet, gwPost } from "@/lib/gateway";
 import { cookies } from "next/headers";
 import { autheliaInterne, lireIdentite, portailIdp } from "@/lib/identite";
 import { PROFILS } from "@/lib/profils";
+import { ecrireDesignId, peutChoisirDesign } from "@/lib/design";
 
 export async function choisirLangueAction(formData: FormData) {
   const lang = String(formData.get("lang") || "fr").slice(0, 2);
@@ -383,6 +385,25 @@ export async function basculerTheme(formData: FormData): Promise<void> {
       ? brut
       : "/hote";
   redirect(retour);
+}
+
+// DESIGN DU SITE (super_admin, /systeme) : le choix s'écrit dans
+// custom/design.yaml (runtime, monté dans le conteneur) puis le layout est
+// re-rendu → tout le site change d'apparence en quelques secondes, sans
+// rebuild ni redémarrage. Autorisation : le super_admin RÉEL (quiReel), pas
+// l'identité « voir-comme ». Liste fermée : un id inconnu est refusé.
+export async function choisirDesignAction(formData: FormData): Promise<void> {
+  const id = await lireIdentite();
+  if (!peutChoisirDesign(id.quiReel)) {
+    redirect("/systeme?design=refuse#design");
+  }
+  const choix = String(formData.get("design") || "").trim();
+  const r = ecrireDesignId(choix);
+  if (!r.ok) {
+    redirect("/systeme?design=erreur#design");
+  }
+  revalidatePath("/", "layout");
+  redirect(`/systeme?design=${encodeURIComponent(choix)}#design`);
 }
 
 export async function lire<T>(chemin: string): Promise<{ ok: boolean; data: T | null; erreur: string }> {

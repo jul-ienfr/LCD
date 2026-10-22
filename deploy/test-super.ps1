@@ -139,6 +139,50 @@ foreach ($m in $FUITE) { if ($p2.Contains($m)) { $fuiteFront = $true } }
 Verif "V5 : 0 fuite de secret sur /secrets (front)" (-not $fuiteFront)
 Verif "V5 : /secrets dit 'metadonnees/vault'" ($p2 -match "m.tadonn|vault")
 
+# ---- Design du site (super_admin, /systeme) : bascule SITE-WIDE, sans JS ----
+# Le formulaire est un <form action> natif : on le poste comme le ferait un
+# navigateur sans JavaScript (multipart + $ACTION_ID_*), et on constate que
+# TOUTES les pages changent de palette en quelques secondes (data-design +
+# jetons injectes), sans rebuild ni redemarrage.
+$fichierDesign = Join-Path (Split-Path $PSScriptRoot -Parent) "custom\design.yaml"
+$avantDesign = if (Test-Path -LiteralPath $fichierDesign) { [IO.File]::ReadAllText($fichierDesign) } else { "" }
+function PosterDesign([string]$design) {
+    $page = corps "/systeme" "lcd_qui=personne_01"
+    $i = $page.IndexOf('id="design"')
+    if ($i -lt 0) { return "" }
+    $id = [regex]::Match($page.Substring($i), 'name="(\$ACTION_ID_[0-9a-f]+)"').Groups[1].Value
+    if (-not $id) { return "" }
+    return ((curl.exe -s -i -m 20 -H "Cookie: lcd_qui=personne_01" -H "Origin: $F" -F "$id=" -F "design=$design" "$F/systeme") -join " ")
+}
+try {
+    $sd = corps "/systeme" "lcd_qui=personne_01"
+    Verif "design : section presente sur /systeme" ($sd -match 'id="design"')
+    Verif "design : 4 themes proposes" (([regex]::Matches($sd, 'name="design"')).Count -eq 4)
+    Verif "design : actif pour super_admin (pas de fieldset desactive)" (-not ($sd -match '<fieldset disabled'))
+    $sda = corps "/systeme" "lcd_qui=personne_02"
+    Verif "design : refuse a l'admin (fieldset desactive)" ($sda -match '<fieldset disabled')
+
+    # Bascule reelle : ocean, puis tentative d'id inconnu, puis retour.
+    $rOcean = PosterDesign "ocean"
+    Start-Sleep -Milliseconds 400
+    Verif "design : bascule ocean acceptee (303 -> ?design=ocean)" (($rOcean -match 'HTTP/1\.1 303') -and ($rOcean -match 'design=ocean'))
+    Verif "design : fichier runtime ecrit (design: ocean)" ((Test-Path -LiteralPath $fichierDesign) -and ((Get-Content -LiteralPath $fichierDesign -Raw) -match '(?m)^design:\s*ocean'))
+    $hoteOcean = corps "/hote"
+    Verif "design : tout le site bascule (data-design=ocean + accent ocean)" (($hoteOcean -match 'data-design="ocean"') -and ($hoteOcean -match '--accent:#1d4ed8'))
+
+    $rPirate = PosterDesign "pirate"
+    Start-Sleep -Milliseconds 300
+    Verif "design : id inconnu refuse (liste fermee, fichier inchange)" (($rPirate -match 'design=erreur') -and ((Get-Content -LiteralPath $fichierDesign -Raw) -match '(?m)^design:\s*ocean'))
+
+    $rSejour = PosterDesign "sejour"
+    Start-Sleep -Milliseconds 400
+    $hoteSejour = corps "/hote"
+    Verif "design : retour au defaut applique (accent sejour)" (($rSejour -match 'design=sejour') -and ($hoteSejour -match '--accent:#0e7c6b'))
+} finally {
+    # Toujours remettre le fichier dans l'etat trouve (meme si un KO survient).
+    if ($avantDesign) { [IO.File]::WriteAllText($fichierDesign, $avantDesign, [Text.UTF8Encoding]::new($false)) }
+}
+
 if ($script:KO -eq 0) { Write-Output "RESULTAT : F5 V5/V6 OK (batterie complete verte)" }
 else { Write-Output "RESULTAT : $script:KO ECHEC(S)" }
 exit $script:KO

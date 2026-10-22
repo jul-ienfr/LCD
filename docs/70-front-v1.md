@@ -1,8 +1,10 @@
 # 70 — Frontend v1 (SaaS `web/` + front box + mode dégradé)
 
-> Statut : v1.7 du 2026-10-21 — **cahier clos** : F1→F6 ✅, et les
+> Statut : v1.8 du 2026-10-21 — **cahier clos** : F1→F6 ✅, et les
 > promesses mesurables de §F9 ont désormais une assertion (JS, tierces,
 > images, a11y, POST natif, 0 fuite, **320 px ET cibles ≥44 px mesurés**).
+> v1.8 ajoute §F11 (design du site : 4 thèmes complets choisis par le
+> super_admin, bascule site-wide mesurée).
 > Restent les **DoD manuelles** (matériel réel) : tabulation physique,
 > offline 2 h, 55 items terrain/box du `checklist-taches-restantes.md` —
 > jamais du code à écrire.
@@ -14,7 +16,7 @@
 > Contrats APIs front : `docs/20-architecture-contrats.md` + YAML réels
 > font foi (R4). Plan-only : 0 touche à `lab/`, `web/`, `custom/*/` —
 > ce cahier est le PLAN, le code suit par jalons §F10.
-> Exigences : REQ-S-007 + REQ-S-008 + REQ-T-005
+> Exigences : REQ-S-007 + REQ-S-008 + REQ-T-005 + REQ-S-010 + REQ-S-011
 > (`docs/registres/exigences.csv`). État réel : `registres/etat-reel.md`.
 
 Ce cahier ajoute UNIQUEMENT ce qui n'existe pas encore dans les cahiers
@@ -471,12 +473,62 @@ traversee Tab physique = DoD manuelle matrice §F9 (comme offline 2 h F4).
 | **F2 migration 6 plugins** — ✅ clos 2026-10-18 | dossiers existants → plugins (URLs stables), i18n préfixée, grep fuite | ~5 j | `test-front.ps1` étendu vert (23 → ≥35 verifs) — gate passé : 39/39 exit 0 |
 | **F3 IdP** — ✅ clos 2026-10-19 | `forward_auth` + 2FA staff + révocations (§F5) + piste voir-comme `{qui_reel, vu_comme}` | ~3 j | gate passé : `test-idp.ps1` 22/22 (302 → redir 2FA → TOTP réel niveau 2 → chip identité → 403 révocation → logout 302) + `test-front.ps1` 46/46 lab + `tests_lab.py` 0 KO |
 | **F4 PWA** — ✅ clos 2026-10-19 | SW maison + outbox IndexedDB (ref idempotente) + purge révocation + bandeau « hors ligne » honnête | ~4 j | gate passé : `test-pwa.ps1` 14/14 (offline réel Edge/CDP : guide lisible hors-ligne, écriture en attente, rejeu auto, preuve serveur `idempotent=true` = le navigateur a réellement exécuté, purge caches). « 0 écriture perdue » prouvé par table d'idempotence ; « offline 2 h sur séjour témoin » = DoD manuelle (matrice §F9) |
-| **F5 dash-super/admin** — ✅ clos 2026-10-20 | `/systeme` (santé agrégée), `/secrets` (rotation super seul, 403 admin, zéro valeur), `/journal` (voir-comme 90 j) + recherche par `ref` (404 inconnue, 403 non-admin), `/support` tickets file unique (ref auto, clôture motif tracé) + messagerie 3 fils ACL fail-closed (§P8) | ~6 j | gate passé : `test-super.ps1` 34/34 (V5 secrets jamais simulés 12 checks + V6 403 admin/secrets/journal + §P8 tickets 6 + messagerie 6 + recherche 3 + 5 rendus front + 2 fuites ; noté 33/33 à la clôture F5, les 34 `Verif` mesurés en 2026-10-20 — le bloc sante gateway conditionnel ne s'était pas declenché) + `tests_lab.py` 0 KO + `test-front.ps1` 46/46 + `test-pwa.ps1` 14/14 + `test-secrets.ps1` 23/23 + tsc/eslint/vitest 30/30 + budgets 20 pages < 200 Ko |
+| **F5 dash-super/admin** — ✅ clos 2026-10-20 | `/systeme` (santé agrégée), `/secrets` (rotation super seul, 403 admin, zéro valeur), `/journal` (voir-comme 90 j) + recherche par `ref` (404 inconnue, 403 non-admin), `/support` tickets file unique (ref auto, clôture motif tracé) + messagerie 3 fils ACL fail-closed (§P8) | ~6 j | gate passé : `test-super.ps1` 43/43 (V5 secrets jamais simulés 12 checks + V6 403 admin/secrets/journal + §P8 tickets 6 + messagerie 6 + recherche 3 + 5 rendus front + 2 fuites ; noté 33/33 à la clôture F5, les 34 `Verif` mesurés en 2026-10-20 — le bloc sante gateway conditionnel ne s'était pas declenché) + `tests_lab.py` 0 KO + `test-front.ps1` 46/46 + `test-pwa.ps1` 14/14 + `test-secrets.ps1` 23/23 + tsc/eslint/vitest 86/86 + budgets 20 pages < 200 Ko + 9 checks design §F11 mesurés le 2026-10-21 (bascule site-wide par formulaire natif) |
 | **F6 front box** — ✅ clos 2026-10-20 | `:8060` étendu (état runtime HA\|Moli), kiosk L1, recette box HA + Moli | ~3 j | gate passé : `tests_lab.py` 1142/1142 exit 0 — 0 fonction obligatoire dépendante d'une UI box PRUVÉ dans les 2 sens (box tombée → SaaS visible : coupure réelle des 2 runtimes → bandeau dégradé, jamais blanc, retour → effacé ; SaaS tombé → box locale : `:8060` sert pendant la coupure passerelle §65) + Lovelace HA-seul + kiosk L1 sans compte. Latence panne double GET / 10.08 s < 15 s. « offline 2 h sur appareils réels » = DoD manuelle (matrice §F9), comme F4 |
 
 Ordre strict F1→F6 ; un jalon non DoD = suivant bloqué. Chaque jalon = 1
 tag `plan-vX.Y` + ligne changelog (R6). Est borné, jamais promis : re-calé à
 chaque revue mensuelle.
+
+## §F11 Design du site — thèmes choisis par le super_admin (REQ-S-011)
+
+Demande du 2026-10-21 : « le super admin doit pouvoir changer intégralement
+le design du site en quelques secondes en utilisant des thèmes différents ».
+
+**Ce qui existe (mesuré).** Quatre thèmes complets — `sejour` (défaut,
+teal de la marque), `ocean` (bleu), `sable` (terracotta), `nuit` (violet) —
+chacun définissant la **paire** de palettes clair + sombre (fond, surfaces,
+bordures, encre et ses deux nuances, accent et ses deux nuances). Le jeton
+`ok/alerte/danger` ne change pas : un thème change l'identité, jamais le sens
+des couleurs d'état (contrôle automatisé).
+
+- **Registre fermé** : `web/src/lib/themes.ts` — liste finie, aucune valeur
+  libre ne peut entrer par le formulaire (un id inconnu est refusé).
+- **Contraste ancré** : `web/src/lib/themes.test.ts` calcule le ratio WCAG
+  des 4 thèmes × 2 modes (encre ≥ 7:1 sur surface et fond, textes doux/fain
+  ≥ 4,5:1, accent ≥ 4,5:1). Un thème illisible ne peut pas être ajouté.
+- **État runtime** : `custom/design.yaml` (`design: <id>`), monté dans le
+  conteneur web, jamais versionné (`custom/design.yaml.example` documente la
+  forme). Le layout le lit **à chaque requête** et injecte les jetons dans un
+  `<style id="design-tokens">` (`:root:root`, spécificité supérieure aux
+  palettes de `globals.css`, donc valable en clair, en sombre OS et en choix
+  explicite).
+- **Dashboard** : section « Design » dans `/systeme` (dash-super), formulaire
+  natif `<form action>` → **fonctionne sans JavaScript**. Aperçu par pastilles
+  de couleurs, thème actif affiché.
+- **Autorisation** : `peutChoisirDesign(quiReel)` = rôle `super_admin` sur
+  l'identité **réelle** (pas « voir-comme ») ; contrôles désactivés pour les
+  autres rôles et **re-vérification dans l'action serveur** (défense en
+  profondeur). Un admin qui voit comme un super_admin n'hérite pas du droit.
+- **Fraîcheur** : l'action écrit le fichier puis re-rend le layout — le
+  changement touche **tout le site** en quelques secondes, sans rebuild ni
+  redémarrage (mesuré : ~0,4 s entre le POST et la palette servie).
+
+**Limites assumées.** Le design est un état **serveur** (tous les visiteurs
+voient le même) : ce n'est pas une préférence par navigateur — le mode
+clair/sombre, lui, reste un cookie par utilisateur (`lcd_theme`). Le fichier
+runtime n'est pas synchronisé entre plusieurs instances web (mono-instance
+aujourd'hui ; multi-instance = volume partagé, à traiter avec la scalabilité
+§S3.2). Un montage manquant est signalé dans le dashboard (« écriture
+impossible »), jamais une page blanche.
+
+**Preuves.** `test-super.ps1` 43/43 : section présente, 4 thèmes, actif pour
+le super_admin / fieldset désactivé pour l'admin, bascule `ocean` par POST
+natif (303 → `?design=ocean`), fichier écrit, `/hote` bascule
+(`data-design="ocean"` + `--accent` océan), id inconnu refusé (liste fermée,
+fichier inchangé), retour au défaut. `test-unites.ps1` : suite vitest
+86 tests 0 échec (dont 13 pour les thèmes) + témoin négatif (un test faux
+est vu rouge).
 
 ## Traçabilité REQ
 
@@ -486,4 +538,5 @@ chaque revue mensuelle.
 | REQ-S-008 | Mode dégradé L0-L3 : sans-JS complet, `?lite=1`, matrice appareils réels, voyageur L0 = SMS/papier | `test-front.ps1` §16 + `web/scripts/recette-sans-js.mjs` : **4 écritures natives sans JS** (Edge réel, `javascriptEnabled:false`) prouvées au journal passerelle (1-tap, incident, départ, mission) + login 303 §2b + `?lite=1` (§F9) + `test-pwa.ps1` 14/14 (outbox/offline réel) ; 2 appareils réels parcourus = DoD manuelle |
 | REQ-S-009 | Marque blanche : 0 fuite « LCD / stack / IP » côté voyageur/presta/proprio, re-thème **sans code** (env seul) | `test-front.ps1` 71/71 dont §14 (14 checks marque) + preuve A/B même build (A `Séjour` → B `Marque Client XYZ`, 0 LCD, manifeste suit) + 5 SVG template (vercel/next/…) supprimés = 404 |
 | REQ-S-010 | A11y WCAG 2.2 AA : skip-link 1ᵉʳ focusable vers `main#contenu tabindex=-1`, focus visible, mouvement réduit, 1 seule `h1` par page, `aria-current`, tests clavier structurels sur les 8 plugins | `test-front.ps1` 101/101 dont §15 (27 checks a11y) + CSS servi vérifié par href hashé. Limite assumée : structure, pas traversee Tab physique (DoD manuelle §F9) |
+| REQ-S-011 | Design du site : 4 thèmes complets (clair + sombre) choisis par le super_admin, appliqués à tout le site en quelques secondes, sans rebuild ni redémarrage, sans JS, liste fermée, contraste WCAG vérifié | `test-super.ps1` 43/43 (9 checks : section, 4 thèmes, super_admin actif / admin refusé, bascule POST native 303, fichier runtime écrit, `/hote` bascule `data-design` + accent, id inconnu refusé, retour défaut) + `test-unites.ps1` (vitest 86 tests 0 échec dont 13 thèmes + témoin négatif) |
 | REQ-T-005 | Front box runtime-agnostique : Lovelace (HA seul) + `:8060` (HA\|Moli) + kiosk QR, 0 fonction obligatoire dépendante d'une UI box | `tests_lab.py` 1142/1142 (coupure réelle des 2 runtimes → bandeau + retour ; §65 :8060 pendant coupure passerelle) + `test-front.ps1` 57/57 (kiosk L1) ; offline 2 h = DoD manuelle §F9 |

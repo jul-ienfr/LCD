@@ -55,6 +55,12 @@ services:
       # Endpoint INTERNE du logout serveur (réseau docker front) — le
       # navigateur ne parle jamais directement à l'IdP.
       LCD_IDP_INTERNE: http://authelia:9091
+    volumes:
+      # Design du site (super_admin, /systeme) : état RUNTIME partagé avec
+      # l'hôte, comme les registres lab — jamais versionné. Le fichier doit
+      # exister (`cp custom/design.yaml.example custom/design.yaml`) : sinon
+      # Docker crée un DOSSIER à sa place et l'écriture échouerait.
+      - ../custom/design.yaml:/app/custom/design.yaml
     ports:
       # Accès direct navigateur sans TLS ni hosts (démo/SAS local) :
       # http://localhost:3100 (Caddy lcd.test:4001 reste l'entrée TLS officielle).

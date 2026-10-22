@@ -5,6 +5,10 @@
 secrets.yaml
 custom/branding.yaml
 !custom/branding.yaml.example
+# Design du site : état RUNTIME écrit par le dashboard super_admin (/systeme).
+# L'example documente la forme ; le fichier réel suit le déploiement.
+custom/design.yaml
+!custom/design.yaml.example
 
 # F3 IdP — secrets et comptes Authelia REELS (P1-9) ; l'EXAMPLE versionné
 # reste tracked (documente la forme), la copie reelle est toujours hors git.

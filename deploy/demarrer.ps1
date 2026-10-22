@@ -59,6 +59,15 @@ try {
     }
     Write-Output "   secrets et configuration presents (.env, users.yml, configuration.yml)"
 
+    # Design du site (super_admin, /systeme) : fichier RUNTIME monte dans le
+    # conteneur web. S'il manque, Docker creerait un DOSSIER a sa place et le
+    # dashboard signalerait « ecriture impossible » a tort.
+    $design = Join-Path (Split-Path $PSScriptRoot -Parent) "custom\design.yaml"
+    if (-not (Test-Path -LiteralPath $design)) {
+        Copy-Item -LiteralPath "$design.example" -Destination $design -Force
+        Write-Output "   design du site initialise depuis custom/design.yaml.example"
+    }
+
     # La configuration IdP doit etre le RENDU du modele, pas une copie derivee.
     Natif { powershell -ExecutionPolicy Bypass -File ./authelia/rendre-config.ps1 -Verifier 2>&1 } | Out-Null
     if ($LASTEXITCODE -ne 0) { Write-Error "deploy/authelia/configuration.yml a derive du modele : relancer authelia/rendre-config.ps1" }

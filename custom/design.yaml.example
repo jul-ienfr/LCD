@@ -1,0 +1,7 @@
+# Design du site — écrit par le dashboard super_admin (/systeme, section
+# « Design »). Ce fichier est un état RUNTIME : il n'est jamais versionné
+# (comme les registres lab), l'example documente la forme.
+#
+# Valeurs possibles : sejour | ocean | sable | nuit  (liste fermée dans
+# web/src/lib/themes.ts — un id inconnu est refusé par l'action serveur).
+design: sejour
