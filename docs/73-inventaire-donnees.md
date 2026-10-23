@@ -1,6 +1,6 @@
 # 73 - Inventaire des donnees (regenerable)
 
-**Genere le** : 2026-10-23 10:11 par `deploy/inventaire-donnees.ps1` (doctrine 71, V2).
+**Genere le** : 2026-10-23 10:24 par `deploy/inventaire-donnees.ps1` (doctrine 71, V2).
 **Ne pas editer a la main** : relancer le script apres tout changement de fixture.
 
 ## Methode
@@ -20,8 +20,8 @@ Chaque valeur des fixtures box (`lab/**/*.yaml`, hors `vps-sim`) est classee en 
 | Verdict | Valeurs |
 |---|---:|
 | **placeholder** (a remplacer) | 70 |
-| **a documenter** (a rapprocher d'un releve) | 203 |
-| source (justifiee par une piece) | 181 |
+| **a documenter** (a rapprocher d'un releve) | 205 |
+| source (justifiee par une piece) | 179 |
 | vide (conforme) | 37 |
 | technique (hors jugement) | 711 |
 | **total examine** | **1202** |
@@ -101,7 +101,7 @@ Chaque valeur des fixtures box (`lab/**/*.yaml`, hors `vps-sim`) est classee en 
 | `lab/stocks.lab/log1/conso.yaml` | `id` | TEST-STOCK |
 | `lab/stocks.lab/log1/conso.yaml` | `label` | Test stocks lab |
 
-## Valeurs a documenter (203)
+## Valeurs a documenter (205)
 
 | Fichier | Clef | Valeur |
 |---|---|---|
@@ -212,10 +212,10 @@ Chaque valeur des fixtures box (`lab/**/*.yaml`, hors `vps-sim`) est classee en 
 | `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"] |
 | `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"] |
 | `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"] |
-| `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["jev-one-system/jev-1.13", "degrade_sans_IA"] |
+| `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"] |
 | `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["jev-one-system/jev-1.13", "degrade_sans_IA"] |
 | `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"] |
-| `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["ollama-local/qwen2.5-7b-instruct", "jev-one-system/jev-1.13", "degrade_sans_IA"] |
+| `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["jev-one-system/jev-1.13", "degrade_sans_IA"] |
 | `lab/lab-config/passerelle-parc-llm.yaml` | `fallback` | ["jev-one-system/jev-1.13", "degrade_sans_IA"] |
 | `lab/lab-config/passerelle-parc-llm.yaml` | `logements` | {} |
 | `lab/lab-config/pricing-engine.yaml` | `decision_log_dir` | /opt/lcd/logs |
@@ -229,20 +229,22 @@ Chaque valeur des fixtures box (`lab/**/*.yaml`, hors `vps-sim`) est classee en 
 | `lab/parc-registre/annonces.modele.yaml` | `arrivee` | 15:00 |
 | `lab/parc-registre/annonces.modele.yaml` | `arrivee` | 16:00 |
 | `lab/parc-registre/annonces.modele.yaml` | `depart` | 11:00 |
+| `lab/parc-registre/annonces.modele.yaml` | `depart` | 10:00 |
 | `lab/parc-registre/annonces.modele.yaml` | `en` | >- |
 | `lab/parc-registre/annonces.modele.yaml` | `en` | >- |
-| `lab/parc-registre/annonces.modele.yaml` | `equipements` | [wifi, parking, climatisation, lave_linge, lave_vaisselle, |
 | `lab/parc-registre/annonces.modele.yaml` | `equipements` | [wifi, climatisation] |
+| `lab/parc-registre/annonces.modele.yaml` | `equipements` | [wifi, parking, climatisation, lave_linge, lave_vaisselle, |
 | `lab/parc-registre/annonces.modele.yaml` | `fr` | >- |
 | `lab/parc-registre/annonces.modele.yaml` | `fr` | >- |
 | `lab/parc-registre/annonces.modele.yaml` | `langue_defaut` | fr |
 | `lab/parc-registre/annonces.modele.yaml` | `photos` | ["photo-01.jpg", "photo-02.jpg", "photo-03.jpg", "photo-04.jpg", |
 | `lab/parc-registre/annonces.modele.yaml` | `photos` | ["photo-11.jpg", "photo-12.jpg", "photo-13.jpg", "photo-14.jpg", |
 | `lab/parc-registre/annonces.yaml` | `archive_le` | 2026-10-20T03:21:37Z |
-| `lab/parc-registre/annonces.yaml` | `arrivee` | 17:00 |
 | `lab/parc-registre/annonces.yaml` | `arrivee` | 15:00 |
+| `lab/parc-registre/annonces.yaml` | `arrivee` | 17:00 |
 | `lab/parc-registre/annonces.yaml` | `canaux` | [airbnb, direct, booking] |
 | `lab/parc-registre/annonces.yaml` | `depart` | 11:00 |
+| `lab/parc-registre/annonces.yaml` | `depart` | 10:00 |
 | `lab/parc-registre/annonces.yaml` | `en` | >- |
 | `lab/parc-registre/annonces.yaml` | `en` | >- |
 | `lab/parc-registre/annonces.yaml` | `equipements` | ["wifi", "parking", "climatisation", "lave_linge", "lave_vaisselle", "terrasse"] |
@@ -286,28 +288,28 @@ Chaque valeur des fixtures box (`lab/**/*.yaml`, hors `vps-sim`) est classee en 
 | `lab/prestataires.lab/log2.yaml` | `metiers_critiques` | [menage_externe, plombier, elec, serrurier] |
 | `lab/secrets.lab.yaml` | `stripe_secret_key` | sk_test_LAB_FAUX |
 | `lab/stocks.lab/log1/conso.yaml` | `id` | essuie_tout |
-| `lab/stocks.lab/log1/conso.yaml` | `id` | liquide_vaisselle |
+| `lab/stocks.lab/log1/conso.yaml` | `id` | cafe_accueil |
 | `lab/stocks.lab/log1/conso.yaml` | `id` | gel_douche |
 | `lab/stocks.lab/log1/conso.yaml` | `id` | sac_poubelle_tri |
+| `lab/stocks.lab/log1/conso.yaml` | `id` | liquide_vaisselle |
 | `lab/stocks.lab/log1/conso.yaml` | `id` | eponge |
-| `lab/stocks.lab/log1/conso.yaml` | `id` | cafe_accueil |
 | `lab/stocks.lab/log1/conso.yaml` | `id` | papier_wc |
 | `lab/stocks.lab/log1/conso.yaml` | `id` | pastille_lv |
-| `lab/stocks.lab/log1/conso.yaml` | `label` | Sacs poubelle tri (lot) |
 | `lab/stocks.lab/log1/conso.yaml` | `label` | Papier WC (rouleau) |
+| `lab/stocks.lab/log1/conso.yaml` | `label` | Sacs poubelle tri (lot) |
 | `lab/stocks.lab/log1/conso.yaml` | `label` | Essuie-tout (rouleau) |
-| `lab/stocks.lab/log1/conso.yaml` | `label` | Liquide vaisselle (flacon) |
-| `lab/stocks.lab/log1/conso.yaml` | `label` | Gel douche (flacon recharge) |
-| `lab/stocks.lab/log1/conso.yaml` | `label` | Cafe accueil (dosette) |
-| `lab/stocks.lab/log1/conso.yaml` | `label` | Pastille lave-vaisselle |
 | `lab/stocks.lab/log1/conso.yaml` | `label` | Kit bienvenue OFFERT (charge accueil) |
+| `lab/stocks.lab/log1/conso.yaml` | `label` | Liquide vaisselle (flacon) |
+| `lab/stocks.lab/log1/conso.yaml` | `label` | Cafe accueil (dosette) |
 | `lab/stocks.lab/log1/conso.yaml` | `label` | Eponge neuve |
-| `lab/stocks.lab/log1/conso.yaml` | `unite` | kit |
+| `lab/stocks.lab/log1/conso.yaml` | `label` | Pastille lave-vaisselle |
+| `lab/stocks.lab/log1/conso.yaml` | `label` | Gel douche (flacon recharge) |
 | `lab/stocks.lab/log1/conso.yaml` | `unite` | lot |
-| `lab/stocks.lab/log2/conso.yaml` | `id` | cafe_accueil |
+| `lab/stocks.lab/log1/conso.yaml` | `unite` | kit |
 | `lab/stocks.lab/log2/conso.yaml` | `id` | papier_wc |
-| `lab/stocks.lab/log2/conso.yaml` | `label` | Papier WC (rouleau) |
+| `lab/stocks.lab/log2/conso.yaml` | `id` | cafe_accueil |
 | `lab/stocks.lab/log2/conso.yaml` | `label` | Cafe accueil (dosette) |
+| `lab/stocks.lab/log2/conso.yaml` | `label` | Papier WC (rouleau) |
 
 ## Comment fermer cet inventaire
 
