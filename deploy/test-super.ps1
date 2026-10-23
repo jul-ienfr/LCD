@@ -169,6 +169,7 @@ try {
     Verif "design : fichier runtime ecrit (design: ocean)" ((Test-Path -LiteralPath $fichierDesign) -and ((Get-Content -LiteralPath $fichierDesign -Raw) -match '(?m)^design:\s*ocean'))
     $hoteOcean = corps "/hote"
     Verif "design : tout le site bascule (data-design=ocean + accent ocean)" (($hoteOcean -match 'data-design="ocean"') -and ($hoteOcean -match '--accent:#1d4ed8'))
+    Verif "design : barre navigateur/PWA suit le design (theme-color ocean)" ($hoteOcean -match 'content="#1d4ed8"')
 
     $rPirate = PosterDesign "pirate"
     Start-Sleep -Milliseconds 300
@@ -178,6 +179,7 @@ try {
     Start-Sleep -Milliseconds 400
     $hoteSejour = corps "/hote"
     Verif "design : retour au defaut applique (accent sejour)" (($rSejour -match 'design=sejour') -and ($hoteSejour -match '--accent:#0e7c6b'))
+    Verif "design : barre navigateur revenue au defaut (theme-color sejour)" ($hoteSejour -match 'content="#0e7c6b"')
 } finally {
     # Toujours remettre le fichier dans l'etat trouve (meme si un KO survient).
     if ($avantDesign) { [IO.File]::WriteAllText($fichierDesign, $avantDesign, [Text.UTF8Encoding]::new($false)) }

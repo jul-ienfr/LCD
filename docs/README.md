@@ -1,6 +1,6 @@
 # Index des documents du SAS
 
-**Genere le** : 2026-10-23 00:28 par `deploy/index-docs.ps1`.
+**Genere le** : 2026-10-23 10:13 par `deploy/index-docs.ps1`.
 **Ne pas editer a la main** : relancer l'outil (`-Verifier` dit si l'index est a jour).
 
 **26 documents** : 15 numerotes (l'ordre raconte le projet) et 11 autres.
@@ -23,7 +23,7 @@ Deux documents sont **produits par la mesure** : les editer a la main est perdu 
 | 72 | `72-runbooks.md` | runbooks d'exploitation et de reprise (R-01 a R-11) |
 | 73 | `73-inventaire-donnees.md` | inventaire des donnees (GENERE) |
 | 74 | `74-etat-verifie.md` | etat verifie du SAS (GENERE par la passe) |
-| 75 | `75-versions-verifiees.md` | Genere le : 2026-10-23 00:16 par deploy/versions.ps1. |
+| 75 | `75-versions-verifiees.md` | Genere le : 2026-10-23 10:11 par deploy/versions.ps1. |
 | 76 | `76-reconstruction.md` | RÃ´le : la procÃ©dure complÃ¨te pour repartir de zÃ©ro (machine morte, volÃ©e, noyÃ©e) et remettre |
 | 77 | `77-identite-roles-perimetres.md` | RÃ´le : Ã©tat datÃ© (2026-10-19) de la chaÃ®ne Â« qui es-tu â†’ oÃ¹ arrives-tu â†’ que vois-tu Â». |
 

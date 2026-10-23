@@ -28,14 +28,22 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
 };
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0e7c6b" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0e14" },
-  ],
-  width: "device-width",
-  initialScale: 1,
-};
+// La barre du navigateur / PWA suit le DESIGN choisi (super_admin, §F11) :
+// laissée en dur, elle garderait le teal de Séjour au-dessus d'un site
+// océan/sable/nuit — incohérence visible sur mobile. `generateViewport` lit
+// le fichier de design à chaque requête (le layout est `instant = false`,
+// doc Next 16 : generateViewport + instant = false = resolu a la requete).
+export function generateViewport(): Viewport {
+  const design = lireDesign();
+  return {
+    themeColor: [
+      { media: "(prefers-color-scheme: light)", color: design.clair.accent },
+      { media: "(prefers-color-scheme: dark)", color: design.sombre.fond },
+    ],
+    width: "device-width",
+    initialScale: 1,
+  };
+}
 
 const NAV: [string, string, string][] = [
   ["/hote", "Pilotage", "Tableau de bord opérateur"],
