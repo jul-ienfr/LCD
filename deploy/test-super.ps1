@@ -170,6 +170,14 @@ try {
     $hoteOcean = corps "/hote"
     Verif "design : tout le site bascule (data-design=ocean + accent ocean)" (($hoteOcean -match 'data-design="ocean"') -and ($hoteOcean -match '--accent:#1d4ed8'))
     Verif "design : barre navigateur/PWA suit le design (theme-color ocean)" ($hoteOcean -match 'content="#1d4ed8"')
+    # « Tout le site » ne se prouve pas sur une page : 3 surfaces clientes
+    # indiscutables (vitrine publique, espace voyageur, aide) doivent suivre.
+    $suivent = 0
+    foreach ($u in @("/", "/voyageur", "/aide")) {
+        $hp = corps $u
+        if (($hp -match 'data-design="ocean"') -and ($hp -match '--accent:#1d4ed8')) { $suivent++ }
+    }
+    Verif "design : 3 surfaces clientes suivent (/, /voyageur, /aide)" ($suivent -eq 3)
 
     $rPirate = PosterDesign "pirate"
     Start-Sleep -Milliseconds 300
