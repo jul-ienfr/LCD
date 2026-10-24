@@ -1,9 +1,9 @@
 # LCD v2 — squelette migration-friendly
 
 Nouvelle base Next.js 16.4 + React 19.3 + TypeScript 6.0.3 (lint) / 7.0.2
-(tsc) + Tailwind 4.3 + PostgreSQL 18 + Drizzle. Objectif : remplacer v1 en
-fast-track, sans perdre la capacité de migrer plus tard (voir
-`docs/78-plan-stack-deploiement.md`).
+(tsc) + Tailwind 4.3 + PostgreSQL 18 + Drizzle + Better Auth + SMTP
+(nodemailer). Objectif : remplacer v1 en fast-track, sans perdre la capacité
+de migrer plus tard (voir `docs/78-plan-stack-deploiement.md`).
 
 ## Démarrer
 
@@ -47,11 +47,11 @@ npm run test:e2e
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + fiscalité auto + Factur-X + paiements +
-statuts + compta + exports CSV, health/readiness, PWA offline, voyageur signé
-+ incident **sans JavaScript** + idempotence + outbox, missions staff →
-prestataire, propriétaire rattaché + relevé + isolation, CRM prospect +
-pipeline + offre, support ticket + réponse + résolution, guide + extra
-commandé, 320 px.
+facture publique + email (si Mailpit) + statuts + compta + exports CSV,
+health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
++ idempotence + outbox, missions staff → prestataire, propriétaire rattaché +
+relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
++ résolution, guide + extra commandé, 320 px.
 
 ## Pages
 
@@ -79,6 +79,7 @@ commandé, 320 px.
 | `/commercial/prospects/[id]` | prospect + offres + statuts |
 | `/support` | tickets support (staff = tous, autres = les leurs) |
 | `/support/[id]` | fil de messages + réponses + statuts |
+| `/facture/[token]` | facture publique signée, sans compte |
 | `/voyageur?t=<token>` | séjour réel + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
@@ -88,6 +89,17 @@ commandé, 320 px.
 | `/api/exports/factures` | export CSV des factures |
 | `/api/exports/paiements` | export CSV des paiements |
 | `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
+
+## Partage client et email
+
+- lien signé HMAC par facture, valable 90 jours, page `/facture/[token]` ;
+- page publique sans compte, sans JavaScript, responsive 320 px ;
+- le lien n'est généré que pour une facture `emise` ou `payee` ;
+- envoi email depuis la fiche facture, avec adresse pré-remplie si connue ;
+- adapter SMTP (`nodemailer`) : Mailpit en dev (`smtp://127.0.0.1:1025`),
+  Brevo/OVH/Scaleway en production via `SMTP_URL` + `EMAIL_FROM` ;
+- audit `facture.email` ;
+- la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
 
 ## Paiements
 

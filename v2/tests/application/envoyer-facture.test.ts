@@ -1,0 +1,130 @@
+import { describe, expect, it } from "vitest";
+import { CreerFacture } from "@/application/use-cases/creer-facture";
+import { EnvoyerFacture } from "@/application/use-cases/envoyer-facture";
+import type { FactureRepository } from "@/application/ports/facture-repository";
+import { formaterEuros } from "@/lib/format";
+import { EmailSenderMemoire } from "../helpers/email-sender-memoire";
+import { FactureRepositoryMemoire } from "../helpers/facture-repository-memoire";
+import { TenantRepositoryMemoire } from "../helpers/tenant-repository-memoire";
+
+const tenantId = "11111111-1111-4111-8111-111111111111";
+const logementId = "22222222-2222-4222-8222-222222222222";
+
+async function contexte(input: {
+  clientEmail?: string | null;
+  emettre?: boolean;
+}) {
+  const factures: FactureRepository = new FactureRepositoryMemoire();
+  const facture = await new CreerFacture(factures).executer({
+    tenantId,
+    logementId,
+    numero: "FAC-2026-0200",
+    clientNom: "Client Envoi",
+    clientEmail: input.clientEmail,
+    dateEmission: "2026-11-20",
+    echeance: "2026-12-20",
+    tvaCentimes: 3_600,
+    taxeSejourCentimes: 900,
+    lignes: [
+      {
+        designation: "Séjour 3 nuits",
+        quantite: 3,
+        prixUnitaireCentimes: 12_000,
+      },
+    ],
+  });
+  if (input.emettre !== false) {
+    await factures.changerStatut(tenantId, facture.id, "emise");
+  }
+  const tenants = new TenantRepositoryMemoire();
+  tenants.ajouter({
+    id: tenantId,
+    slug: "lcd",
+    nom: "LCD Parc",
+    statut: "actif",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+  const email = new EmailSenderMemoire();
+  return { factures, facture, tenants, email };
+}
+
+describe("EnvoyerFacture", () => {
+  it("envoie la facture au client avec un lien signé", async () => {
+    const { factures, facture, tenants, email } = await contexte({
+      clientEmail: "client@example.com",
+    });
+
+    const resultat = await new EnvoyerFacture(
+      factures,
+      tenants,
+      email,
+    ).executer({
+      tenantId,
+      factureId: facture.id,
+      baseUrl: "https://lcd.test/",
+    });
+
+    expect(resultat.destinataire).toBe("client@example.com");
+    expect(resultat.lien).toMatch(/^https:\/\/lcd\.test\/facture\//);
+    expect(email.messages).toHaveLength(1);
+    const message = email.messages[0];
+    expect(message?.to).toBe("client@example.com");
+    expect(message?.subject).toContain("FAC-2026-0200");
+    expect(message?.text).toContain(formaterEuros(40_500));
+    expect(message?.text).toContain(resultat.lien);
+  });
+
+  it("accepte une adresse fournie au moment de l'envoi", async () => {
+    const { factures, facture, tenants, email } = await contexte({});
+    const resultat = await new EnvoyerFacture(
+      factures,
+      tenants,
+      email,
+    ).executer({
+      tenantId,
+      factureId: facture.id,
+      baseUrl: "https://lcd.test",
+      email: "autre@example.com",
+    });
+
+    expect(resultat.destinataire).toBe("autre@example.com");
+    expect(email.messages[0]?.to).toBe("autre@example.com");
+  });
+
+  it("refuse une facture en brouillon", async () => {
+    const { factures, facture, tenants, email } = await contexte({
+      clientEmail: "client@example.com",
+      emettre: false,
+    });
+
+    await expect(
+      new EnvoyerFacture(factures, tenants, email).executer({
+        tenantId,
+        factureId: facture.id,
+        baseUrl: "https://lcd.test",
+      }),
+    ).rejects.toMatchObject({ code: "FACTURE_INVALIDE" });
+  });
+
+  it("refuse une adresse email absente ou invalide", async () => {
+    const { factures, facture, tenants, email } = await contexte({});
+
+    await expect(
+      new EnvoyerFacture(factures, tenants, email).executer({
+        tenantId,
+        factureId: facture.id,
+        baseUrl: "https://lcd.test",
+      }),
+    ).rejects.toMatchObject({ code: "EMAIL_INVALIDE" });
+
+    await expect(
+      new EnvoyerFacture(factures, tenants, email).executer({
+        tenantId,
+        factureId: facture.id,
+        baseUrl: "https://lcd.test",
+        email: "pas-un-email",
+      }),
+    ).rejects.toMatchObject({ code: "EMAIL_INVALIDE" });
+  });
+});

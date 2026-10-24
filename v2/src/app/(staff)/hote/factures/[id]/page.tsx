@@ -16,9 +16,12 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paiement-repository";
 import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
 import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
+import { env } from "@/lib/env";
+import { creerTokenFacture } from "@/lib/facture-token";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { BoutonImprimer } from "../bouton-imprimer";
+import { FormulaireEnvoiFacture } from "../formulaire-envoi";
 import { FormulairePaiement } from "../formulaire-paiement";
 import { changerStatutFactureAction } from "../statut-actions";
 
@@ -63,6 +66,12 @@ export default async function PageFacture({
       ? 0
       : resteAPayer(facture.montantTtcCentimes, paiements);
   const aujourdHui = new Date().toISOString().slice(0, 10);
+  const lienClient =
+    facture.statut === "emise" || facture.statut === "payee"
+      ? `${env.APP_URL.replace(/\/$/, "")}/facture/${encodeURIComponent(
+          creerTokenFacture({ tenantId, factureId: facture.id }),
+        )}`
+      : null;
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-6 py-12 print:max-w-none print:px-0 print:py-0">
@@ -286,6 +295,53 @@ export default async function PageFacture({
             Facture soldée.
           </p>
         ) : null}
+      </section>
+
+      <section className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm print:hidden">
+        <div>
+          <h2 className="text-lg font-semibold">Partage client</h2>
+          <p className="text-sm text-stone-600">
+            Lien signé, valable 90 jours, consultable sans compte et sans
+            JavaScript.
+          </p>
+        </div>
+
+        {lienClient ? (
+          <>
+            <label className="block space-y-1 text-sm font-medium">
+              <span>Lien de la facture</span>
+              <input
+                className="w-full rounded-xl border border-stone-300 bg-stone-50 p-3 font-mono text-xs"
+                readOnly
+                value={lienClient}
+              />
+            </label>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+                href={lienClient}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Ouvrir la facture client
+              </a>
+            </div>
+            <div className="border-t border-stone-200 pt-4">
+              <h3 className="text-sm font-semibold">Envoyer par email</h3>
+              <div className="mt-3">
+                <FormulaireEnvoiFacture
+                  emailDefaut={facture.clientEmail ?? ""}
+                  factureId={facture.id}
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            Émettez la facture pour générer le lien client et l&apos;envoyer
+            par email.
+          </p>
+        )}
       </section>
     </main>
   );

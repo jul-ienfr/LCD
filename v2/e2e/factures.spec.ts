@@ -109,7 +109,45 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   await expect(page.getByText("Facture soldée.")).toBeVisible();
   await expect(page.getByText("payee").first()).toBeVisible();
 
-  // 6. Surcharge manuelle de la TVA et de la taxe.
+  // 6. Lien client public, sans compte et sans JavaScript, à 320 px.
+  const lienClient = await page
+    .locator('input[readonly][value*="/facture/"]')
+    .inputValue();
+  expect(lienClient).toContain("/facture/");
+  const publicContext = await page.context().browser()?.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 320, height: 800 },
+  });
+  if (!publicContext) throw new Error("Contexte navigateur indisponible.");
+  const publicPage = await publicContext.newPage();
+  await publicPage.goto(lienClient);
+  await expect(publicPage.getByText(numeroAuto).first()).toBeVisible();
+  await expect(publicPage.getByText("405,00 €").first()).toBeVisible();
+  await expect(publicPage.getByText("Payée").first()).toBeVisible();
+  await expect(publicPage.getByText("Client Facture E2E").first()).toBeVisible();
+  await publicContext.close();
+
+  // 6b. Envoi par email si Mailpit est disponible en local.
+  const mailpitDisponible = await fetch("http://127.0.0.1:8025/api/v1/info")
+    .then((reponse) => reponse.ok)
+    .catch(() => false);
+  if (mailpitDisponible) {
+    await page.fill('input[name="email"]', "client@example.com");
+    await page.getByRole("button", { name: "Envoyer la facture" }).click();
+    await expect(
+      page.getByText("Facture envoyée à client@example.com."),
+    ).toBeVisible({ timeout: 25_000 });
+    const messages = await fetch(
+      "http://127.0.0.1:8025/api/v1/messages?limit=20",
+    ).then((reponse) => reponse.json() as Promise<{
+      messages: { Subject: string }[];
+    }>);
+    expect(
+      messages.messages.some((message) => message.Subject.includes(numeroAuto)),
+    ).toBe(true);
+  }
+
+  // 7. Surcharge manuelle de la TVA et de la taxe.
   await page.goto("/hote/factures?mois=2026-11");
   await page.fill('input[name="numero"]', numeroManuel);
   await page.fill('input[name="clientNom"]', "Client Manuel E2E");
