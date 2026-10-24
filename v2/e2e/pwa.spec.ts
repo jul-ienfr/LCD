@@ -5,7 +5,9 @@ test("PWA : voyageur en cache, fallback offline, API jamais cachée", async ({
   context,
 }) => {
   await page.goto("/voyageur");
-  await expect(page.getByText("Votre séjour")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Votre séjour" }),
+  ).toBeVisible();
 
   await page.evaluate(async () => {
     if (!("serviceWorker" in navigator)) {
@@ -25,7 +27,9 @@ test("PWA : voyageur en cache, fallback offline, API jamais cachée", async ({
   await context.setOffline(true);
 
   await page.goto("/voyageur");
-  await expect(page.getByText("Votre séjour")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Votre séjour" }),
+  ).toBeVisible();
 
   await page.goto("/une-page-inconnue");
   await expect(page.getByText("Vous êtes hors connexion.")).toBeVisible();

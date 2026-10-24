@@ -28,3 +28,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 9. **Pas de secret dans Git** ; `BETTER_AUTH_SECRET` ≥ 32 caractères en prod.
 10. **Toute nouvelle brique** a un port, un adapter, un test et un plan de
     retrait.
+11. **Lien voyageur** : vérifier la signature HMAC avant toute lecture ;
+    ne jamais faire confiance au payload sans vérification ; l'API incident
+    reste idempotente par `ref`.

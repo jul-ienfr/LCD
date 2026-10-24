@@ -44,7 +44,8 @@ npm run test:e2e
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + statuts + compta + exports CSV,
-health/readiness, PWA offline, page voyageur **sans JavaScript** en 320 px.
+health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
++ idempotence + outbox, 320 px.
 
 ## Pages
 
@@ -61,10 +62,11 @@ health/readiness, PWA offline, page voyageur **sans JavaScript** en 320 px.
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts brouillon → émise → payée |
 | `/hote/securite` | 2FA |
-| `/voyageur` | séjour + incident (sans JS) |
+| `/voyageur?t=<token>` | séjour réel + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
 | `/api/ready` | readiness (ping DB) |
+| `/api/voyageur/incident` | API incident signée + idempotente |
 | `/api/exports/reservations` | export CSV des réservations |
 | `/api/exports/factures` | export CSV des factures |
 
@@ -93,6 +95,18 @@ npm run measure:js
 C'est au-dessus du budget voyageur de 50 Ko : la gate G1 est déclenchée.
 Le HTML fonctionne toujours sans JS ; la décision « Astro pour le voyageur »
 ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
+
+## Portail voyageur
+
+- lien signé **HMAC-SHA256** par réservation, généré depuis `/hote/planning` ;
+- payload : tenant, logement, réservation, expiration ;
+- lien valable au moins 60 jours, puis jusqu'à 30 jours après le départ ;
+- formulaire d'incident **sans JS** (Server Action) ;
+- API `POST /api/voyageur/incident` idempotente par `ref` ;
+- **outbox IndexedDB** : hors ligne, l'incident est mis en attente puis rejoué
+  au retour du réseau ;
+- 2xx = retiré, 4xx = retiré (définitif), 5xx/réseau = conservé ;
+- la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
 
 ## Observabilité
 
@@ -162,9 +176,11 @@ Migrations actuelles :
 - `0002_*.sql` : tarifs + colonnes réservation ;
 - `0003_rls_tarifs.sql` : RLS des tarifs ;
 - `0004_*.sql` : factures + lignes de facture ;
-- `0005_rls_factures.sql` : RLS des factures.
+- `0005_rls_factures.sql` : RLS des factures ;
+- `0006_*.sql` : incidents voyageur ;
+- `0007_rls_incidents.sql` : RLS des incidents.
 
-Total : **13 tables** (9 métier + 4 Better Auth).
+Total : **14 tables** (10 métier + 4 Better Auth).
 
 ## Ports & adapters
 

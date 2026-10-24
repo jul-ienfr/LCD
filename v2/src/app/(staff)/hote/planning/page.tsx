@@ -14,6 +14,10 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
+import {
+  creerTokenVoyageur,
+  tokenVoyageurExpireDansJours,
+} from "@/lib/voyageur-token";
 import { FormulaireReservation } from "./formulaire";
 
 export const instant = false;
@@ -213,31 +217,49 @@ export default async function PagePlanning({
           </p>
         ) : (
           <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
-            {reservations.map((reservation) => (
-              <li className="p-4" key={reservation.id}>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium">
-                    {reservation.ref}
-                    {reservation.clientNom
-                      ? ` — ${reservation.clientNom}`
-                      : ""}
+            {reservations.map((reservation) => {
+              const token = creerTokenVoyageur({
+                tenantId,
+                logementId: reservation.logementId,
+                reservationId: reservation.id,
+                exp: tokenVoyageurExpireDansJours(reservation.fin),
+              });
+              const lienVoyageur = `/voyageur?t=${encodeURIComponent(token)}`;
+
+              return (
+                <li className="p-4" key={reservation.id}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium">
+                      {reservation.ref}
+                      {reservation.clientNom
+                        ? ` — ${reservation.clientNom}`
+                        : ""}
+                    </p>
+                    <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">
+                      {reservation.statut}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-stone-600">
+                    {reservation.debut} → {reservation.fin} ·{" "}
+                    {nuitsSejour(reservation.debut, reservation.fin)} nuit
+                    {nuitsSejour(reservation.debut, reservation.fin) > 1
+                      ? "s"
+                      : ""}{" "}
+                    · {reservation.voyageurs} voyageur
+                    {reservation.voyageurs > 1 ? "s" : ""} ·{" "}
+                    {formaterEuros(reservation.montantCentimes)}
                   </p>
-                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">
-                    {reservation.statut}
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-stone-600">
-                  {reservation.debut} → {reservation.fin} ·{" "}
-                  {nuitsSejour(reservation.debut, reservation.fin)} nuit
-                  {nuitsSejour(reservation.debut, reservation.fin) > 1
-                    ? "s"
-                    : ""}{" "}
-                  · {reservation.voyageurs} voyageur
-                  {reservation.voyageurs > 1 ? "s" : ""} ·{" "}
-                  {formaterEuros(reservation.montantCentimes)}
-                </p>
-              </li>
-            ))}
+                  <Link
+                    className="mt-2 inline-block text-sm underline"
+                    href={lienVoyageur}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Lien voyageur
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

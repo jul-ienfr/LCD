@@ -59,5 +59,19 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
   },
+  // Freine le brute-force sans bloquer les batteries E2E qui se connectent
+  // plusieurs fois de suite depuis la même IP.
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+    // La règle par défaut /sign-in/email est 3/10 s, trop stricte pour une
+    // équipe qui se reconnecte et pour les batteries E2E. On garde une
+    // protection réelle (20/min/IP) ; l'edge Caddy/Netlify peut durcir.
+    customRules: {
+      "/sign-in/email": { window: 60, max: 20 },
+      "/two-factor/*": { window: 60, max: 20 },
+    },
+  },
   plugins: [twoFactor(), nextCookies()],
 });

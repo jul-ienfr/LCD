@@ -43,6 +43,20 @@
       "when": 1792869911558,
       "tag": "0005_rls_factures",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792870761154,
+      "tag": "0006_burly_santa_claus",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792870762628,
+      "tag": "0007_rls_incidents",
+      "breakpoints": true
     }
   ]
 }

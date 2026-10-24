@@ -9,7 +9,9 @@ export type CodeErreurMetier =
   | "REF_INVALIDE"
   | "VOYAGEURS_INVALIDE"
   | "RESERVATION_CHEVAUCHE"
-  | "FACTURE_INVALIDE";
+  | "FACTURE_INVALIDE"
+  | "INCIDENT_INVALIDE"
+  | "RESERVATION_INTROUVABLE";
 
 /**
  * Erreur métier : porte un code stable, indépendant du framework HTTP.

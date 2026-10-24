@@ -156,6 +156,40 @@ export const tarifs = pgTable(
   ],
 );
 
+export const incidents = pgTable(
+  "incidents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    ref: text("ref").notNull(),
+    message: text("message").notNull(),
+    statut: text("statut").notNull().default("ouvert"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("incidents_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("incidents_tenant_reservation_idx").on(
+      t.tenantId,
+      t.reservationId,
+      t.createdAt,
+    ),
+  ],
+);
+
 export const factures = pgTable(
   "factures",
   {
@@ -272,6 +306,8 @@ export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
+export type IncidentRow = typeof incidents.$inferSelect;
+export type NewIncidentRow = typeof incidents.$inferInsert;
 export type FactureRow = typeof factures.$inferSelect;
 export type NewFactureRow = typeof factures.$inferInsert;
 export type FactureLigneRow = typeof factureLignes.$inferSelect;

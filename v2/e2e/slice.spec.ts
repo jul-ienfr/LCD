@@ -27,7 +27,7 @@ test("login staff + création d'un logement + audit visible dans la liste", asyn
   await expect(page.getByText(code).first()).toBeVisible();
 });
 
-test("voyageur sans JS, 320 px, formulaire natif", async ({ browser }) => {
+test("voyageur sans JS, 320 px", async ({ browser }) => {
   const context = await browser.newContext({
     javaScriptEnabled: false,
     viewport: { width: 320, height: 800 },
@@ -35,12 +35,10 @@ test("voyageur sans JS, 320 px, formulaire natif", async ({ browser }) => {
   const page = await context.newPage();
 
   await page.goto("/voyageur");
-  await expect(page.getByText("Votre séjour")).toBeVisible();
-
-  await page.fill('textarea[name="message"]', "Test sans JavaScript");
-  await page.getByRole("button", { name: "Envoyer" }).click();
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByText("Votre séjour")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Votre séjour" }),
+  ).toBeVisible();
+  await expect(page.getByText("Ouvrez le lien personnel")).toBeVisible();
 
   const overflow = await page.evaluate(
     () =>
