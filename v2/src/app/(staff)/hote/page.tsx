@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { requireSession } from "@/lib/session";
+import { BoutonDeconnexion } from "./bouton-deconnexion";
 
 // Route staff bloquante : session avant rendu.
 export const instant = false;
@@ -21,6 +22,9 @@ export default async function PageHote() {
         <p className="text-stone-600">
           Rôle : <span className="font-medium">{session.user.role}</span>
         </p>
+        <div className="pt-2">
+          <BoutonDeconnexion />
+        </div>
       </header>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
@@ -29,12 +33,20 @@ export default async function PageHote() {
           Le socle auth + tenant + logements est branché. La suite : planning,
           prix, puis portail voyageur.
         </p>
-        <Link
-          className="mt-4 inline-block rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white"
-          href="/hote/logements"
-        >
-          Gérer les logements
-        </Link>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link
+            className="inline-block rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white"
+            href="/hote/logements"
+          >
+            Gérer les logements
+          </Link>
+          <Link
+            className="inline-block rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
+            href="/hote/securite"
+          >
+            Sécurité / 2FA
+          </Link>
+        </div>
       </section>
 
       <Link className="text-sm underline" href="/">

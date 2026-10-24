@@ -47,11 +47,13 @@ voyageur **sans JavaScript** en 320 px.
 
 ## Auth
 
-- **Better Auth 1.7.12**, email/password, plugin TOTP installé.
-- Routes : `/login`, `/api/auth/[...all]`.
+- **Better Auth 1.7.12**, email/password, TOTP actif.
+- Routes : `/login`, `/two-factor`, `/hote/securite`, `/api/auth/[...all]`.
+- Enrôlement TOTP : `/hote/securite` (QR code + codes de secours).
+- Vérification à la connexion : `/two-factor`.
 - Session cookie httpOnly ; le tenant et le rôle viennent de `session.user`.
 - `requireRole(["admin","hote"])` protège les pages staff.
-- L'écran d'enrollement TOTP reste à brancher ; le plugin est déjà actif.
+- Déconnexion : bouton sur `/hote`.
 
 ## Architecture
 

@@ -786,20 +786,25 @@ et ne remplace pas v1.
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
-- **Better Auth 1.7.12** (email/password + plugin TOTP), seed idempotent
+- **Better Auth 1.7.12** (email/password + TOTP complet : enrôlement,
+  codes de secours, vérification à la connexion), seed idempotent
   `admin@lcd.test`, session + rôle + tenant ;
-- routes `/`, `/login`, `/voyageur` (formulaire Server Action sans JS),
-  `/hote`, `/hote/logements`, `/api/auth/[...all]`, `/api/health` ;
-- première tranche verticale : **login → création logement → liste → audit** ;
+- routes `/`, `/login`, `/two-factor`, `/voyageur` (formulaire Server Action
+  sans JS), `/hote`, `/hote/logements`, `/hote/securite`,
+  `/api/auth/[...all]`, `/api/health` ;
+- première tranche verticale : **login → 2FA → création logement → liste →
+  audit** ;
 - tests Vitest : **9/9** (domaine + cas d'usage avec dépôt mémoire) ;
 - Playwright : **2/2** (login + création ; voyageur sans JS en 320 px) ;
+- parcours 2FA vérifié manuellement : activation, déconnexion, login avec
+  code TOTP, désactivation ;
 - CI `v2-ci` (lint, typecheck, tests, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
   (Postgres 18 + S3Mock + Mailpit).
 
 **Reste à faire :**
 
-- écran d'enrôlement TOTP (le plugin est actif, pas l'UI) ;
+- test E2E 2FA avec un utilisateur de test isolé (le parcours manuel passe) ;
 - policies RLS avec un rôle applicatif non propriétaire ;
 - PWA/offline + budget JS mesuré ;
 - déploiement Netlify Free + Neon/Supabase ;
@@ -866,7 +871,7 @@ et ne remplace pas v1.
 
 - [x] Schéma Postgres + Drizzle + RLS (tables métier).
 - [x] Auth + RBAC + tenant (Better Auth).
-- [ ] Écran d'enrôlement TOTP.
+- [x] Écran d'enrôlement TOTP + vérification à la connexion.
 - [ ] Design system + 4 thèmes.
 - [x] Route voyageur JS off.
 - [ ] PWA + outbox IndexedDB.
@@ -1107,6 +1112,7 @@ de runtime. **ADR** pour toute décision irréversible.
 | PostgreSQL | 18.6 |
 | Drizzle ORM | 0.45.4 |
 | Better Auth | 1.7.12 |
+| qrcode (TOTP) | 1.5.4 |
 | Zod | 4.6.7 |
 | Vitest | 5.0.5 |
 | Playwright | 1.64.1 |
