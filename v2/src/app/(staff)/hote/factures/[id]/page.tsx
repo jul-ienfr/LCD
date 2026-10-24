@@ -5,14 +5,21 @@ import {
   TRANSITIONS_FACTURE,
   type StatutFacture,
 } from "@/domain/facture";
+import {
+  LIBELLES_MODE_PAIEMENT,
+  resteAPayer,
+  totalPaiements,
+} from "@/domain/paiement";
 import { ObtenirParametresFiscaux } from "@/application/use-cases/parametres-fiscaux";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paiement-repository";
 import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
 import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { BoutonImprimer } from "../bouton-imprimer";
+import { FormulairePaiement } from "../formulaire-paiement";
 import { changerStatutFactureAction } from "../statut-actions";
 
 export const instant = false;
@@ -38,7 +45,7 @@ export default async function PageFacture({
   const facture = await new DrizzleFactureRepository().trouver(tenantId, id);
   if (!facture) notFound();
 
-  const [logement, fiscal, tenant] = await Promise.all([
+  const [logement, fiscal, tenant, paiements] = await Promise.all([
     new DrizzleLogementRepository().trouverParId(
       tenantId,
       facture.logementId,
@@ -47,7 +54,15 @@ export default async function PageFacture({
       new DrizzleParametresFiscauxRepository(),
     ).executer(tenantId),
     new DrizzleTenantRepository().trouver(tenantId),
+    new DrizzlePaiementRepository().listerParFacture(tenantId, facture.id),
   ]);
+
+  const totalPaye = totalPaiements(paiements);
+  const reste =
+    facture.statut === "payee"
+      ? 0
+      : resteAPayer(facture.montantTtcCentimes, paiements);
+  const aujourdHui = new Date().toISOString().slice(0, 10);
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-6 py-12 print:max-w-none print:px-0 print:py-0">
@@ -166,6 +181,18 @@ export default async function PageFacture({
             <span>Total TTC</span>
             <span>{formaterEuros(facture.montantTtcCentimes)}</span>
           </div>
+          {paiements.length > 0 ? (
+            <>
+              <div className="flex justify-between pt-2">
+                <span className="text-stone-600">Déjà payé</span>
+                <span>{formaterEuros(totalPaye)}</span>
+              </div>
+              <div className="flex justify-between font-medium">
+                <span>Reste à payer</span>
+                <span>{formaterEuros(reste)}</span>
+              </div>
+            </>
+          ) : null}
         </section>
 
         {facture.notes ? (
@@ -191,6 +218,75 @@ export default async function PageFacture({
           </p>
         </footer>
       </article>
+
+      <section className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm print:hidden">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-semibold">Paiements</h2>
+            <p className="text-sm text-stone-600">
+              {totalPaye > 0
+                ? `${formaterEuros(totalPaye)} encaissés · ${formaterEuros(reste)} restants`
+                : "Aucun encaissement enregistré."}
+            </p>
+          </div>
+        </div>
+
+        {paiements.length > 0 ? (
+          <ul className="divide-y divide-stone-100">
+            {paiements.map((paiement) => (
+              <li
+                className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
+                key={paiement.id}
+              >
+                <div>
+                  <p className="font-medium">
+                    {LIBELLES_MODE_PAIEMENT[paiement.mode]} ·{" "}
+                    {formaterEuros(paiement.montantCentimes)}
+                  </p>
+                  <p className="text-stone-500">
+                    {paiement.datePaiement}
+                    {paiement.reference ? ` · ${paiement.reference}` : ""}
+                    {paiement.notes ? ` · ${paiement.notes}` : ""}
+                  </p>
+                </div>
+                <span className="font-mono text-xs text-stone-400">
+                  {paiement.ref}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {facture.statut === "emise" && reste > 0 ? (
+          <div className="border-t border-stone-200 pt-4">
+            <h3 className="text-sm font-semibold">Encaisser un paiement</h3>
+            <p className="mt-1 text-sm text-stone-600">
+              Le paiement est idempotent et la facture passe automatiquement
+              en « payée » quand le solde est atteint.
+            </p>
+            <div className="mt-4">
+              <FormulairePaiement
+                key={reste}
+                dateDefaut={aujourdHui}
+                factureId={facture.id}
+                resteCentimes={reste}
+              />
+            </div>
+          </div>
+        ) : null}
+
+        {facture.statut === "brouillon" ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            Émettez la facture pour pouvoir enregistrer un paiement.
+          </p>
+        ) : null}
+
+        {facture.statut === "payee" ? (
+          <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+            Facture soldée.
+          </p>
+        ) : null}
+      </section>
     </main>
   );
 }

@@ -539,6 +539,41 @@ export const factureLignes = pgTable(
   ],
 );
 
+export const paiements = pgTable(
+  "paiements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    factureId: uuid("facture_id")
+      .notNull()
+      .references(() => factures.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    montantCentimes: integer("montant_centimes").notNull(),
+    mode: text("mode").notNull().default("virement"),
+    datePaiement: date("date_paiement", { mode: "string" }).notNull(),
+    reference: text("reference"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("paiements_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("paiements_tenant_facture_idx").on(
+      t.tenantId,
+      t.factureId,
+      t.datePaiement,
+    ),
+    index("paiements_tenant_date_idx").on(t.tenantId, t.datePaiement),
+  ],
+);
+
 export const auditLogs = pgTable(
   "audit_logs",
   {
@@ -619,3 +654,5 @@ export type FactureRow = typeof factures.$inferSelect;
 export type NewFactureRow = typeof factures.$inferInsert;
 export type FactureLigneRow = typeof factureLignes.$inferSelect;
 export type NewFactureLigneRow = typeof factureLignes.$inferInsert;
+export type PaiementRow = typeof paiements.$inferSelect;
+export type NewPaiementRow = typeof paiements.$inferInsert;

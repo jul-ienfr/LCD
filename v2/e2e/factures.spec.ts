@@ -88,10 +88,25 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   );
   expect(contenuXml).toContain("TVA acquittée sur les encaissements.");
 
-  // 5. Statuts puis compta.
+  // 5. Statut émis puis deux paiements (partiel, puis solde).
   await page.getByRole("button", { name: "Marquer émise" }).click();
   await expect(page.getByText("emise").first()).toBeVisible();
-  await page.getByRole("button", { name: "Marquer payée" }).click();
+
+  await page.fill('input[name="montantEuros"]', "200");
+  await page.fill('input[name="datePaiement"]', "2026-11-22");
+  await page.fill('input[name="reference"]', "VIR-E2E");
+  await page.getByRole("button", { name: "Enregistrer le paiement" }).click();
+  await expect(
+    page.getByText("200,00 € encaissés", { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByText("Déjà payé")).toBeVisible();
+  await expect(page.getByText("205,00 €").first()).toBeVisible();
+
+  await page.fill('input[name="montantEuros"]', "205");
+  await page.fill('input[name="datePaiement"]', "2026-11-23");
+  await page.selectOption('select[name="mode"]', "cb");
+  await page.getByRole("button", { name: "Enregistrer le paiement" }).click();
+  await expect(page.getByText("Facture soldée.")).toBeVisible();
   await expect(page.getByText("payee").first()).toBeVisible();
 
   // 6. Surcharge manuelle de la TVA et de la taxe.
@@ -111,6 +126,8 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   // 7. Compta et exports.
   await page.goto("/hote/compta?mois=2026-11");
   await expect(page.getByText("TTC facturé").first()).toBeVisible();
+  await expect(page.getByText("Encaissé").first()).toBeVisible();
+  await expect(page.getByText("VIR-E2E").first()).toBeVisible();
 
   const csvFactures = await page.request.get(
     "/api/exports/factures?mois=2026-11",
@@ -120,6 +137,15 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   const csv = await csvFactures.text();
   expect(csv).toContain(numeroAuto);
   expect(csv).toContain(numeroManuel);
+
+  const csvPaiements = await page.request.get(
+    "/api/exports/paiements?mois=2026-11",
+  );
+  expect(csvPaiements.status()).toBe(200);
+  expect(csvPaiements.headers()["content-type"]).toContain("text/csv");
+  const csvPaiementsTexte = await csvPaiements.text();
+  expect(csvPaiementsTexte).toContain(numeroAuto);
+  expect(csvPaiementsTexte).toContain("VIR-E2E");
 
   const csvReservations = await page.request.get(
     "/api/exports/reservations?mois=2026-11",

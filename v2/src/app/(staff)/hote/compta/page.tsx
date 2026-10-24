@@ -8,8 +8,13 @@ import {
   moisEnFrancais,
   moisValide,
 } from "@/domain/calendrier";
+import {
+  LIBELLES_MODE_PAIEMENT,
+  totalPaiements,
+} from "@/domain/paiement";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paiement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
@@ -48,6 +53,11 @@ export default async function PageCompta({
     premier,
     dernier,
   );
+  const paiements = await new DrizzlePaiementRepository().listerParMois(
+    tenantId,
+    premier,
+    dernier,
+  );
 
   const caReservations = reservations
     .filter((r) => r.statut !== "annulee")
@@ -56,6 +66,9 @@ export default async function PageCompta({
   const tva = factures.reduce((t, f) => t + f.tvaCentimes, 0);
   const taxe = factures.reduce((t, f) => t + f.taxeSejourCentimes, 0);
   const ttc = factures.reduce((t, f) => t + f.montantTtcCentimes, 0);
+  const encaisse = totalPaiements(paiements);
+
+  const parFacture = new Map(factures.map((f) => [f.id, f]));
 
   const parLogement = logements.map((logement) => {
     const resas = reservations.filter((r) => r.logementId === logement.id);
@@ -123,6 +136,12 @@ export default async function PageCompta({
         </Link>
         <Link
           className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          href={`/api/exports/paiements?mois=${mois}`}
+        >
+          Export CSV paiements
+        </Link>
+        <Link
+          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
           href="/hote/compta/parametres"
         >
           Paramètres fiscaux
@@ -132,7 +151,7 @@ export default async function PageCompta({
         </Link>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <p className="text-sm text-stone-500">CA réservations</p>
           <p className="mt-1 text-2xl font-semibold">
@@ -160,6 +179,15 @@ export default async function PageCompta({
           <p className="text-sm text-stone-500">TTC facturé</p>
           <p className="mt-1 text-2xl font-semibold">{formaterEuros(ttc)}</p>
           <p className="text-xs text-stone-500">hors CA réservations</p>
+        </div>
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-stone-500">Encaissé</p>
+          <p className="mt-1 text-2xl font-semibold">
+            {formaterEuros(encaisse)}
+          </p>
+          <p className="text-xs text-stone-500">
+            {paiements.length} paiement{paiements.length > 1 ? "s" : ""}
+          </p>
         </div>
       </section>
 
@@ -195,6 +223,63 @@ export default async function PageCompta({
             ))}
           </tbody>
         </table>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Paiements du mois</h2>
+        {paiements.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+            Aucun paiement encaissé sur ce mois.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+            <table className="w-full min-w-[640px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-stone-200 bg-stone-50 text-left">
+                  <th className="p-3 font-medium">Date</th>
+                  <th className="p-3 font-medium">Facture</th>
+                  <th className="p-3 font-medium">Mode</th>
+                  <th className="p-3 font-medium">Référence</th>
+                  <th className="p-3 text-right font-medium">Montant</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paiements.map((paiement) => {
+                  const facture = parFacture.get(paiement.factureId);
+                  return (
+                    <tr
+                      className="border-b border-stone-100"
+                      key={paiement.id}
+                    >
+                      <td className="p-3">{paiement.datePaiement}</td>
+                      <td className="p-3">
+                        {facture ? (
+                          <Link
+                            className="underline"
+                            href={`/hote/factures/${facture.id}`}
+                          >
+                            {facture.numero}
+                          </Link>
+                        ) : (
+                          paiement.factureId
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {LIBELLES_MODE_PAIEMENT[paiement.mode]}
+                      </td>
+                      <td className="p-3">
+                        {paiement.reference ?? paiement.ref}
+                      </td>
+                      <td className="p-3 text-right">
+                        {formaterEuros(paiement.montantCentimes)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <nav className="flex flex-wrap gap-4 text-sm">

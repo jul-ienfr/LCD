@@ -46,11 +46,12 @@ npm run test:e2e
 ```
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
-anti-chevauchement, audit, facture + fiscalité auto + Factur-X + statuts +
-compta + exports CSV, health/readiness, PWA offline, voyageur signé + incident
-**sans JavaScript** + idempotence + outbox, missions staff → prestataire,
-propriétaire rattaché + relevé + isolation, CRM prospect + pipeline + offre,
-support ticket + réponse + résolution, guide + extra commandé, 320 px.
+anti-chevauchement, audit, facture + fiscalité auto + Factur-X + paiements +
+statuts + compta + exports CSV, health/readiness, PWA offline, voyageur signé
++ incident **sans JavaScript** + idempotence + outbox, missions staff →
+prestataire, propriétaire rattaché + relevé + isolation, CRM prospect +
+pipeline + offre, support ticket + réponse + résolution, guide + extra
+commandé, 320 px.
 
 ## Pages
 
@@ -65,10 +66,10 @@ support ticket + réponse + résolution, guide + extra commandé, 320 px.
 | `/hote/extras` | catalogue extras + commandes |
 | `/hote/prix` | prix par jour et par logement |
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
-| `/hote/compta` | CA, factures, TVA, taxe, exports |
+| `/hote/compta` | CA, factures, TVA, taxe, paiements, exports |
 | `/hote/compta/parametres` | TVA, taxe de séjour, préfixe et mentions légales |
 | `/hote/factures` | liste + création de factures |
-| `/hote/factures/[id]` | facture imprimable / PDF + statuts + export Factur-X |
+| `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |
 | `/hote/missions` | missions staff + assignation prestataire |
 | `/hote/proprietaires` | rattachement propriétaire ↔ logement |
 | `/hote/securite` | 2FA |
@@ -85,7 +86,20 @@ support ticket + réponse + résolution, guide + extra commandé, 320 px.
 | `/api/voyageur/incident` | API incident signée + idempotente |
 | `/api/exports/reservations` | export CSV des réservations |
 | `/api/exports/factures` | export CSV des factures |
+| `/api/exports/paiements` | export CSV des paiements |
 | `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
+
+## Paiements
+
+- modes : virement, espèces, chèque, carte bancaire, autre ;
+- montant en centimes, date, référence libre et notes ;
+- écriture idempotente par `ref` (UUID généré par le formulaire) ;
+- surpaiement refusé : le montant ne peut pas dépasser le reste à payer ;
+- paiement partiel : la facture reste `emise` avec un reste affiché ;
+- solde atteint : la facture passe automatiquement en `payee` ;
+- une facture en brouillon ou annulée ne peut pas être encaissée ;
+- compta : total encaissé du mois, liste des paiements, export CSV ;
+- audit `paiement.creer`.
 
 ## Fiscalité et Factur-X
 
@@ -258,9 +272,11 @@ Migrations actuelles :
 - `0016_*.sql` : guide logement + extras + commandes ;
 - `0017_rls_extras.sql` : RLS des extras et commandes ;
 - `0018_*.sql` : paramètres fiscaux par tenant ;
-- `0019_rls_parametres_fiscaux.sql` : RLS des paramètres fiscaux.
+- `0019_rls_parametres_fiscaux.sql` : RLS des paramètres fiscaux ;
+- `0020_*.sql` : paiements ;
+- `0021_rls_paiements.sql` : RLS des paiements.
 
-Total : **23 tables** (19 métier + 4 Better Auth).
+Total : **24 tables** (20 métier + 4 Better Auth).
 
 ## Ports & adapters
 

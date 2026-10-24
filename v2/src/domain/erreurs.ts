@@ -17,7 +17,8 @@ export type CodeErreurMetier =
   | "OFFRE_INVALIDE"
   | "TICKET_INVALIDE"
   | "EXTRA_INVALIDE"
-  | "FISCALITE_INVALIDE";
+  | "FISCALITE_INVALIDE"
+  | "PAIEMENT_INVALIDE";
 
 /**
  * Erreur métier : porte un code stable, indépendant du framework HTTP.
