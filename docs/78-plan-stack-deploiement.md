@@ -787,8 +787,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **22 tables** (18 métier + 4 Better Auth),
-  migrations `0000` → `0017`, RLS sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **23 tables** (19 métier + 4 Better Auth),
+  migrations `0000` → `0019`, RLS sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -797,17 +797,24 @@ et ne remplace pas v1.
   `admin@lcd.test`, session + rôle + tenant ;
 - routes `/`, `/login`, `/two-factor`, `/voyageur` (formulaire Server Action
   sans JS), `/hote`, `/hote/logements`, `/hote/planning`, `/hote/prix`,
-  `/hote/compta`, `/hote/factures`, `/hote/factures/[id]`, `/hote/securite`,
+  `/hote/compta`, `/hote/compta/parametres`, `/hote/factures`,
+  `/hote/factures/[id]`, `/hote/securite`,
   `/hote/logements/[id]` (guide), `/hote/extras`,
   `/voyageur?t=<token>`, `/hote/missions`, `/hote/proprietaires`,
   `/presta`, `/proprio`, `/commercial`, `/commercial/prospects/[id]`,
   `/support`, `/support/[id]`, `/api/auth/[...all]`, `/api/health`, `/api/ready`,
   `/api/exports/reservations`, `/api/exports/factures`,
-  `/api/voyageur/incident` ;
+  `/api/factures/[id]/factur-x`, `/api/voyageur/incident` ;
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
 - **compta légère** : factures, lignes, TVA, taxe de séjour, totaux HT/TTC,
   cycle brouillon → émise → payée (ou annulée), impression/PDF navigateur,
   exports CSV réservations/factures ;
+- **fiscalité paramétrable** : TVA par défaut, taxe de séjour par nuit et par
+  personne avec plafond, préfixe de facture, mentions légales ; calcul
+  automatique à la création, surcharge manuelle possible ;
+- **Factur-X (préparation)** : export XML CII authentifié par facture, avec
+  lignes, HT, TVA, taxe de séjour et TTC ; PDF/A-3 et validation par une
+  plateforme de dématérialisation restent à faire ;
 - **portail voyageur réel** : lien signé HMAC par réservation, séjour réel,
   incident idempotent, formulaire sans JS, outbox IndexedDB + rejeu online ;
 - **portail prestataire + missions** : création staff, assignation, cycle
@@ -823,13 +830,13 @@ et ne remplace pas v1.
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
 - **logs JSON** + pages d'erreur brandées ;
-- tests Vitest : **65/65** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **79/79** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **12/12** (login + logement ; prix + planning + anti-chevauchement ;
-  PWA offline + API jamais cachée ; health/ready ; facture + compta + CSV ;
-  voyageur signé + incident sans JS + idempotence + outbox ; missions staff →
-  prestataire ; propriétaire rattaché + relevé + isolation ; CRM prospect +
-  pipeline + offre ; support ticket + réponse + résolution ; guide + extra
-  commandé ; 320 px) ;
+  PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
+  Factur-X + compta + CSV ; voyageur signé + incident sans JS + idempotence +
+  outbox ; missions staff → prestataire ; propriétaire rattaché + relevé +
+  isolation ; CRM prospect + pipeline + offre ; support ticket + réponse +
+  résolution ; guide + extra commandé ; 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -848,7 +855,8 @@ et ne remplace pas v1.
 - décision G1 : Astro pour le voyageur ou accepter le plancher Next ;
 - déploiement effectif Netlify Free + Neon/Supabase (config prête) ;
 - Sentry + Uptime Kuma ;
-- Factur-X, TVA/taxe paramétrables, paiements en ligne ;
+- Factur-X PDF/A-3 signé + plateforme de dématérialisation, paiements en
+  ligne ;
 - intégrations OTA/HA/Moli.
 
 ---
@@ -936,7 +944,8 @@ et ne remplace pas v1.
 - [x] CRM commercial : prospects, pipeline, offres.
 - [x] Support / messagerie : tickets, réponses, statuts.
 - [x] Guide/check-in + extras voyageur + commandes.
-- [ ] Factur-X / PDF structuré + paramétrage TVA/taxe.
+- [x] Paramétrage TVA/taxe + calcul automatique + export Factur-X XML.
+- [ ] Factur-X PDF/A-3 signé + plateforme de dématérialisation.
 - [ ] Portail voyageur complet.
 - [x] Health/readiness + logs structurés.
 - [ ] Sentry + Uptime Kuma + alertes.

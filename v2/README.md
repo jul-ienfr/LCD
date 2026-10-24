@@ -46,11 +46,11 @@ npm run test:e2e
 ```
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
-anti-chevauchement, audit, facture + statuts + compta + exports CSV,
-health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
-+ idempotence + outbox, missions staff → prestataire, propriétaire rattaché +
-relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
-+ résolution, guide + extra commandé, 320 px.
+anti-chevauchement, audit, facture + fiscalité auto + Factur-X + statuts +
+compta + exports CSV, health/readiness, PWA offline, voyageur signé + incident
+**sans JavaScript** + idempotence + outbox, missions staff → prestataire,
+propriétaire rattaché + relevé + isolation, CRM prospect + pipeline + offre,
+support ticket + réponse + résolution, guide + extra commandé, 320 px.
 
 ## Pages
 
@@ -66,8 +66,9 @@ relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
 | `/hote/prix` | prix par jour et par logement |
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
 | `/hote/compta` | CA, factures, TVA, taxe, exports |
+| `/hote/compta/parametres` | TVA, taxe de séjour, préfixe et mentions légales |
 | `/hote/factures` | liste + création de factures |
-| `/hote/factures/[id]` | facture imprimable / PDF + statuts brouillon → émise → payée |
+| `/hote/factures/[id]` | facture imprimable / PDF + statuts + export Factur-X |
 | `/hote/missions` | missions staff + assignation prestataire |
 | `/hote/proprietaires` | rattachement propriétaire ↔ logement |
 | `/hote/securite` | 2FA |
@@ -84,6 +85,21 @@ relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
 | `/api/voyageur/incident` | API incident signée + idempotente |
 | `/api/exports/reservations` | export CSV des réservations |
 | `/api/exports/factures` | export CSV des factures |
+| `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
+
+## Fiscalité et Factur-X
+
+- `/hote/compta/parametres` : TVA en points de base, taxe de séjour par nuit
+  et par personne, plafond facultatif, préfixe de facture, mentions légales ;
+- à la création d’une facture, laisser TVA/taxe vides applique les paramètres
+  du tenant ; saisir une valeur force le montant (surcharge manuelle) ;
+- TVA calculée en centimes entiers (`HT × taux / 10 000`, arrondi au centime) ;
+- taxe calculée sur `nuits × voyageurs × tarif`, plafonnée si configuré ;
+- numérotation `PREFIXE-AAAA-0001`, préfixe validé (2-8 caractères A-Z/0-9) ;
+- export `GET /api/factures/[id]/factur-x` : XML CII EN 16931, réservé aux
+  rôles `admin`, `hote`, `comptable`, `Cache-Control: private, no-store` ;
+- **préparation** : le PDF/A-3, la signature et la validation par une
+  plateforme de dématérialisation ne sont pas encore branchés.
 
 ## PWA
 
@@ -240,9 +256,11 @@ Migrations actuelles :
 - `0014_*.sql` : tickets + messages ;
 - `0015_rls_support.sql` : RLS du support ;
 - `0016_*.sql` : guide logement + extras + commandes ;
-- `0017_rls_extras.sql` : RLS des extras et commandes.
+- `0017_rls_extras.sql` : RLS des extras et commandes ;
+- `0018_*.sql` : paramètres fiscaux par tenant ;
+- `0019_rls_parametres_fiscaux.sql` : RLS des paramètres fiscaux.
 
-Total : **22 tables** (18 métier + 4 Better Auth).
+Total : **23 tables** (19 métier + 4 Better Auth).
 
 ## Ports & adapters
 

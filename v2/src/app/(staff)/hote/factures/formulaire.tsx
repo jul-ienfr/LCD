@@ -1,6 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import {
+  formaterTauxTva,
+  montantTaxeSejour,
+  montantTva,
+  type ParametresFiscaux,
+} from "@/domain/fiscal";
 import type { Logement } from "@/domain/logement";
 import { nuitsSejour } from "@/domain/planning";
 import type { Reservation } from "@/domain/reservation";
@@ -17,14 +23,21 @@ export function FormulaireFacture({
   reservations,
   dateDefaut,
   numeroDefaut,
+  fiscal,
 }: {
   logements: Pick<Logement, "id" | "nom" | "code">[];
   reservations: Pick<
     Reservation,
-    "id" | "ref" | "debut" | "fin" | "clientNom" | "montantCentimes" | "logementId"
+    "id" | "ref" | "debut" | "fin" | "clientNom" | "montantCentimes" | "logementId" | "voyageurs"
   >[];
   dateDefaut: string;
   numeroDefaut: string;
+  fiscal: Pick<
+    ParametresFiscaux,
+    | "tauxTvaBp"
+    | "taxeSejourNuitPersonneCentimes"
+    | "taxeSejourPlafondCentimes"
+  >;
 }) {
   const [etat, action, enCours] = useActionState(
     creerFactureAction,
@@ -37,16 +50,30 @@ export function FormulaireFacture({
   const [designation, setDesignation] = useState("Séjour");
   const [quantite, setQuantite] = useState("1");
   const [prixUnitaire, setPrixUnitaire] = useState("0");
-  const [tva, setTva] = useState("0");
-  const [taxe, setTaxe] = useState("0");
+  const [tva, setTva] = useState("");
+  const [taxe, setTaxe] = useState("");
 
   const ht =
     (centimesDepuisSaisie(prixUnitaire) ?? 0) *
     Math.max(1, Number(quantite) || 1);
-  const ttc =
-    ht +
-    (centimesDepuisSaisie(tva) ?? 0) +
-    (centimesDepuisSaisie(taxe) ?? 0);
+  const tvaCentimes = tva.trim()
+    ? (centimesDepuisSaisie(tva) ?? 0)
+    : montantTva(ht, fiscal.tauxTvaBp);
+
+  const reservationChoisie = reservations.find((r) => r.id === reservationId);
+  const taxeAuto = reservationChoisie
+    ? montantTaxeSejour({
+        nuits: nuitsSejour(reservationChoisie.debut, reservationChoisie.fin),
+        voyageurs: reservationChoisie.voyageurs,
+        taxeSejourNuitPersonneCentimes:
+          fiscal.taxeSejourNuitPersonneCentimes,
+        taxeSejourPlafondCentimes: fiscal.taxeSejourPlafondCentimes,
+      })
+    : 0;
+  const taxeCentimes = taxe.trim()
+    ? (centimesDepuisSaisie(taxe) ?? 0)
+    : taxeAuto;
+  const ttc = ht + tvaCentimes + taxeCentimes;
 
   function choisirReservation(id: string) {
     setReservationId(id);
@@ -197,9 +224,13 @@ export function FormulaireFacture({
             className="w-full rounded-xl border border-stone-300 p-3 text-base"
             inputMode="decimal"
             name="tvaEuros"
+            placeholder={`Auto : ${formaterTauxTva(fiscal.tauxTvaBp)}`}
             value={tva}
             onChange={(e) => setTva(e.target.value)}
           />
+          <span className="block text-xs font-normal text-stone-500">
+            Laisser vide pour calculer avec le taux du tenant.
+          </span>
         </label>
         <label className="block space-y-1 text-sm font-medium">
           <span>Taxe de séjour (€)</span>
@@ -207,12 +238,20 @@ export function FormulaireFacture({
             className="w-full rounded-xl border border-stone-300 p-3 text-base"
             inputMode="decimal"
             name="taxeEuros"
+            placeholder="Auto"
             value={taxe}
             onChange={(e) => setTaxe(e.target.value)}
           />
+          <span className="block text-xs font-normal text-stone-500">
+            {reservationChoisie
+              ? `Auto : ${formaterEuros(taxeAuto)} (${reservationChoisie.voyageurs} voyageur(s), nuits du séjour).`
+              : "Auto : 0 € sans réservation liée ; saisir un montant pour forcer."}
+          </span>
         </label>
         <div className="rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm">
           <p>HT : {formaterEuros(ht)}</p>
+          <p>TVA : {formaterEuros(tvaCentimes)}</p>
+          <p>Taxe : {formaterEuros(taxeCentimes)}</p>
           <p className="font-medium">TTC : {formaterEuros(ttc)}</p>
         </div>
       </div>

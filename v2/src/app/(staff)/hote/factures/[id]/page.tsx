@@ -5,8 +5,11 @@ import {
   TRANSITIONS_FACTURE,
   type StatutFacture,
 } from "@/domain/facture";
+import { ObtenirParametresFiscaux } from "@/application/use-cases/parametres-fiscaux";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
+import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { BoutonImprimer } from "../bouton-imprimer";
@@ -35,10 +38,16 @@ export default async function PageFacture({
   const facture = await new DrizzleFactureRepository().trouver(tenantId, id);
   if (!facture) notFound();
 
-  const logement = await new DrizzleLogementRepository().trouverParId(
-    tenantId,
-    facture.logementId,
-  );
+  const [logement, fiscal, tenant] = await Promise.all([
+    new DrizzleLogementRepository().trouverParId(
+      tenantId,
+      facture.logementId,
+    ),
+    new ObtenirParametresFiscaux(
+      new DrizzleParametresFiscauxRepository(),
+    ).executer(tenantId),
+    new DrizzleTenantRepository().trouver(tenantId),
+  ]);
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-6 py-12 print:max-w-none print:px-0 print:py-0">
@@ -46,7 +55,16 @@ export default async function PageFacture({
         <Link className="text-sm underline" href="/hote/factures">
           ← Retour aux factures
         </Link>
-        <BoutonImprimer />
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+            download
+            href={`/api/factures/${facture.id}/factur-x`}
+          >
+            Factur-X (XML)
+          </a>
+          <BoutonImprimer />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 print:hidden">
@@ -79,7 +97,9 @@ export default async function PageFacture({
             </p>
           </div>
           <div className="text-right text-sm text-stone-600">
-            <p className="font-semibold text-stone-900">LCD Parc</p>
+            <p className="font-semibold text-stone-900">
+              {tenant?.nom ?? "LCD Parc"}
+            </p>
             <p>Conciergerie locative</p>
             <p className="mt-1">{logement?.nom ?? facture.logementId}</p>
             <p>{logement?.adresse ?? ""}</p>
@@ -156,8 +176,19 @@ export default async function PageFacture({
         ) : null}
 
         <footer className="border-t border-stone-200 pt-4 text-xs text-stone-500">
-          Document généré par LCD Parc. La taxe de séjour est suivie
-          séparément du chiffre d’affaires.
+          <p>
+            Document généré par LCD Parc. La taxe de séjour est suivie
+            séparément du chiffre d’affaires.
+          </p>
+          {fiscal.mentionsLegales ? (
+            <p className="mt-2 whitespace-pre-line">
+              {fiscal.mentionsLegales}
+            </p>
+          ) : null}
+          <p className="mt-2">
+            Factur-X : export XML CII de préparation ; PDF/A-3 et validation
+            par une plateforme de dématérialisation à venir.
+          </p>
         </footer>
       </article>
     </main>

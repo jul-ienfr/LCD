@@ -8,27 +8,17 @@ import {
   moisEnFrancais,
   moisValide,
 } from "@/domain/calendrier";
+import { prochainNumeroFacture } from "@/domain/facture";
+import { ObtenirParametresFiscaux } from "@/application/use-cases/parametres-fiscaux";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { FormulaireFacture } from "./formulaire";
 
 export const instant = false;
-
-function prochainNumero(
-  factures: { numero: string }[],
-  annee: number,
-): string {
-  const prefixe = `FAC-${annee}-`;
-  const numeros = factures
-    .filter((f) => f.numero.startsWith(prefixe))
-    .map((f) => Number(f.numero.slice(prefixe.length)))
-    .filter((n) => Number.isInteger(n) && n > 0);
-  const suivant = (numeros.length ? Math.max(...numeros) : 0) + 1;
-  return `${prefixe}${String(suivant).padStart(4, "0")}`;
-}
 
 export default async function PageFactures({
   searchParams,
@@ -81,6 +71,9 @@ export default async function PageFactures({
   const dateDefaut =
     mois === aujourdHui.slice(0, 7) ? aujourdHui : premier;
   const annee = Number(mois.slice(0, 4));
+  const fiscal = await new ObtenirParametresFiscaux(
+    new DrizzleParametresFiscauxRepository(),
+  ).executer(tenantId);
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
@@ -130,6 +123,12 @@ export default async function PageFactures({
         >
           Export CSV factures
         </Link>
+        <Link
+          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          href="/hote/compta/parametres"
+        >
+          Paramètres fiscaux
+        </Link>
         <Link className="text-sm underline" href="/hote/compta">
           Compta
         </Link>
@@ -138,14 +137,20 @@ export default async function PageFactures({
       <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Créer une facture</h2>
         <p className="mt-1 text-sm text-stone-600">
-          Les totaux HT/TTC sont calculés à partir des lignes, de la TVA et de
-          la taxe de séjour. La facture est créée en brouillon.
+          Les totaux HT/TTC sont calculés à partir des lignes. Laisser la TVA
+          et la taxe de séjour vides pour appliquer automatiquement les
+          paramètres fiscaux. La facture est créée en brouillon.
         </p>
         <div className="mt-5">
           <FormulaireFacture
             dateDefaut={dateDefaut}
+            fiscal={fiscal}
             logements={logements}
-            numeroDefaut={prochainNumero(factures, annee)}
+            numeroDefaut={prochainNumeroFacture(
+              factures.map((f) => f.numero),
+              annee,
+              fiscal.prefixeFacture,
+            )}
             reservations={reservations}
           />
         </div>

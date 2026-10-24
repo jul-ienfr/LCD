@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   numeroFactureValide,
+  prochainNumeroFacture,
   totauxFacture,
   totalLigne,
 } from "@/domain/facture";
@@ -31,5 +32,17 @@ describe("facture", () => {
         1_400,
       ),
     ).toEqual({ htCentimes: 87_500, ttcCentimes: 97_650 });
+  });
+
+  it("calcule le prochain numéro avec le préfixe du tenant", () => {
+    expect(
+      prochainNumeroFacture(
+        ["FAC-2026-0001", "FAC-2026-0004", "AUT-2026-0099"],
+        2026,
+      ),
+    ).toBe("FAC-2026-0005");
+    expect(
+      prochainNumeroFacture([], 2026, "SEJ"),
+    ).toBe("SEJ-2026-0001");
   });
 });

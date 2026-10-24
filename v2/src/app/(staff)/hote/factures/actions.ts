@@ -3,9 +3,14 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ErreurMetier } from "@/domain/erreurs";
+import { montantTaxeSejour, montantTva } from "@/domain/fiscal";
+import { nuitsSejour } from "@/domain/planning";
+import type { Reservation } from "@/domain/reservation";
 import { CreerFacture } from "@/application/use-cases/creer-facture";
+import { ObtenirParametresFiscaux } from "@/application/use-cases/parametres-fiscaux";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
@@ -34,20 +39,25 @@ export async function creerFactureAction(
   const prixUnitaireCentimes = centimesDepuisSaisie(
     String(formData.get("prixUnitaireEuros") ?? ""),
   );
-  const tvaCentimes = centimesDepuisSaisie(
-    String(formData.get("tvaEuros") ?? "0"),
-  );
-  const taxeCentimes = centimesDepuisSaisie(
-    String(formData.get("taxeEuros") ?? "0"),
-  );
+  const tvaSaisie = String(formData.get("tvaEuros") ?? "").trim();
+  const taxeSaisie = String(formData.get("taxeEuros") ?? "").trim();
   const notes = String(formData.get("notes") ?? "");
 
-  if (
-    prixUnitaireCentimes === null ||
-    tvaCentimes === null ||
-    taxeCentimes === null
-  ) {
+  if (!Number.isInteger(quantite) || quantite <= 0) {
+    return { ok: false, message: "La quantité doit être un entier positif." };
+  }
+  if (prixUnitaireCentimes === null) {
     return { ok: false, message: "Montants invalides (ex. 120 ou 120,50)." };
+  }
+
+  const tvaManuelle = tvaSaisie ? centimesDepuisSaisie(tvaSaisie) : null;
+  if (tvaSaisie && tvaManuelle === null) {
+    return { ok: false, message: "TVA invalide (ex. 87,50)." };
+  }
+
+  const taxeManuelle = taxeSaisie ? centimesDepuisSaisie(taxeSaisie) : null;
+  if (taxeSaisie && taxeManuelle === null) {
+    return { ok: false, message: "Taxe de séjour invalide (ex. 14)." };
   }
 
   let factureId: string;
@@ -60,8 +70,9 @@ export async function creerFactureAction(
       return { ok: false, message: "Logement introuvable pour ce tenant." };
     }
 
+    let reservation: Reservation | null = null;
     if (reservationId) {
-      const reservation = await new DrizzleReservationRepository().trouverParId(
+      reservation = await new DrizzleReservationRepository().trouverParId(
         tenantId,
         reservationId,
       );
@@ -72,6 +83,25 @@ export async function creerFactureAction(
         };
       }
     }
+
+    const parametres = await new ObtenirParametresFiscaux(
+      new DrizzleParametresFiscauxRepository(),
+    ).executer(tenantId);
+
+    const htCentimes = quantite * prixUnitaireCentimes;
+    const tvaCentimes =
+      tvaManuelle ?? montantTva(htCentimes, parametres.tauxTvaBp);
+
+    const taxeAuto = reservation
+      ? montantTaxeSejour({
+          nuits: nuitsSejour(reservation.debut, reservation.fin),
+          voyageurs: reservation.voyageurs,
+          taxeSejourNuitPersonneCentimes:
+            parametres.taxeSejourNuitPersonneCentimes,
+          taxeSejourPlafondCentimes: parametres.taxeSejourPlafondCentimes,
+        })
+      : 0;
+    const taxeSejourCentimes = taxeManuelle ?? taxeAuto;
 
     const facture = await new CreerFacture(
       new DrizzleFactureRepository(),
@@ -85,7 +115,7 @@ export async function creerFactureAction(
       dateEmission,
       echeance,
       tvaCentimes,
-      taxeSejourCentimes: taxeCentimes,
+      taxeSejourCentimes,
       notes,
       lignes: [
         {
@@ -105,7 +135,11 @@ export async function creerFactureAction(
         ref: facture.numero,
         payload: {
           montantHtCentimes: facture.montantHtCentimes,
+          tvaCentimes: facture.tvaCentimes,
+          taxeSejourCentimes: facture.taxeSejourCentimes,
           montantTtcCentimes: facture.montantTtcCentimes,
+          tvaAuto: !tvaSaisie,
+          taxeAuto: !taxeSaisie,
         },
       }),
     );

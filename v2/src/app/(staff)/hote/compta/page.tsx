@@ -121,6 +121,12 @@ export default async function PageCompta({
         >
           Export CSV factures
         </Link>
+        <Link
+          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          href="/hote/compta/parametres"
+        >
+          Paramètres fiscaux
+        </Link>
         <Link className="text-sm underline" href="/hote/factures">
           Factures
         </Link>
@@ -194,6 +200,9 @@ export default async function PageCompta({
       <nav className="flex flex-wrap gap-4 text-sm">
         <Link className="underline" href="/hote/factures">
           Factures
+        </Link>
+        <Link className="underline" href="/hote/compta/parametres">
+          Paramètres fiscaux
         </Link>
         <Link className="underline" href="/hote/planning">
           Planning

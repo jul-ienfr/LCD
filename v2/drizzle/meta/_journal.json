@@ -127,6 +127,20 @@
       "when": 1792873950733,
       "tag": "0017_rls_extras",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792874608470,
+      "tag": "0018_bouncy_doctor_doom",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792875198410,
+      "tag": "0019_rls_parametres_fiscaux",
+      "breakpoints": true
     }
   ]
 }

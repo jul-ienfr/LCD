@@ -43,6 +43,22 @@ export function numeroFactureValide(numero: string): boolean {
   return /^[A-Z0-9][A-Z0-9-]{2,31}$/.test(numero);
 }
 
+/** Prochain numéro séquentiel au format PREFIXE-AAAA-0001. */
+export function prochainNumeroFacture(
+  numeros: string[],
+  annee: number,
+  prefixe = "FAC",
+): string {
+  const debut = `${prefixe}-${annee}-`;
+  const valeurs = numeros
+    .filter((numero) => numero.startsWith(debut))
+    .map((numero) => Number(numero.slice(debut.length)))
+    .filter((valeur) => Number.isInteger(valeur) && valeur > 0);
+  const suivant = (valeurs.length > 0 ? Math.max(...valeurs) : 0) + 1;
+  return `${debut}${String(suivant).padStart(4, "0")}`;
+}
+
+
 export function totalLigne(
   quantite: number,
   prixUnitaireCentimes: Centimes,

@@ -453,6 +453,28 @@ export const incidents = pgTable(
   ],
 );
 
+export const parametresFiscaux = pgTable("parametres_fiscaux", {
+  tenantId: uuid("tenant_id")
+    .primaryKey()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  tauxTvaBp: integer("taux_tva_bp").notNull().default(1000),
+  taxeSejourNuitPersonneCentimes: integer(
+    "taxe_sejour_nuit_personne_centimes",
+  )
+    .notNull()
+    .default(0),
+  taxeSejourPlafondCentimes: integer("taxe_sejour_plafond_centimes"),
+  prefixeFacture: text("prefixe_facture").notNull().default("FAC"),
+  mentionsLegales: text("mentions_legales"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
 export const factures = pgTable(
   "factures",
   {
@@ -569,6 +591,10 @@ export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
+export type ParametresFiscauxRow =
+  typeof parametresFiscaux.$inferSelect;
+export type NewParametresFiscauxRow =
+  typeof parametresFiscaux.$inferInsert;
 export type ExtraRow = typeof extras.$inferSelect;
 export type NewExtraRow = typeof extras.$inferInsert;
 export type CommandeExtraRow = typeof commandesExtras.$inferSelect;
