@@ -797,11 +797,14 @@ et ne remplace pas v1.
   `admin@lcd.test`, session + rôle + tenant ;
 - routes `/`, `/login`, `/two-factor`, `/voyageur` (formulaire Server Action
   sans JS), `/hote`, `/hote/logements`, `/hote/planning`, `/hote/prix`,
-  `/hote/securite`, `/api/auth/[...all]`, `/api/health` ;
+  `/hote/securite`, `/api/auth/[...all]`, `/api/health`, `/api/ready` ;
+- tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
+- **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
+- **logs JSON** + pages d'erreur brandées ;
 - tests Vitest : **25/25** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **4/4** (login + logement ; prix + planning + anti-chevauchement ;
-  PWA offline + API jamais cachée ; voyageur sans JS en 320 px) ;
+- Playwright : **5/5** (login + logement ; prix + planning + anti-chevauchement ;
+  PWA offline + API jamais cachée ; health/ready ; voyageur sans JS 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -872,6 +875,7 @@ et ne remplace pas v1.
 - [x] Poser le schéma Drizzle + migrations + RLS.
 - [x] Brancher Better Auth + RBAC + tenant.
 - [x] Écrire les règles HTML-first dans `v2/AGENTS.md`.
+- [x] Health/readiness + logs JSON + pages d'erreur.
 - [ ] Configurer Sentry Free + Uptime Kuma.
 - [ ] Créer Neon/Supabase Free + R2 + Brevo.
 - [x] Préparer le build Netlify (`NETLIFY=true` validé, guide prêt).
@@ -900,7 +904,8 @@ et ne remplace pas v1.
 - [x] Planning + pricing + anti-chevauchement.
 - [ ] Compta/exports.
 - [ ] Portail voyageur complet.
-- [ ] Monitoring + alertes.
+- [x] Health/readiness + logs structurés.
+- [ ] Sentry + Uptime Kuma + alertes.
 - [ ] Backups + restore testé.
 - [ ] Décision G1/G2 (Astro/Laravel) sur données réelles.
 - [ ] Cutover log1 + pilote 7 jours.

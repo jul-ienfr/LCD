@@ -6,6 +6,7 @@ import { CreerLogement } from "@/application/use-cases/creer-logement";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 
 export type EtatFormulaireLogement = {
@@ -49,7 +50,7 @@ export async function creerLogementAction(
     if (error instanceof ErreurMetier) {
       return { ok: false, message: error.message };
     }
-    console.error("creerLogementAction", error);
+    logErreur("creerLogementAction", error, { tenantId });
     return { ok: false, message: "Erreur inattendue. Réessayez." };
   }
 }

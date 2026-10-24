@@ -8,6 +8,7 @@ import { DrizzleTarifRepository } from "@/infrastructure/db/repositories/tarif-r
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { centimesDepuisSaisie } from "@/lib/format";
+import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 
 export type EtatFormulairePrix = { ok: boolean; message: string };
@@ -64,7 +65,7 @@ export async function definirPrixAction(
     if (error instanceof ErreurMetier) {
       return { ok: false, message: error.message };
     }
-    console.error("definirPrixAction", error);
+    logErreur("definirPrixAction", error, { tenantId, logementId, date });
     return { ok: false, message: "Erreur inattendue. Réessayez." };
   }
 }

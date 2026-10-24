@@ -8,6 +8,7 @@ import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/r
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { centimesDepuisSaisie } from "@/lib/format";
+import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 
 export type EtatFormulaireReservation = { ok: boolean; message: string };
@@ -80,7 +81,7 @@ export async function creerReservationAction(
     if (error instanceof ErreurMetier) {
       return { ok: false, message: error.message };
     }
-    console.error("creerReservationAction", error);
+    logErreur("creerReservationAction", error, { tenantId, logementId, ref });
     return { ok: false, message: "Erreur inattendue. Réessayez." };
   }
 }

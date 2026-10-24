@@ -43,7 +43,8 @@ npm run test:e2e
 ```
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
-anti-chevauchement, audit, page voyageur **sans JavaScript** en 320 px.
+anti-chevauchement, audit, health/readiness, PWA offline, page voyageur
+**sans JavaScript** en 320 px.
 
 ## Pages
 
@@ -52,12 +53,15 @@ anti-chevauchement, audit, page voyageur **sans JavaScript** en 320 px.
 | `/` | accueil public |
 | `/login` | connexion staff |
 | `/two-factor` | vérification TOTP |
-| `/hote` | tableau de bord |
+| `/hote` | tableau de bord (logements, CA, arrivées/départs) |
 | `/hote/logements` | logements (création + liste) |
 | `/hote/prix` | prix par jour et par logement |
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
 | `/hote/securite` | 2FA |
 | `/voyageur` | séjour + incident (sans JS) |
+| `/offline` | fallback PWA hors ligne |
+| `/api/health` | liveness (sans DB) |
+| `/api/ready` | readiness (ping DB) |
 
 ## PWA
 
@@ -84,6 +88,14 @@ npm run measure:js
 C'est au-dessus du budget voyageur de 50 Ko : la gate G1 est déclenchée.
 Le HTML fonctionne toujours sans JS ; la décision « Astro pour le voyageur »
 ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
+
+## Observabilité
+
+- `/api/health` : liveness, ne dépend pas de la DB.
+- `/api/ready` : readiness, ping PostgreSQL, 503 si la DB est down.
+- logs JSON via `src/lib/logger.ts` (ts, niveau, message, contexte).
+- pages d'erreur `error.tsx` et `global-error.tsx`.
+- à brancher : Sentry, Uptime Kuma, alertes.
 
 ## Auth
 

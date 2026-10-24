@@ -1,13 +1,15 @@
 import { connection } from "next/server";
+import { APP_VERSION } from "@/lib/version";
 
 export async function GET() {
-  // Opt out du prerender : un health check doit toujours être exécuté.
+  // Liveness : ne dépend pas de la DB (le readiness la vérifie).
   await connection();
 
   return Response.json({
     ok: true,
     service: "lcd-v2",
-    version: "0.1.0",
+    version: APP_VERSION,
+    uptimeSecondes: Math.round(process.uptime()),
     date: new Date().toISOString(),
   });
 }

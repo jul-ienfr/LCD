@@ -75,10 +75,12 @@ site**.
 Après le premier déploiement :
 
 1. ouvrir `https://<site>.netlify.app/api/health` → `{ ok: true }` ;
-2. ouvrir `/login` et se connecter avec l'admin seedé ;
-3. ouvrir `/voyageur` et vérifier le formulaire sans JS ;
-4. installer la PWA (menu navigateur → « Installer ») ;
-5. couper le réseau et recharger `/voyageur` → cache/offline.
+2. ouvrir `https://<site>.netlify.app/api/ready` → `{ ok: true, db: "up" }` ;
+3. ouvrir `/login` et se connecter avec l'admin seedé ;
+4. ouvrir `/voyageur` et vérifier le formulaire sans JS ;
+5. installer la PWA (menu navigateur → « Installer ») ;
+6. couper le réseau et recharger `/voyageur` → cache/offline ;
+7. configurer Uptime Kuma sur `/api/health` et `/api/ready`.
 
 ## 5. Domaine personnalisé
 
