@@ -801,12 +801,13 @@ et ne remplace pas v1.
   `/api/auth/[...all]`, `/api/health`, `/api/ready`,
   `/api/exports/reservations`, `/api/exports/factures` ;
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
-- **compta légère** : factures brouillon, lignes, TVA, taxe de séjour,
-  totaux HT/TTC, impression/PDF navigateur, exports CSV réservations/factures ;
+- **compta légère** : factures, lignes, TVA, taxe de séjour, totaux HT/TTC,
+  cycle brouillon → émise → payée (ou annulée), impression/PDF navigateur,
+  exports CSV réservations/factures ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
 - **logs JSON** + pages d'erreur brandées ;
-- tests Vitest : **25/25** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **35/35** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **6/6** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + compta + CSV ;
   voyageur sans JS 320 px) ;
@@ -828,7 +829,7 @@ et ne remplace pas v1.
 - décision G1 : Astro pour le voyageur ou accepter le plancher Next ;
 - déploiement effectif Netlify Free + Neon/Supabase (config prête) ;
 - Sentry + Uptime Kuma ;
-- paiements/statuts de facture, Factur-X, TVA/taxe paramétrables ;
+- Factur-X, TVA/taxe paramétrables, paiements en ligne ;
 - voyageur complet, puis intégrations OTA/HA.
 
 ---
@@ -909,7 +910,8 @@ et ne remplace pas v1.
 - [ ] Entités + mandats.
 - [x] Planning + pricing + anti-chevauchement.
 - [x] Compta légère : factures, totaux, CSV, impression.
-- [ ] Paiements/factures payées + Factur-X.
+- [x] Statuts facture brouillon → émise → payée/annulée + audit.
+- [ ] Factur-X / PDF structuré + paramétrage TVA/taxe.
 - [ ] Portail voyageur complet.
 - [x] Health/readiness + logs structurés.
 - [ ] Sentry + Uptime Kuma + alertes.

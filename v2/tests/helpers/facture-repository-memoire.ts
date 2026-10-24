@@ -54,4 +54,16 @@ export class FactureRepositoryMemoire implements FactureRepository {
       this.rows.find((f) => f.tenantId === tenantId && f.id === id) ?? null
     );
   }
+
+  async changerStatut(
+    tenantId: string,
+    id: string,
+    statut: Facture["statut"],
+  ): Promise<Facture | null> {
+    const facture = await this.trouver(tenantId, id);
+    if (!facture) return null;
+    facture.statut = statut;
+    facture.updatedAt = new Date();
+    return facture;
+  }
 }

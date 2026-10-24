@@ -26,4 +26,9 @@ export interface FactureRepository {
     fin: string,
   ): Promise<Facture[]>;
   trouver(tenantId: string, id: string): Promise<Facture | null>;
+  changerStatut(
+    tenantId: string,
+    id: string,
+    statut: Facture["statut"],
+  ): Promise<Facture | null>;
 }

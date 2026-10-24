@@ -3,6 +3,13 @@ import type { Centimes } from "./pricing";
 export type FactureId = string;
 export type StatutFacture = "brouillon" | "emise" | "payee" | "annulee";
 
+export const TRANSITIONS_FACTURE: Record<StatutFacture, StatutFacture[]> = {
+  brouillon: ["emise", "annulee"],
+  emise: ["payee", "annulee"],
+  payee: [],
+  annulee: [],
+};
+
 export interface FactureLigne {
   id?: string;
   designation: string;

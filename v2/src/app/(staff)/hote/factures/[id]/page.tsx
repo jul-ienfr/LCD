@@ -1,13 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import {
+  TRANSITIONS_FACTURE,
+  type StatutFacture,
+} from "@/domain/facture";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { BoutonImprimer } from "../bouton-imprimer";
+import { changerStatutFactureAction } from "../statut-actions";
 
 export const instant = false;
+
+const LIBELLES_STATUT: Record<StatutFacture, string> = {
+  brouillon: "Remettre en brouillon",
+  emise: "Marquer émise",
+  payee: "Marquer payée",
+  annulee: "Annuler la facture",
+};
 
 export default async function PageFacture({
   params,
@@ -35,6 +47,21 @@ export default async function PageFacture({
           ← Retour aux factures
         </Link>
         <BoutonImprimer />
+      </div>
+
+      <div className="flex flex-wrap gap-2 print:hidden">
+        {TRANSITIONS_FACTURE[facture.statut].map((statut) => (
+          <form action={changerStatutFactureAction} key={statut}>
+            <input name="factureId" type="hidden" value={facture.id} />
+            <input name="statut" type="hidden" value={statut} />
+            <button
+              className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+              type="submit"
+            >
+              {LIBELLES_STATUT[statut]}
+            </button>
+          </form>
+        ))}
       </div>
 
       <article className="space-y-8 rounded-2xl border border-stone-200 bg-white p-8 shadow-sm print:rounded-none print:border-0 print:p-0 print:shadow-none">

@@ -149,4 +149,19 @@ export class DrizzleFactureRepository implements FactureRepository {
       return versDomaine(row, lignesRows.map(versLigne));
     });
   }
+
+  async changerStatut(
+    tenantId: string,
+    id: string,
+    statut: Facture["statut"],
+  ): Promise<Facture | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(factures)
+        .set({ statut, updatedAt: new Date() })
+        .where(and(eq(factures.tenantId, tenantId), eq(factures.id, id)));
+    });
+
+    return this.trouver(tenantId, id);
+  }
 }

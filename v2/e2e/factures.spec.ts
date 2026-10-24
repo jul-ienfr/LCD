@@ -27,6 +27,11 @@ test("facture : création, totaux, compta et export CSV", async ({ page }) => {
   await expect(page.getByText(numero).first()).toBeVisible();
   await expect(page.getByText("941,50 €").first()).toBeVisible();
 
+  await page.getByRole("button", { name: "Marquer émise" }).click();
+  await expect(page.getByText("emise").first()).toBeVisible();
+  await page.getByRole("button", { name: "Marquer payée" }).click();
+  await expect(page.getByText("payee").first()).toBeVisible();
+
   await page.goto("/hote/compta?mois=2026-11");
   await expect(page.getByText("Comptabilité — novembre 2026")).toBeVisible();
   await expect(page.getByText("TTC facturé").first()).toBeVisible();

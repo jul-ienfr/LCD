@@ -43,8 +43,8 @@ npm run test:e2e
 ```
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
-anti-chevauchement, audit, facture + compta + exports CSV, health/readiness,
-PWA offline, page voyageur **sans JavaScript** en 320 px.
+anti-chevauchement, audit, facture + statuts + compta + exports CSV,
+health/readiness, PWA offline, page voyageur **sans JavaScript** en 320 px.
 
 ## Pages
 
@@ -59,7 +59,7 @@ PWA offline, page voyageur **sans JavaScript** en 320 px.
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
 | `/hote/compta` | CA, factures, TVA, taxe, exports |
 | `/hote/factures` | liste + création de factures |
-| `/hote/factures/[id]` | facture imprimable / PDF navigateur |
+| `/hote/factures/[id]` | facture imprimable / PDF + statuts brouillon → émise → payée |
 | `/hote/securite` | 2FA |
 | `/voyageur` | séjour + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
