@@ -1,9 +1,9 @@
 # Index des documents du SAS
 
-**Genere le** : 2026-10-24 00:57 par `deploy/index-docs.ps1`.
+**Genere le** : 2026-10-24 16:54 par `deploy/index-docs.ps1`.
 **Ne pas editer a la main** : relancer l'outil (`-Verifier` dit si l'index est a jour).
 
-**26 documents** : 15 numerotes (l'ordre raconte le projet) et 11 autres.
+**27 documents** : 16 numerotes (l'ordre raconte le projet) et 11 autres.
 
 Deux documents sont **produits par la mesure** : les editer a la main est perdu a la regeneration.
 
@@ -26,6 +26,7 @@ Deux documents sont **produits par la mesure** : les editer a la main est perdu 
 | 75 | `75-versions-verifiees.md` | Genere le : 2026-10-23 10:11 par deploy/versions.ps1. |
 | 76 | `76-reconstruction.md` | RÃ´le : la procÃ©dure complÃ¨te pour repartir de zÃ©ro (machine morte, volÃ©e, noyÃ©e) et remettre |
 | 77 | `77-identite-roles-perimetres.md` | RÃ´le : Ã©tat datÃ© (2026-10-19) de la chaÃ®ne Â« qui es-tu â†’ oÃ¹ arrives-tu â†’ que vois-tu Â». |
+| 78 | `78-plan-stack-deploiement.md` | Plan de stack, JavaScript, dÃ©ploiement, gratuitÃ© et scaling (proposition). |
 
 ## Autres documents
 
