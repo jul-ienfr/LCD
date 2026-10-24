@@ -16,6 +16,7 @@ export const sql =
     idle_timeout: 20,
     connect_timeout: 10,
     prepare: false,
+    ssl: env.DATABASE_URL.includes("sslmode=require") ? "require" : false,
   });
 
 if (env.NODE_ENV !== "production") globalForDb.sql = sql;

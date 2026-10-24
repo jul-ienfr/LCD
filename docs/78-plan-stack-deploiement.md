@@ -794,7 +794,8 @@ et ne remplace pas v1.
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
 - **Better Auth 1.7.12** (email/password + TOTP complet : enrôlement,
   codes de secours, vérification à la connexion), seed idempotent
-  `admin@lcd.test`, session + rôle + tenant ;
+  `admin@lcd.test`, session + rôle + tenant ; changement de mot de passe
+  self-service sur `/hote/securite` (révoque les autres sessions) ;
 - routes `/`, `/login`, `/two-factor`, `/voyageur` (formulaire Server Action
   sans JS), `/hote`, `/hote/logements`, `/hote/planning`, `/hote/prix`,
   `/hote/compta`, `/hote/compta/parametres`, `/hote/factures`,
@@ -852,7 +853,18 @@ et ne remplace pas v1.
   cache-first assets, network-first pages, API/auth/staff jamais cachés ;
 - mesure JS `/voyageur` : **178,8 Ko gzip** → gate G1 déclenchée ;
 - **build Netlify validé** (`NETLIFY=true npm run build`), guide
-  `v2/DEPLOIEMENT.md` prêt ; déploiement réel en attente du compte/token ;
+  `v2/DEPLOIEMENT.md` prêt ;
+- **déploiement beta live** : <https://lcd-parc.netlify.app> — Netlify Free +
+  Netlify Database (Postgres managé, `us-east-2`), admin seedé,
+  `/api/health` et `/api/ready` verts ;
+- **limites du déploiement beta** : variables d'environnement non secrètes
+  sur le plan Free (`BETTER_AUTH_SECRET`, `DATABASE_URL` lisibles par
+  l'équipe), base en `us-east-2` (latence UE), email désactivé
+  (`EMAIL_ENABLED=false`) tant qu'aucun SMTP de production n'est branché,
+  Sentry/Uptime/backups encore absents ;
+- **migrations distantes** : schéma initial appliqué au bootstrap, table
+  `drizzle.__drizzle_migrations` marquée jusqu'à `0021` ; les migrations
+  suivantes se lancent avec `DATABASE_URL` (owner) récupéré depuis Netlify ;
 - CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
   (Postgres 18 + S3Mock + Mailpit).
@@ -920,9 +932,9 @@ et ne remplace pas v1.
 - [x] Écrire les règles HTML-first dans `v2/AGENTS.md`.
 - [x] Health/readiness + logs JSON + pages d'erreur.
 - [ ] Configurer Sentry Free + Uptime Kuma.
-- [ ] Créer Neon/Supabase Free + R2 + Brevo.
-- [x] Préparer le build Netlify (`NETLIFY=true` validé, guide prêt).
-- [ ] Déployer sur Netlify Free (compte/token requis).
+- [x] Créer Netlify Database Free + seed admin.
+- [x] Déployer sur Netlify Free : <https://lcd-parc.netlify.app>.
+- [ ] Brancher un SMTP de production + emails transactionnels.
 - [ ] Fixer la date de cutover (hors séjour, jamais un vendredi).
 - [ ] Choisir log1 comme logement pilote.
 

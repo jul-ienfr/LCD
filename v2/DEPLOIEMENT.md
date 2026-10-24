@@ -3,6 +3,28 @@
 Objectif : une URL publique HTTPS, une base Postgres managée, la PWA
 installable, sans payer au démarrage.
 
+## 0. État du déploiement beta (2026-10-25)
+
+- **URL** : <https://lcd-parc.netlify.app>
+- **Site Netlify** : `lcd-parc` (`7eb65dbc-dceb-477e-b89e-4ee1d7989b0b`),
+  plan Free.
+- **Base** : Netlify Database (Postgres managé, région `us-east-2`),
+  `DATABASE_URL` injecté par Netlify ; `/api/ready` répond `db: up`.
+- **Admin** : `conciergeriefr@outlook.fr` (mot de passe fourni hors dépôt).
+- **Email** : `EMAIL_ENABLED=false` tant qu'aucun SMTP de production
+  (Brevo/OVH/Scaleway) n'est configuré.
+- **Schéma** : bootstrap initial + table `drizzle.__drizzle_migrations`
+  marquée jusqu'à `0021`. Les migrations suivantes se lancent avec
+  `DATABASE_URL` owner récupéré depuis Netlify.
+- **Limites Free** : variables d'environnement non secrètes (lisibles par
+  l'équipe), base hors UE, pas de backups/PITR, pas de Sentry/Uptime.
+- **Sécurité** : le token Netlify utilisé pour ce bootstrap doit être
+  révoqué/rotaté ; le mot de passe admin a été changé via
+  `/hote/securite` et doit rester privé.
+
+La suite du document décrit la procédure cible (Neon/Supabase ou Netlify
+Database) et reste valable pour une installation neuve.
+
 ## 1. Base Postgres managée
 
 Créer une base **Neon** ou **Supabase** en région **UE** (Paris/Francfort).

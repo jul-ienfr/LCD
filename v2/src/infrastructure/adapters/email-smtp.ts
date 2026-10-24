@@ -7,6 +7,12 @@ import { env } from "@/lib/env";
  * Le fournisseur reste confiné ici ; le reste de l'app ne connaît que le port.
  */
 export function creerEmailSmtp(): EmailSender {
+  if (!env.EMAIL_ENABLED) {
+    throw new Error(
+      "Email désactivé : configurez SMTP_URL et EMAIL_ENABLED=true.",
+    );
+  }
+
   const url = new URL(env.SMTP_URL);
   const transport = nodemailer.createTransport({
     host: url.hostname,

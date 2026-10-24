@@ -5,6 +5,17 @@ Nouvelle base Next.js 16.4 + React 19.3 + TypeScript 6.0.3 (lint) / 7.0.2
 (nodemailer). Objectif : remplacer v1 en fast-track, sans perdre la capacité
 de migrer plus tard (voir `docs/78-plan-stack-deploiement.md`).
 
+## Déploiement beta
+
+- URL : <https://lcd-parc.netlify.app>
+- Netlify Free + Netlify Database (Postgres managé, `us-east-2`) ;
+- `/api/health` et `/api/ready` verts ;
+- email désactivé (`EMAIL_ENABLED=false`) tant qu'aucun SMTP de production
+  n'est configuré ;
+- variables d'environnement non secrètes sur le plan Free, base hors UE,
+  backups/Sentry/Uptime à ajouter ;
+- procédure et limites : `v2/DEPLOIEMENT.md`.
+
 ## Démarrer
 
 ```bash
@@ -218,6 +229,8 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
 - Vérification à la connexion : `/two-factor`.
 - Session cookie httpOnly ; le tenant et le rôle viennent de `session.user`.
 - `requireRole(["admin","hote"])` protège les pages staff.
+- Changement de mot de passe sur `/hote/securite` (12 caractères minimum,
+  révoque les autres sessions).
 - Déconnexion : bouton sur `/hote`.
 
 ## Architecture

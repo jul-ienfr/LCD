@@ -109,3 +109,6 @@ Thumbs.db
 !.claude/skills/**
 deploy/compaction.log
 deploy/pare-feu.log
+
+# Local Netlify folder
+.netlify

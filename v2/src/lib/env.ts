@@ -1,15 +1,17 @@
 import { z } from "zod";
 
+const databaseUrl =
+  process.env.NETLIFY_DB_URL?.trim() ||
+  process.env.DATABASE_URL?.trim() ||
+  "postgres://lcd:lcd@127.0.0.1:5432/lcd";
+
 const schema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
   APP_URL: z.string().default("http://localhost:3000"),
 
-  DATABASE_URL: z
-    .string()
-    .min(1)
-    .default("postgres://lcd:lcd@127.0.0.1:5432/lcd"),
+  DATABASE_URL: z.string().min(1).default(databaseUrl),
 
   BETTER_AUTH_SECRET: z
     .string()
@@ -30,6 +32,10 @@ const schema = z.object({
     .transform((v) => v === "true"),
 
   // Email transactionnel.
+  EMAIL_ENABLED: z
+    .string()
+    .default("true")
+    .transform((v) => v === "true" || v === "1"),
   EMAIL_FROM: z.string().default("LCD <no-reply@lcd.test>"),
   SMTP_URL: z.string().default("smtp://127.0.0.1:1025"),
 

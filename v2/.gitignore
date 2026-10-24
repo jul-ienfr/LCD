@@ -20,3 +20,6 @@ next-env.d.ts
 # Divers
 .DS_Store
 npm-debug.log*
+
+# Local Netlify folder
+.netlify
