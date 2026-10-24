@@ -1,4 +1,9 @@
--- RLS multi-tenant (défense en profondeur).
+-- RLS multi-tenant (défense en profondeur) — tables métier uniquement.
+--
+-- Les tables Better Auth (session, account, verification, two_factor) et
+-- `users` ne sont PAS sous RLS : la connexion doit pouvoir retrouver un
+-- utilisateur par email avant de connaître son tenant. Le contrôle d'accès
+-- applicatif (session + role + tenant) reste la première barrière.
 --
 -- Le rôle applicatif de production doit être DISTINCT du propriétaire des
 -- tables ; sinon PostgreSQL bypasse les policies. En local, le rôle `lcd`
@@ -6,24 +11,11 @@
 --
 -- `withTenant()` positionne app.tenant_id dans la transaction :
 --   select set_config('app.tenant_id', '<uuid>', true);
---
--- Pour un accès cross-tenant (super_admin), utiliser un rôle dédié ou
--- `SET ROLE`, jamais exposer ce contournement au client.
 
-ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE logements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE idempotency_keys ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY tenants_isolation ON tenants
-  USING (id = nullif(current_setting('app.tenant_id', true), '')::uuid)
-  WITH CHECK (id = nullif(current_setting('app.tenant_id', true), '')::uuid);
-
-CREATE POLICY users_isolation ON users
-  USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid)
-  WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
 
 CREATE POLICY logements_isolation ON logements
   USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid)

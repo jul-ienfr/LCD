@@ -781,26 +781,30 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL + Drizzle : schéma 6 tables, migration `0000`, RLS `0001` ;
+- PostgreSQL 18.6 + Drizzle : **10 tables** (6 métier + 4 Better Auth),
+  migration `0000`, RLS `0001` sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
-- routes `/`, `/voyageur` (formulaire Server Action sans JS), `/hote`,
-  `/api/health` ;
-- tests Vitest : 9/9 (domaine + cas d'usage avec dépôt mémoire) ;
+- **Better Auth 1.7.12** (email/password + plugin TOTP), seed idempotent
+  `admin@lcd.test`, session + rôle + tenant ;
+- routes `/`, `/login`, `/voyageur` (formulaire Server Action sans JS),
+  `/hote`, `/hote/logements`, `/api/auth/[...all]`, `/api/health` ;
+- première tranche verticale : **login → création logement → liste → audit** ;
+- tests Vitest : **9/9** (domaine + cas d'usage avec dépôt mémoire) ;
+- Playwright : **2/2** (login + création ; voyageur sans JS en 320 px) ;
 - CI `v2-ci` (lint, typecheck, tests, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
-  (Postgres 18 + MinIO + Mailpit).
+  (Postgres 18 + S3Mock + Mailpit).
 
 **Reste à faire :**
 
-- brancher Better Auth + TOTP et le tenant réel ;
-- brancher le dépôt Drizzle sur une base locale, puis staging ;
+- écran d'enrôlement TOTP (le plugin est actif, pas l'UI) ;
 - policies RLS avec un rôle applicatif non propriétaire ;
-- Playwright JS on/off + 320 px + PWA ;
+- PWA/offline + budget JS mesuré ;
 - déploiement Netlify Free + Neon/Supabase ;
 - Sentry + Uptime Kuma ;
-- première tranche verticale logements.
+- planning + prix, puis compta/voyageur complet.
 
 ---
 
@@ -844,33 +848,36 @@ et ne remplace pas v1.
 
 ### Immédiat (cette semaine)
 
-- [ ] Valider D1/D2 : Next + HTML-first.
-- [ ] Choisir l'hébergeur beta : Netlify Free (recommandé) ou Cloudflare.
+- [x] Valider D1/D2 : Next + HTML-first.
+- [x] Choisir l'hébergeur beta : Netlify Free (recommandé) ou Cloudflare.
 - [x] Créer la branche `v2` et le squelette `v2/`.
 - [x] Poser Next 16.4 + TypeScript + Tailwind 4.3.
 - [x] Configurer GitHub Actions `v2-ci` (lint, typecheck, test, build).
 - [x] Poser le schéma Drizzle + migrations + RLS.
+- [x] Brancher Better Auth + RBAC + tenant.
+- [x] Écrire les règles HTML-first dans `v2/AGENTS.md`.
 - [ ] Configurer Sentry Free + Uptime Kuma.
 - [ ] Créer Neon/Supabase Free + R2 + Brevo.
-- [ ] Déployer une page blanche sur Netlify Free.
-- [ ] Écrire les 8 règles HTML-first dans `AGENTS.md`.
+- [ ] Déployer sur Netlify Free.
 - [ ] Fixer la date de cutover (hors séjour, jamais un vendredi).
 - [ ] Choisir log1 comme logement pilote.
 
 ### 30 jours
 
-- [ ] Schéma Postgres + Drizzle + RLS.
-- [ ] Auth + TOTP + RBAC.
+- [x] Schéma Postgres + Drizzle + RLS (tables métier).
+- [x] Auth + RBAC + tenant (Better Auth).
+- [ ] Écran d'enrôlement TOTP.
 - [ ] Design system + 4 thèmes.
-- [ ] Route voyageur JS off.
+- [x] Route voyageur JS off.
 - [ ] PWA + outbox IndexedDB.
 - [ ] CI/CD + preview + staging.
-- [ ] Tests Playwright JS on/off.
+- [x] Tests Playwright JS on/off + 320 px.
 - [ ] Lighthouse CI budgets.
 
 ### 90 jours
 
-- [ ] CRUD logements/entités/mandats.
+- [x] CRUD logements (création + liste + audit).
+- [ ] Entités + mandats.
 - [ ] Planning + pricing.
 - [ ] Compta/exports.
 - [ ] Portail voyageur complet.
@@ -1098,6 +1105,9 @@ de runtime. **ADR** pour toute décision irréversible.
 | Tailwind | 4.3.3 |
 | Node.js | 26.12.1 LTS (28/10/2026) |
 | PostgreSQL | 18.6 |
+| Drizzle ORM | 0.45.4 |
+| Better Auth | 1.7.12 |
+| Zod | 4.6.7 |
 | Vitest | 5.0.5 |
 | Playwright | 1.64.1 |
 | Astro | 7.4.2 |

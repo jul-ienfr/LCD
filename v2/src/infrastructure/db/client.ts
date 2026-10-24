@@ -1,4 +1,3 @@
-import "server-only";
 import { sql as drizzleSql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";

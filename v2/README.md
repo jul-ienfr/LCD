@@ -10,11 +10,20 @@ fast-track, sans perdre la capacité de migrer plus tard (voir
 ```bash
 npm ci
 cp .env.example .env.local
-docker compose -f compose.dev.yml up -d   # Postgres + MinIO + Mailpit
+docker compose -f compose.dev.yml up -d   # Postgres + S3Mock + Mailpit
 npm run db:generate
 npm run db:migrate
+npm run db:seed          # tenant "lcd" + admin@lcd.test
 npm run dev
 ```
+
+Compte de développement créé par le seed :
+
+| Email | Mot de passe | Rôle |
+|---|---|---|
+| `admin@lcd.test` | `ChangeMe-2026!` | `admin` |
+
+À changer avant tout déploiement. Le seed est idempotent.
 
 ## Vérifier
 
@@ -25,6 +34,25 @@ npm test
 npm run build
 ```
 
+E2E (serveur + DB seedés requis) :
+
+```bash
+npm run dev
+# autre terminal
+npm run test:e2e
+```
+
+Les tests couvrent : login staff, création d'un logement, audit, page
+voyageur **sans JavaScript** en 320 px.
+
+## Auth
+
+- **Better Auth 1.7.12**, email/password, plugin TOTP installé.
+- Routes : `/login`, `/api/auth/[...all]`.
+- Session cookie httpOnly ; le tenant et le rôle viennent de `session.user`.
+- `requireRole(["admin","hote"])` protège les pages staff.
+- L'écran d'enrollement TOTP reste à brancher ; le plugin est déjà actif.
+
 ## Architecture
 
 ```text
@@ -34,10 +62,10 @@ src/
     ports/          # interfaces des dépendances externes
     use-cases/      # orchestration métier
   infrastructure/
-    db/             # Drizzle, schéma, repositories
+    db/             # Drizzle, schéma, auth-schema, repositories
     adapters/       # S3, email, Stripe, queue, LLM, OTA, box
   app/              # Next : routes, RSC, Server Actions
-  lib/              # env, flags, utils neutres
+  lib/              # env, auth, session, flags, utils neutres
 tests/
   domain/           # tests purs
   application/      # tests avec dépôts mémoire
@@ -62,7 +90,16 @@ Aucun import de Next, Drizzle, Stripe, Brevo ou S3 dans `domain/`.
 - Avant prod : backup + dump + test de restauration.
 
 Le helper `withTenant()` positionne `app.tenant_id` dans la transaction ;
-les policies RLS PostgreSQL pourront s'appuyer dessus.
+les policies RLS PostgreSQL s'appuient dessus pour `logements`,
+`reservations`, `audit_logs` et `idempotency_keys`. Les tables Better Auth
+(`users`, `session`, `account`, `verification`, `two_factor`) ne sont pas
+sous RLS : la connexion doit retrouver un utilisateur par email avant de
+connaître son tenant.
+
+Migrations actuelles :
+
+- `0000_*.sql` : 10 tables (6 métier + 4 Better Auth) ;
+- `0001_rls.sql` : policies RLS des tables métier.
 
 ## Ports & adapters
 
@@ -71,8 +108,8 @@ une implémentation dans `src/infrastructure/adapters/` :
 
 | Port | Adapter prévu |
 |---|---|
-| `AuthProvider` | Better Auth / OIDC |
-| `StockageFichiers` | S3 / R2 / MinIO |
+| `AuthProvider` | Better Auth 1.7.12 (+ TOTP) / OIDC |
+| `StockageFichiers` | S3 / R2 / S3Mock (dev) |
 | `EmailSender` | Brevo / SMTP |
 | `Paiement` | Stripe |
 | `Queue` | Inngest / QStash / BullMQ |
@@ -86,8 +123,8 @@ une implémentation dans `src/infrastructure/adapters/` :
 - **Premier client** : VPS 4 Go ou Netlify Pro + Postgres managé.
 - **Portabilité** : `output: "standalone"`, Dockerfile fourni, aucune API
   Netlify dans le code métier. `netlify.toml` reste mince.
-- Variables standard : `DATABASE_URL`, `S3_*`, `SMTP_URL`, `AUTH_SECRET`,
-  `STRIPE_*`, `SENTRY_DSN`.
+- Variables standard : `DATABASE_URL`, `S3_*`, `SMTP_URL`,
+  `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `STRIPE_*`, `SENTRY_DSN`.
 
 ## Règles non négociables
 

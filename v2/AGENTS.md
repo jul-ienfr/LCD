@@ -7,3 +7,24 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Règles projet LCD v2 (opposables)
+
+1. **HTML-first** : toute route voyageur rend son contenu et ses formulaires
+   sans JavaScript. Test Playwright `javaScriptEnabled: false`.
+2. **JS islands** : aucun composant client obligatoire sur le voyageur ;
+   les îlots sont chargés à la demande.
+3. **Budget JS** : voyageur < 50 Ko gzip, staff < 200 Ko. Mesurer avant
+   d'ajouter une dépendance.
+4. **Domaine pur** : `src/domain/` n'importe ni Next, ni Drizzle, ni Stripe,
+   ni Brevo, ni S3.
+5. **Ports/adapters** : toute dépendance externe passe par
+   `src/application/ports/` + `src/infrastructure/adapters/`.
+6. **Tenant** : `tenant_id` vient de la session, jamais du client ;
+   `withTenant()` pour les tables métier.
+7. **Idempotence** : toute écriture rejouable porte une `ref` stable.
+8. **Migrations** : `drizzle/` immuable après application ; expand/contract ;
+   backup + restore testés avant prod.
+9. **Pas de secret dans Git** ; `BETTER_AUTH_SECRET` ≥ 32 caractères en prod.
+10. **Toute nouvelle brique** a un port, un adapter, un test et un plan de
+    retrait.

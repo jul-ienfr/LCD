@@ -34,15 +34,22 @@ export const tenants = pgTable(
   (t) => [uniqueIndex("tenants_slug_uq").on(t.slug)],
 );
 
+// Table utilisateur compatible Better Auth (id texte, name, emailVerified,
+// image, twoFactorEnabled) + champs métier (tenantId, role, actif).
+// L'email est unique globalement : un compte = un utilisateur, même s'il
+// change de tenant plus tard (le tenant est une propriété du compte).
 export const users = pgTable(
   "users",
   {
-    id: uuid("id").defaultRandom().primaryKey(),
+    id: text("id").primaryKey(),
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
     email: text("email").notNull(),
-    nom: text("nom").notNull(),
+    emailVerified: boolean("email_verified").notNull().default(false),
+    image: text("image"),
+    twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
     role: text("role").notNull().default("operateur"),
     actif: boolean("actif").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -54,7 +61,7 @@ export const users = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [
-    uniqueIndex("users_tenant_email_uq").on(t.tenantId, t.email),
+    uniqueIndex("users_email_uq").on(t.email),
     index("users_tenant_idx").on(t.tenantId),
   ],
 );

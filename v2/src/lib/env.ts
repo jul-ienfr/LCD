@@ -1,8 +1,3 @@
-// Configuration d'environnement validée au démarrage.
-// Aucun module métier ne lit process.env directement : tout passe par ici.
-// Les valeurs de dev ont des défauts explicites ; la production doit fournir
-// les variables réelles (échec au boot si absentes).
-import "server-only";
 import { z } from "zod";
 
 const schema = z.object({
@@ -16,8 +11,11 @@ const schema = z.object({
     .min(1)
     .default("postgres://lcd:lcd@127.0.0.1:5432/lcd"),
 
-  AUTH_SECRET: z.string().min(16).default("dev-only-change-me-please"),
-  AUTH_URL: z.string().default("http://localhost:3000"),
+  BETTER_AUTH_SECRET: z
+    .string()
+    .min(32)
+    .default("dev-only-change-me-please-32chars-min"),
+  BETTER_AUTH_URL: z.string().default("http://localhost:3000"),
 
   // Stockage S3-compatible : R2, MinIO, OVH, Scaleway.
   S3_ENDPOINT: z.string().default("http://127.0.0.1:9000"),
@@ -55,9 +53,10 @@ function chargerEnv(): Env {
 
   if (
     parsed.data.NODE_ENV === "production" &&
-    parsed.data.AUTH_SECRET === "dev-only-change-me-please"
+    parsed.data.BETTER_AUTH_SECRET ===
+      "dev-only-change-me-please-32chars-min"
   ) {
-    throw new Error("AUTH_SECRET doit être changé en production.");
+    throw new Error("BETTER_AUTH_SECRET doit être changé en production.");
   }
 
   return parsed.data;

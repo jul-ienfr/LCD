@@ -19,7 +19,8 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
-      AUTH_SECRET: ci-only-change-me-please
+      BETTER_AUTH_SECRET: ci-only-change-me-please-32chars-min
+      BETTER_AUTH_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,4 +32,5 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run db:check
       - run: npm run build
