@@ -9,7 +9,10 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 30_000,
   expect: { timeout: 10_000 },
+  // Les tests partagent le même admin : sérialiser évite le rate-limit auth
+  // et les courses sur les sessions.
   fullyParallel: false,
+  workers: 1,
   reporter: [["list"]],
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",

@@ -43,8 +43,8 @@ npm run test:e2e
 ```
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
-anti-chevauchement, audit, health/readiness, PWA offline, page voyageur
-**sans JavaScript** en 320 px.
+anti-chevauchement, audit, facture + compta + exports CSV, health/readiness,
+PWA offline, page voyageur **sans JavaScript** en 320 px.
 
 ## Pages
 
@@ -57,11 +57,16 @@ anti-chevauchement, audit, health/readiness, PWA offline, page voyageur
 | `/hote/logements` | logements (création + liste) |
 | `/hote/prix` | prix par jour et par logement |
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
+| `/hote/compta` | CA, factures, TVA, taxe, exports |
+| `/hote/factures` | liste + création de factures |
+| `/hote/factures/[id]` | facture imprimable / PDF navigateur |
 | `/hote/securite` | 2FA |
 | `/voyageur` | séjour + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
 | `/api/ready` | readiness (ping DB) |
+| `/api/exports/reservations` | export CSV des réservations |
+| `/api/exports/factures` | export CSV des factures |
 
 ## PWA
 
@@ -111,7 +116,7 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
 
 ```text
 src/
-  domain/           # pur : règles, calendrier, planning, tarifs, calculs
+  domain/           # pur : règles, calendrier, planning, tarifs, factures
   application/
     ports/          # interfaces des dépendances externes
     use-cases/      # orchestration métier
@@ -155,7 +160,11 @@ Migrations actuelles :
 - `0000_*.sql` : 11 tables (7 métier + 4 Better Auth) ;
 - `0001_rls.sql` : policies RLS des tables métier ;
 - `0002_*.sql` : tarifs + colonnes réservation ;
-- `0003_rls_tarifs.sql` : RLS des tarifs.
+- `0003_rls_tarifs.sql` : RLS des tarifs ;
+- `0004_*.sql` : factures + lignes de facture ;
+- `0005_rls_factures.sql` : RLS des factures.
+
+Total : **13 tables** (9 métier + 4 Better Auth).
 
 ## Ports & adapters
 

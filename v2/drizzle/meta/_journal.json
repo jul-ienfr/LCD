@@ -29,6 +29,20 @@
       "when": 1792867860306,
       "tag": "0003_rls_tarifs",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792869907274,
+      "tag": "0004_swift_iceman",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792869911558,
+      "tag": "0005_rls_factures",
+      "breakpoints": true
     }
   ]
 }

@@ -25,4 +25,8 @@ export interface ReservationRepository {
     debut: string,
     fin: string,
   ): Promise<boolean>;
+  trouverParId(
+    tenantId: string,
+    id: string,
+  ): Promise<Reservation | null>;
 }

@@ -787,8 +787,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **11 tables** (7 métier + 4 Better Auth),
-  migrations `0000` → `0003`, RLS sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **13 tables** (9 métier + 4 Better Auth),
+  migrations `0000` → `0005`, RLS sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -797,14 +797,19 @@ et ne remplace pas v1.
   `admin@lcd.test`, session + rôle + tenant ;
 - routes `/`, `/login`, `/two-factor`, `/voyageur` (formulaire Server Action
   sans JS), `/hote`, `/hote/logements`, `/hote/planning`, `/hote/prix`,
-  `/hote/securite`, `/api/auth/[...all]`, `/api/health`, `/api/ready` ;
+  `/hote/compta`, `/hote/factures`, `/hote/factures/[id]`, `/hote/securite`,
+  `/api/auth/[...all]`, `/api/health`, `/api/ready`,
+  `/api/exports/reservations`, `/api/exports/factures` ;
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
+- **compta légère** : factures brouillon, lignes, TVA, taxe de séjour,
+  totaux HT/TTC, impression/PDF navigateur, exports CSV réservations/factures ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
 - **logs JSON** + pages d'erreur brandées ;
 - tests Vitest : **25/25** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **5/5** (login + logement ; prix + planning + anti-chevauchement ;
-  PWA offline + API jamais cachée ; health/ready ; voyageur sans JS 320 px) ;
+- Playwright : **6/6** (login + logement ; prix + planning + anti-chevauchement ;
+  PWA offline + API jamais cachée ; health/ready ; facture + compta + CSV ;
+  voyageur sans JS 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -823,7 +828,8 @@ et ne remplace pas v1.
 - décision G1 : Astro pour le voyageur ou accepter le plancher Next ;
 - déploiement effectif Netlify Free + Neon/Supabase (config prête) ;
 - Sentry + Uptime Kuma ;
-- compta/voyageur complet, puis intégrations OTA/HA.
+- paiements/statuts de facture, Factur-X, TVA/taxe paramétrables ;
+- voyageur complet, puis intégrations OTA/HA.
 
 ---
 
@@ -902,7 +908,8 @@ et ne remplace pas v1.
 - [x] CRUD logements (création + liste + audit).
 - [ ] Entités + mandats.
 - [x] Planning + pricing + anti-chevauchement.
-- [ ] Compta/exports.
+- [x] Compta légère : factures, totaux, CSV, impression.
+- [ ] Paiements/factures payées + Factur-X.
 - [ ] Portail voyageur complet.
 - [x] Health/readiness + logs structurés.
 - [ ] Sentry + Uptime Kuma + alertes.

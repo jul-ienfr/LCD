@@ -52,4 +52,13 @@ export class ReservationRepositoryMemoire implements ReservationRepository {
         sejoursSeChevauchent(r.debut, r.fin, debut, fin),
     );
   }
+
+  async trouverParId(
+    tenantId: string,
+    id: string,
+  ): Promise<Reservation | null> {
+    return (
+      this.rows.find((r) => r.tenantId === tenantId && r.id === id) ?? null
+    );
+  }
 }

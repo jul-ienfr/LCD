@@ -156,6 +156,70 @@ export const tarifs = pgTable(
   ],
 );
 
+export const factures = pgTable(
+  "factures",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "restrict" }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    numero: text("numero").notNull(),
+    clientNom: text("client_nom").notNull(),
+    clientEmail: text("client_email"),
+    dateEmission: date("date_emission", { mode: "string" }).notNull(),
+    echeance: date("echeance", { mode: "string" }),
+    montantHtCentimes: integer("montant_ht_centimes").notNull().default(0),
+    tvaCentimes: integer("tva_centimes").notNull().default(0),
+    taxeSejourCentimes: integer("taxe_sejour_centimes").notNull().default(0),
+    montantTtcCentimes: integer("montant_ttc_centimes").notNull().default(0),
+    statut: text("statut").notNull().default("brouillon"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("factures_tenant_numero_uq").on(t.tenantId, t.numero),
+    index("factures_tenant_date_idx").on(t.tenantId, t.dateEmission),
+    index("factures_tenant_logement_idx").on(t.tenantId, t.logementId),
+  ],
+);
+
+export const factureLignes = pgTable(
+  "facture_lignes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    factureId: uuid("facture_id")
+      .notNull()
+      .references(() => factures.id, { onDelete: "cascade" }),
+    designation: text("designation").notNull(),
+    quantite: integer("quantite").notNull(),
+    prixUnitaireCentimes: integer("prix_unitaire_centimes").notNull(),
+    totalCentimes: integer("total_centimes").notNull(),
+    ordre: integer("ordre").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("facture_lignes_facture_idx").on(t.factureId, t.ordre),
+    index("facture_lignes_tenant_idx").on(t.tenantId),
+  ],
+);
+
 export const auditLogs = pgTable(
   "audit_logs",
   {
@@ -208,3 +272,7 @@ export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
+export type FactureRow = typeof factures.$inferSelect;
+export type NewFactureRow = typeof factures.$inferInsert;
+export type FactureLigneRow = typeof factureLignes.$inferSelect;
+export type NewFactureLigneRow = typeof factureLignes.$inferInsert;

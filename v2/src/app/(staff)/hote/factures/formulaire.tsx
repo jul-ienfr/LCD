@@ -1,0 +1,243 @@
+"use client";
+
+import { useActionState, useState } from "react";
+import type { Logement } from "@/domain/logement";
+import { nuitsSejour } from "@/domain/planning";
+import type { Reservation } from "@/domain/reservation";
+import { centimesDepuisSaisie, formaterEuros } from "@/lib/format";
+import {
+  creerFactureAction,
+  type EtatFormulaireFacture,
+} from "./actions";
+
+const etatInitial: EtatFormulaireFacture = { ok: false, message: "" };
+
+export function FormulaireFacture({
+  logements,
+  reservations,
+  dateDefaut,
+  numeroDefaut,
+}: {
+  logements: Pick<Logement, "id" | "nom" | "code">[];
+  reservations: Pick<
+    Reservation,
+    "id" | "ref" | "debut" | "fin" | "clientNom" | "montantCentimes" | "logementId"
+  >[];
+  dateDefaut: string;
+  numeroDefaut: string;
+}) {
+  const [etat, action, enCours] = useActionState(
+    creerFactureAction,
+    etatInitial,
+  );
+
+  const [logementId, setLogementId] = useState(logements[0]?.id ?? "");
+  const [reservationId, setReservationId] = useState("");
+  const [clientNom, setClientNom] = useState("");
+  const [designation, setDesignation] = useState("Séjour");
+  const [quantite, setQuantite] = useState("1");
+  const [prixUnitaire, setPrixUnitaire] = useState("0");
+  const [tva, setTva] = useState("0");
+  const [taxe, setTaxe] = useState("0");
+
+  const ht =
+    (centimesDepuisSaisie(prixUnitaire) ?? 0) *
+    Math.max(1, Number(quantite) || 1);
+  const ttc =
+    ht +
+    (centimesDepuisSaisie(tva) ?? 0) +
+    (centimesDepuisSaisie(taxe) ?? 0);
+
+  function choisirReservation(id: string) {
+    setReservationId(id);
+    const reservation = reservations.find((r) => r.id === id);
+    if (!reservation) return;
+
+    setLogementId(reservation.logementId);
+    setClientNom(reservation.clientNom ?? "");
+    setDesignation(
+      `Séjour du ${reservation.debut} au ${reservation.fin}`,
+    );
+    const nuits = nuitsSejour(reservation.debut, reservation.fin);
+    setQuantite(String(nuits));
+    setPrixUnitaire(
+      (reservation.montantCentimes / 100 / Math.max(1, nuits)).toFixed(2),
+    );
+  }
+
+  return (
+    <form action={action} className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Réservation liée (facultatif)</span>
+          <select
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            name="reservationId"
+            value={reservationId}
+            onChange={(e) => choisirReservation(e.target.value)}
+          >
+            <option value="">Aucune — facture libre</option>
+            {reservations.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.ref} — {r.debut} → {r.fin}
+                {r.clientNom ? ` (${r.clientNom})` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Logement</span>
+          <select
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            name="logementId"
+            value={logementId}
+            onChange={(e) => setLogementId(e.target.value)}
+            required
+          >
+            {logements.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.nom} ({l.code})
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Numéro</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 font-mono text-base"
+            defaultValue={numeroDefaut}
+            name="numero"
+            required
+          />
+        </label>
+
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Client</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            name="clientNom"
+            value={clientNom}
+            onChange={(e) => setClientNom(e.target.value)}
+            required
+          />
+        </label>
+
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Email client (facultatif)</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            name="clientEmail"
+            type="email"
+          />
+        </label>
+
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Date d’émission</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            defaultValue={dateDefaut}
+            name="dateEmission"
+            type="date"
+            required
+          />
+        </label>
+
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Échéance (facultatif)</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            name="echeance"
+            type="date"
+          />
+        </label>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-4">
+        <label className="block space-y-1 text-sm font-medium sm:col-span-2">
+          <span>Désignation</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            name="designation"
+            value={designation}
+            onChange={(e) => setDesignation(e.target.value)}
+            required
+          />
+        </label>
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Quantité</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            min={1}
+            name="quantite"
+            type="number"
+            value={quantite}
+            onChange={(e) => setQuantite(e.target.value)}
+            required
+          />
+        </label>
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Prix unitaire (€)</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            inputMode="decimal"
+            name="prixUnitaireEuros"
+            value={prixUnitaire}
+            onChange={(e) => setPrixUnitaire(e.target.value)}
+            required
+          />
+        </label>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <label className="block space-y-1 text-sm font-medium">
+          <span>TVA (€)</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            inputMode="decimal"
+            name="tvaEuros"
+            value={tva}
+            onChange={(e) => setTva(e.target.value)}
+          />
+        </label>
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Taxe de séjour (€)</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            inputMode="decimal"
+            name="taxeEuros"
+            value={taxe}
+            onChange={(e) => setTaxe(e.target.value)}
+          />
+        </label>
+        <div className="rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm">
+          <p>HT : {formaterEuros(ht)}</p>
+          <p className="font-medium">TTC : {formaterEuros(ttc)}</p>
+        </div>
+      </div>
+
+      <label className="block space-y-1 text-sm font-medium">
+        <span>Notes (facultatif)</span>
+        <textarea
+          className="min-h-20 w-full rounded-xl border border-stone-300 p-3 text-base"
+          name="notes"
+        />
+      </label>
+
+      {etat.message ? (
+        <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          {etat.message}
+        </p>
+      ) : null}
+
+      <button
+        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        type="submit"
+        disabled={enCours}
+      >
+        {enCours ? "Création…" : "Créer la facture"}
+      </button>
+    </form>
+  );
+}

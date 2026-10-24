@@ -91,4 +91,23 @@ export class DrizzleReservationRepository implements ReservationRepository {
       return Boolean(row);
     });
   }
+
+  async trouverParId(
+    tenantId: string,
+    id: string,
+  ): Promise<Reservation | null> {
+    return withTenant(tenantId, async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(reservations)
+        .where(
+          and(
+            eq(reservations.tenantId, tenantId),
+            eq(reservations.id, id),
+          ),
+        )
+        .limit(1);
+      return row ? versDomaine(row) : null;
+    });
+  }
 }

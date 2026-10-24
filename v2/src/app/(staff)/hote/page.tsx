@@ -116,6 +116,18 @@ export default async function PageHote() {
           </Link>
           <Link
             className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
+            href="/hote/compta"
+          >
+            Compta
+          </Link>
+          <Link
+            className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
+            href="/hote/factures"
+          >
+            Factures
+          </Link>
+          <Link
+            className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
             href="/hote/securite"
           >
             Sécurité / 2FA
