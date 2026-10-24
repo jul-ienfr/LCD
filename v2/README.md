@@ -42,8 +42,22 @@ npm run dev
 npm run test:e2e
 ```
 
-Les tests couvrent : login staff, création d'un logement, audit, page
-voyageur **sans JavaScript** en 320 px.
+Les tests couvrent : login staff, création d'un logement, prix, planning,
+anti-chevauchement, audit, page voyageur **sans JavaScript** en 320 px.
+
+## Pages
+
+| Route | Rôle |
+|---|---|
+| `/` | accueil public |
+| `/login` | connexion staff |
+| `/two-factor` | vérification TOTP |
+| `/hote` | tableau de bord |
+| `/hote/logements` | logements (création + liste) |
+| `/hote/prix` | prix par jour et par logement |
+| `/hote/planning` | réservations + calendrier + anti-chevauchement |
+| `/hote/securite` | 2FA |
+| `/voyageur` | séjour + incident (sans JS) |
 
 ## Auth
 
@@ -59,7 +73,7 @@ voyageur **sans JavaScript** en 320 px.
 
 ```text
 src/
-  domain/           # pur : règles, types, calculs (aucun import Next/DB)
+  domain/           # pur : règles, calendrier, planning, tarifs, calculs
   application/
     ports/          # interfaces des dépendances externes
     use-cases/      # orchestration métier
@@ -100,8 +114,10 @@ connaître son tenant.
 
 Migrations actuelles :
 
-- `0000_*.sql` : 10 tables (6 métier + 4 Better Auth) ;
-- `0001_rls.sql` : policies RLS des tables métier.
+- `0000_*.sql` : 11 tables (7 métier + 4 Better Auth) ;
+- `0001_rls.sql` : policies RLS des tables métier ;
+- `0002_*.sql` : tarifs + colonnes réservation ;
+- `0003_rls_tarifs.sql` : RLS des tarifs.
 
 ## Ports & adapters
 

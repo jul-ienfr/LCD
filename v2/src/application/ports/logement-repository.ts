@@ -16,4 +16,5 @@ export interface LogementRepository {
   creer(data: CreerLogementData): Promise<Logement>;
   listerParTenant(tenantId: TenantId): Promise<Logement[]>;
   trouverParCode(tenantId: TenantId, code: string): Promise<Logement | null>;
+  trouverParId(tenantId: TenantId, id: string): Promise<Logement | null>;
 }

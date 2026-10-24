@@ -1,0 +1,28 @@
+import type { Reservation } from "@/domain/reservation";
+
+export interface CreerReservationData {
+  tenantId: string;
+  logementId: string;
+  ref: string;
+  clientNom?: string;
+  voyageurs: number;
+  debut: string;
+  fin: string;
+  montantCentimes: number;
+  source?: string;
+}
+
+export interface ReservationRepository {
+  creer(data: CreerReservationData): Promise<Reservation>;
+  listerParMois(
+    tenantId: string,
+    debut: string,
+    fin: string,
+  ): Promise<Reservation[]>;
+  chevauche(
+    tenantId: string,
+    logementId: string,
+    debut: string,
+    fin: string,
+  ): Promise<boolean>;
+}

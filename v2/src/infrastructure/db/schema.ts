@@ -1,5 +1,6 @@
 import {
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -102,10 +103,13 @@ export const reservations = pgTable(
       .notNull()
       .references(() => logements.id, { onDelete: "restrict" }),
     ref: text("ref").notNull(),
+    clientNom: text("client_nom"),
+    voyageurs: integer("voyageurs").notNull().default(1),
     debut: text("debut").notNull(), // AAAA-MM-JJ
     fin: text("fin").notNull(), // AAAA-MM-JJ, exclusive
     statut: text("statut").notNull().default("brouillon"),
     montantCentimes: integer("montant_centimes").notNull().default(0),
+    source: text("source").notNull().default("direct"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -118,6 +122,37 @@ export const reservations = pgTable(
     uniqueIndex("reservations_tenant_ref_uq").on(t.tenantId, t.ref),
     index("reservations_tenant_debut_idx").on(t.tenantId, t.debut),
     index("reservations_logement_idx").on(t.logementId, t.debut, t.fin),
+  ],
+);
+
+export const tarifs = pgTable(
+  "tarifs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(), // AAAA-MM-JJ
+    prixCentimes: integer("prix_centimes").notNull(),
+    source: text("source").notNull().default("manuel"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("tarifs_tenant_logement_date_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.date,
+    ),
+    index("tarifs_tenant_date_idx").on(t.tenantId, t.date),
   ],
 );
 
@@ -171,3 +206,5 @@ export type LogementRow = typeof logements.$inferSelect;
 export type NewLogementRow = typeof logements.$inferInsert;
 export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
+export type TarifRow = typeof tarifs.$inferSelect;
+export type NewTarifRow = typeof tarifs.$inferInsert;

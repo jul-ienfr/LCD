@@ -14,10 +14,13 @@ export interface Reservation {
   tenantId: TenantId;
   logementId: LogementId;
   ref: string;
+  clientNom: string | null;
+  voyageurs: number;
   debut: string; // AAAA-MM-JJ
   fin: string; // AAAA-MM-JJ, exclusive
   statut: StatutReservation;
   montantCentimes: number;
+  source: string;
   createdAt: Date;
   updatedAt: Date;
 }

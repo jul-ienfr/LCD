@@ -42,6 +42,18 @@ export default async function PageHote() {
           </Link>
           <Link
             className="inline-block rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
+            href="/hote/planning"
+          >
+            Planning
+          </Link>
+          <Link
+            className="inline-block rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
+            href="/hote/prix"
+          >
+            Prix
+          </Link>
+          <Link
+            className="inline-block rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
             href="/hote/securite"
           >
             Sécurité / 2FA

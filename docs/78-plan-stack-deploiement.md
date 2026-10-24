@@ -781,8 +781,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **10 tables** (6 métier + 4 Better Auth),
-  migration `0000`, RLS `0001` sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **11 tables** (7 métier + 4 Better Auth),
+  migrations `0000` → `0003`, RLS sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -790,12 +790,12 @@ et ne remplace pas v1.
   codes de secours, vérification à la connexion), seed idempotent
   `admin@lcd.test`, session + rôle + tenant ;
 - routes `/`, `/login`, `/two-factor`, `/voyageur` (formulaire Server Action
-  sans JS), `/hote`, `/hote/logements`, `/hote/securite`,
-  `/api/auth/[...all]`, `/api/health` ;
-- première tranche verticale : **login → 2FA → création logement → liste →
-  audit** ;
-- tests Vitest : **9/9** (domaine + cas d'usage avec dépôt mémoire) ;
-- Playwright : **2/2** (login + création ; voyageur sans JS en 320 px) ;
+  sans JS), `/hote`, `/hote/logements`, `/hote/planning`, `/hote/prix`,
+  `/hote/securite`, `/api/auth/[...all]`, `/api/health` ;
+- tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
+- tests Vitest : **25/25** (domaine + cas d'usage avec dépôts mémoire) ;
+- Playwright : **3/3** (login + logement ; prix + planning + anti-chevauchement ;
+  voyageur sans JS en 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - CI `v2-ci` (lint, typecheck, tests, build) ;
@@ -809,7 +809,7 @@ et ne remplace pas v1.
 - PWA/offline + budget JS mesuré ;
 - déploiement Netlify Free + Neon/Supabase ;
 - Sentry + Uptime Kuma ;
-- planning + prix, puis compta/voyageur complet.
+- compta/voyageur complet, puis intégrations OTA/HA.
 
 ---
 
@@ -883,7 +883,7 @@ et ne remplace pas v1.
 
 - [x] CRUD logements (création + liste + audit).
 - [ ] Entités + mandats.
-- [ ] Planning + pricing.
+- [x] Planning + pricing + anti-chevauchement.
 - [ ] Compta/exports.
 - [ ] Portail voyageur complet.
 - [ ] Monitoring + alertes.

@@ -63,4 +63,18 @@ export class DrizzleLogementRepository implements LogementRepository {
       return row ? versDomaine(row) : null;
     });
   }
+
+  async trouverParId(
+    tenantId: string,
+    id: string,
+  ): Promise<Logement | null> {
+    return withTenant(tenantId, async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(logements)
+        .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)))
+        .limit(1);
+      return row ? versDomaine(row) : null;
+    });
+  }
 }

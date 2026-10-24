@@ -3,7 +3,12 @@ export type CodeErreurMetier =
   | "NOM_INVALIDE"
   | "LOGEMENT_DEJA_EXISTANT"
   | "TENANT_INVALIDE"
-  | "NON_AUTORISE";
+  | "NON_AUTORISE"
+  | "DATE_INVALIDE"
+  | "PRIX_INVALIDE"
+  | "REF_INVALIDE"
+  | "VOYAGEURS_INVALIDE"
+  | "RESERVATION_CHEVAUCHE";
 
 /**
  * Erreur métier : porte un code stable, indépendant du framework HTTP.

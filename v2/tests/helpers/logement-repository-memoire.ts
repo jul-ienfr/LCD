@@ -37,4 +37,14 @@ export class LogementRepositoryMemoire implements LogementRepository {
       ) ?? null
     );
   }
+
+  async trouverParId(
+    tenantId: string,
+    id: string,
+  ): Promise<Logement | null> {
+    return (
+      this.logements.find((l) => l.tenantId === tenantId && l.id === id) ??
+      null
+    );
+  }
 }
