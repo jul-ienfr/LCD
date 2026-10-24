@@ -150,6 +150,12 @@ batterie, la RAM et les anciens Safari/Chrome, pas l'iPhone 4.
 | Staff — éditeur/planning | **< 250 Ko** | justifié par l'interactivité |
 | Aucun | analytics tiers, police distante, CDN bloquant | 0 |
 
+**Mesure réelle v2 du 2026-10-24** : `/voyageur` = **178,8 Ko gzip**
+(8 chunks), soit le plancher du runtime Next 16. Le HTML reste utilisable
+sans JS, mais le budget voyageur de 50 Ko n'est pas tenu. **Gate G1
+déclenchée** : décider entre Astro pour la surface voyageur ou accepter le
+plancher Next en assumant le no-JS comme filet.
+
 ### §2.5 Matrice de tests
 
 | Test | Outil | Fréquence |
@@ -794,11 +800,16 @@ et ne remplace pas v1.
   `/hote/securite`, `/api/auth/[...all]`, `/api/health` ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - tests Vitest : **25/25** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **3/3** (login + logement ; prix + planning + anti-chevauchement ;
-  voyageur sans JS en 320 px) ;
+- Playwright : **4/4** (login + logement ; prix + planning + anti-chevauchement ;
+  PWA offline + API jamais cachée ; voyageur sans JS en 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
-- CI `v2-ci` (lint, typecheck, tests, build) ;
+- **PWA** : manifest, service worker versionné, offline, icônes locales,
+  cache-first assets, network-first pages, API/auth/staff jamais cachés ;
+- mesure JS `/voyageur` : **178,8 Ko gzip** → gate G1 déclenchée ;
+- **build Netlify validé** (`NETLIFY=true npm run build`), guide
+  `v2/DEPLOIEMENT.md` prêt ; déploiement réel en attente du compte/token ;
+- CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
   (Postgres 18 + S3Mock + Mailpit).
 
@@ -806,8 +817,8 @@ et ne remplace pas v1.
 
 - test E2E 2FA avec un utilisateur de test isolé (le parcours manuel passe) ;
 - policies RLS avec un rôle applicatif non propriétaire ;
-- PWA/offline + budget JS mesuré ;
-- déploiement Netlify Free + Neon/Supabase ;
+- décision G1 : Astro pour le voyageur ou accepter le plancher Next ;
+- déploiement effectif Netlify Free + Neon/Supabase (config prête) ;
 - Sentry + Uptime Kuma ;
 - compta/voyageur complet, puis intégrations OTA/HA.
 
@@ -817,7 +828,7 @@ et ne remplace pas v1.
 
 | Gate | Question | Si oui | Si non |
 |---|---|---|---|
-| **G1** | Le budget JS voyageur reste < 50 Ko ? | garder Next | passer le voyageur à Astro |
+| **G1** | Le budget JS voyageur reste < 50 Ko ? (mesuré : **178,8 Ko**) | garder Next + no-JS | passer le voyageur à Astro |
 | **G2** | Le back-office se développe assez vite ? | garder Next | envisager Laravel/Filament pour l'admin |
 | **G3** | Les offres gratuites tiennent la beta ? | rester 0 € | payer 20-40 €/mois |
 | **G4** | Données France obligatoires ? | Scaleway/OVH/Clever Cloud | Netlify/Neon EU |
@@ -863,7 +874,8 @@ et ne remplace pas v1.
 - [x] Écrire les règles HTML-first dans `v2/AGENTS.md`.
 - [ ] Configurer Sentry Free + Uptime Kuma.
 - [ ] Créer Neon/Supabase Free + R2 + Brevo.
-- [ ] Déployer sur Netlify Free.
+- [x] Préparer le build Netlify (`NETLIFY=true` validé, guide prêt).
+- [ ] Déployer sur Netlify Free (compte/token requis).
 - [ ] Fixer la date de cutover (hors séjour, jamais un vendredi).
 - [ ] Choisir log1 comme logement pilote.
 
@@ -874,10 +886,12 @@ et ne remplace pas v1.
 - [x] Écran d'enrôlement TOTP + vérification à la connexion.
 - [ ] Design system + 4 thèmes.
 - [x] Route voyageur JS off.
-- [ ] PWA + outbox IndexedDB.
+- [x] PWA + service worker + offline + cache.
+- [ ] Outbox IndexedDB pour écritures offline.
 - [ ] CI/CD + preview + staging.
-- [x] Tests Playwright JS on/off + 320 px.
+- [x] Tests Playwright JS on/off + 320 px + PWA.
 - [ ] Lighthouse CI budgets.
+- [ ] Décision G1 : Astro voyageur ou accepter 178,8 Ko.
 
 ### 90 jours
 

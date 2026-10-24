@@ -18,6 +18,9 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [
     env.BETTER_AUTH_URL,
+    ...(env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",")
+      .map((origine) => origine.trim())
+      .filter(Boolean) ?? []),
     ...(env.NODE_ENV !== "production"
       ? ["http://localhost:3000", "http://127.0.0.1:3000"]
       : []),

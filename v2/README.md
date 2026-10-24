@@ -59,6 +59,32 @@ anti-chevauchement, audit, page voyageur **sans JavaScript** en 320 px.
 | `/hote/securite` | 2FA |
 | `/voyageur` | séjour + incident (sans JS) |
 
+## PWA
+
+- `src/app/manifest.ts` : manifest installable, icônes 192/512/maskable.
+- `public/sw.js` : service worker maison, versionné.
+- `/offline` : fallback hors ligne.
+- `public/icons/` : icônes générées localement (aucun CDN).
+- Enregistrement uniquement en production (`PwaRegister`).
+
+Test réel :
+
+```bash
+npm run test:e2e   # inclut PWA offline + API jamais cachée
+```
+
+Mesure du JS initial :
+
+```bash
+npm run dev        # ou npm start
+npm run measure:js
+```
+
+**Mesure du 2026-10-24 : 178,8 Ko gzip sur `/voyageur` (8 chunks).**
+C'est au-dessus du budget voyageur de 50 Ko : la gate G1 est déclenchée.
+Le HTML fonctionne toujours sans JS ; la décision « Astro pour le voyageur »
+ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
+
 ## Auth
 
 - **Better Auth 1.7.12**, email/password, TOTP actif.
@@ -137,12 +163,16 @@ une implémentation dans `src/infrastructure/adapters/` :
 
 ## Déploiement
 
+Guide pas à pas : [`DEPLOIEMENT.md`](./DEPLOIEMENT.md).
+
 - **Beta** : Netlify Free (ou Cloudflare) + Neon/Supabase + R2.
 - **Premier client** : VPS 4 Go ou Netlify Pro + Postgres managé.
-- **Portabilité** : `output: "standalone"`, Dockerfile fourni, aucune API
-  Netlify dans le code métier. `netlify.toml` reste mince.
+- **Portabilité** : `output: "standalone"` sur Docker/VPS, désactivé quand
+  `NETLIFY=true` (plugin Next). Aucune API Netlify dans le code métier.
+- Build Netlify validé : `NETLIFY=true npm run build`.
 - Variables standard : `DATABASE_URL`, `S3_*`, `SMTP_URL`,
-  `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `STRIPE_*`, `SENTRY_DSN`.
+  `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `BETTER_AUTH_TRUSTED_ORIGINS`,
+  `STRIPE_*`, `SENTRY_DSN`.
 
 ## Règles non négociables
 

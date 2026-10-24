@@ -16,6 +16,7 @@ const schema = z.object({
     .min(32)
     .default("dev-only-change-me-please-32chars-min"),
   BETTER_AUTH_URL: z.string().default("http://localhost:3000"),
+  BETTER_AUTH_TRUSTED_ORIGINS: z.string().optional(),
 
   // Stockage S3-compatible : R2, MinIO, OVH, Scaleway.
   S3_ENDPOINT: z.string().default("http://127.0.0.1:9000"),
