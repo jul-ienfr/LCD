@@ -26,6 +26,8 @@ Plan de stack, JavaScript, déploiement, gratuité et scaling (proposition).
 | **D6** | Premier client payant | **20-40 €/mois** : VPS 4 Go ou Netlify Pro + Postgres managé + backups | Le gratuit n'est pas une stratégie de production |
 | **D7** | Scaling | La stack ne change pas ; le **déploiement** change par paliers P0→P5 | Postgres + Next tiennent jusqu'à plusieurs centaines d'entités |
 | **D8** | Alternatives | **Astro 7.4 + React islands** pour le voyageur si le budget JS casse ; **Laravel 13 + Filament 5** si le back-office devient prioritaire | Décisions de repli, pas des détours permanents |
+| **D9** | Réversibilité | **Ports/adapters, Docker, PostgreSQL standard, S3, OIDC, exports** | Chaque brique doit pouvoir être remplacée ou déplacée sans réécrire le métier |
+| **D10** | Cutover sans client payant | **Fast-track : 8-12 semaines, un seul cutover, fallback 30 jours** | Pas de revenu SaaS dépendant de v1 : le risque est limité, les 3 logements servent de pilote |
 
 **Verdict** : la meilleure stack pour ce produit n'est ni « tout JS » ni
 « zéro JS ». C'est **du HTML rendu serveur, enrichi par des îlots JS**. Le
@@ -638,8 +640,10 @@ Un client à 149 €/mois le couvre.
 | 10-30 clients | 100-200 €/mois |
 | 30-100 clients | 300-800 €/mois |
 | 100+ clients | 1 000 €+/mois |
-| Rewrite (2 devs + IA) | 4-6 mois |
-| Rewrite (solo + IA) | 6-9 mois |
+| Rewrite mode A — avec clients (2 devs + IA) | 4-6 mois |
+| Rewrite mode A — avec clients (solo + IA) | 6-9 mois |
+| Rewrite mode B — fast-track (2 devs + IA) | 6-8 semaines |
+| Rewrite mode B — fast-track (solo + IA) | 8-12 semaines |
 
 Les prix sont des ordres de grandeur 2026 ; vérifier les grilles avant
 commande.
@@ -654,7 +658,17 @@ commande.
 côté, migrer route par route, garder l'ancienne en lecture seule jusqu'à
 parité. Les 28 batteries existantes deviennent les critères d'acceptation.
 
-### §11.2 Phases
+**Deux modes, selon le risque commercial :**
+
+| Mode | Condition | Durée | Cutover |
+|---|---|---|---|
+| **A — Strangler** | clients payants, revenu dépendant de v1 | 4-6 mois | route par route, double-run 2-4 semaines |
+| **B — Fast-track** | **aucun client payant** (cas actuel) | **8-12 semaines** | **un seul cutover, pilote 7 jours, fallback 30 jours** |
+
+Le mode B est décrit en §11.5. Il ne supprime pas les backups, le pilote et
+le fallback : il supprime la longue phase de double-run.
+
+### §11.2 Phases (mode A — avec clients)
 
 | Phase | Durée | Contenu | Critère de sortie |
 |---|---|---|---|
@@ -690,6 +704,68 @@ parité. Les 28 batteries existantes deviennent les critères d'acceptation.
 - p95 < 300 ms sur les routes critiques ;
 - budget JS respecté.
 
+### §11.5 Mode B — Fast-track sans client payant (cas actuel)
+
+**Condition** : aucun client payant, aucun revenu SaaS dépendant de v1.
+Les 3 logements sont le pilote. Le risque est limité, donc on peut couper
+plus vite — **mais pas sans filet**.
+
+#### Périmètre MVP : ce qui est dans v2 au cutover
+
+| Garder pour le cutover | Reporter après le cutover |
+|---|---|
+| login, tenants, RBAC | CRM/commercial avancé |
+| logements, entités, mandats | support/messagerie |
+| planning, prix, extras | supervision avancée |
+| voyageur : séjour, guide, extras, incident | secrets/rotation |
+| PWA offline + rejeu idempotent | LLM/auto-traduction |
+| exports de base (CSV/ICS) | Moli (garder HA) |
+| audit + « voir comme » | compta avancée/Factur-X |
+
+**Règle** : on ne coupe que quand les parcours des 3 logements passent. Le
+reste peut attendre 30-60 jours après le cutover.
+
+#### Calendrier fast-track
+
+| Phase | Durée | Contenu | Sortie |
+|---|---|---|---|
+| **0 — Fondations** | 1 sem. | repo, Next, Postgres, Drizzle, auth, CI, deploy | URL + CI verte |
+| **1 — Socle** | 2 sem. | tenants, logements, utilisateurs, rôles, audit | CRUD + RBAC |
+| **2 — Cœur** | 2-3 sem. | réservations, planning, prix, extras | parcours hôte |
+| **3 — Voyageur** | 2 sem. | séjour, guide, PWA, i18n | JS off + offline |
+| **4 — Compta légère** | 1-2 sem. | exports CSV/ICS, factures simples, caution | exports réels |
+| **5 — Parité** | 1-2 sem. | OTA/ICS, HA, emails, migration données | batteries vertes |
+| **6 — Cutover** | 1 sem. | pilote log1, puis log2/log3, fallback 30 j | v2 en prod |
+
+**Durée** : 8-12 semaines seul + IA ; 6-8 semaines à deux.
+**MVP utilisable** : 4-6 semaines (log1 : hôte + voyageur + planning/prix).
+
+#### Règles de cutover
+
+1. **Feature freeze v1** dès le premier commit v2.
+2. **Backup + dump + restore testé** la veille du cutover.
+3. **Hors séjour** : jamais pendant une arrivée/départ, jamais un vendredi.
+4. **Pilote log1** pendant 7 jours, avec comparaison quotidienne v1/v2.
+5. **Bascule log2/log3** seulement si log1 est vert 7 jours.
+6. **v1 en lecture seule 30 jours**, jamais supprimé avant.
+7. **Rollback < 2 h** : DNS/Caddy + restore dump, testé avant.
+8. **Fallback humain** : téléphone/SMS/papier pour les voyageurs en cours.
+9. **Pas de debug en prod** : si un parcours critique casse, rollback.
+10. **Archivage v1** après 30 jours + export complet.
+
+#### Ce qui rend le fast-track sûr
+
+- pas de client payant à impacter ;
+- 3 logements seulement, données faciles à migrer ;
+- 28 batteries existantes comme spécification ;
+- backups + pilote + fallback ;
+- scope MVP volontairement réduit.
+
+**Ce qui le rend dangereux** : vouloir tout porter avant de couper. Le
+fast-track marche parce qu’on accepte de reporter le CRM, le support, les
+secrets, la compta avancée et le LLM. Si on veut 100 % de parité, on retombe
+sur le mode A (4-6 mois).
+
 ---
 
 ## §12 Décisions à prendre / gates
@@ -705,6 +781,7 @@ parité. Les 28 batteries existantes deviennent les critères d'acceptation.
 | **G7** | > 100 entités ? | autoscaling/K8s | VPS |
 | **G8** | Temps réel devient central ? | WebSockets/Reverb | REST/SSR |
 | **G9** | ML local lourd ? | sidecar Python | API LLM |
+| **G10** | Aucun client payant ? | **fast-track 8-12 sem. + cutover unique** | strangler 4-6 mois |
 
 ---
 
@@ -718,7 +795,7 @@ parité. Les 28 batteries existantes deviennent les critères d'acceptation.
 | Next JS lourd sur vieux mobiles | abandon voyageur | HTML-first, budgets, Astro en repli |
 | Vercel Hobby non commercial | non-conformité | Netlify/Cloudflare/VPS |
 | Vendor lock-in Netlify | migration coûteuse | Docker/VPS en parallèle, pas d'API propriétaire |
-| Rewrite long | retard commercial | strangler, MVP 3 mois, feature freeze |
+| Rewrite long | retard commercial | fast-track 8-12 sem., scope MVP, feature freeze |
 | Migration données | perte/incohérence | checksums, double-run, rollback |
 | Solo/small team | burnout | une stack, automatisation, pas de microservices |
 | Oracle | pas de VPS | Netlify/Cloudflare/VPS payant |
@@ -740,6 +817,8 @@ parité. Les 28 batteries existantes deviennent les critères d'acceptation.
 - [ ] Créer Neon/Supabase Free + R2 + Brevo.
 - [ ] Déployer une page blanche sur Netlify Free.
 - [ ] Écrire les 8 règles HTML-first dans `AGENTS.md`.
+- [ ] Fixer la date de cutover (hors séjour, jamais un vendredi).
+- [ ] Choisir log1 comme logement pilote.
 
 ### 30 jours
 
@@ -761,13 +840,217 @@ parité. Les 28 batteries existantes deviennent les critères d'acceptation.
 - [ ] Monitoring + alertes.
 - [ ] Backups + restore testé.
 - [ ] Décision G1/G2 (Astro/Laravel) sur données réelles.
-- [ ] Premier client pilote.
+- [ ] Cutover log1 + pilote 7 jours.
+- [ ] Bascule log2/log3 + fallback 30 jours.
+- [ ] Premier client payant après cutover.
+
+### 120 jours
+
+- [ ] Archivage v1 + export complet.
+- [ ] v2 seul en production sur les 3 logements.
+- [ ] Backups + restore testés.
+- [ ] Premiers clients payants onboardés sur v2.
 
 ---
 
-## §15 Annexes
+## §15 Migration-friendly by design
 
-### §15.1 Versions de référence (24/10/2026)
+> **Objectif** : chaque brique doit pouvoir être mise à jour, remplacée ou
+> déplacée sans réécrire le métier. La migration n'est pas un accident de
+> parcours ; c'est une **capacité du code**, prévue dès le premier commit.
+
+### §15.1 Les 10 règles opposables
+
+| # | Règle | Test |
+|---|---|---|
+| **M1** | Le domaine ne dépend d'aucun framework, d'aucune base, d'aucun fournisseur. | `src/domain/` n'importe ni Next, ni Drizzle, ni Stripe, ni Brevo |
+| **M2** | Toute dépendance externe passe par un **port** et un **adapter**. | un fichier `ports/*.ts` + un `adapters/*.ts` par fournisseur |
+| **M3** | Le schéma de base est versionné par des migrations immuables. | `drizzle/000*.sql` + journal, jamais édité après application |
+| **M4** | Les changements de schéma sont **expand/contract**, jamais destructifs d'un coup. | ajout → double écriture → migration → suppression en 2 releases |
+| **M5** | L'API est versionnée et dépréciée avec un préavis. | `/api/v1`, `Deprecation` header, 6 mois |
+| **M6** | Toutes les données sont exportables dans un format ouvert. | export JSON/CSV par tenant, `pg_dump`, pas de format propriétaire |
+| **M7** | Aucun SDK fournisseur dans le domaine ou le client. | `grep` des imports ; adapters uniquement |
+| **M8** | L'app se déploie avec Docker et des variables d'environnement standard. | `docker build` + `docker run` sur VPS/Cloud Run/Clever Cloud |
+| **M9** | Les changements de comportement sont derrière un feature flag. | flag DB/env, activation progressive, rollback sans deploy |
+| **M10** | Les mises à jour suivent un calendrier et un staging. | Renovate + staging + canary + rollback testé |
+
+### §15.2 Architecture hexagonale (ports & adapters)
+
+```text
+src/
+  domain/                 # pur : entités, règles, calculs, types
+    tenant.ts
+    logement.ts
+    reservation.ts
+    pricing.ts
+  application/
+    ports/                # interfaces des dépendances externes
+      auth.ts
+      stockage.ts
+      email.ts
+      paiement.ts
+      queue.ts
+      llm.ts
+      ota.ts
+      runtime-box.ts
+    use-cases/            # orchestration métier
+      creer-logement.ts
+      calculer-prix.ts
+  infrastructure/
+    db/                   # Drizzle, schéma, migrations
+    adapters/             # implémentations réelles des ports
+      auth-better-auth.ts
+      stockage-s3.ts
+      email-brevo.ts
+      paiement-stripe.ts
+      queue-inngest.ts
+      llm-openai.ts
+  app/                    # Next : routes, RSC, Server Actions
+  lib/                    # utils neutres (dates, ids, i18n)
+tests/
+  domain/                 # tests purs, sans DB
+  migrations/             # tests de migration
+  contract/               # tests des adapters
+  e2e/                    # Playwright
+```
+
+**Règle de dépendance** : `domain ← application ← infrastructure ← app`.
+Le domaine ne connaît personne. L'application connaît ses ports. L'infra
+implémente. L'app assemble.
+
+**Exemple de port** :
+
+```ts
+// application/ports/stockage.ts
+export interface StockageFichiers {
+  put(key: string, body: Uint8Array, contentType: string): Promise<void>;
+  get(key: string): Promise<Uint8Array>;
+  signedUrl(key: string, expiresInSeconds: number): Promise<string>;
+  delete(key: string): Promise<void>;
+}
+```
+
+Aujourd'hui : `StockageS3` (R2/MinIO/S3). Demain : `StockageLocal` en dev,
+`StockageOVH` en France, `StockageNetlifyBlob` en beta. Le métier ne change
+pas.
+
+### §15.3 Base de données et migrations
+
+- **Drizzle Kit** génère le SQL versionné dans `drizzle/`.
+- Une migration appliquée n'est **jamais** éditée : on ajoute `0002_...`.
+- Chaque migration est **testée sur une base vide** et sur la version
+  précédente.
+- Avant migration production : **backup + dump** + vérification.
+- Migrations destructives : **deux releases** (expand, puis contract).
+- Colonnes : `id` (UUID/ULID), `tenant_id`, `created_at`, `updated_at`,
+  `deleted_at` si soft delete, `version` si optimistic locking.
+- Index composites `(tenant_id, ...)` dès le départ.
+- RLS PostgreSQL en défense en profondeur.
+- Journal de migration consultable (`drizzle.__drizzle_migrations`).
+
+Commandes cibles :
+
+```bash
+npm run db:generate     # génère le SQL depuis le schéma
+npm run db:migrate      # applique en staging/prod
+npm run db:check        # vérifie la dérive schéma/migrations
+npm run db:seed         # fixtures de dev uniquement
+```
+
+**Test de migration** : base vide → migrations → seed → smoke test ;
+base N-1 → migration → comparaison des données ; restore dump → smoke test.
+
+### §15.4 Fournisseurs remplaçables
+
+| Domaine | Port | Adapter par défaut | Repli | Lock-in |
+|---|---|---|---|---|
+| Auth | `AuthProvider` | Better Auth + TOTP | Authelia/Keycloak (OIDC) | faible |
+| Stockage | `StockageFichiers` | Cloudflare R2 (S3) | MinIO, S3 OVH/Scaleway | faible |
+| Email | `EmailSender` | Brevo | Postmark, SMTP | faible |
+| Paiement | `Paiement` | Stripe | autre PSP | moyen |
+| Queue/jobs | `Queue` | Inngest/QStash | BullMQ/Redis, cron | moyen |
+| LLM | `LlmProvider` | OpenAI/Anthropic | modèle local, autre API | faible |
+| OTA | `OtaSource` | API/ICS | scraping encadré, import manuel | moyen |
+| Box | `RuntimeBox` | HTTP HA/Moli | mode dégradé manuel | faible |
+| Observabilité | `Telemetry` | Sentry | OpenTelemetry, logs | faible |
+
+**Règle** : aucun type de fournisseur ne traverse le domaine. Stripe,
+Brevo, R2, Inngest restent dans `infrastructure/adapters/`.
+
+### §15.5 API versionnée et contrats
+
+- Routes publiques : `/api/v1/...`.
+- OpenAPI généré et versionné.
+- Dépréciation : header `Deprecation` + 6 mois + changelog.
+- Écritures : `Idempotency-Key` obligatoire, réponse rejouable.
+- Webhooks : signature, timestamp, rejeu idempotent.
+- Aucun payload propriétaire dans le domaine.
+- Contrats testés par des **contract tests** (adapter ↔ port).
+
+### §15.6 Déploiement portable
+
+- **Docker est la source de vérité**, pas Netlify.
+- `next.config.ts` : `output: "standalone"`.
+- Aucune API Netlify/Vercel dans le code métier.
+- Variables standard : `DATABASE_URL`, `S3_ENDPOINT`, `S3_BUCKET`,
+  `REDIS_URL`, `SMTP_URL`, `STRIPE_SECRET_KEY`, `SENTRY_DSN`.
+- Runtime Node pour la DB, les queues et les migrations ; Edge uniquement
+  pour le statique/les redirections.
+- `netlify.toml` reste mince : build, redirects, headers.
+- Cibles testées : Netlify, VPS Docker, Cloud Run, Clever Cloud, Scaleway.
+
+### §15.7 Mises à jour et cycle de vie
+
+| Brique | Cadence | Règle |
+|---|---|---|
+| Node.js | LTS tous les 2 ans | staging + batterie avant prod |
+| Next.js | minor mensuelle, patch sécurité immédiat | jamais de majeure un vendredi |
+| PostgreSQL | majeure annuelle | dump + test de restauration + fenêtre |
+| Dépendances | Renovate/Dependabot | PR groupées, CI obligatoire |
+| Schéma DB | à chaque feature | migration + test + backup |
+| API | semver | dépréciation 6 mois |
+
+**Changelog** obligatoire pour toute migration de schéma, de fournisseur ou
+de runtime. **ADR** pour toute décision irréversible.
+
+### §15.8 Export et réversibilité
+
+- Export complet par tenant : JSON + CSV (logements, réservations, clients,
+  factures, journal).
+- `pg_dump` quotidien + restauration testée.
+- Versioning des objets S3.
+- Dates ISO 8601, montants en centimes, IDs UUID/ULID.
+- Aucun format binaire propriétaire pour les données métier.
+- Droit à l'effacement : suppression + preuve d'effacement.
+- Portabilité : un tenant doit pouvoir partir avec ses données en < 1 jour.
+
+### §15.9 Tests de migration
+
+| Test | Ce qui est prouvé |
+|---|---|
+| Base vide → migrations → seed → smoke | une install neuve marche |
+| Base N-1 → migration → données intactes | une mise à jour marche |
+| Restore dump → smoke | une restauration marche |
+| Contract tests adapters | un fournisseur respecte le port |
+| Double-run v1/v2 | les sorties métier sont identiques |
+| Rollback drill | on sait revenir en arrière |
+
+### §15.10 Checklist pour chaque nouvelle brique
+
+- [ ] interface dans `application/ports/`
+- [ ] adapter dans `infrastructure/adapters/`
+- [ ] variable d'environnement validée par schéma (zod)
+- [ ] contract test
+- [ ] mode dégradé/fallback documenté
+- [ ] chemin d'export des données
+- [ ] ADR ou ligne de changelog
+- [ ] plan de retrait (comment on la remplace)
+
+---
+
+## §16 Annexes
+
+### §16.1 Versions de référence (24/10/2026)
 
 | Brique | Version |
 |---|---|
