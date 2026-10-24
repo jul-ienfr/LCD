@@ -85,6 +85,20 @@
       "when": 1792871894282,
       "tag": "0011_rls_proprietaires",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792872984826,
+      "tag": "0012_safe_madame_hydra",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792872986122,
+      "tag": "0013_rls_commercial",
+      "breakpoints": true
     }
   ]
 }

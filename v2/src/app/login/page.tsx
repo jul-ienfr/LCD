@@ -34,7 +34,9 @@ export default function PageLogin() {
         ? "/presta"
         : role === "proprietaire"
           ? "/proprio"
-          : "/hote",
+          : role === "commercial"
+            ? "/commercial"
+            : "/hote",
     );
     router.refresh();
   }

@@ -24,6 +24,7 @@ Compte de développement créé par le seed :
 | `admin@lcd.test` | `ChangeMe-2026!` | `admin` |
 | `presta@lcd.test` | `ChangeMe-2026!` | `presta` |
 | `proprio@lcd.test` | `ChangeMe-2026!` | `proprietaire` |
+| `commercial@lcd.test` | `ChangeMe-2026!` | `commercial` |
 
 À changer avant tout déploiement. Le seed est idempotent.
 
@@ -48,7 +49,7 @@ Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + statuts + compta + exports CSV,
 health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
 + idempotence + outbox, missions staff → prestataire, propriétaire rattaché +
-relevé + isolation, 320 px.
+relevé + isolation, CRM prospect + pipeline + offre, 320 px.
 
 ## Pages
 
@@ -69,6 +70,8 @@ relevé + isolation, 320 px.
 | `/hote/securite` | 2FA |
 | `/presta` | missions du prestataire + statuts |
 | `/proprio` | relevé propriétaire (lecture seule) |
+| `/commercial` | pipeline prospects |
+| `/commercial/prospects/[id]` | prospect + offres + statuts |
 | `/voyageur?t=<token>` | séjour réel + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
@@ -114,6 +117,15 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
   au retour du réseau ;
 - 2xx = retiré, 4xx = retiré (définitif), 5xx/réseau = conservé ;
 - la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
+
+## CRM commercial
+
+- pipeline : nouveau, qualifié, visite, offre, gagné, perdu ;
+- transitions contrôlées par domaine ;
+- offres : brouillon, envoyée, acceptée, refusée ;
+- montants en centimes ;
+- audit `prospect.*` / `offre.*` ;
+- isolation par tenant via RLS.
 
 ## Portail propriétaire
 
@@ -197,9 +209,11 @@ Migrations actuelles :
 - `0008_*.sql` : missions prestataire ;
 - `0009_rls_missions.sql` : RLS des missions ;
 - `0010_*.sql` : rattachement propriétaire ↔ logement ;
-- `0011_rls_proprietaires.sql` : RLS des rattachements.
+- `0011_rls_proprietaires.sql` : RLS des rattachements ;
+- `0012_*.sql` : prospects + offres ;
+- `0013_rls_commercial.sql` : RLS du CRM.
 
-Total : **16 tables** (12 métier + 4 Better Auth).
+Total : **18 tables** (14 métier + 4 Better Auth).
 
 ## Ports & adapters
 

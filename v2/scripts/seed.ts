@@ -96,6 +96,21 @@ async function main() {
     );
   }
 
+  const commercialEmail = process.env.SEED_COMMERCIAL_EMAIL;
+  const commercialPassword = process.env.SEED_COMMERCIAL_PASSWORD;
+  if (
+    commercialEmail &&
+    commercialPassword &&
+    commercialPassword.length >= 12
+  ) {
+    await creerUtilisateur(
+      commercialEmail,
+      commercialPassword,
+      "Commercial LCD",
+      "commercial",
+    );
+  }
+
   await sql.end();
 }
 

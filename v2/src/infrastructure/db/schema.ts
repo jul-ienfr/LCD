@@ -156,6 +156,64 @@ export const tarifs = pgTable(
   ],
 );
 
+export const prospects = pgTable(
+  "prospects",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    nom: text("nom").notNull(),
+    email: text("email"),
+    telephone: text("telephone"),
+    source: text("source").notNull().default("manuel"),
+    statut: text("statut").notNull().default("nouveau"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index("prospects_tenant_statut_idx").on(t.tenantId, t.statut),
+    index("prospects_tenant_email_idx").on(t.tenantId, t.email),
+  ],
+);
+
+export const offres = pgTable(
+  "offres",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    prospectId: uuid("prospect_id")
+      .notNull()
+      .references(() => prospects.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "set null",
+    }),
+    titre: text("titre").notNull(),
+    montantCentimes: integer("montant_centimes").notNull().default(0),
+    statut: text("statut").notNull().default("brouillon"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index("offres_tenant_prospect_idx").on(t.tenantId, t.prospectId),
+    index("offres_tenant_statut_idx").on(t.tenantId, t.statut),
+  ],
+);
+
 export const logementProprietaires = pgTable(
   "logement_proprietaires",
   {
@@ -374,6 +432,10 @@ export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
+export type ProspectRow = typeof prospects.$inferSelect;
+export type NewProspectRow = typeof prospects.$inferInsert;
+export type OffreRow = typeof offres.$inferSelect;
+export type NewOffreRow = typeof offres.$inferInsert;
 export type LogementProprietaireRow =
   typeof logementProprietaires.$inferSelect;
 export type NewLogementProprietaireRow =
