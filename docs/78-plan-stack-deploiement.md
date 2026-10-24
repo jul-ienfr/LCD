@@ -18,7 +18,7 @@ Plan de stack, JavaScript, déploiement, gratuité et scaling (proposition).
 
 | # | Décision | Choix | Pourquoi |
 |---|---|---|---|
-| **D1** | Stack cible principale | **Next.js 16.4.3 + React 19.3.1 + TypeScript 7 + Tailwind 4.3.3 + PostgreSQL 18.6 + Drizzle** | JS moderne, un seul langage, SSR/RSC, déploiement gratuit possible, écosystème maximal |
+| **D1** | Stack cible principale | **Next.js 16.4.3 + React 19.3.1 + TypeScript 6.0.3 (lint) / 7.0.2 (tsc) + Tailwind 4.3.3 + PostgreSQL 18.6 + Drizzle** | JS moderne, un seul langage, SSR/RSC, déploiement gratuit possible, écosystème maximal |
 | **D2** | Principe d'interface | **HTML-first, JS-enhanced** (progressive enhancement / islands) | Vieux mobiles, 3G, JS désactivé : tout doit rester utilisable |
 | **D3** | Surface voyageur | **Aucun JS obligatoire** ; JS < 50 Ko gzip sur les routes critiques | La majorité des voyageurs ont un smartphone récent, mais la robustesse est non négociable |
 | **D4** | Surface staff | JS riche autorisé, budget < 200 Ko gzip | Le staff a des appareils modernes ; le back-office peut être plus interactif |
@@ -171,7 +171,7 @@ batterie, la RAM et les anciens Safari/Chrome, pas l'iPhone 4.
 |---|---|---|
 | Framework | **Next.js** | **16.4.3** |
 | UI | **React** | **19.3.1** |
-| Langage | **TypeScript** | **7.0.2** |
+| Langage | **TypeScript** | **6.0.3 (lint) / 7.0.2 (tsc)** |
 | CSS | **Tailwind CSS** | **4.3.3** |
 | Runtime | **Node.js** | **26.12.1 LTS** (à partir du 28/10/2026) |
 | Base | **PostgreSQL** | **18.6** |
@@ -182,6 +182,12 @@ batterie, la RAM et les anciens Safari/Chrome, pas l'iPhone 4.
 | Déploiement | **Netlify Free** → VPS/Netlify Pro | — |
 | Monitoring | **Sentry + Uptime Kuma** | — |
 | Email | **Brevo** | — |
+
+> **Compatibilité outillage (24/10/2026)** : Next 16.4.3 accepte
+> TypeScript 7.0.2 pour `tsc`/build, mais `typescript-eslint` 8.72
+> (embarqué par `eslint-config-next` 16.4.3) refuse TS 7.0. Le squelette
+> utilise donc **TS 6.0.3** pour lint/typecheck. Passage à TS 7 quand
+> `typescript-eslint` supporte 7.1 — en staging, jamais en urgence.
 
 **Architecture :**
 
@@ -766,6 +772,36 @@ fast-track marche parce qu’on accepte de reporter le CRM, le support, les
 secrets, la compta avancée et le LLM. Si on veut 100 % de parité, on retombe
 sur le mode A (4-6 mois).
 
+### §11.6 État du squelette v2 (2026-10-24)
+
+Le squelette `v2/` existe sur la branche `v2`. Il n'est pas encore déployé
+et ne remplace pas v1.
+
+**Fait :**
+
+- Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
+- TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
+- PostgreSQL + Drizzle : schéma 6 tables, migration `0000`, RLS `0001` ;
+- architecture `domain / application / infrastructure / app` ;
+- ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
+  `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
+- routes `/`, `/voyageur` (formulaire Server Action sans JS), `/hote`,
+  `/api/health` ;
+- tests Vitest : 9/9 (domaine + cas d'usage avec dépôt mémoire) ;
+- CI `v2-ci` (lint, typecheck, tests, build) ;
+- `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
+  (Postgres 18 + MinIO + Mailpit).
+
+**Reste à faire :**
+
+- brancher Better Auth + TOTP et le tenant réel ;
+- brancher le dépôt Drizzle sur une base locale, puis staging ;
+- policies RLS avec un rôle applicatif non propriétaire ;
+- Playwright JS on/off + 320 px + PWA ;
+- déploiement Netlify Free + Neon/Supabase ;
+- Sentry + Uptime Kuma ;
+- première tranche verticale logements.
+
 ---
 
 ## §12 Décisions à prendre / gates
@@ -810,10 +846,11 @@ sur le mode A (4-6 mois).
 
 - [ ] Valider D1/D2 : Next + HTML-first.
 - [ ] Choisir l'hébergeur beta : Netlify Free (recommandé) ou Cloudflare.
-- [ ] Créer le repo `lcd-v2` (ou branche dédiée).
-- [ ] Poser le squelette Next 16.4 + TypeScript + Tailwind 4.3.
+- [x] Créer la branche `v2` et le squelette `v2/`.
+- [x] Poser Next 16.4 + TypeScript + Tailwind 4.3.
+- [x] Configurer GitHub Actions `v2-ci` (lint, typecheck, test, build).
+- [x] Poser le schéma Drizzle + migrations + RLS.
 - [ ] Configurer Sentry Free + Uptime Kuma.
-- [ ] Configurer GitHub Actions (lint, typecheck, test, build).
 - [ ] Créer Neon/Supabase Free + R2 + Brevo.
 - [ ] Déployer une page blanche sur Netlify Free.
 - [ ] Écrire les 8 règles HTML-first dans `AGENTS.md`.
@@ -1004,6 +1041,7 @@ Brevo, R2, Inngest restent dans `infrastructure/adapters/`.
 | Brique | Cadence | Règle |
 |---|---|---|
 | Node.js | LTS tous les 2 ans | staging + batterie avant prod |
+| TypeScript | 6.0.3 → 7.x | quand `typescript-eslint` supporte 7.1 |
 | Next.js | minor mensuelle, patch sécurité immédiat | jamais de majeure un vendredi |
 | PostgreSQL | majeure annuelle | dump + test de restauration + fenêtre |
 | Dépendances | Renovate/Dependabot | PR groupées, CI obligatoire |
@@ -1056,7 +1094,7 @@ de runtime. **ADR** pour toute décision irréversible.
 |---|---|
 | Next.js | 16.4.3 |
 | React | 19.3.1 |
-| TypeScript | 7.0.2 |
+| TypeScript | 6.0.3 (lint) / 7.0.2 (tsc) |
 | Tailwind | 4.3.3 |
 | Node.js | 26.12.1 LTS (28/10/2026) |
 | PostgreSQL | 18.6 |

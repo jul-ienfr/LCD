@@ -1,0 +1,22 @@
+# Dépendances
+/node_modules
+
+# Fichiers runtime / secrets
+.env*
+!.env.example
+
+# Tests
+/coverage
+/playwright-report
+/test-results
+
+# Build
+/.next
+/out
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# Divers
+.DS_Store
+npm-debug.log*

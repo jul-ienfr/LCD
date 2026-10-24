@@ -1,0 +1,66 @@
+// Configuration d'environnement validée au démarrage.
+// Aucun module métier ne lit process.env directement : tout passe par ici.
+// Les valeurs de dev ont des défauts explicites ; la production doit fournir
+// les variables réelles (échec au boot si absentes).
+import "server-only";
+import { z } from "zod";
+
+const schema = z.object({
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
+  APP_URL: z.string().default("http://localhost:3000"),
+
+  DATABASE_URL: z
+    .string()
+    .min(1)
+    .default("postgres://lcd:lcd@127.0.0.1:5432/lcd"),
+
+  AUTH_SECRET: z.string().min(16).default("dev-only-change-me-please"),
+  AUTH_URL: z.string().default("http://localhost:3000"),
+
+  // Stockage S3-compatible : R2, MinIO, OVH, Scaleway.
+  S3_ENDPOINT: z.string().default("http://127.0.0.1:9000"),
+  S3_REGION: z.string().default("auto"),
+  S3_BUCKET: z.string().default("lcd"),
+  S3_ACCESS_KEY_ID: z.string().default("minio"),
+  S3_SECRET_ACCESS_KEY: z.string().default("minio12345"),
+  S3_FORCE_PATH_STYLE: z
+    .string()
+    .default("true")
+    .transform((v) => v === "true"),
+
+  // Email transactionnel.
+  EMAIL_FROM: z.string().default("LCD <no-reply@lcd.test>"),
+  SMTP_URL: z.string().default("smtp://127.0.0.1:1025"),
+
+  // Paiement (facultatif au démarrage).
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+  // Observabilité (facultatif).
+  SENTRY_DSN: z.string().optional(),
+});
+
+export type Env = z.infer<typeof schema>;
+
+function chargerEnv(): Env {
+  const parsed = schema.safeParse(process.env);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("\n");
+    throw new Error(`Configuration invalide :\n${details}`);
+  }
+
+  if (
+    parsed.data.NODE_ENV === "production" &&
+    parsed.data.AUTH_SECRET === "dev-only-change-me-please"
+  ) {
+    throw new Error("AUTH_SECRET doit être changé en production.");
+  }
+
+  return parsed.data;
+}
+
+export const env = chargerEnv();
