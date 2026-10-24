@@ -235,9 +235,14 @@ export default async function PageProprietaire({
         du chiffre d’affaires.
       </p>
 
-      <Link className="text-sm underline" href="/">
-        Retour à l’accueil
-      </Link>
+      <div className="flex flex-wrap gap-4 text-sm">
+        <Link className="underline" href="/support">
+          Support
+        </Link>
+        <Link className="underline" href="/">
+          Retour à l’accueil
+        </Link>
+      </div>
     </main>
   );
 }

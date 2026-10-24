@@ -104,6 +104,9 @@ export default async function PageCommercial() {
       </section>
 
       <nav className="flex flex-wrap gap-4 text-sm">
+        <Link className="underline" href="/support">
+          Support
+        </Link>
         <Link className="underline" href="/">
           Retour à l’accueil
         </Link>

@@ -49,7 +49,8 @@ Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + statuts + compta + exports CSV,
 health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
 + idempotence + outbox, missions staff → prestataire, propriétaire rattaché +
-relevé + isolation, CRM prospect + pipeline + offre, 320 px.
+relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
++ résolution, 320 px.
 
 ## Pages
 
@@ -72,6 +73,8 @@ relevé + isolation, CRM prospect + pipeline + offre, 320 px.
 | `/proprio` | relevé propriétaire (lecture seule) |
 | `/commercial` | pipeline prospects |
 | `/commercial/prospects/[id]` | prospect + offres + statuts |
+| `/support` | tickets support (staff = tous, autres = les leurs) |
+| `/support/[id]` | fil de messages + réponses + statuts |
 | `/voyageur?t=<token>` | séjour réel + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
@@ -117,6 +120,15 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
   au retour du réseau ;
 - 2xx = retiré, 4xx = retiré (définitif), 5xx/réseau = conservé ;
 - la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
+
+## Support
+
+- ticket : sujet, priorité, message initial ;
+- fil de messages avec auteur et horodatage ;
+- statuts : ouvert → en cours → résolu / fermé ;
+- staff (`admin`, `hote`) voit tous les tickets ;
+- les autres rôles ne voient que leurs propres tickets ;
+- audit `ticket.creer`, `ticket.message`, `ticket.statut`.
 
 ## CRM commercial
 
@@ -211,9 +223,11 @@ Migrations actuelles :
 - `0010_*.sql` : rattachement propriétaire ↔ logement ;
 - `0011_rls_proprietaires.sql` : RLS des rattachements ;
 - `0012_*.sql` : prospects + offres ;
-- `0013_rls_commercial.sql` : RLS du CRM.
+- `0013_rls_commercial.sql` : RLS du CRM ;
+- `0014_*.sql` : tickets + messages ;
+- `0015_rls_support.sql` : RLS du support.
 
-Total : **18 tables** (14 métier + 4 Better Auth).
+Total : **20 tables** (16 métier + 4 Better Auth).
 
 ## Ports & adapters
 

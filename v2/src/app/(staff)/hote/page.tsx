@@ -128,6 +128,12 @@ export default async function PageHote() {
           </Link>
           <Link
             className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
+            href="/support"
+          >
+            Support
+          </Link>
+          <Link
+            className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
             href="/commercial"
           >
             Commercial

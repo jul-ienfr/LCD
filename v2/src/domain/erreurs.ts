@@ -14,7 +14,8 @@ export type CodeErreurMetier =
   | "RESERVATION_INTROUVABLE"
   | "MISSION_INVALIDE"
   | "PROSPECT_INVALIDE"
-  | "OFFRE_INVALIDE";
+  | "OFFRE_INVALIDE"
+  | "TICKET_INVALIDE";
 
 /**
  * Erreur métier : porte un code stable, indépendant du framework HTTP.

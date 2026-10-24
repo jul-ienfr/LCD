@@ -113,6 +113,9 @@ export default async function PagePresta() {
             Gérer les missions
           </Link>
         ) : null}
+        <Link className="underline" href="/support">
+          Support
+        </Link>
         <Link className="underline" href="/">
           Retour à l’accueil
         </Link>

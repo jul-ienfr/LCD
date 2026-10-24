@@ -156,6 +156,70 @@ export const tarifs = pgTable(
   ],
 );
 
+export const tickets = pgTable(
+  "tickets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    createdByUserId: text("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    assignedUserId: text("assigned_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "set null",
+    }),
+    ref: text("ref").notNull(),
+    sujet: text("sujet").notNull(),
+    priorite: text("priorite").notNull().default("normale"),
+    statut: text("statut").notNull().default("ouvert"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("tickets_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("tickets_tenant_statut_idx").on(t.tenantId, t.statut),
+    index("tickets_tenant_created_by_idx").on(t.tenantId, t.createdByUserId),
+    index("tickets_tenant_assigned_idx").on(t.tenantId, t.assignedUserId),
+  ],
+);
+
+export const ticketMessages = pgTable(
+  "ticket_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    ticketId: uuid("ticket_id")
+      .notNull()
+      .references(() => tickets.id, { onDelete: "cascade" }),
+    auteurUserId: text("auteur_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    auteurLabel: text("auteur_label").notNull().default("utilisateur"),
+    contenu: text("contenu").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("ticket_messages_ticket_idx").on(t.ticketId, t.createdAt),
+    index("ticket_messages_tenant_idx").on(t.tenantId, t.createdAt),
+  ],
+);
+
 export const prospects = pgTable(
   "prospects",
   {
@@ -432,6 +496,10 @@ export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
+export type TicketRow = typeof tickets.$inferSelect;
+export type NewTicketRow = typeof tickets.$inferInsert;
+export type TicketMessageRow = typeof ticketMessages.$inferSelect;
+export type NewTicketMessageRow = typeof ticketMessages.$inferInsert;
 export type ProspectRow = typeof prospects.$inferSelect;
 export type NewProspectRow = typeof prospects.$inferInsert;
 export type OffreRow = typeof offres.$inferSelect;
