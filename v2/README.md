@@ -23,6 +23,7 @@ Compte de développement créé par le seed :
 |---|---|---|
 | `admin@lcd.test` | `ChangeMe-2026!` | `admin` |
 | `presta@lcd.test` | `ChangeMe-2026!` | `presta` |
+| `proprio@lcd.test` | `ChangeMe-2026!` | `proprietaire` |
 
 À changer avant tout déploiement. Le seed est idempotent.
 
@@ -46,7 +47,8 @@ npm run test:e2e
 Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + statuts + compta + exports CSV,
 health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
-+ idempotence + outbox, missions staff → prestataire, 320 px.
++ idempotence + outbox, missions staff → prestataire, propriétaire rattaché +
+relevé + isolation, 320 px.
 
 ## Pages
 
@@ -63,8 +65,10 @@ health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts brouillon → émise → payée |
 | `/hote/missions` | missions staff + assignation prestataire |
+| `/hote/proprietaires` | rattachement propriétaire ↔ logement |
 | `/hote/securite` | 2FA |
 | `/presta` | missions du prestataire + statuts |
+| `/proprio` | relevé propriétaire (lecture seule) |
 | `/voyageur?t=<token>` | séjour réel + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
@@ -110,6 +114,14 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
   au retour du réseau ;
 - 2xx = retiré, 4xx = retiré (définitif), 5xx/réseau = conservé ;
 - la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
+
+## Portail propriétaire
+
+- rattachement explicite `logement_proprietaires` ;
+- un propriétaire ne voit que ses logements ;
+- relevé mensuel : séjours, CA, factures, TTC ;
+- lecture seule par construction ;
+- commission de mandat et net propriétaire à venir avec le module mandats.
 
 ## Observabilité
 
@@ -183,9 +195,11 @@ Migrations actuelles :
 - `0006_*.sql` : incidents voyageur ;
 - `0007_rls_incidents.sql` : RLS des incidents ;
 - `0008_*.sql` : missions prestataire ;
-- `0009_rls_missions.sql` : RLS des missions.
+- `0009_rls_missions.sql` : RLS des missions ;
+- `0010_*.sql` : rattachement propriétaire ↔ logement ;
+- `0011_rls_proprietaires.sql` : RLS des rattachements.
 
-Total : **15 tables** (11 métier + 4 Better Auth).
+Total : **16 tables** (12 métier + 4 Better Auth).
 
 ## Ports & adapters
 

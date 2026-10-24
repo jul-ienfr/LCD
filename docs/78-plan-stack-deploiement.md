@@ -787,8 +787,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **15 tables** (11 métier + 4 Better Auth),
-  migrations `0000` → `0009`, RLS sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **16 tables** (12 métier + 4 Better Auth),
+  migrations `0000` → `0011`, RLS sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -798,8 +798,8 @@ et ne remplace pas v1.
 - routes `/`, `/login`, `/two-factor`, `/voyageur` (formulaire Server Action
   sans JS), `/hote`, `/hote/logements`, `/hote/planning`, `/hote/prix`,
   `/hote/compta`, `/hote/factures`, `/hote/factures/[id]`, `/hote/securite`,
-  `/voyageur?t=<token>`, `/hote/missions`, `/presta`,
-  `/api/auth/[...all]`, `/api/health`, `/api/ready`,
+  `/voyageur?t=<token>`, `/hote/missions`, `/hote/proprietaires`,
+  `/presta`, `/proprio`, `/api/auth/[...all]`, `/api/health`, `/api/ready`,
   `/api/exports/reservations`, `/api/exports/factures`,
   `/api/voyageur/incident` ;
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
@@ -810,14 +810,16 @@ et ne remplace pas v1.
   incident idempotent, formulaire sans JS, outbox IndexedDB + rejeu online ;
 - **portail prestataire + missions** : création staff, assignation, cycle
   planifiée → en cours → terminée/annulée, audit ;
+- **portail propriétaire** : rattachement logement ↔ propriétaire, relevé
+  mensuel, séjours, CA, factures, isolation par logements rattachés ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
 - **logs JSON** + pages d'erreur brandées ;
 - tests Vitest : **46/46** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **8/8** (login + logement ; prix + planning + anti-chevauchement ;
+- Playwright : **9/9** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + compta + CSV ;
   voyageur signé + incident sans JS + idempotence + outbox ; missions staff →
-  prestataire ; 320 px) ;
+  prestataire ; propriétaire rattaché + relevé + isolation ; 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -837,7 +839,7 @@ et ne remplace pas v1.
 - déploiement effectif Netlify Free + Neon/Supabase (config prête) ;
 - Sentry + Uptime Kuma ;
 - guide/check-in + extras voyageur ;
-- portails propriétaire, commercial, support ;
+- portails commercial et support ;
 - Factur-X, TVA/taxe paramétrables, paiements en ligne ;
 - intégrations OTA/HA/Moli.
 
@@ -922,7 +924,7 @@ et ne remplace pas v1.
 - [x] Statuts facture brouillon → émise → payée/annulée + audit.
 - [x] Portail voyageur : lien signé, incident, sans JS, outbox.
 - [x] Portail prestataire + missions assignées.
-- [ ] Portail propriétaire.
+- [x] Portail propriétaire + rattachement + relevé.
 - [ ] CRM commercial + support.
 - [ ] Guide/check-in complet + extras voyageur.
 - [ ] Factur-X / PDF structuré + paramétrage TVA/taxe.

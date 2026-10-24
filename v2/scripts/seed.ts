@@ -81,6 +81,21 @@ async function main() {
     await creerUtilisateur(prestaEmail, prestaPassword, "Prestataire LCD", "presta");
   }
 
+  const proprietaireEmail = process.env.SEED_PROPRIO_EMAIL;
+  const proprietairePassword = process.env.SEED_PROPRIO_PASSWORD;
+  if (
+    proprietaireEmail &&
+    proprietairePassword &&
+    proprietairePassword.length >= 12
+  ) {
+    await creerUtilisateur(
+      proprietaireEmail,
+      proprietairePassword,
+      "Propriétaire LCD",
+      "proprietaire",
+    );
+  }
+
   await sql.end();
 }
 

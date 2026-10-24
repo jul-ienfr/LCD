@@ -29,7 +29,13 @@ export default function PageLogin() {
     }
 
     const role = (data?.user as { role?: string } | undefined)?.role;
-    router.push(role === "presta" ? "/presta" : "/hote");
+    router.push(
+      role === "presta"
+        ? "/presta"
+        : role === "proprietaire"
+          ? "/proprio"
+          : "/hote",
+    );
     router.refresh();
   }
 

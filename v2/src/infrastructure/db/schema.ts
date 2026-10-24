@@ -156,6 +156,37 @@ export const tarifs = pgTable(
   ],
 );
 
+export const logementProprietaires = pgTable(
+  "logement_proprietaires",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("logement_proprietaires_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.userId,
+    ),
+    index("logement_proprietaires_user_idx").on(t.tenantId, t.userId),
+    index("logement_proprietaires_logement_idx").on(
+      t.tenantId,
+      t.logementId,
+    ),
+  ],
+);
+
 export const missions = pgTable(
   "missions",
   {
@@ -343,6 +374,10 @@ export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
+export type LogementProprietaireRow =
+  typeof logementProprietaires.$inferSelect;
+export type NewLogementProprietaireRow =
+  typeof logementProprietaires.$inferInsert;
 export type MissionRow = typeof missions.$inferSelect;
 export type NewMissionRow = typeof missions.$inferInsert;
 export type IncidentRow = typeof incidents.$inferSelect;

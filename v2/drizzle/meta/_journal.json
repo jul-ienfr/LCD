@@ -71,6 +71,20 @@
       "when": 1792871375515,
       "tag": "0009_rls_missions",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792871893414,
+      "tag": "0010_sleepy_giant_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792871894282,
+      "tag": "0011_rls_proprietaires",
+      "breakpoints": true
     }
   ]
 }
