@@ -50,7 +50,7 @@ anti-chevauchement, audit, facture + statuts + compta + exports CSV,
 health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
 + idempotence + outbox, missions staff → prestataire, propriétaire rattaché +
 relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
-+ résolution, 320 px.
++ résolution, guide + extra commandé, 320 px.
 
 ## Pages
 
@@ -61,6 +61,8 @@ relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
 | `/two-factor` | vérification TOTP |
 | `/hote` | tableau de bord (logements, CA, arrivées/départs) |
 | `/hote/logements` | logements (création + liste) |
+| `/hote/logements/[id]` | guide, WiFi, check-in, règles |
+| `/hote/extras` | catalogue extras + commandes |
 | `/hote/prix` | prix par jour et par logement |
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
 | `/hote/compta` | CA, factures, TVA, taxe, exports |
@@ -120,6 +122,17 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
   au retour du réseau ;
 - 2xx = retiré, 4xx = retiré (définitif), 5xx/réseau = conservé ;
 - la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
+
+## Guide et extras voyageur
+
+- guide par logement : heure de check-in, consignes, WiFi, règles, urgence,
+  bonnes adresses ;
+- catalogue d’extras global ou par logement ;
+- commande depuis le lien voyageur signé, quantité 1-20, `ref` idempotente ;
+- total calculé en centimes ;
+- staff : création d’extras, suivi et statuts des commandes
+  (demandée → confirmée/refusée → livrée) ;
+- audit `logement.guide`, `extra.creer`, `commande_extra.*`.
 
 ## Support
 
@@ -225,9 +238,11 @@ Migrations actuelles :
 - `0012_*.sql` : prospects + offres ;
 - `0013_rls_commercial.sql` : RLS du CRM ;
 - `0014_*.sql` : tickets + messages ;
-- `0015_rls_support.sql` : RLS du support.
+- `0015_rls_support.sql` : RLS du support ;
+- `0016_*.sql` : guide logement + extras + commandes ;
+- `0017_rls_extras.sql` : RLS des extras et commandes.
 
-Total : **20 tables** (16 métier + 4 Better Auth).
+Total : **22 tables** (18 métier + 4 Better Auth).
 
 ## Ports & adapters
 

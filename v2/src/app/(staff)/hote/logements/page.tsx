@@ -66,9 +66,17 @@ export default async function PageLogements() {
                     {logement.adresse ? ` — ${logement.adresse}` : ""}
                   </p>
                 </div>
-                <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">
-                  {logement.statut}
-                </span>
+                <div className="flex items-center gap-3">
+                  <Link
+                    className="text-sm underline"
+                    href={`/hote/logements/${logement.id}`}
+                  >
+                    Guide
+                  </Link>
+                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">
+                    {logement.statut}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>

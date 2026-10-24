@@ -61,4 +61,8 @@ export class ReservationRepositoryMemoire implements ReservationRepository {
       this.rows.find((r) => r.tenantId === tenantId && r.id === id) ?? null
     );
   }
+
+  async listerTous(tenantId: string): Promise<Reservation[]> {
+    return this.rows.filter((r) => r.tenantId === tenantId);
+  }
 }

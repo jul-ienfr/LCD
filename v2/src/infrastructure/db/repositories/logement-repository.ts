@@ -14,6 +14,13 @@ function versDomaine(row: typeof logements.$inferSelect): Logement {
     code: row.code,
     nom: row.nom,
     adresse: row.adresse ?? undefined,
+    checkinHeure: row.checkinHeure ?? undefined,
+    checkinInstructions: row.checkinInstructions ?? undefined,
+    wifiSsid: row.wifiSsid ?? undefined,
+    wifiPassword: row.wifiPassword ?? undefined,
+    regles: row.regles ?? undefined,
+    urgenceTel: row.urgenceTel ?? undefined,
+    guideTexte: row.guideTexte ?? undefined,
     statut: row.statut as Logement["statut"],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -76,5 +83,36 @@ export class DrizzleLogementRepository implements LogementRepository {
         .limit(1);
       return row ? versDomaine(row) : null;
     });
+  }
+
+  async mettreAJourGuide(
+    tenantId: string,
+    id: string,
+    data: {
+      checkinHeure: string | null;
+      checkinInstructions: string | null;
+      wifiSsid: string | null;
+      wifiPassword: string | null;
+      regles: string | null;
+      urgenceTel: string | null;
+      guideTexte: string | null;
+    },
+  ): Promise<Logement | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(logements)
+        .set({
+          checkinHeure: data.checkinHeure,
+          checkinInstructions: data.checkinInstructions,
+          wifiSsid: data.wifiSsid,
+          wifiPassword: data.wifiPassword,
+          regles: data.regles,
+          urgenceTel: data.urgenceTel,
+          guideTexte: data.guideTexte,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
   }
 }

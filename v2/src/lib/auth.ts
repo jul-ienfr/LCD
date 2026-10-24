@@ -64,13 +64,13 @@ export const auth = betterAuth({
   rateLimit: {
     enabled: true,
     window: 60,
-    max: 100,
+    max: 500,
     // La règle par défaut /sign-in/email est 3/10 s, trop stricte pour une
-    // équipe qui se reconnecte et pour les batteries E2E. On garde une
-    // protection réelle (20/min/IP) ; l'edge Caddy/Netlify peut durcir.
+    // équipe qui se reconnecte et pour les batteries E2E. On garde un plafond
+    // réel (100/min/IP) ; l'edge Caddy/Netlify peut durcir.
     customRules: {
-      "/sign-in/email": { window: 60, max: 20 },
-      "/two-factor/*": { window: 60, max: 20 },
+      "/sign-in/email": { window: 60, max: 100 },
+      "/two-factor/*": { window: 60, max: 100 },
     },
   },
   plugins: [twoFactor(), nextCookies()],

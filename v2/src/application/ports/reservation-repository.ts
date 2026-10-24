@@ -29,4 +29,5 @@ export interface ReservationRepository {
     tenantId: string,
     id: string,
   ): Promise<Reservation | null>;
+  listerTous(tenantId: string): Promise<Reservation[]>;
 }

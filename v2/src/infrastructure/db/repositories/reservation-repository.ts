@@ -110,4 +110,15 @@ export class DrizzleReservationRepository implements ReservationRepository {
       return row ? versDomaine(row) : null;
     });
   }
+
+  async listerTous(tenantId: string): Promise<Reservation[]> {
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(reservations)
+        .where(eq(reservations.tenantId, tenantId))
+        .orderBy(asc(reservations.debut));
+      return rows.map(versDomaine);
+    });
+  }
 }

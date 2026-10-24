@@ -47,4 +47,32 @@ export class LogementRepositoryMemoire implements LogementRepository {
       null
     );
   }
+
+  async mettreAJourGuide(
+    tenantId: string,
+    id: string,
+    data: {
+      checkinHeure: string | null;
+      checkinInstructions: string | null;
+      wifiSsid: string | null;
+      wifiPassword: string | null;
+      regles: string | null;
+      urgenceTel: string | null;
+      guideTexte: string | null;
+    },
+  ): Promise<Logement | null> {
+    const logement = await this.trouverParId(tenantId, id);
+    if (!logement) return null;
+    Object.assign(logement, {
+      checkinHeure: data.checkinHeure ?? undefined,
+      checkinInstructions: data.checkinInstructions ?? undefined,
+      wifiSsid: data.wifiSsid ?? undefined,
+      wifiPassword: data.wifiPassword ?? undefined,
+      regles: data.regles ?? undefined,
+      urgenceTel: data.urgenceTel ?? undefined,
+      guideTexte: data.guideTexte ?? undefined,
+      updatedAt: new Date(),
+    });
+    return logement;
+  }
 }

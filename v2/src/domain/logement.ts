@@ -9,6 +9,13 @@ export interface Logement {
   code: string;
   nom: string;
   adresse?: string;
+  checkinHeure?: string;
+  checkinInstructions?: string;
+  wifiSsid?: string;
+  wifiPassword?: string;
+  regles?: string;
+  urgenceTel?: string;
+  guideTexte?: string;
   statut: StatutLogement;
   createdAt: Date;
   updatedAt: Date;

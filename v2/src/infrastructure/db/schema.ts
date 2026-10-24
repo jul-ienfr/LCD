@@ -77,6 +77,13 @@ export const logements = pgTable(
     code: text("code").notNull(),
     nom: text("nom").notNull(),
     adresse: text("adresse"),
+    checkinHeure: text("checkin_heure"),
+    checkinInstructions: text("checkin_instructions"),
+    wifiSsid: text("wifi_ssid"),
+    wifiPassword: text("wifi_password"),
+    regles: text("regles"),
+    urgenceTel: text("urgence_tel"),
+    guideTexte: text("guide_texte"),
     statut: text("statut").notNull().default("actif"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -153,6 +160,72 @@ export const tarifs = pgTable(
       t.date,
     ),
     index("tarifs_tenant_date_idx").on(t.tenantId, t.date),
+  ],
+);
+
+export const extras = pgTable(
+  "extras",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "set null",
+    }),
+    code: text("code").notNull(),
+    nom: text("nom").notNull(),
+    description: text("description"),
+    prixCentimes: integer("prix_centimes").notNull().default(0),
+    actif: boolean("actif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("extras_tenant_code_uq").on(t.tenantId, t.code),
+    index("extras_tenant_actif_idx").on(t.tenantId, t.actif),
+  ],
+);
+
+export const commandesExtras = pgTable(
+  "commandes_extras",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    extraId: uuid("extra_id")
+      .notNull()
+      .references(() => extras.id, { onDelete: "restrict" }),
+    quantite: integer("quantite").notNull().default(1),
+    prixUnitaireCentimes: integer("prix_unitaire_centimes").notNull(),
+    totalCentimes: integer("total_centimes").notNull(),
+    ref: text("ref").notNull(),
+    statut: text("statut").notNull().default("demandee"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("commandes_extras_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("commandes_extras_tenant_reservation_idx").on(
+      t.tenantId,
+      t.reservationId,
+      t.createdAt,
+    ),
+    index("commandes_extras_tenant_statut_idx").on(t.tenantId, t.statut),
   ],
 );
 
@@ -496,6 +569,10 @@ export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
+export type ExtraRow = typeof extras.$inferSelect;
+export type NewExtraRow = typeof extras.$inferInsert;
+export type CommandeExtraRow = typeof commandesExtras.$inferSelect;
+export type NewCommandeExtraRow = typeof commandesExtras.$inferInsert;
 export type TicketRow = typeof tickets.$inferSelect;
 export type NewTicketRow = typeof tickets.$inferInsert;
 export type TicketMessageRow = typeof ticketMessages.$inferSelect;
