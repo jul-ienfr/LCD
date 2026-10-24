@@ -17,7 +17,10 @@ export default function PageLogin() {
     setErreur(null);
     setEnCours(true);
 
-    const { error } = await authClient.signIn.email({ email, password });
+    const { data, error } = await authClient.signIn.email({
+      email,
+      password,
+    });
 
     if (error) {
       setErreur(error.message ?? "Connexion refusée.");
@@ -25,7 +28,8 @@ export default function PageLogin() {
       return;
     }
 
-    router.push("/hote");
+    const role = (data?.user as { role?: string } | undefined)?.role;
+    router.push(role === "presta" ? "/presta" : "/hote");
     router.refresh();
   }
 

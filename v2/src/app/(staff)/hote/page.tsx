@@ -9,7 +9,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireSession } from "@/lib/session";
-import { BoutonDeconnexion } from "./bouton-deconnexion";
+import { BoutonDeconnexion } from "@/components/bouton-deconnexion";
 
 // Route staff bloquante : session + DB avant rendu.
 export const instant = false;
@@ -113,6 +113,12 @@ export default async function PageHote() {
             href="/hote/prix"
           >
             Prix
+          </Link>
+          <Link
+            className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
+            href="/hote/missions"
+          >
+            Missions
           </Link>
           <Link
             className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"

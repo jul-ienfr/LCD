@@ -22,6 +22,7 @@ Compte de développement créé par le seed :
 | Email | Mot de passe | Rôle |
 |---|---|---|
 | `admin@lcd.test` | `ChangeMe-2026!` | `admin` |
+| `presta@lcd.test` | `ChangeMe-2026!` | `presta` |
 
 À changer avant tout déploiement. Le seed est idempotent.
 
@@ -45,7 +46,7 @@ npm run test:e2e
 Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + statuts + compta + exports CSV,
 health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
-+ idempotence + outbox, 320 px.
++ idempotence + outbox, missions staff → prestataire, 320 px.
 
 ## Pages
 
@@ -61,7 +62,9 @@ health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
 | `/hote/compta` | CA, factures, TVA, taxe, exports |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts brouillon → émise → payée |
+| `/hote/missions` | missions staff + assignation prestataire |
 | `/hote/securite` | 2FA |
+| `/presta` | missions du prestataire + statuts |
 | `/voyageur?t=<token>` | séjour réel + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
@@ -178,9 +181,11 @@ Migrations actuelles :
 - `0004_*.sql` : factures + lignes de facture ;
 - `0005_rls_factures.sql` : RLS des factures ;
 - `0006_*.sql` : incidents voyageur ;
-- `0007_rls_incidents.sql` : RLS des incidents.
+- `0007_rls_incidents.sql` : RLS des incidents ;
+- `0008_*.sql` : missions prestataire ;
+- `0009_rls_missions.sql` : RLS des missions.
 
-Total : **14 tables** (10 métier + 4 Better Auth).
+Total : **15 tables** (11 métier + 4 Better Auth).
 
 ## Ports & adapters
 

@@ -57,6 +57,20 @@
       "when": 1792870762628,
       "tag": "0007_rls_incidents",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792871374483,
+      "tag": "0008_curvy_black_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792871375515,
+      "tag": "0009_rls_missions",
+      "breakpoints": true
     }
   ]
 }

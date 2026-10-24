@@ -37,25 +37,48 @@ async function main() {
   }
 
   if (!tenant) throw new Error("Tenant introuvable après création.");
+  const tenantId = tenant.id;
 
-  const existant = (
-    await db.select().from(users).where(eq(users.email, email)).limit(1)
-  )[0];
+  async function creerUtilisateur(
+    utilisateurEmail: string,
+    utilisateurPassword: string,
+    nom: string,
+    role: string,
+  ) {
+    const existant = (
+      await db
+        .select()
+        .from(users)
+        .where(eq(users.email, utilisateurEmail))
+        .limit(1)
+    )[0];
 
-  if (existant) {
-    console.log(`admin déjà présent : ${email}`);
-  } else {
+    if (existant) {
+      console.log(`utilisateur déjà présent : ${utilisateurEmail}`);
+      return;
+    }
+
     await auth.api.signUpEmail({
       body: {
-        email,
-        password,
-        name: "Admin LCD",
-        tenantId: tenant.id,
+        email: utilisateurEmail,
+        password: utilisateurPassword,
+        name: nom,
+        tenantId,
       },
     });
+    await db
+      .update(users)
+      .set({ role })
+      .where(eq(users.email, utilisateurEmail));
+    console.log(`utilisateur créé : ${utilisateurEmail} (${role})`);
+  }
 
-    await db.update(users).set({ role: "admin" }).where(eq(users.email, email));
-    console.log(`admin créé : ${email}`);
+  await creerUtilisateur(email, password, "Admin LCD", "admin");
+
+  const prestaEmail = process.env.SEED_PRESTA_EMAIL;
+  const prestaPassword = process.env.SEED_PRESTA_PASSWORD;
+  if (prestaEmail && prestaPassword && prestaPassword.length >= 12) {
+    await creerUtilisateur(prestaEmail, prestaPassword, "Prestataire LCD", "presta");
   }
 
   await sql.end();

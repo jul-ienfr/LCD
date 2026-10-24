@@ -156,6 +156,43 @@ export const tarifs = pgTable(
   ],
 );
 
+export const missions = pgTable(
+  "missions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    assignedUserId: text("assigned_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    ref: text("ref").notNull(),
+    type: text("type").notNull().default("menage"),
+    date: date("date", { mode: "string" }).notNull(),
+    heure: text("heure"),
+    statut: text("statut").notNull().default("planifiee"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("missions_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("missions_tenant_date_idx").on(t.tenantId, t.date),
+    index("missions_presta_idx").on(t.tenantId, t.assignedUserId, t.date),
+  ],
+);
+
 export const incidents = pgTable(
   "incidents",
   {
@@ -306,6 +343,8 @@ export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
+export type MissionRow = typeof missions.$inferSelect;
+export type NewMissionRow = typeof missions.$inferInsert;
 export type IncidentRow = typeof incidents.$inferSelect;
 export type NewIncidentRow = typeof incidents.$inferInsert;
 export type FactureRow = typeof factures.$inferSelect;
