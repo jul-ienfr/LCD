@@ -40,28 +40,39 @@ cp .env.prod.example .env.prod
 chmod 600 .env.prod
 openssl rand -hex 32   # BETTER_AUTH_SECRET
 openssl rand -hex 32   # CRON_SECRET
-openssl rand -hex 24   # POSTGRES_PASSWORD (et le même dans DATABASE_URL)
+openssl rand -hex 24   # POSTGRES_PASSWORD (owner)
+openssl rand -hex 24   # APP_ROLE_PASSWORD (rôle applicatif)
 nano .env.prod
 ```
 
 Renseigner au minimum :
 
 - `DOMAIN`, `APP_URL`, `BETTER_AUTH_URL` ;
-- `POSTGRES_PASSWORD` et `DATABASE_URL` (même mot de passe, hôte `postgres`) ;
+- `POSTGRES_PASSWORD` et `MIGRATION_DATABASE_URL` (owner, même mot de passe,
+  hôte `postgres`) ;
+- `APP_ROLE_PASSWORD` et `DATABASE_URL` (même mot de passe, utilisateur
+  `lcd_app`) ;
 - `BETTER_AUTH_SECRET` ;
 - `CRON_SECRET` ;
 - `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` pour la première initialisation.
 
-> Le mot de passe Postgres doit être compatible URL. Si besoin, utiliser
+> Les mots de passe Postgres doivent être compatibles URL. Utiliser
 > `openssl rand -hex 24` (pas de `@`, `:`, `/`).
 
-## 4. Construire et migrer
+## 4. Construire, migrer et créer le rôle applicatif
 
 ```bash
 docker compose --env-file .env.prod -f compose.prod.yml build
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:migrate
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:seed
+docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:role-app
+docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:test-rls
 ```
+
+`db:role-app` crée `lcd_app` sans aucun privilège owner et accorde les droits
+CRUD + privilèges par défaut. `db:test-rls` doit afficher
+`RLS VALIDÉE : isolation tenant effective` (0 sans tenant / total avec tenant
+/ 0 avec un autre tenant).
 
 Retirer ensuite `SEED_ADMIN_EMAIL` et `SEED_ADMIN_PASSWORD` de `.env.prod`.
 
@@ -136,6 +147,8 @@ git pull --ff-only
 cd v2
 docker compose --env-file .env.prod -f compose.prod.yml build web
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:migrate
+docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:role-app
+docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:test-rls
 docker compose --env-file .env.prod -f compose.prod.yml up -d web caddy
 ```
 
@@ -147,6 +160,9 @@ Faire une sauvegarde avant chaque migration. Tester `/api/ready` et un login.
 - SSH par clé, root désactivé, `fail2ban` recommandé ;
 - UFW : seuls 22/80/443 exposés ;
 - Postgres n'est **pas** publié sur l'hôte (uniquement réseau Docker) ;
+- `DATABASE_URL` = rôle `lcd_app` non-propriétaire, RLS effective ;
+- `MIGRATION_DATABASE_URL` = owner, utilisé uniquement pour migrations,
+  seed et sauvegardes ;
 - Uptime Kuma sur `127.0.0.1` ;
 - sauvegardes hors site + test de restauration mensuel ;
 - `BETTER_AUTH_SECRET` ≥ 32 caractères, rotation = invalidation des liens
@@ -165,8 +181,9 @@ La pile compose a été testée de bout en bout sur Docker Desktop :
 
 - builds `web` et `tools` ;
 - PostgreSQL 18, migrations `0000` → `0030`, seed admin + prestataire ;
+- rôle applicatif `lcd_app` et `db:test-rls` : **RLS VALIDÉE** sur base fraîche ;
 - `web` healthy, `/api/health` et `/api/ready` verts ;
 - Caddy HTTPS avec certificat local, redirection HTTP 308, HSTS, frame,
   referrer, permissions et `X-Robots-Tag` ;
-- E2E login admin, refus d'inscription publique, isolation prestataire,
-  création de logement et journal d'audit sur la pile production.
+- suite Playwright **21/21** sur la pile compose, avec `DATABASE_URL` sur
+  `lcd_app` et Mailpit pour l’email.

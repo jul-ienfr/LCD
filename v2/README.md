@@ -16,7 +16,8 @@ perdre la capacité de migrer plus tard (voir `docs/78-plan-stack-deploiement.md
   backups/Sentry/Uptime à ajouter ;
 - **alternative VPS prête et testée de bout en bout** : `compose.prod.yml` +
   `Caddyfile` + Dockerfile multi-stage + sauvegardes ; PostgreSQL, migrations,
-  seed, web et HTTPS validés en local ; voir `v2/DEPLOIEMENT-VPS.md` ;
+  seed, rôle applicatif RLS, web et HTTPS validés en local, suite Playwright
+  **21/21** sur la pile compose ; voir `v2/DEPLOIEMENT-VPS.md` ;
 - procédure et limites : `v2/DEPLOIEMENT.md`.
 
 ## Démarrer
@@ -58,6 +59,9 @@ npm run dev
 # autre terminal
 npm run test:e2e
 ```
+
+Recette post-déploiement (services externes, production, charge) :
+`v2/TESTS-A-FAIRE.md`.
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + fiscalité auto + Factur-X XML + PDF +
@@ -344,7 +348,8 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - `npm run db:restore-test` : restauration dans une base jetable + contrôle
   des comptes tenants/users/logements/réservations/factures/paiements/blocages ;
 - workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
-  (artefact privé 30 jours) ; secret `DATABASE_URL` à configurer ;
+  (artefact privé 30 jours) ; secret `MIGRATION_DATABASE_URL` (owner) à
+  configurer ;
 - procédure, variables et drill mensuel : `v2/BACKUPS.md`.
 
 ## Gestion des utilisateurs
@@ -459,7 +464,8 @@ Aucun import de Next, Drizzle, Stripe, Brevo ou S3 dans `domain/`.
 
 - `drizzle/` est versionné et **immuable** après application.
 - `npm run db:generate` génère le SQL depuis `src/infrastructure/db/schema.ts`.
-- `npm run db:migrate` applique en local/staging/prod.
+- `npm run db:migrate` applique en local/staging/prod via
+  `MIGRATION_DATABASE_URL` (owner), sinon `DATABASE_URL`.
 - `npm run db:check` détecte une dérive schéma/migrations.
 - Changements destructifs : expand/contract en deux releases.
 - Avant prod : backup + dump + test de restauration.
@@ -470,6 +476,19 @@ les policies RLS PostgreSQL s'appuient dessus pour `logements`,
 (`users`, `session`, `account`, `verification`, `two_factor`) ne sont pas
 sous RLS : la connexion doit retrouver un utilisateur par email avant de
 connaître son tenant.
+
+### Rôle applicatif et RLS
+
+- `DATABASE_URL` doit pointer en production vers un rôle **non-propriétaire**
+  (`lcd_app`) : sinon le owner contourne les policies RLS.
+- `MIGRATION_DATABASE_URL` garde la connexion owner pour les migrations, le
+  seed et les sauvegardes.
+- `npm run db:role-app` crée/actualise le rôle, accorde les droits et les
+  privilèges par défaut ; mot de passe dans `APP_ROLE_PASSWORD`, jamais commité.
+- `npm run db:test-rls` vérifie l’isolation : sans tenant = 0, avec le bon
+  tenant = total attendu, avec un autre tenant = 0.
+- Test local effectué : **0 sans tenant / total avec tenant / 0 autre
+  tenant**, puis suite Playwright **21/21** avec `DATABASE_URL` sur `lcd_app`.
 
 Migrations actuelles :
 
@@ -532,7 +551,8 @@ Guide pas à pas : [`DEPLOIEMENT.md`](./DEPLOIEMENT.md).
 - **Portabilité** : `output: "standalone"` sur Docker/VPS, désactivé quand
   `NETLIFY=true` (plugin Next). Aucune API Netlify dans le code métier.
 - Build Netlify validé : `NETLIFY=true npm run build`.
-- Variables standard : `DATABASE_URL`, `S3_*`, `SMTP_URL`,
+- Variables standard : `DATABASE_URL`, `MIGRATION_DATABASE_URL`,
+  `APP_ROLE_NAME`, `APP_ROLE_PASSWORD`, `S3_*`, `SMTP_URL`,
   `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `BETTER_AUTH_TRUSTED_ORIGINS`,
   `STRIPE_*`, `SENTRY_DSN`.
 

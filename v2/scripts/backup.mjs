@@ -15,7 +15,9 @@ import { config } from "dotenv";
 config({ path: ".env.local", quiet: true });
 
 const url =
-  process.env.DATABASE_URL ?? "postgres://lcd:lcd@127.0.0.1:5432/lcd";
+  process.env.MIGRATION_DATABASE_URL ??
+  process.env.DATABASE_URL ??
+  "postgres://lcd:lcd@127.0.0.1:5432/lcd";
 const container = process.env.PG_CONTAINER ?? "v2-postgres-1";
 const dossier = process.env.BACKUP_DIR ?? "backups";
 const retentionJours = Number(process.env.BACKUP_RETENTION_DAYS ?? 14);

@@ -792,6 +792,10 @@ et ne remplace pas v1.
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
 - PostgreSQL 18.6 + Drizzle : **29 tables** (25 métier + 4 Better Auth),
   migrations `0000` → `0030`, RLS sur les tables métier ;
+- **RLS effective** : `DATABASE_URL` sur le rôle `lcd_app` non-propriétaire,
+  `MIGRATION_DATABASE_URL` owner pour migrations/seed/sauvegardes ;
+  `npm run db:role-app` et `npm run db:test-rls` ; test local
+  `0 / total / 0` et suite Playwright **21/21** avec le rôle applicatif ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -884,7 +888,7 @@ et ne remplace pas v1.
 - **backups** : `npm run db:backup` (dump gzip + SHA-256, rétention 14 j),
   `npm run db:restore-test` (restauration dans une base jetable + comptes),
   workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
-  (artefact privé 30 j, secret `DATABASE_URL` à configurer) ;
+  (artefact privé 30 j, secret `MIGRATION_DATABASE_URL` owner à configurer) ;
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
@@ -916,14 +920,15 @@ et ne remplace pas v1.
   `/api/health` et `/api/ready` verts ;
 - **fallback VPS prêt et testé de bout en bout** : `compose.prod.yml`,
   `Caddyfile`, Dockerfile multi-stage (`runner` + `tools`), PostgreSQL 18,
-  migrations, seed, web, Caddy HTTPS (certificat local en test), headers,
-  script de sauvegarde et guide `v2/DEPLOIEMENT-VPS.md` ;
+  migrations, seed, rôle applicatif RLS, web, Caddy HTTPS (certificat local en
+  test), headers, script de sauvegarde et guide `v2/DEPLOIEMENT-VPS.md` ;
+  suite Playwright **21/21** sur cette pile avec Mailpit ;
 - **limites du déploiement beta** : variables d'environnement non secrètes
   sur le plan Free (`BETTER_AUTH_SECRET`, `DATABASE_URL` lisibles par
   l'équipe), base en `us-east-2` (latence UE), email désactivé
   (`EMAIL_ENABLED=false`) tant qu'aucun SMTP de production n'est branché,
   Sentry/Uptime encore absents, backup quotidien GitHub à activer avec le
-  secret `DATABASE_URL` ;
+  secret `MIGRATION_DATABASE_URL` (owner) ;
 - **migrations distantes** : production actuellement marquée jusqu'à `0025`
   (26 tables) ; `0026`-`0030` (commission, webhooks, cautions) sont prêtes et
   seront appliquées au prochain déploiement ; `/api/ready` renverra
@@ -934,17 +939,17 @@ et ne remplace pas v1.
 
 **Reste à faire :**
 
-- policies RLS avec un rôle applicatif non propriétaire ;
 - débloquer les crédits Netlify ou déployer sur le VPS préparé
   (`v2/DEPLOIEMENT-VPS.md`) puis appliquer `0026`-`0030` et déployer les
   tranches commission/PDF/webhooks/cautions ;
 - `SENTRY_DSN` + instance Uptime Kuma + monitors/alertes à configurer ;
 - clés SMTP de production (Brevo/OVH) + `EMAIL_ENABLED=true` ;
 - clés Stripe test/live + webhook de production ;
-- secret GitHub `DATABASE_URL` pour le backup offsite et `CRON_SECRET`
-  pour les workflows OTA/webhooks ;
+- secret GitHub `MIGRATION_DATABASE_URL` (owner) pour le backup offsite et
+  `CRON_SECRET` pour les workflows OTA/webhooks ;
 - Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
-- connecteurs HA/Moli spécifiques (webhooks génériques faits).
+- connecteurs HA/Moli spécifiques (webhooks génériques faits) ;
+- recette post-déploiement détaillée : `v2/TESTS-A-FAIRE.md`.
 
 ---
 
@@ -1007,6 +1012,7 @@ et ne remplace pas v1.
 ### 30 jours
 
 - [x] Schéma Postgres + Drizzle + RLS (tables métier).
+- [x] RLS effective avec rôle applicatif non-propriétaire + test automatisé.
 - [x] Auth + RBAC + tenant (Better Auth).
 - [x] Écran d'enrôlement TOTP + vérification à la connexion.
 - [ ] Design system + 4 thèmes.

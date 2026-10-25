@@ -9,8 +9,10 @@ installable, sans payer au démarrage.
 - **Site Netlify** : `lcd-parc` (`7eb65dbc-dceb-477e-b89e-4ee1d7989b0b`),
   plan Free.
 - **Base** : Netlify Database (Postgres managé, région `us-east-2`),
-  `DATABASE_URL` injecté par Netlify ; `/api/ready` répond `db: up` et
-  `schema: ok` uniquement après application des migrations.
+  cible `DATABASE_URL` = rôle `lcd_app` non-propriétaire ; l’ancien
+  déploiement utilise encore le owner tant que le rôle n’est pas provisionné.
+  `/api/ready` répond `db: up` et `schema: ok` uniquement après application
+  des migrations.
 - **Admin** : `conciergeriefr@outlook.fr` (mot de passe fourni hors dépôt).
 - **Email** : `EMAIL_ENABLED=false` tant qu'aucun SMTP de production
   (Brevo/OVH/Scaleway) n'est configuré.
@@ -36,14 +38,14 @@ Database) et reste valable pour une installation neuve.
 ## 1. Base Postgres managée
 
 Créer une base **Neon** ou **Supabase** en région **UE** (Paris/Francfort).
-Récupérer la chaîne `DATABASE_URL` (mode pooler si disponible, avec
-`sslmode=require`).
+Récupérer la chaîne **owner** (`MIGRATION_DATABASE_URL`, mode pooler si
+disponible, avec `sslmode=require`).
 
 Appliquer les migrations **depuis le poste**, sur la base distante :
 
 ```powershell
 cd v2
-$env:DATABASE_URL="postgres://..."
+$env:MIGRATION_DATABASE_URL="postgres://owner..."
 $env:BETTER_AUTH_SECRET="<32+ caracteres aleatoires>"
 $env:BETTER_AUTH_URL="https://<site>.netlify.app"
 npm run db:migrate
@@ -58,9 +60,23 @@ $env:SEED_TENANT_SLUG="lcd"
 npm run db:seed
 ```
 
+Créer le rôle applicatif non-propriétaire et vérifier RLS :
+
+```powershell
+$env:APP_ROLE_NAME="lcd_app"
+$env:APP_ROLE_PASSWORD="<openssl rand -hex 24>"
+npm run db:role-app
+$env:DATABASE_URL="postgres://lcd_app:<APP_ROLE_PASSWORD>@<host>/<db>"
+npm run db:test-rls
+```
+
+`db:test-rls` doit afficher `RLS VALIDÉE`. `DATABASE_URL` (rôle `lcd_app`)
+est la seule URL utilisée par l’application ; `MIGRATION_DATABASE_URL`
+(owner) reste pour migrations, seed et sauvegardes.
+
 > `seed.ts` charge `.env.local`, mais les variables déjà présentes dans le
-> shell gagnent. Vérifier que `DATABASE_URL` pointe bien sur la base distante
-> avant de lancer le seed.
+> shell gagnent. Vérifier que `MIGRATION_DATABASE_URL` pointe bien sur la base
+> distante avant le seed.
 
 ## 2. Projet Netlify
 
@@ -80,7 +96,7 @@ Netlify détecte Next.js et installe `@netlify/plugin-nextjs` au build.
 
 | Variable | Valeur |
 |---|---|
-| `DATABASE_URL` | URL Postgres managée (UE) |
+| `DATABASE_URL` | URL Postgres du rôle **`lcd_app`** (non-propriétaire, RLS) |
 | `BETTER_AUTH_SECRET` | secret aléatoire ≥ 32 caractères |
 | `BETTER_AUTH_URL` | `https://<site>.netlify.app` |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | URLs de preview, séparées par virgules (optionnel) |
@@ -91,7 +107,11 @@ Netlify détecte Next.js et installe `@netlify/plugin-nextjs` au build.
 | `SENTRY_DSN` | si Sentry activé |
 
 **Ne pas** mettre `SEED_*` en production : le seed est une opération locale
-ponctuelle.
+ponctuelle. `MIGRATION_DATABASE_URL` (owner) reste dans le shell local ou le
+secret GitHub de sauvegarde, jamais dans le runtime Netlify.
+
+> Netlify Free ne chiffre pas les variables : l’URL du rôle `lcd_app` limite
+> les dégâts si elle fuite, car RLS reste appliquée.
 
 ## 4. Déployer
 

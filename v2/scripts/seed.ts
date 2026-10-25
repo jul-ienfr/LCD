@@ -5,6 +5,12 @@ import type { RoleUtilisateur } from "../src/domain/utilisateur";
 // Charge .env.local (gitignoré) avant d'importer la config DB/auth.
 config({ path: ".env.local", quiet: true });
 
+// Le seed crée le tenant et les comptes : il utilise la connexion owner, pas
+// le rôle applicatif soumis à RLS.
+if (process.env.MIGRATION_DATABASE_URL) {
+  process.env.DATABASE_URL = process.env.MIGRATION_DATABASE_URL;
+}
+
 async function main() {
   const { db, sql } = await import("../src/infrastructure/db/client");
   const { tenants, users } = await import("../src/infrastructure/db/schema");

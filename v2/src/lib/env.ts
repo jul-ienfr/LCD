@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 const databaseUrl =
-  process.env.NETLIFY_DB_URL?.trim() ||
   process.env.DATABASE_URL?.trim() ||
+  process.env.NETLIFY_DB_URL?.trim() ||
   "postgres://lcd:lcd@127.0.0.1:5432/lcd";
 
 const schema = z.object({
@@ -12,6 +12,8 @@ const schema = z.object({
   APP_URL: z.string().default("http://localhost:3000"),
 
   DATABASE_URL: z.string().min(1).default(databaseUrl),
+  // Connexion owner : migrations, seed et sauvegardes uniquement.
+  MIGRATION_DATABASE_URL: z.string().optional(),
 
   BETTER_AUTH_SECRET: z
     .string()

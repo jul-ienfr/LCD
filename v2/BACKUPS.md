@@ -27,7 +27,8 @@ Variables utiles :
 
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `DATABASE_URL` | `postgres://lcd:lcd@127.0.0.1:5432/lcd` | base à sauvegarder |
+| `MIGRATION_DATABASE_URL` | `DATABASE_URL` | base à sauvegarder (owner) |
+| `DATABASE_URL` | `postgres://lcd:lcd@127.0.0.1:5432/lcd` | fallback local |
 | `PG_CONTAINER` | `v2-postgres-1` | conteneur Postgres local |
 | `BACKUP_DIR` | `backups` | dossier de sortie |
 | `BACKUP_RETENTION_DAYS` | `14` | rétention locale |
@@ -35,11 +36,12 @@ Variables utiles :
 
 ## Production
 
-Récupérer `DATABASE_URL` (owner) depuis Netlify, puis :
+Récupérer l’URL **owner** (`MIGRATION_DATABASE_URL`) depuis Netlify, jamais
+l’URL du rôle applicatif : `pg_dump` doit voir toutes les lignes malgré RLS.
 
 ```powershell
 cd v2
-$env:DATABASE_URL="postgres://..."
+$env:MIGRATION_DATABASE_URL="postgres://..."
 npm run db:backup
 npm run db:restore-test
 ```

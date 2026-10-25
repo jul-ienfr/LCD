@@ -12,6 +12,7 @@ export default defineConfig({
   verbose: true,
   dbCredentials: {
     url:
+      process.env.MIGRATION_DATABASE_URL ??
       process.env.DATABASE_URL ??
       "postgres://lcd:lcd@127.0.0.1:5432/lcd",
   },
