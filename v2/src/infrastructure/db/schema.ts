@@ -1051,6 +1051,45 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
+export const sinistres = pgTable(
+  "sinistres",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    type: text("type").notNull(),
+    date: date("date").notNull(),
+    description: text("description").notNull(),
+    montantEstimeCentimes: integer("montant_estime_centimes")
+      .notNull()
+      .default(0),
+    franchiseCentimes: integer("franchise_centimes").notNull().default(0),
+    statut: text("statut").notNull().default("declare"),
+    montantIndemniseCentimes: integer("montant_indemnise_centimes"),
+    numeroDeclaration: text("numero_declaration"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("sinistres_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("sinistres_tenant_logement_date_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.date,
+    ),
+  ],
+);
+
 export const rgpdRegistres = pgTable(
   "rgpd_registres",
   {
@@ -1468,6 +1507,8 @@ export type NewAnnonceConformiteRow =
   typeof annoncesConformite.$inferInsert;
 export type RgpdRegistreRow = typeof rgpdRegistres.$inferSelect;
 export type NewRgpdRegistreRow = typeof rgpdRegistres.$inferInsert;
+export type SinistreRow = typeof sinistres.$inferSelect;
+export type NewSinistreRow = typeof sinistres.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;

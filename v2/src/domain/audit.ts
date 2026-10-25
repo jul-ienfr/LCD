@@ -50,6 +50,8 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "ticket.statut": "Statut de ticket modifié",
   "annonce.enregistrer": "Conformité d’annonce mise à jour",
   "rgpd.enregistrer": "Registre RGPD mis à jour",
+  "sinistre.declarer": "Sinistre déclaré",
+  "sinistre.statut": "Statut de sinistre mis à jour",
   "tranquillite.preuve": "Preuve de tranquillité enregistrée",
   "tranquillite.supprimer": "Preuve de tranquillité supprimée",
   "tenant.export": "Export complet des données",

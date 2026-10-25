@@ -114,6 +114,7 @@ juridique + mandats, 320 px.
 | `/hote/tranquillite` | carnet de bruit (seuils 55/35 dB), attestations, lettre au syndic |
 | `/hote/annonce` | conformité de l’annonce : 9 mentions, DPE/GES, classement |
 | `/hote/rgpd` | registre des 7 traitements, DPO, durées de conservation |
+| `/hote/sinistres` | dossiers sinistres : déclaration, expertise, indemnisation, clôture |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |
