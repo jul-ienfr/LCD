@@ -1051,8 +1051,68 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
-export type ParametreSiteRow = typeof parametresSite.$inferSelect;
-export type NewParametreSiteRow = typeof parametresSite.$inferInsert;
+export const etatsDesLieux = pgTable(
+  "etats_des_lieux",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    ref: text("ref").notNull(),
+    type: text("type").notNull().default("sortie"),
+    date: date("date").notNull(),
+    notes: text("notes").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("etats_des_lieux_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("etats_des_lieux_tenant_date_idx").on(t.tenantId, t.date),
+    index("etats_des_lieux_logement_idx").on(t.tenantId, t.logementId),
+  ],
+);
+
+export const etatDesLieuxLignes = pgTable(
+  "etat_des_lieux_lignes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    etatDesLieuxId: uuid("etat_des_lieux_id")
+      .notNull()
+      .references(() => etatsDesLieux.id, { onDelete: "cascade" }),
+    bienId: uuid("bien_id").references(() => biens.id, {
+      onDelete: "set null",
+    }),
+    qr: text("qr").notNull(),
+    libelle: text("libelle").notNull(),
+    etatReference: integer("etat_reference").notNull(),
+    prixReferenceCentimes: integer("prix_reference_centimes"),
+    etatConstate: integer("etat_constate"),
+    manquant: boolean("manquant").notNull().default(false),
+    commentaire: text("commentaire").notNull().default(""),
+  },
+  (t) => [
+    index("etat_des_lieux_lignes_etat_idx").on(
+      t.tenantId,
+      t.etatDesLieuxId,
+    ),
+  ],
+);
+
+export type ParametreSiteRow = typeof parametresSite.$inferSelect;export type NewParametreSiteRow = typeof parametresSite.$inferInsert;
 export type ConsommableRow = typeof consommables.$inferSelect;
 export type NewConsommableRow = typeof consommables.$inferInsert;
 export type MouvementStockRow = typeof mouvementsStock.$inferSelect;
@@ -1061,6 +1121,10 @@ export type BienRow = typeof biens.$inferSelect;
 export type NewBienRow = typeof biens.$inferInsert;
 export type BienEvenementRow = typeof bienEvenements.$inferSelect;
 export type NewBienEvenementRow = typeof bienEvenements.$inferInsert;
+export type EtatDesLieuxRow = typeof etatsDesLieux.$inferSelect;
+export type NewEtatDesLieuxRow = typeof etatsDesLieux.$inferInsert;
+export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
+export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;
 export type NewLieuTourismeRow = typeof lieuxTourisme.$inferInsert;
 export type TenantRow = typeof tenants.$inferSelect;

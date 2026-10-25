@@ -274,6 +274,13 @@
       "when": 1792945956901,
       "tag": "0038_sticky_fat_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792948669011,
+      "tag": "0039_calm_whiplash",
+      "breakpoints": true
     }
   ]
 }

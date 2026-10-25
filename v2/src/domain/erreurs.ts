@@ -32,6 +32,7 @@ export type CodeErreurMetier =
   | "TOURISME_INVALIDE"
   | "MEMOIRE_INVALIDE"
   | "AVIS_INVALIDE"
+  | "ETAT_DES_LIEUX_INVALIDE"
   | "TARIF_MANQUANT";
 
 /**

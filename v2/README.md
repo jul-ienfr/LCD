@@ -104,6 +104,7 @@ juridique + mandats, 320 px.
 | `/hote/design` | design du site : 4 thèmes et bascule |
 | `/hote/stocks` | seuils, réassort et liste de courses |
 | `/hote/inventaire` | inventaire durable : QR, usages, états, alertes |
+| `/hote/etats-des-lieux` | constats d’entrée/sortie : manquants, dégradés, coût |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |

@@ -146,6 +146,12 @@ export default async function PageHote() {
           </Link>
           <Link
             className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
+            href="/hote/etats-des-lieux"
+          >
+            États des lieux
+          </Link>
+          <Link
+            className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
             href="/hote/tourisme"
           >
             Tourisme
