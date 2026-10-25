@@ -125,6 +125,7 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   await expect(publicPage.getByText("405,00 €").first()).toBeVisible();
   await expect(publicPage.getByText("Payée").first()).toBeVisible();
   await expect(publicPage.getByText("Client Facture E2E").first()).toBeVisible();
+  await expect(publicPage.getByText("Payer en ligne")).toHaveCount(0);
   await publicContext.close();
 
   // 6b. Envoi par email si Mailpit est disponible en local.

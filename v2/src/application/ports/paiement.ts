@@ -6,6 +6,9 @@ export interface PaiementIntention {
   devise: "EUR";
   description: string;
   emailClient?: string;
+  successUrl: string;
+  cancelUrl: string;
+  metadata?: Record<string, string>;
 }
 
 export interface PaiementSession {
@@ -14,11 +17,23 @@ export interface PaiementSession {
   statut: "ouverte" | "payee" | "annulee" | "expiree";
 }
 
+export interface EvenementPaiement {
+  type: "paiement_reussi" | "autre";
+  sessionId: string;
+  montantCentimes: Centimes;
+  devise: "EUR";
+  reference: string;
+  metadata: Record<string, string>;
+}
+
 /**
- * Port de paiement. Implémentation par défaut : Stripe.
+ * Port de paiement. Implémentation par défaut : Stripe Checkout + webhook.
  * Le domaine ne connaît ni Stripe ni ses objets.
  */
 export interface Paiement {
   creerSession(intention: PaiementIntention): Promise<PaiementSession>;
-  verifierWebhook(payload: Uint8Array, signature: string): Promise<void>;
+  verifierEtLireWebhook(
+    payload: string,
+    signature: string,
+  ): Promise<EvenementPaiement>;
 }

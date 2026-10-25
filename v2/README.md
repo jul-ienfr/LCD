@@ -60,10 +60,10 @@ Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + fiscalité auto + Factur-X + paiements +
 facture publique + email (si Mailpit) + statuts + compta + exports CSV,
 health/readiness, PWA offline, import ICS + blocages + idempotence + conflit,
-voyageur signé + incident **sans JavaScript** + idempotence + outbox, missions
-staff → prestataire, propriétaire rattaché + relevé + isolation, CRM prospect +
-pipeline + offre, support ticket + réponse + résolution, guide + extra
-commandé, 320 px.
+Stripe (gating sans clés + tests unitaires), voyageur signé + incident
+**sans JavaScript** + idempotence + outbox, missions staff → prestataire,
+propriétaire rattaché + relevé + isolation, CRM prospect + pipeline + offre,
+support ticket + réponse + résolution, guide + extra commandé, 320 px.
 
 ## Pages
 
@@ -102,6 +102,7 @@ commandé, 320 px.
 | `/api/exports/factures` | export CSV des factures |
 | `/api/exports/paiements` | export CSV des paiements |
 | `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
+| `/api/stripe/webhook` | webhook Stripe Checkout signé |
 
 ## Partage client et email
 
@@ -113,6 +114,21 @@ commandé, 320 px.
   Brevo/OVH/Scaleway en production via `SMTP_URL` + `EMAIL_FROM` ;
 - audit `facture.email` ;
 - la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
+
+## Paiements en ligne Stripe
+
+- bouton « Payer en ligne » sur la facture publique quand la facture est
+  `emise` et qu’il reste un solde ;
+- Stripe Checkout Session créée côté serveur (`STRIPE_SECRET_KEY`) ;
+- retour sur la facture publique `?paiement=ok|annule|erreur` ;
+- webhook `POST /api/stripe/webhook` : signature `stripe-signature` vérifiée
+  en HMAC SHA-256, tolérance 5 minutes ;
+- `checkout.session.completed` → paiement `cb` idempotent (`ref` dérivée de
+  la session), facture soldée automatiquement ;
+- désactivé automatiquement si `STRIPE_SECRET_KEY` ou
+  `STRIPE_WEBHOOK_SECRET` manque ;
+- audit `paiement.stripe` ;
+- mode test/live à choisir dans Stripe ; aucune carte n’est stockée.
 
 ## Paiements
 

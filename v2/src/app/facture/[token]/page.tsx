@@ -13,8 +13,10 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paiement-repository";
 import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
 import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
+import { env } from "@/lib/env";
 import { verifierTokenFacture } from "@/lib/facture-token";
 import { formaterEuros } from "@/lib/format";
+import { payerFactureAction } from "./payer-actions";
 
 export const instant = false;
 
@@ -49,12 +51,15 @@ function Message({ children }: { children: React.ReactNode }) {
 
 export default async function PageFacturePublique({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ paiement?: string }>;
 }) {
   await connection();
 
   const { token } = await params;
+  const query = await searchParams;
   const payload = verifierTokenFacture(token);
   if (!payload) {
     return (
@@ -100,6 +105,9 @@ export default async function PageFacturePublique({
     facture.statut === "payee"
       ? 0
       : resteAPayer(facture.montantTtcCentimes, paiements);
+  const stripeConfigured = Boolean(
+    env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET,
+  );
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
@@ -125,6 +133,23 @@ export default async function PageFacturePublique({
           <p>{logement?.adresse ?? ""}</p>
         </div>
       </header>
+
+      {query.paiement === "ok" ? (
+        <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+          Paiement reçu. La confirmation peut prendre quelques secondes ;
+          rechargez la page si le statut n’est pas encore à jour.
+        </p>
+      ) : null}
+      {query.paiement === "annule" ? (
+        <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          Paiement annulé. Vous pouvez réessayer quand vous le souhaitez.
+        </p>
+      ) : null}
+      {query.paiement === "erreur" ? (
+        <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          Le paiement en ligne n’a pas pu être ouvert. Contactez votre hôte.
+        </p>
+      ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-stone-200 bg-white p-4">
@@ -222,6 +247,25 @@ export default async function PageFacturePublique({
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {stripeConfigured && facture.statut === "emise" && reste > 0 ? (
+        <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-6">
+          <h2 className="text-lg font-semibold">Payer en ligne</h2>
+          <p className="mt-1 text-sm text-stone-600">
+            Paiement sécurisé par carte bancaire via Stripe. Montant :{" "}
+            {formaterEuros(reste)}.
+          </p>
+          <form action={payerFactureAction} className="mt-4">
+            <input name="token" type="hidden" value={token} />
+            <button
+              className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white"
+              type="submit"
+            >
+              Payer {formaterEuros(reste)}
+            </button>
+          </form>
         </section>
       ) : null}
 

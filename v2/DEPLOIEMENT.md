@@ -81,6 +81,7 @@ Netlify détecte Next.js et installe `@netlify/plugin-nextjs` au build.
 | `BETTER_AUTH_TRUSTED_ORIGINS` | URLs de preview, séparées par virgules (optionnel) |
 | `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | si stockage fichiers activé |
 | `SMTP_URL` / `EMAIL_FROM` | si emails activés |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | si paiement en ligne activé |
 | `SENTRY_DSN` | si Sentry activé |
 
 **Ne pas** mettre `SEED_*` en production : le seed est une opération locale
@@ -106,6 +107,22 @@ Après le premier déploiement :
 5. installer la PWA (menu navigateur → « Installer ») ;
 6. couper le réseau et recharger `/voyageur` → cache/offline ;
 7. configurer Uptime Kuma sur `/api/health` et `/api/ready`.
+
+## 4bis. Paiement Stripe (optionnel)
+
+1. Stripe Dashboard → Developers → API keys → récupérer la clé secrète
+   (`sk_test_…` puis `sk_live_…`).
+2. Ajouter `STRIPE_SECRET_KEY` dans Netlify.
+3. Créer un endpoint webhook vers
+   `https://<site>.netlify.app/api/stripe/webhook`, événements
+   `checkout.session.completed` et
+   `checkout.session.async_payment_succeeded`.
+4. Copier le signing secret (`whsec_…`) dans `STRIPE_WEBHOOK_SECRET`.
+5. Redéployer, ouvrir une facture publique avec un solde et vérifier le
+   bouton « Payer en ligne ».
+6. Tester en mode test avec la carte `4242 4242 4242 4242`.
+
+Sans ces deux variables, le bouton est masqué et le webhook répond 503.
 
 ## 5. Domaine personnalisé
 

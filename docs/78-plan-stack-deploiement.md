@@ -808,7 +808,7 @@ et ne remplace pas v1.
   `/api/auth/[...all]`, `/api/health`, `/api/ready`,
   `/api/exports/reservations`, `/api/exports/factures`,
   `/api/exports/paiements`, `/api/factures/[id]/factur-x`,
-  `/api/voyageur/incident` ;
+  `/api/stripe/webhook`, `/api/voyageur/incident` ;
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
 - **compta légère** : factures, lignes, TVA, taxe de séjour, totaux HT/TTC,
   cycle brouillon → émise → payée (ou annulée), impression/PDF navigateur,
@@ -816,6 +816,10 @@ et ne remplace pas v1.
 - **paiements manuels** : virement, espèces, chèque, CB, autre ; montants en
   centimes, idempotence par `ref`, refus du surpaiement, passage automatique
   en « payée » quand le solde est atteint, export CSV ;
+- **paiement en ligne Stripe** : Checkout Session depuis la facture publique,
+  webhook signé `checkout.session.completed`, enregistrement idempotent du
+  paiement, activation automatique dès que `STRIPE_SECRET_KEY` et
+  `STRIPE_WEBHOOK_SECRET` sont configurés ;
 - **partage client** : lien signé HMAC de facture (90 jours), page publique
   sans compte et sans JS, envoi email SMTP (Mailpit en dev, Brevo/OVH en prod),
   audit `facture.email` ;
@@ -846,7 +850,7 @@ et ne remplace pas v1.
   `npm run db:restore-test` (restauration dans une base jetable + comptes),
   workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
   (artefact privé 30 j, secret `DATABASE_URL` à configurer) ;
-- tests Vitest : **103/103** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **116/116** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **13/13** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X + paiements + facture publique + email (si Mailpit) + compta + CSV ;
@@ -885,7 +889,7 @@ et ne remplace pas v1.
 - déploiement effectif Netlify Free + Neon/Supabase (config prête) ;
 - Sentry + Uptime Kuma ;
 - Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
-- paiements en ligne Stripe (clés compte) ;
+- clés Stripe test/live + webhook de production ;
 - synchronisation OTA automatique par URL/API (import ICS manuel fait),
   intégrations HA/Moli.
 
@@ -976,10 +980,11 @@ et ne remplace pas v1.
 - [x] Guide/check-in + extras voyageur + commandes.
 - [x] Paramétrage TVA/taxe + calcul automatique + export Factur-X XML.
 - [x] Paiements manuels + solde automatique + export CSV paiements.
+- [x] Stripe Checkout + webhook signé + paiement idempotent.
+- [ ] Clés Stripe test/live + endpoint webhook à configurer.
 - [x] Facture publique signée + envoi email SMTP.
 - [x] Import ICS OTA + blocages calendrier + conflits.
 - [ ] Emails transactionnels de production (Brevo/OVH : clés + domaine).
-- [ ] Paiements en ligne Stripe (compte/clés).
 - [ ] Factur-X PDF/A-3 signé + plateforme de dématérialisation.
 - [ ] Portail voyageur complet.
 - [x] Health/readiness + logs structurés.
