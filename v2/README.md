@@ -124,6 +124,7 @@ juridique + mandats, 320 px.
 | `/support` | tickets support (staff = tous, autres = les leurs) |
 | `/support/[id]` | fil de messages + réponses + statuts |
 | `/facture/[token]` | facture publique signée, sans compte |
+| `/contrat/[token]` | contrat de séjour signé (même lien voyageur), imprimable |
 | `/reserver` | réservation directe (catalogue, devis, demande) |
 | `/voyageur?t=<token>` | séjour, guide, extras, mémoire, avis, incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
@@ -301,6 +302,9 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - lien signé **HMAC-SHA256** par réservation, généré depuis `/hote/planning` ;
 - payload : tenant, logement, réservation, expiration ;
 - lien valable au moins 60 jours, puis jusqu'à 30 jours après le départ ;
+- le même lien ouvre le **contrat de séjour** imprimable (`/contrat/<token>`) :
+  parties, logement, dates, nuits, voyageurs, prix, caution, clauses et
+  signatures ; toute signature falsifiée est refusée ;
 - formulaire d'incident **sans JS** (Server Action) ;
 - **i18n voyageur** : `?lang=fr|en|it|es|de`, sélecteur sans JS, fallback
   français, dictionnaires `src/lib/i18n.ts` ; les redirections conservent la

@@ -279,6 +279,14 @@ export default async function PagePlanning({
                   >
                     Lien voyageur
                   </Link>
+                  <Link
+                    className="mt-2 ml-4 inline-block text-sm underline"
+                    href={`/contrat/${encodeURIComponent(token)}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Contrat
+                  </Link>
                 </li>
               );
             })}

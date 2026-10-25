@@ -81,6 +81,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Ménage : planification liée à un séjour, checklist cochée, avancement,
   passage à « fait » et consommation de rotation une seule fois, isolation
   tenant.
+- [ ] Contrat : lien signé, parties/logement/séjour/prix exacts, caution
+  affichée si présente, signature falsifiée refusée.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -161,8 +163,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **302/302**.
-- Playwright : **30/30** sur `next build` + `next start`, y compris une passe
+- Vitest : **306/306**.
+- Playwright : **31/31** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/
