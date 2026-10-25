@@ -108,6 +108,7 @@ juridique + mandats, 320 px.
 | `/hote/entretien` | carnet d’entretien : interventions, prestataires, coûts |
 | `/hote/menage` | ménages : checklists, avancement, réassort au départ |
 | `/hote/questionnaires` | satisfaction voyageur : moyennes par critère |
+| `/hote/phrases` | messages types : arrivée, départ, urgence, variables |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |

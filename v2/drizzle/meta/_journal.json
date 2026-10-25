@@ -302,6 +302,13 @@
       "when": 1792959740295,
       "tag": "0042_dapper_eternity",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1792960267913,
+      "tag": "0043_modern_green_goblin",
+      "breakpoints": true
     }
   ]
 }
