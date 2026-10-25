@@ -9,7 +9,8 @@ installable, sans payer au démarrage.
 - **Site Netlify** : `lcd-parc` (`7eb65dbc-dceb-477e-b89e-4ee1d7989b0b`),
   plan Free.
 - **Base** : Netlify Database (Postgres managé, région `us-east-2`),
-  `DATABASE_URL` injecté par Netlify ; `/api/ready` répond `db: up`.
+  `DATABASE_URL` injecté par Netlify ; `/api/ready` répond `db: up` et
+  `schema: ok` uniquement après application des migrations.
 - **Admin** : `conciergeriefr@outlook.fr` (mot de passe fourni hors dépôt).
 - **Email** : `EMAIL_ENABLED=false` tant qu'aucun SMTP de production
   (Brevo/OVH/Scaleway) n'est configuré.
@@ -106,7 +107,8 @@ site**.
 Après le premier déploiement :
 
 1. ouvrir `https://<site>.netlify.app/api/health` → `{ ok: true }` ;
-2. ouvrir `https://<site>.netlify.app/api/ready` → `{ ok: true, db: "up" }` ;
+2. ouvrir `https://<site>.netlify.app/api/ready` → `{ ok: true, db: "up",
+   schema: "ok" }` ; si `schema: "pending"`, appliquer les migrations ;
 3. ouvrir `/login` et se connecter avec l'admin seedé ;
 4. ouvrir `/voyageur` et vérifier le formulaire sans JS ;
 5. installer la PWA (menu navigateur → « Installer ») ;
