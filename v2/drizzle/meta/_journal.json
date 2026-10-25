@@ -351,6 +351,13 @@
       "when": 1792966121402,
       "tag": "0049_true_thunderbolt_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1792966660043,
+      "tag": "0050_curvy_imperial_guard",
+      "breakpoints": true
     }
   ]
 }

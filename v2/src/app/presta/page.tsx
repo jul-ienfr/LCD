@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { ajouterJours } from "@/domain/calendrier";
+import { aujourdHuiIso } from "@/domain/objet-trouve";
 import {
   TRANSITIONS_MISSION,
   type StatutMission,
 } from "@/domain/mission";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzleDispatchRepository } from "@/infrastructure/db/repositories/dispatch-repository";
 import { DrizzleMissionRepository } from "@/infrastructure/db/repositories/mission-repository";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { BoutonDeconnexion } from "@/components/bouton-deconnexion";
-import { changerStatutMissionAction } from "./actions";
+import { changerStatutMissionAction, repondreDispatchAction } from "./actions";
 
 export const instant = false;
 
@@ -38,6 +41,26 @@ export default async function PagePresta() {
     tenantId,
   );
   const parLogement = new Map(logements.map((l) => [l.id, l]));
+  const offres =
+    session.user.role === "presta"
+      ? (
+          await new DrizzleDispatchRepository().listerParPrestataire(
+            tenantId,
+            session.user.id,
+          )
+        ).filter((offre) => offre.statut === "proposee")
+      : [];
+  const missionsPourOffres =
+    offres.length > 0
+      ? await new DrizzleMissionRepository().listerParMois(
+          tenantId,
+          aujourdHuiIso(),
+          ajouterJours(aujourdHuiIso(), 90),
+        )
+      : [];
+  const parMission = new Map(
+    missionsPourOffres.map((mission) => [mission.id, mission]),
+  );
 
   return (
     <main className="mx-auto max-w-3xl space-y-8 px-6 py-12">
@@ -61,6 +84,59 @@ export default async function PagePresta() {
           <BoutonDeconnexion />
         </div>
       </header>
+
+      {offres.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">
+            Offres en attente ({offres.length})
+          </h2>
+          <ul className="space-y-3">
+            {offres.map((offre) => {
+              const mission = parMission.get(offre.missionId);
+              return (
+                <li
+                  className="rounded-2xl border border-accent bg-accent-douce p-4"
+                  key={offre.id}
+                >
+                  <p className="font-mono text-xs text-accent">{offre.ref}</p>
+                  <p className="mt-1 text-sm">
+                    {mission
+                      ? `${mission.ref} — ${mission.date}${
+                          mission.heure ? ` ${mission.heure}` : ""
+                        } · ${
+                          parLogement.get(mission.logementId)?.nom ?? ""
+                        }`
+                      : "Mission à venir"}
+                  </p>
+                  {offre.message ? (
+                    <p className="mt-1 text-sm text-encre-douce">
+                      {offre.message}
+                    </p>
+                  ) : null}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(["accepter", "refuser"] as const).map((decision) => (
+                      <form action={repondreDispatchAction} key={decision}>
+                        <input type="hidden" name="id" value={offre.id} />
+                        <input
+                          type="hidden"
+                          name="decision"
+                          value={decision}
+                        />
+                        <button
+                          className="rounded-full border border-accent bg-surface px-4 py-2 text-sm font-medium text-accent"
+                          type="submit"
+                        >
+                          {decision === "accepter" ? "Accepter" : "Refuser"}
+                        </button>
+                      </form>
+                    ))}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       {missions.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">

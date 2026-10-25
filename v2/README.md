@@ -115,6 +115,7 @@ juridique + mandats, 320 px.
 | `/hote/annonce` | conformité de l’annonce : 9 mentions, DPE/GES, classement |
 | `/hote/rgpd` | registre des 7 traitements, DPO, durées de conservation |
 | `/hote/sinistres` | dossiers sinistres : déclaration, expertise, indemnisation, clôture |
+| `/hote/dispatch` | offres de mission aux prestataires, acceptation/refus, réassignation |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |

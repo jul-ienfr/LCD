@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0049` appliquées.
+- [ ] Migrations `0026` → `0050` appliquées.
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
 - [ ] `/api/health` → `200`, `/api/ready` → `200`, `db: up`, `schema: ok`.
@@ -99,6 +99,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   désactivation d’un traitement.
 - [ ] Sinistres : déclaration idempotente, franchise, expertise,
   indemnisation, clôture et montants attendus.
+- [ ] Dispatch : une offre active par mission, retrait, acceptation avec
+  réassignation, réponse prestataire.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -179,8 +181,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **375/375**.
-- Playwright : **39/39** sur `next build` + `next start`, y compris une passe
+- Vitest : **384/384**.
+- Playwright : **40/40** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/
@@ -191,7 +193,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - Build Netlify et build Docker standalone.
 - Pile compose VPS : PostgreSQL 18, migrations `0031`, seed, web, Caddy HTTPS,
   headers, `/api/health`, `/api/ready`.
-- Sauvegarde + restauration complètes : 49 tables, comptes, logements,
+- Sauvegarde + restauration complètes : 50 tables, comptes, logements,
   réservations, factures, paiements, blocages.
 - 2FA TOTP de bout en bout.
 - Inscription publique fermée, tenant/rôle non modifiables, exports protégés.

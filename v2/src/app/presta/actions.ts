@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { ErreurMetier } from "@/domain/erreurs";
 import type { StatutMission } from "@/domain/mission";
 import { ChangerStatutMission } from "@/application/use-cases/changer-statut-mission";
+import { RepondreDispatch } from "@/application/use-cases/dispatch";
+import { DrizzleDispatchRepository } from "@/infrastructure/db/repositories/dispatch-repository";
 import { DrizzleMissionRepository } from "@/infrastructure/db/repositories/mission-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
@@ -77,6 +79,63 @@ export async function changerStatutMissionAction(formData: FormData) {
         tenantId,
         missionId,
       });
+    }
+  }
+
+  redirect("/presta");
+}
+
+export async function repondreDispatchAction(formData: FormData) {
+  const session = await requireRole(["presta", "admin", "hote"]);
+  const tenantId = tenantIdDeSession(session);
+  const id = String(formData.get("id") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+
+  if (decision !== "accepter" && decision !== "refuser") {
+    redirect("/presta");
+  }
+
+  try {
+    const dispatch = await new DrizzleDispatchRepository().trouverParId(
+      tenantId,
+      id,
+    );
+    if (!dispatch) {
+      redirect("/presta");
+    }
+    if (
+      session.user.role === "presta" &&
+      dispatch.prestataireId !== session.user.id
+    ) {
+      redirect("/presta");
+    }
+
+    const misAJour = await new RepondreDispatch(
+      new DrizzleDispatchRepository(),
+      new DrizzleMissionRepository(),
+    ).executer({ tenantId, id, decision });
+
+    await withTenant(tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId,
+        qui: session.user.id,
+        action: "dispatch.repondre",
+        cible: misAJour.id,
+        ref: misAJour.ref,
+        payload: {
+          decision,
+          statut: misAJour.statut,
+          missionId: misAJour.missionId,
+        },
+      }),
+    );
+
+    revalidatePath("/presta");
+    revalidatePath("/hote/dispatch");
+    revalidatePath("/hote/missions");
+  } catch (error) {
+    if (!(error instanceof ErreurMetier)) {
+      logErreur("repondreDispatchAction", error, { tenantId, cible: id });
     }
   }
 

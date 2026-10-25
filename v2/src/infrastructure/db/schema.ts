@@ -567,6 +567,38 @@ export const missions = pgTable(
   ],
 );
 
+export const dispatches = pgTable(
+  "dispatches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    missionId: uuid("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    prestataireId: text("prestataire_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    ref: text("ref").notNull(),
+    statut: text("statut").notNull().default("proposee"),
+    message: text("message").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    reponduAt: timestamp("repondu_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("dispatches_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("dispatches_tenant_mission_idx").on(t.tenantId, t.missionId),
+    index("dispatches_tenant_presta_idx").on(
+      t.tenantId,
+      t.prestataireId,
+      t.createdAt,
+    ),
+  ],
+);
+
 export const incidents = pgTable(
   "incidents",
   {
@@ -1509,6 +1541,8 @@ export type RgpdRegistreRow = typeof rgpdRegistres.$inferSelect;
 export type NewRgpdRegistreRow = typeof rgpdRegistres.$inferInsert;
 export type SinistreRow = typeof sinistres.$inferSelect;
 export type NewSinistreRow = typeof sinistres.$inferInsert;
+export type DispatchRow = typeof dispatches.$inferSelect;
+export type NewDispatchRow = typeof dispatches.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;

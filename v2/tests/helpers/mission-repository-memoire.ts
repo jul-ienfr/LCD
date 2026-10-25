@@ -68,4 +68,16 @@ export class MissionRepositoryMemoire implements MissionRepository {
     mission.updatedAt = new Date();
     return mission;
   }
+
+  async assigner(
+    tenantId: string,
+    id: string,
+    userId: string,
+  ): Promise<Mission | null> {
+    const mission = await this.trouverParId(tenantId, id);
+    if (!mission) return null;
+    mission.assignedUserId = userId;
+    mission.updatedAt = new Date();
+    return mission;
+  }
 }

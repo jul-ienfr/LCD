@@ -114,4 +114,18 @@ export class DrizzleMissionRepository implements MissionRepository {
     });
     return this.trouverParId(tenantId, id);
   }
+
+  async assigner(
+    tenantId: string,
+    id: string,
+    userId: string,
+  ): Promise<Mission | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(missions)
+        .set({ assignedUserId: userId, updatedAt: new Date() })
+        .where(and(eq(missions.tenantId, tenantId), eq(missions.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
 }

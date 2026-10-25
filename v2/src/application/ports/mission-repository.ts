@@ -29,4 +29,9 @@ export interface MissionRepository {
     id: string,
     statut: Mission["statut"],
   ): Promise<Mission | null>;
+  assigner(
+    tenantId: string,
+    id: string,
+    userId: string,
+  ): Promise<Mission | null>;
 }
