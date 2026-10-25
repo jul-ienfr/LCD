@@ -840,7 +840,7 @@ et ne remplace pas v1.
   de dématérialisation restent à faire ;
 - **portail voyageur réel** : lien signé HMAC par réservation, séjour réel,
   incident idempotent, formulaire sans JS, outbox IndexedDB + rejeu online,
-  i18n FR/EN/IT/ES/DE sans JS (`?lang=`) ;
+  API incident limitée à 10 Ko, i18n FR/EN/IT/ES/DE sans JS (`?lang=`) ;
 - **portail prestataire + missions** : création staff, assignation, cycle
   planifiée → en cours → terminée/annulée, audit ;
 - **portail propriétaire** : rattachement logement ↔ propriétaire, relevé

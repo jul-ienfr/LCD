@@ -6,12 +6,30 @@ import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/r
 import { logErreur } from "@/lib/logger";
 import { verifierTokenVoyageur } from "@/lib/voyageur-token";
 
+const TAILLE_MAX = 10_000;
+
 export async function POST(request: Request) {
   await connection();
 
+  const longueur = Number(request.headers.get("content-length") ?? 0);
+  if (Number.isFinite(longueur) && longueur > TAILLE_MAX) {
+    return Response.json(
+      { ok: false, erreur: "Payload trop volumineux." },
+      { status: 413 },
+    );
+  }
+
+  const texte = await request.text();
+  if (texte.length > TAILLE_MAX) {
+    return Response.json(
+      { ok: false, erreur: "Payload trop volumineux." },
+      { status: 413 },
+    );
+  }
+
   let body: unknown;
   try {
-    body = await request.json();
+    body = JSON.parse(texte);
   } catch {
     return Response.json({ ok: false, erreur: "JSON invalide." }, { status: 400 });
   }

@@ -103,6 +103,12 @@ test("voyageur : lien signé, incident sans JS, idempotence et outbox", async ({
   expect(second.status()).toBe(200);
   expect((await second.json()).idempotent).toBe(true);
 
+  // 2bis. Payload démesuré refusé avant lecture complète.
+  const trop = await page.request.post("/api/voyageur/incident", {
+    data: { token, ref: `gros-${suffix}`, message: "a".repeat(10_500) },
+  });
+  expect(trop.status()).toBe(413);
+
   // 3. Outbox : hors ligne, mise en attente, rejeu au retour réseau.
   const jsContext = await browser.newContext({
     viewport: { width: 390, height: 844 },

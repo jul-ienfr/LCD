@@ -261,7 +261,8 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - **i18n voyageur** : `?lang=fr|en|it|es|de`, sélecteur sans JS, fallback
   français, dictionnaires `src/lib/i18n.ts` ; les redirections conservent la
   langue ;
-- API `POST /api/voyageur/incident` idempotente par `ref` ;
+- API `POST /api/voyageur/incident` idempotente par `ref`, payload limité à
+  10 Ko (413 au-delà) ;
 - **outbox IndexedDB** : hors ligne, l'incident est mis en attente puis rejoué
   au retour du réseau ;
 - 2xx = retiré, 4xx = retiré (définitif), 5xx/réseau = conservé ;
