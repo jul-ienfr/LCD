@@ -204,6 +204,20 @@
       "when": 1792896774963,
       "tag": "0028_rls_webhooks",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792897467542,
+      "tag": "0029_fresh_valkyrie",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1792897469484,
+      "tag": "0030_rls_cautions",
+      "breakpoints": true
     }
   ]
 }

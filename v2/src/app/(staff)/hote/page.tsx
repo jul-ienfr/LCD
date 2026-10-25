@@ -122,6 +122,12 @@ export default async function PageHote() {
           </Link>
           <Link
             className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
+            href="/hote/cautions"
+          >
+            Cautions
+          </Link>
+          <Link
+            className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium"
             href="/hote/extras"
           >
             Extras

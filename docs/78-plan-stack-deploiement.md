@@ -790,8 +790,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **28 tables** (24 métier + 4 Better Auth),
-  migrations `0000` → `0028`, RLS sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **29 tables** (25 métier + 4 Better Auth),
+  migrations `0000` → `0030`, RLS sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -820,6 +820,9 @@ et ne remplace pas v1.
 - **paiements manuels** : virement, espèces, chèque, CB, autre ; montants en
   centimes, idempotence par `ref`, refus du surpaiement, passage automatique
   en « payée » quand le solde est atteint, export CSV ;
+- **cautions / dépôts de garantie** : une caution par réservation, cycle
+  attendue → reçue → restituée ou retenue, montant retenu + motif, page
+  `/hote/cautions`, audit ;
 - **paiement en ligne Stripe** : Checkout Session depuis la facture publique,
   webhook signé `checkout.session.completed`, enregistrement idempotent du
   paiement, activation automatique dès que `STRIPE_SECRET_KEY` et
@@ -865,15 +868,15 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **150/150** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **14/14** (login + logement ; prix + planning + anti-chevauchement ;
+- tests Vitest : **157/157** (domaine + cas d'usage avec dépôts mémoire) ;
+- Playwright : **15/15** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
   compta + CSV ; import ICS + blocages + idempotence + conflit ; webhook
-  intégration ; voyageur signé + incident sans JS + idempotence + outbox ;
-  missions staff → prestataire ; propriétaire rattaché + commission + relevé +
-  isolation ; CRM prospect + pipeline + offre ; support ticket + réponse +
-  résolution ; guide + extra commandé ; 320 px) ;
+  intégration ; cautions ; voyageur signé + incident sans JS + idempotence +
+  outbox ; missions staff → prestataire ; propriétaire rattaché + commission +
+  relevé + isolation ; CRM prospect + pipeline + offre ; support ticket +
+  réponse + résolution ; guide + extra commandé ; 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -892,7 +895,7 @@ et ne remplace pas v1.
   Sentry/Uptime encore absents, backup quotidien GitHub à activer avec le
   secret `DATABASE_URL` ;
 - **migrations distantes** : production actuellement marquée jusqu'à `0025`
-  (26 tables) ; `0026` (commission), `0027`-`0028` (webhooks) sont prêtes et
+  (26 tables) ; `0026`-`0030` (commission, webhooks, cautions) sont prêtes et
   seront appliquées au prochain déploiement ;
 - CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
@@ -903,7 +906,7 @@ et ne remplace pas v1.
 - test E2E 2FA avec un utilisateur de test isolé (le parcours manuel passe) ;
 - policies RLS avec un rôle applicatif non propriétaire ;
 - débloquer les crédits Netlify (ou migrer vers un VPS) puis appliquer
-  `0026`-`0028` et déployer les tranches commission/PDF/webhooks ;
+  `0026`-`0030` et déployer les tranches commission/PDF/webhooks/cautions ;
 - `SENTRY_DSN` + instance Uptime Kuma + monitors/alertes à configurer ;
 - clés SMTP de production (Brevo/OVH) + `EMAIL_ENABLED=true` ;
 - clés Stripe test/live + webhook de production ;
@@ -911,7 +914,7 @@ et ne remplace pas v1.
   pour les workflows OTA/webhooks ;
 - Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
 - connecteurs HA/Moli spécifiques (webhooks génériques faits) ;
-- post-beta : caution/dépôt de garantie, i18n voyageur.
+- post-beta : i18n voyageur.
 
 ---
 
@@ -1000,6 +1003,7 @@ et ne remplace pas v1.
 - [x] Guide/check-in + extras voyageur + commandes.
 - [x] Paramétrage TVA/taxe + calcul automatique + export Factur-X XML.
 - [x] Paiements manuels + solde automatique + export CSV paiements.
+- [x] Cautions / dépôts de garantie + retenue motivée.
 - [x] Stripe Checkout + webhook signé + paiement idempotent.
 - [ ] Clés Stripe test/live + endpoint webhook à configurer.
 - [x] Facture publique signée + envoi email SMTP.

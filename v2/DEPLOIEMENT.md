@@ -15,8 +15,8 @@ installable, sans payer au démarrage.
   (Brevo/OVH/Scaleway) n'est configuré.
 - **Schéma** : bootstrap initial + table `drizzle.__drizzle_migrations`
   marquée jusqu'à `0025` en production. Les migrations `0026` (commission),
-  `0027`-`0028` (webhooks) seront appliquées au prochain déploiement avec
-  `DATABASE_URL` owner récupéré depuis Netlify.
+  `0027`-`0028` (webhooks) et `0029`-`0030` (cautions) seront appliquées au
+  prochain déploiement avec `DATABASE_URL` owner récupéré depuis Netlify.
 - **Limites Free** : variables d'environnement non secrètes (lisibles par
   l'équipe), base hors UE, pas de backups/PITR, pas de Sentry/Uptime.
 - **Sécurité** : le token Netlify utilisé pour ce bootstrap doit être

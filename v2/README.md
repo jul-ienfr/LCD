@@ -61,10 +61,11 @@ anti-chevauchement, audit, facture + fiscalité auto + Factur-X XML + PDF +
 paiements + facture publique + email (si Mailpit) + statuts + compta + exports
 CSV, health/readiness, PWA offline, import ICS + blocages + idempotence +
 conflit + flux HTTPS, Stripe (gating sans clés + tests unitaires), webhooks
-signés + outbox, voyageur signé + incident **sans JavaScript** + idempotence +
-outbox, missions staff → prestataire, propriétaire rattaché + commission +
-relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse +
-résolution, guide + extra commandé, 320 px.
+signés + outbox, cautions + retenues, voyageur signé + incident **sans
+JavaScript** + idempotence + outbox, missions staff → prestataire,
+propriétaire rattaché + commission + relevé + isolation, CRM prospect +
+pipeline + offre, support ticket + réponse + résolution, guide + extra
+commandé, 320 px.
 
 ## Pages
 
@@ -80,6 +81,7 @@ résolution, guide + extra commandé, 320 px.
 | `/hote/prix` | prix par jour et par logement |
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
 | `/hote/planning/import` | import ICS OTA + blocages + conflits |
+| `/hote/cautions` | dépôts de garantie + retenues |
 | `/hote/compta` | CA, factures, TVA, taxe, paiements, exports |
 | `/hote/compta/parametres` | TVA, taxe de séjour, préfixe et mentions légales |
 | `/hote/factures` | liste + création de factures |
@@ -134,6 +136,15 @@ résolution, guide + extra commandé, 320 px.
   `STRIPE_WEBHOOK_SECRET` manque ;
 - audit `paiement.stripe` ;
 - mode test/live à choisir dans Stripe ; aucune carte n’est stockée.
+
+## Cautions
+
+- une caution par réservation, montant en centimes ;
+- cycle : `attendue` → `recue` → `restituee` ou `retenue` ;
+- retenue partielle avec montant et motif obligatoires ;
+- page `/hote/cautions` : création, réception, restitution, retenue ;
+- audit `caution.creer` / `caution.statut` ;
+- la caution ne modifie pas le CA et reste distincte de la taxe de séjour.
 
 ## Paiements
 
@@ -389,9 +400,11 @@ Migrations actuelles :
 - `0025_rls_flux_ics.sql` : RLS des flux ICS ;
 - `0026_*.sql` : commission de mandat sur les rattachements ;
 - `0027_*.sql` : webhooks + livraisons ;
-- `0028_rls_webhooks.sql` : RLS des webhooks.
+- `0028_rls_webhooks.sql` : RLS des webhooks ;
+- `0029_*.sql` : cautions / dépôts de garantie ;
+- `0030_rls_cautions.sql` : RLS des cautions.
 
-Total : **28 tables** (24 métier + 4 Better Auth).
+Total : **29 tables** (25 métier + 4 Better Auth).
 
 ## Ports & adapters
 
