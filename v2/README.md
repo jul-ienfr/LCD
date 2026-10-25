@@ -358,6 +358,16 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - payload JSON replié, jamais interprété comme du HTML ;
 - lecture via RLS tenant, aucune écriture depuis la page.
 
+## En-têtes de sécurité
+
+- **CSP partielle** : `base-uri 'self'`, `form-action 'self'`,
+  `frame-ancestors 'none'`, `object-src 'none'` ; une CSP à nonce est reportée
+  après la beta.
+- HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` et
+  `Permissions-Policy` posés par Netlify et Caddy.
+- `X-Robots-Tag: noindex, nofollow, noarchive` sur les routes privées et les
+  liens signés.
+
 ## Auth
 
 - **Better Auth 1.7.12**, email/password, TOTP actif.

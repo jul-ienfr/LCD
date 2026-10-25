@@ -388,7 +388,7 @@ ou un petit worker Node + Redis sur VPS.
 | Domaine | Mesure |
 |---|---|
 | Transport | TLS, HSTS, redirection HTTP→HTTPS |
-| En-têtes | CSP à nonce, `nosniff`, `frame-ancestors 'none'`, Referrer-Policy, Permissions-Policy |
+| En-têtes | CSP partielle (`base-uri`, `form-action`, `frame-ancestors`, `object-src`) ; CSP à nonce reportée, `nosniff`, `frame-ancestors 'none'`, Referrer-Policy, Permissions-Policy |
 | CSRF | Server Actions + cookies SameSite + vérification d'origine |
 | Rate limiting | Edge (Netlify/Cloudflare) + app |
 | Secrets | variables Netlify/GitHub, jamais dans Git, rotation |

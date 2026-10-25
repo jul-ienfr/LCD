@@ -40,15 +40,27 @@ const nextConfig: NextConfig = {
       "/api/:path*",
     ];
 
-    return privees.map((source) => ({
-      source,
-      headers: [
-        {
-          key: "X-Robots-Tag",
-          value: "noindex, nofollow, noarchive",
-        },
-      ],
-    }));
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
+          },
+        ],
+      },
+      ...privees.map((source) => ({
+        source,
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      })),
+    ];
   },
 };
 

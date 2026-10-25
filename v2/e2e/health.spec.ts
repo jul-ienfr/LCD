@@ -13,4 +13,9 @@ test("health live + readiness DB", async ({ request }) => {
   expect(readyBody.ok).toBe(true);
   expect(readyBody.db).toBe("up");
   expect(readyBody.schema).toBe("ok");
+
+  const accueil = await request.get("/");
+  expect(accueil.headers()["content-security-policy"]).toContain(
+    "frame-ancestors 'none'",
+  );
 });
