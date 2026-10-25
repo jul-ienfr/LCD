@@ -904,9 +904,10 @@ et ne remplace pas v1.
 - **déploiement beta live** : <https://lcd-parc.netlify.app> — Netlify Free +
   Netlify Database (Postgres managé, `us-east-2`), admin seedé,
   `/api/health` et `/api/ready` verts ;
-- **fallback VPS prêt** : `compose.prod.yml`, `Caddyfile`, Dockerfile
-  multi-stage (`runner` + `tools`), script de sauvegarde et guide
-  `v2/DEPLOIEMENT-VPS.md` ;
+- **fallback VPS prêt et testé de bout en bout** : `compose.prod.yml`,
+  `Caddyfile`, Dockerfile multi-stage (`runner` + `tools`), PostgreSQL 18,
+  migrations, seed, web, Caddy HTTPS (certificat local en test), headers,
+  script de sauvegarde et guide `v2/DEPLOIEMENT-VPS.md` ;
 - **limites du déploiement beta** : variables d'environnement non secrètes
   sur le plan Free (`BETTER_AUTH_SECRET`, `DATABASE_URL` lisibles par
   l'équipe), base en `us-east-2` (latence UE), email désactivé

@@ -14,8 +14,9 @@ perdre la capacité de migrer plus tard (voir `docs/78-plan-stack-deploiement.md
   n'est configuré ;
 - variables d'environnement non secrètes sur le plan Free, base hors UE,
   backups/Sentry/Uptime à ajouter ;
-- **alternative VPS prête** : `compose.prod.yml` + `Caddyfile` + Dockerfile
-  multi-stage + sauvegardes ; voir `v2/DEPLOIEMENT-VPS.md` ;
+- **alternative VPS prête et testée de bout en bout** : `compose.prod.yml` +
+  `Caddyfile` + Dockerfile multi-stage + sauvegardes ; PostgreSQL, migrations,
+  seed, web et HTTPS validés en local ; voir `v2/DEPLOIEMENT-VPS.md` ;
 - procédure et limites : `v2/DEPLOIEMENT.md`.
 
 ## Démarrer

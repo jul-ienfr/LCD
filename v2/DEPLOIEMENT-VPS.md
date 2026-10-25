@@ -158,3 +158,15 @@ Faire une sauvegarde avant chaque migration. Tester `/api/ready` et un login.
 - Caddy + Next + Postgres sur 2 Go suffisent pour 3 logements, pas pour une
   montée en charge forte ;
 - pas de zero-downtime : la mise à jour redémarre `web` quelques secondes.
+
+## 11. Validation locale effectuée
+
+La pile compose a été testée de bout en bout sur Docker Desktop :
+
+- builds `web` et `tools` ;
+- PostgreSQL 18, migrations `0000` → `0030`, seed admin + prestataire ;
+- `web` healthy, `/api/health` et `/api/ready` verts ;
+- Caddy HTTPS avec certificat local, redirection HTTP 308, HSTS, frame,
+  referrer, permissions et `X-Robots-Tag` ;
+- E2E login admin, refus d'inscription publique, isolation prestataire,
+  création de logement et journal d'audit sur la pile production.
