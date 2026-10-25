@@ -40,6 +40,7 @@ export type CodeErreurMetier =
   | "PHRASE_INVALIDE"
   | "FORMATION_INVALIDE"
   | "OBJET_TROUVE_INVALIDE"
+  | "PREUVE_INVALIDE"
   | "TARIF_MANQUANT";
 
 /**

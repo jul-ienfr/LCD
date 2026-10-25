@@ -48,6 +48,8 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "ticket.creer": "Ticket créé",
   "ticket.message": "Message support ajouté",
   "ticket.statut": "Statut de ticket modifié",
+  "tranquillite.preuve": "Preuve de tranquillité enregistrée",
+  "tranquillite.supprimer": "Preuve de tranquillité supprimée",
   "tenant.export": "Export complet des données",
   "utilisateur.activer": "Utilisateur réactivé",
   "utilisateur.creer": "Utilisateur créé",

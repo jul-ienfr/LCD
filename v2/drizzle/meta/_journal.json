@@ -323,6 +323,13 @@
       "when": 1792961423014,
       "tag": "0045_blue_blue_shield",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1792961867223,
+      "tag": "0046_previous_raider",
+      "breakpoints": true
     }
   ]
 }
