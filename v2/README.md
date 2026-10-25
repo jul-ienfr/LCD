@@ -113,6 +113,7 @@ juridique + mandats, 320 px.
 | `/hote/objets-trouves` | registre par logement : réclamation 15 €, envoi, don après 30 j |
 | `/hote/tranquillite` | carnet de bruit (seuils 55/35 dB), attestations, lettre au syndic |
 | `/hote/annonce` | conformité de l’annonce : 9 mentions, DPE/GES, classement |
+| `/hote/rgpd` | registre des 7 traitements, DPO, durées de conservation |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |

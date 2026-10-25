@@ -42,6 +42,7 @@ export type CodeErreurMetier =
   | "OBJET_TROUVE_INVALIDE"
   | "PREUVE_INVALIDE"
   | "ANNONCE_INVALIDE"
+  | "RGPD_INVALIDE"
   | "TARIF_MANQUANT";
 
 /**

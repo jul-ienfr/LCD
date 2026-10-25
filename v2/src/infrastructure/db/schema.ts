@@ -1051,6 +1051,30 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
+export const rgpdRegistres = pgTable(
+  "rgpd_registres",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    dpoNom: text("dpo_nom"),
+    dpoContact: text("dpo_contact"),
+    hebergement: text("hebergement").notNull().default("Union européenne"),
+    entrees: jsonb("entrees")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("rgpd_registres_tenant_uq").on(t.tenantId)],
+);
+
 export const annoncesConformite = pgTable(
   "annonces_conformite",
   {
@@ -1442,6 +1466,8 @@ export type NewPreuveTranquilliteRow =
 export type AnnonceConformiteRow = typeof annoncesConformite.$inferSelect;
 export type NewAnnonceConformiteRow =
   typeof annoncesConformite.$inferInsert;
+export type RgpdRegistreRow = typeof rgpdRegistres.$inferSelect;
+export type NewRgpdRegistreRow = typeof rgpdRegistres.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;
