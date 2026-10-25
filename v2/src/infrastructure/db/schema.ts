@@ -1051,6 +1051,60 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
+export const menages = pgTable(
+  "menages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    ref: text("ref").notNull(),
+    date: date("date").notNull(),
+    statut: text("statut").notNull().default("planifie"),
+    notes: text("notes").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("menages_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("menages_tenant_logement_date_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.date,
+    ),
+  ],
+);
+
+export const menageTaches = pgTable(
+  "menage_taches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    menageId: uuid("menage_id")
+      .notNull()
+      .references(() => menages.id, { onDelete: "cascade" }),
+    libelle: text("libelle").notNull(),
+    fait: boolean("fait").notNull().default(false),
+    ordre: integer("ordre").notNull().default(0),
+  },
+  (t) => [
+    index("menage_taches_tenant_menage_idx").on(t.tenantId, t.menageId),
+  ],
+);
+
 export const entretiens = pgTable(
   "entretiens",
   {
@@ -1160,6 +1214,10 @@ export type EtatDesLieuxRow = typeof etatsDesLieux.$inferSelect;
 export type NewEtatDesLieuxRow = typeof etatsDesLieux.$inferInsert;
 export type EntretienRow = typeof entretiens.$inferSelect;
 export type NewEntretienRow = typeof entretiens.$inferInsert;
+export type MenageRow = typeof menages.$inferSelect;
+export type NewMenageRow = typeof menages.$inferInsert;
+export type MenageTacheRow = typeof menageTaches.$inferSelect;
+export type NewMenageTacheRow = typeof menageTaches.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;
