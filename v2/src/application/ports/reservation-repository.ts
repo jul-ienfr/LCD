@@ -10,6 +10,7 @@ export interface CreerReservationData {
   fin: string;
   montantCentimes: number;
   source?: string;
+  statut?: Reservation["statut"];
 }
 
 export interface ReservationRepository {
@@ -29,5 +30,6 @@ export interface ReservationRepository {
     tenantId: string,
     id: string,
   ): Promise<Reservation | null>;
+  trouverParRef(tenantId: string, ref: string): Promise<Reservation | null>;
   listerTous(tenantId: string): Promise<Reservation[]>;
 }

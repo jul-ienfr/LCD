@@ -787,8 +787,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **24 tables** (20 métier + 4 Better Auth),
-  migrations `0000` → `0021`, RLS sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **25 tables** (21 métier + 4 Better Auth),
+  migrations `0000` → `0023`, RLS sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -797,7 +797,8 @@ et ne remplace pas v1.
   `admin@lcd.test`, session + rôle + tenant ; changement de mot de passe
   self-service sur `/hote/securite` (révoque les autres sessions) ;
 - routes `/`, `/login`, `/two-factor`, `/voyageur` (formulaire Server Action
-  sans JS), `/hote`, `/hote/logements`, `/hote/planning`, `/hote/prix`,
+  sans JS), `/hote`, `/hote/logements`, `/hote/planning`,
+  `/hote/planning/import`, `/hote/prix`,
   `/hote/compta`, `/hote/compta/parametres`, `/hote/factures`,
   `/hote/factures/[id]`, `/hote/securite`,
   `/hote/logements/[id]` (guide), `/hote/extras`,
@@ -836,17 +837,20 @@ et ne remplace pas v1.
   ouvert → en cours → résolu/fermé, isolation par créateur ou staff ;
 - **guide/check-in + extras voyageur** : WiFi, consignes, règles, urgence,
   catalogue d’extras, commande idempotente, suivi staff ;
+- **import OTA/ICS** : parseur iCal pur, réservations confirmées, blocages
+  « Not available » sans impact CA, idempotence par UID, détection de
+  conflits, page `/hote/planning/import` ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
 - **logs JSON** + pages d'erreur brandées ;
-- tests Vitest : **95/95** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **12/12** (login + logement ; prix + planning + anti-chevauchement ;
+- tests Vitest : **103/103** (domaine + cas d'usage avec dépôts mémoire) ;
+- Playwright : **13/13** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X + paiements + facture publique + email (si Mailpit) + compta + CSV ;
-  voyageur signé + incident sans JS + idempotence + outbox ; missions staff →
-  prestataire ; propriétaire rattaché + relevé + isolation ; CRM prospect +
-  pipeline + offre ; support ticket + réponse + résolution ; guide + extra
-  commandé ; 320 px) ;
+  import ICS + blocages + idempotence + conflit ; voyageur signé + incident
+  sans JS + idempotence + outbox ; missions staff → prestataire ; propriétaire
+  rattaché + relevé + isolation ; CRM prospect + pipeline + offre ; support
+  ticket + réponse + résolution ; guide + extra commandé ; 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -863,7 +867,7 @@ et ne remplace pas v1.
   (`EMAIL_ENABLED=false`) tant qu'aucun SMTP de production n'est branché,
   Sentry/Uptime/backups encore absents ;
 - **migrations distantes** : schéma initial appliqué au bootstrap, table
-  `drizzle.__drizzle_migrations` marquée jusqu'à `0021` ; les migrations
+  `drizzle.__drizzle_migrations` marquée jusqu'à `0023` ; les migrations
   suivantes se lancent avec `DATABASE_URL` (owner) récupéré depuis Netlify ;
 - CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
@@ -878,7 +882,8 @@ et ne remplace pas v1.
 - Sentry + Uptime Kuma ;
 - Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
 - paiements en ligne Stripe (clés compte) ;
-- intégrations OTA/HA/Moli.
+- synchronisation OTA automatique par URL/API (import ICS manuel fait),
+  intégrations HA/Moli.
 
 ---
 
@@ -968,6 +973,7 @@ et ne remplace pas v1.
 - [x] Paramétrage TVA/taxe + calcul automatique + export Factur-X XML.
 - [x] Paiements manuels + solde automatique + export CSV paiements.
 - [x] Facture publique signée + envoi email SMTP.
+- [x] Import ICS OTA + blocages calendrier + conflits.
 - [ ] Emails transactionnels de production (Brevo/OVH : clés + domaine).
 - [ ] Paiements en ligne Stripe (compte/clés).
 - [ ] Factur-X PDF/A-3 signé + plateforme de dématérialisation.

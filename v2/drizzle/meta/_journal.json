@@ -155,6 +155,20 @@
       "when": 1792875347115,
       "tag": "0021_rls_paiements",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792892012032,
+      "tag": "0022_mute_morlun",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792892014093,
+      "tag": "0023_rls_blocages",
+      "breakpoints": true
     }
   ]
 }

@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { CreerReservation } from "@/application/use-cases/creer-reservation";
+import { BlocageRepositoryMemoire } from "../helpers/blocage-repository-memoire";
 import { ReservationRepositoryMemoire } from "../helpers/reservation-repository-memoire";
 
 const tenantId = "11111111-1111-4111-8111-111111111111";
 const logementId = "22222222-2222-4222-8222-222222222222";
 
 function useCase() {
-  return new CreerReservation(new ReservationRepositoryMemoire());
+  return new CreerReservation(
+    new ReservationRepositoryMemoire(),
+    new BlocageRepositoryMemoire(),
+  );
 }
 
 const base = {

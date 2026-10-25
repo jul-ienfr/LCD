@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CreerReservation } from "@/application/use-cases/creer-reservation";
 import { DeclarerIncident } from "@/application/use-cases/declarer-incident";
+import { BlocageRepositoryMemoire } from "../helpers/blocage-repository-memoire";
 import { IncidentRepositoryMemoire } from "../helpers/incident-repository-memoire";
 import { ReservationRepositoryMemoire } from "../helpers/reservation-repository-memoire";
 
@@ -9,7 +10,10 @@ const logementId = "22222222-2222-4222-8222-222222222222";
 
 async function contexte() {
   const reservations = new ReservationRepositoryMemoire();
-  const reservation = await new CreerReservation(reservations).executer({
+  const reservation = await new CreerReservation(
+    reservations,
+    new BlocageRepositoryMemoire(),
+  ).executer({
     tenantId,
     logementId,
     ref: "resa-incident",

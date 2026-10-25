@@ -3,6 +3,7 @@ import { CommanderExtra } from "@/application/use-cases/commander-extra";
 import { CreerExtra } from "@/application/use-cases/creer-extra";
 import { CreerReservation } from "@/application/use-cases/creer-reservation";
 import { CommandeExtraRepositoryMemoire } from "../helpers/commande-extra-repository-memoire";
+import { BlocageRepositoryMemoire } from "../helpers/blocage-repository-memoire";
 import { ExtraRepositoryMemoire } from "../helpers/extra-repository-memoire";
 import { ReservationRepositoryMemoire } from "../helpers/reservation-repository-memoire";
 
@@ -11,7 +12,10 @@ const logementId = "22222222-2222-4222-8222-222222222222";
 
 async function contexte() {
   const reservations = new ReservationRepositoryMemoire();
-  const reservation = await new CreerReservation(reservations).executer({
+  const reservation = await new CreerReservation(
+    reservations,
+    new BlocageRepositoryMemoire(),
+  ).executer({
     tenantId,
     logementId,
     ref: "resa-extra",

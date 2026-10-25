@@ -132,6 +132,40 @@ export const reservations = pgTable(
   ],
 );
 
+export const blocages = pgTable(
+  "blocages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    debut: text("debut").notNull(),
+    fin: text("fin").notNull(),
+    source: text("source").notNull().default("import-ics"),
+    motif: text("motif"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("blocages_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("blocages_tenant_logement_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.debut,
+      t.fin,
+    ),
+  ],
+);
+
 export const tarifs = pgTable(
   "tarifs",
   {
@@ -624,6 +658,8 @@ export type LogementRow = typeof logements.$inferSelect;
 export type NewLogementRow = typeof logements.$inferInsert;
 export type ReservationRow = typeof reservations.$inferSelect;
 export type NewReservationRow = typeof reservations.$inferInsert;
+export type BlocageRow = typeof blocages.$inferSelect;
+export type NewBlocageRow = typeof blocages.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
 export type ParametresFiscauxRow =

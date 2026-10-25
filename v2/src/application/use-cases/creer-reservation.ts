@@ -1,5 +1,6 @@
 import { ErreurMetier } from "@/domain/erreurs";
 import { sejourValide } from "@/domain/planning";
+import type { BlocageRepository } from "../ports/blocage-repository";
 import type { ReservationRepository } from "../ports/reservation-repository";
 
 export interface CreerReservationInput {
@@ -15,7 +16,10 @@ export interface CreerReservationInput {
 
 /** Cas d'usage : créer une réservation après contrôle d'anti-chevauchement. */
 export class CreerReservation {
-  constructor(private readonly repo: ReservationRepository) {}
+  constructor(
+    private readonly repo: ReservationRepository,
+    private readonly blocages: BlocageRepository,
+  ) {}
 
   async executer(input: CreerReservationInput) {
     const ref = input.ref.trim();
@@ -56,12 +60,19 @@ export class CreerReservation {
       );
     }
 
-    const chevauche = await this.repo.chevauche(
-      input.tenantId,
-      input.logementId,
-      input.debut,
-      input.fin,
-    );
+    const chevauche =
+      (await this.repo.chevauche(
+        input.tenantId,
+        input.logementId,
+        input.debut,
+        input.fin,
+      )) ||
+      (await this.blocages.chevauche(
+        input.tenantId,
+        input.logementId,
+        input.debut,
+        input.fin,
+      ));
     if (chevauche) {
       throw new ErreurMetier(
         "RESERVATION_CHEVAUCHE",

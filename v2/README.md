@@ -59,10 +59,11 @@ npm run test:e2e
 Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + fiscalité auto + Factur-X + paiements +
 facture publique + email (si Mailpit) + statuts + compta + exports CSV,
-health/readiness, PWA offline, voyageur signé + incident **sans JavaScript**
-+ idempotence + outbox, missions staff → prestataire, propriétaire rattaché +
-relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
-+ résolution, guide + extra commandé, 320 px.
+health/readiness, PWA offline, import ICS + blocages + idempotence + conflit,
+voyageur signé + incident **sans JavaScript** + idempotence + outbox, missions
+staff → prestataire, propriétaire rattaché + relevé + isolation, CRM prospect +
+pipeline + offre, support ticket + réponse + résolution, guide + extra
+commandé, 320 px.
 
 ## Pages
 
@@ -77,6 +78,7 @@ relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse
 | `/hote/extras` | catalogue extras + commandes |
 | `/hote/prix` | prix par jour et par logement |
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
+| `/hote/planning/import` | import ICS OTA + blocages + conflits |
 | `/hote/compta` | CA, factures, TVA, taxe, paiements, exports |
 | `/hote/compta/parametres` | TVA, taxe de séjour, préfixe et mentions légales |
 | `/hote/factures` | liste + création de factures |
@@ -163,6 +165,21 @@ npm run measure:js
 C'est au-dessus du budget voyageur de 50 Ko : la gate G1 est déclenchée.
 Le HTML fonctionne toujours sans JS ; la décision « Astro pour le voyageur »
 ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
+
+## Import OTA / ICS
+
+- page `/hote/planning/import` : coller un flux ICS ou déposer un fichier ;
+- parseur iCal pur : lignes pliées, dates `VALUE=DATE` ou date-time,
+  `DURATION`, échappements, annulations ignorées ;
+- réservations importées en `confirmee`, source `import-ics` ;
+- événements « Not available / Blocked / Closed » importés en **blocages**
+  (table `blocages`), sans impact sur le CA ;
+- idempotence par UID OTA → `ref` stable `ics-…` ;
+- conflit avec une réservation ou un blocage existant : signalé, non importé ;
+- montant récupéré si `Total: 450` figure dans la description, sinon 0 ;
+- audit `planning.import_ics` ;
+- l’import manuel est disponible ; la synchronisation automatique par URL/API
+  reste à brancher.
 
 ## Portail voyageur
 
@@ -299,9 +316,11 @@ Migrations actuelles :
 - `0018_*.sql` : paramètres fiscaux par tenant ;
 - `0019_rls_parametres_fiscaux.sql` : RLS des paramètres fiscaux ;
 - `0020_*.sql` : paiements ;
-- `0021_rls_paiements.sql` : RLS des paiements.
+- `0021_rls_paiements.sql` : RLS des paiements ;
+- `0022_*.sql` : blocages calendrier OTA ;
+- `0023_rls_blocages.sql` : RLS des blocages.
 
-Total : **24 tables** (20 métier + 4 Better Auth).
+Total : **25 tables** (21 métier + 4 Better Auth).
 
 ## Ports & adapters
 

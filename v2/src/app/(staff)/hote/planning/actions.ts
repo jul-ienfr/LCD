@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { ErreurMetier } from "@/domain/erreurs";
 import { CreerReservation } from "@/application/use-cases/creer-reservation";
+import { DrizzleBlocageRepository } from "@/infrastructure/db/repositories/blocage-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { withTenant } from "@/infrastructure/db/client";
@@ -45,6 +46,7 @@ export async function creerReservationAction(
 
     const reservation = await new CreerReservation(
       new DrizzleReservationRepository(),
+      new DrizzleBlocageRepository(),
     ).executer({
       tenantId,
       logementId,

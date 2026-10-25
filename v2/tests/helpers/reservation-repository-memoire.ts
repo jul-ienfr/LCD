@@ -19,7 +19,7 @@ export class ReservationRepositoryMemoire implements ReservationRepository {
       voyageurs: data.voyageurs,
       debut: data.debut,
       fin: data.fin,
-      statut: "brouillon",
+      statut: data.statut ?? "brouillon",
       montantCentimes: data.montantCentimes,
       source: data.source ?? "direct",
       createdAt: maintenant,
@@ -64,5 +64,14 @@ export class ReservationRepositoryMemoire implements ReservationRepository {
 
   async listerTous(tenantId: string): Promise<Reservation[]> {
     return this.rows.filter((r) => r.tenantId === tenantId);
+  }
+
+  async trouverParRef(
+    tenantId: string,
+    ref: string,
+  ): Promise<Reservation | null> {
+    return (
+      this.rows.find((r) => r.tenantId === tenantId && r.ref === ref) ?? null
+    );
   }
 }

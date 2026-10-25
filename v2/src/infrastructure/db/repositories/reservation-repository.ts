@@ -40,6 +40,7 @@ export class DrizzleReservationRepository implements ReservationRepository {
           fin: data.fin,
           montantCentimes: data.montantCentimes,
           source: data.source ?? "direct",
+          statut: data.statut ?? "brouillon",
         })
         .returning();
 
@@ -119,6 +120,22 @@ export class DrizzleReservationRepository implements ReservationRepository {
         .where(eq(reservations.tenantId, tenantId))
         .orderBy(asc(reservations.debut));
       return rows.map(versDomaine);
+    });
+  }
+
+  async trouverParRef(
+    tenantId: string,
+    ref: string,
+  ): Promise<Reservation | null> {
+    return withTenant(tenantId, async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(reservations)
+        .where(
+          and(eq(reservations.tenantId, tenantId), eq(reservations.ref, ref)),
+        )
+        .limit(1);
+      return row ? versDomaine(row) : null;
     });
   }
 }

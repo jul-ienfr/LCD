@@ -19,7 +19,8 @@ export type CodeErreurMetier =
   | "EXTRA_INVALIDE"
   | "FISCALITE_INVALIDE"
   | "PAIEMENT_INVALIDE"
-  | "EMAIL_INVALIDE";
+  | "EMAIL_INVALIDE"
+  | "IMPORT_ICS_INVALIDE";
 
 /**
  * Erreur métier : porte un code stable, indépendant du framework HTTP.

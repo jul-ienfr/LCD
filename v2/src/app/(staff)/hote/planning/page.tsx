@@ -10,6 +10,7 @@ import {
   moisValide,
 } from "@/domain/calendrier";
 import { nuitsSejour } from "@/domain/planning";
+import { DrizzleBlocageRepository } from "@/infrastructure/db/repositories/blocage-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
@@ -70,6 +71,12 @@ export default async function PagePlanning({
     dernier,
   );
   const reservations = toutes.filter((r) => r.logementId === logement.id);
+  const tousBlocages = await new DrizzleBlocageRepository().listerParMois(
+    tenantId,
+    premier,
+    dernier,
+  );
+  const blocages = tousBlocages.filter((b) => b.logementId === logement.id);
 
   const aujourdHui = new Date().toISOString().slice(0, 10);
   const debutDefaut =
@@ -91,7 +98,8 @@ export default async function PagePlanning({
           </h1>
           <p className="text-stone-600">
             {logement.nom} ({logement.code}) · {reservations.length}{" "}
-            réservation{reservations.length > 1 ? "s" : ""}
+            réservation{reservations.length > 1 ? "s" : ""} ·{" "}
+            {blocages.length} blocage{blocages.length > 1 ? "s" : ""}
           </p>
         </div>
         <Link className="text-sm underline" href="/hote">
@@ -117,6 +125,12 @@ export default async function PagePlanning({
           href={lienMois(decalerMois(mois, 1))}
         >
           Mois suivant →
+        </Link>
+        <Link
+          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          href={`/hote/planning/import?logement=${logement.id}`}
+        >
+          Importer un calendrier OTA
         </Link>
 
         <form className="ml-auto flex items-center gap-2" method="get">
@@ -178,6 +192,9 @@ export default async function PagePlanning({
                   const duJour = reservations.filter(
                     (r) => r.debut <= date && date < r.fin,
                   );
+                  const blocageJour = blocages.filter(
+                    (b) => b.debut <= date && date < b.fin,
+                  );
                   return (
                     <td className="p-2 align-top" key={date}>
                       <div className="min-h-20 rounded-lg border border-stone-100 p-2">
@@ -185,6 +202,11 @@ export default async function PagePlanning({
                           {date.slice(8)}
                         </span>
                         <ul className="mt-1 space-y-1">
+                          {blocageJour.length > 0 ? (
+                            <li className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-900">
+                              Bloqué
+                            </li>
+                          ) : null}
                           {duJour.slice(0, 2).map((r) => (
                             <li
                               className="rounded bg-stone-100 px-2 py-1 text-xs"
@@ -260,6 +282,36 @@ export default async function PagePlanning({
                 </li>
               );
             })}
+          </ul>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Blocages OTA du mois</h2>
+        {blocages.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+            Aucun blocage sur ce mois pour ce logement.
+          </p>
+        ) : (
+          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+            {blocages.map((blocage) => (
+              <li
+                className="flex flex-wrap items-center justify-between gap-2 p-4"
+                key={blocage.id}
+              >
+                <div>
+                  <p className="font-medium">
+                    {blocage.motif ?? "Indisponibilité OTA"}
+                  </p>
+                  <p className="text-sm text-stone-600">
+                    {blocage.debut} → {blocage.fin}
+                  </p>
+                </div>
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">
+                  bloqué
+                </span>
+              </li>
+            ))}
           </ul>
         )}
       </section>
