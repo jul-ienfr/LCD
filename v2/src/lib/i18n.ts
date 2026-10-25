@@ -53,6 +53,7 @@ export interface Traductions {
   avisOk: string;
   avisErreur: string;
   avisDeja: string;
+  questionnaireLien: string;
   quantite: string;
   commander: string;
   vosCommandes: string;
@@ -139,6 +140,7 @@ const FR: Traductions = {
   avisOk: "Merci pour votre avis.",
   avisErreur: "Impossible d’enregistrer votre avis.",
   avisDeja: "Vous avez déjà laissé un avis pour ce séjour.",
+  questionnaireLien: "Répondre au questionnaire de séjour",
   quantite: "Quantité",
   commander: "Commander",
   vosCommandes: "Vos commandes",
@@ -230,6 +232,7 @@ const EN: Traductions = {
   avisOk: "Thank you for your review.",
   avisErreur: "Your review could not be saved.",
   avisDeja: "You already reviewed this stay.",
+  questionnaireLien: "Answer the stay questionnaire",
   quantite: "Quantity",
   commander: "Order",
   vosCommandes: "Your orders",
@@ -320,6 +323,7 @@ const IT: Traductions = {
   avisOk: "Grazie per la recensione.",
   avisErreur: "Impossibile salvare la recensione.",
   avisDeja: "Hai già lasciato una recensione per questo soggiorno.",
+  questionnaireLien: "Rispondi al questionario del soggiorno",
   quantite: "Quantità",
   commander: "Ordina",
   vosCommandes: "I tuoi ordini",
@@ -411,6 +415,7 @@ const ES: Traductions = {
   avisOk: "Gracias por tu opinión.",
   avisErreur: "No se pudo guardar tu opinión.",
   avisDeja: "Ya has dejado una opinión para esta estancia.",
+  questionnaireLien: "Responder al cuestionario de la estancia",
   quantite: "Cantidad",
   commander: "Pedir",
   vosCommandes: "Tus pedidos",
@@ -501,6 +506,7 @@ const DE: Traductions = {
   avisOk: "Vielen Dank für Ihre Bewertung.",
   avisErreur: "Bewertung konnte nicht gespeichert werden.",
   avisDeja: "Sie haben diesen Aufenthalt bereits bewertet.",
+  questionnaireLien: "Fragebogen zum Aufenthalt ausfüllen",
   quantite: "Menge",
   commander: "Bestellen",
   vosCommandes: "Ihre Bestellungen",

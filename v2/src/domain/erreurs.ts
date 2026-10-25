@@ -36,6 +36,7 @@ export type CodeErreurMetier =
   | "ENTRETIEN_INVALIDE"
   | "MENAGE_INVALIDE"
   | "CONTRAT_INVALIDE"
+  | "QUESTIONNAIRE_INVALIDE"
   | "TARIF_MANQUANT";
 
 /**

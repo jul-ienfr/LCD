@@ -107,6 +107,7 @@ juridique + mandats, 320 px.
 | `/hote/etats-des-lieux` | constats d’entrée/sortie : manquants, dégradés, coût |
 | `/hote/entretien` | carnet d’entretien : interventions, prestataires, coûts |
 | `/hote/menage` | ménages : checklists, avancement, réassort au départ |
+| `/hote/questionnaires` | satisfaction voyageur : moyennes par critère |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |
@@ -125,8 +126,9 @@ juridique + mandats, 320 px.
 | `/support/[id]` | fil de messages + réponses + statuts |
 | `/facture/[token]` | facture publique signée, sans compte |
 | `/contrat/[token]` | contrat de séjour signé (même lien voyageur), imprimable |
+| `/questionnaire/[token]` | questionnaire de séjour signé, une réponse par séjour |
 | `/reserver` | réservation directe (catalogue, devis, demande) |
-| `/voyageur?t=<token>` | séjour, guide, extras, mémoire, avis, incident (sans JS) |
+| `/voyageur?t=<token>` | séjour, guide, extras, mémoire, avis, questionnaire, incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
 | `/api/ready` | readiness (ping DB + tables/colonnes minimales) |
@@ -305,6 +307,9 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - le même lien ouvre le **contrat de séjour** imprimable (`/contrat/<token>`) :
   parties, logement, dates, nuits, voyageurs, prix, caution, clauses et
   signatures ; toute signature falsifiée est refusée ;
+- le lien « Répondre au questionnaire de séjour » mène à
+  `/questionnaire/<token>` : 5 critères notés de 1 à 5, commentaire libre,
+  une seule réponse par séjour, moyennes visibles dans `/hote/questionnaires` ;
 - formulaire d'incident **sans JS** (Server Action) ;
 - **i18n voyageur** : `?lang=fr|en|it|es|de`, sélecteur sans JS, fallback
   français, dictionnaires `src/lib/i18n.ts` ; les redirections conservent la

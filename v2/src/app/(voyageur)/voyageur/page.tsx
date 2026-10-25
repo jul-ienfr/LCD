@@ -489,6 +489,16 @@ export default async function PageVoyageur({
       >
         <h2 className="text-lg font-semibold">{d.avis}</h2>
         <p className="mt-2 text-sm text-encre-douce">{d.avisTexte}</p>
+        {params.t ? (
+          <p className="mt-2 text-sm">
+            <Link
+              className="underline"
+              href={`/questionnaire/${encodeURIComponent(params.t)}`}
+            >
+              {d.questionnaireLien}
+            </Link>
+          </p>
+        ) : null}
         {params.avis === "ok" ? (
           <p className="mt-3 rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
             {d.avisOk}

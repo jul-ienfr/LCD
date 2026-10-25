@@ -1051,6 +1051,48 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
+export const questionnaires = pgTable(
+  "questionnaires",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    noteAccueil: integer("note_accueil").notNull(),
+    noteProprete: integer("note_proprete").notNull(),
+    noteEquipement: integer("note_equipement").notNull(),
+    noteLiterie: integer("note_literie").notNull(),
+    noteCommunication: integer("note_communication").notNull(),
+    commentaire: text("commentaire").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("questionnaires_tenant_reservation_uq").on(
+      t.tenantId,
+      t.reservationId,
+    ),
+    uniqueIndex("questionnaires_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("questionnaires_tenant_logement_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.createdAt,
+    ),
+  ],
+);
+
 export const menages = pgTable(
   "menages",
   {
@@ -1218,6 +1260,8 @@ export type MenageRow = typeof menages.$inferSelect;
 export type NewMenageRow = typeof menages.$inferInsert;
 export type MenageTacheRow = typeof menageTaches.$inferSelect;
 export type NewMenageTacheRow = typeof menageTaches.$inferInsert;
+export type QuestionnaireRow = typeof questionnaires.$inferSelect;
+export type NewQuestionnaireRow = typeof questionnaires.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;
