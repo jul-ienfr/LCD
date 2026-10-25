@@ -152,9 +152,12 @@ batterie, la RAM et les anciens Safari/Chrome, pas l'iPhone 4.
 
 **Mesure réelle v2 du 2026-10-24** : `/voyageur` = **178,8 Ko gzip**
 (8 chunks), soit le plancher du runtime Next 16. Le HTML reste utilisable
-sans JS, mais le budget voyageur de 50 Ko n'est pas tenu. **Gate G1
-déclenchée** : décider entre Astro pour la surface voyageur ou accepter le
-plancher Next en assumant le no-JS comme filet.
+sans JS. **Décision G1 (2026-10-25)** : conserver Next pour la beta et
+accepter ce plancher, car le no-JS est le filet principal, la PWA/offline est
+intégrée et un découpage Astro ajouterait une deuxième base de code et un
+second déploiement. La cible < 50 Ko reste l'objectif d'une surface voyageur
+séparée (Astro/HTML statique) en v2.1, à réévaluer après les premiers
+clients ou si les mesures terrain (LCP > 2,5 s sur mobile) se dégradent.
 
 ### §2.5 Matrice de tests
 
@@ -787,8 +790,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **26 tables** (22 métier + 4 Better Auth),
-  migrations `0000` → `0025`, RLS sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **28 tables** (24 métier + 4 Better Auth),
+  migrations `0000` → `0028`, RLS sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -808,7 +811,8 @@ et ne remplace pas v1.
   `/api/auth/[...all]`, `/api/health`, `/api/ready`,
   `/api/exports/reservations`, `/api/exports/factures`,
   `/api/exports/paiements`, `/api/factures/[id]/factur-x`,
-  `/api/stripe/webhook`, `/api/cron/sync-ota`, `/api/voyageur/incident` ;
+  `/api/factures/[id]/pdf`, `/api/stripe/webhook`, `/api/cron/sync-ota`,
+  `/api/cron/webhooks`, `/api/voyageur/incident` ;
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
 - **compta légère** : factures, lignes, TVA, taxe de séjour, totaux HT/TTC,
   cycle brouillon → émise → payée (ou annulée), impression/PDF navigateur,
@@ -827,14 +831,20 @@ et ne remplace pas v1.
   personne avec plafond, préfixe de facture, mentions légales ; calcul
   automatique à la création, surcharge manuelle possible ;
 - **Factur-X (préparation)** : export XML CII authentifié par facture, avec
-  lignes, HT, TVA, taxe de séjour et TTC ; PDF/A-3 et validation par une
-  plateforme de dématérialisation restent à faire ;
+  lignes, HT, TVA, taxe de séjour et TTC ; **PDF avec XML Factur-X incorporé**
+  (`/api/factures/[id]/pdf`) ; PDF/A-3 signé et validation par une plateforme
+  de dématérialisation restent à faire ;
 - **portail voyageur réel** : lien signé HMAC par réservation, séjour réel,
   incident idempotent, formulaire sans JS, outbox IndexedDB + rejeu online ;
 - **portail prestataire + missions** : création staff, assignation, cycle
   planifiée → en cours → terminée/annulée, audit ;
 - **portail propriétaire** : rattachement logement ↔ propriétaire, relevé
-  mensuel, séjours, CA, factures, isolation par logements rattachés ;
+  mensuel, séjours, CA, factures, **commission de mandat paramétrable par
+  logement et net propriétaire**, isolation par logements rattachés ;
+- **intégrations HA/Moli** : webhooks HTTPS signés HMAC-SHA256
+  (`X-LCD-Signature`), abonnements par événement (réservation, paiement,
+  mission, ticket), outbox avec 5 essais et backoff, cron horaire
+  `/api/cron/webhooks`, page `/hote/integrations` ;
 - **CRM commercial** : prospects, pipeline nouveau → qualifié → visite →
   offre → gagné/perdu, offres brouillon → envoyée → acceptée/refusée, audit ;
 - **support / messagerie** : tickets, priorités, messages, statuts
@@ -852,19 +862,24 @@ et ne remplace pas v1.
   `npm run db:restore-test` (restauration dans une base jetable + comptes),
   workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
   (artefact privé 30 j, secret `DATABASE_URL` à configurer) ;
-- tests Vitest : **128/128** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **13/13** (login + logement ; prix + planning + anti-chevauchement ;
+- **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
+  via `/api/telemetry`, secrets masqués), Uptime Kuma
+  (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
+- tests Vitest : **150/150** (domaine + cas d'usage avec dépôts mémoire) ;
+- Playwright : **14/14** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
-  Factur-X + paiements + facture publique + email (si Mailpit) + compta + CSV ;
-  import ICS + blocages + idempotence + conflit ; voyageur signé + incident
-  sans JS + idempotence + outbox ; missions staff → prestataire ; propriétaire
-  rattaché + relevé + isolation ; CRM prospect + pipeline + offre ; support
-  ticket + réponse + résolution ; guide + extra commandé ; 320 px) ;
+  Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
+  compta + CSV ; import ICS + blocages + idempotence + conflit ; webhook
+  intégration ; voyageur signé + incident sans JS + idempotence + outbox ;
+  missions staff → prestataire ; propriétaire rattaché + commission + relevé +
+  isolation ; CRM prospect + pipeline + offre ; support ticket + réponse +
+  résolution ; guide + extra commandé ; 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
   cache-first assets, network-first pages, API/auth/staff jamais cachés ;
-- mesure JS `/voyageur` : **178,8 Ko gzip** → gate G1 déclenchée ;
+- mesure JS `/voyageur` : **178,8 Ko gzip** — décision G1 : plancher Next
+  accepté pour la beta, cible Astro/HTML v2.1 ;
 - **build Netlify validé** (`NETLIFY=true npm run build`), guide
   `v2/DEPLOIEMENT.md` prêt ;
 - **déploiement beta live** : <https://lcd-parc.netlify.app> — Netlify Free +
@@ -876,9 +891,9 @@ et ne remplace pas v1.
   (`EMAIL_ENABLED=false`) tant qu'aucun SMTP de production n'est branché,
   Sentry/Uptime encore absents, backup quotidien GitHub à activer avec le
   secret `DATABASE_URL` ;
-- **migrations distantes** : schéma initial appliqué au bootstrap, table
-  `drizzle.__drizzle_migrations` marquée jusqu'à `0025` ; les migrations
-  suivantes se lancent avec `DATABASE_URL` (owner) récupéré depuis Netlify ;
+- **migrations distantes** : production actuellement marquée jusqu'à `0025`
+  (26 tables) ; `0026` (commission), `0027`-`0028` (webhooks) sont prêtes et
+  seront appliquées au prochain déploiement ;
 - CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
   (Postgres 18 + S3Mock + Mailpit).
@@ -887,12 +902,13 @@ et ne remplace pas v1.
 
 - test E2E 2FA avec un utilisateur de test isolé (le parcours manuel passe) ;
 - policies RLS avec un rôle applicatif non propriétaire ;
-- décision G1 : Astro pour le voyageur ou accepter le plancher Next ;
+- **G1 tranchée** : Next conservé pour la beta, no-JS comme filet, cible
+  Astro/HTML v2.1 ;
 - déploiement effectif Netlify Free + Neon/Supabase (config prête) ;
 - Sentry + Uptime Kuma ;
 - Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
 - clés Stripe test/live + webhook de production ;
-- intégrations HA/Moli.
+- connecteurs HA/Moli spécifiques (webhooks génériques faits).
 
 ---
 
@@ -900,7 +916,7 @@ et ne remplace pas v1.
 
 | Gate | Question | Si oui | Si non |
 |---|---|---|---|
-| **G1** | Le budget JS voyageur reste < 50 Ko ? (mesuré : **178,8 Ko**) | garder Next + no-JS | passer le voyageur à Astro |
+| **G1** | Le budget JS voyageur reste < 50 Ko ? (mesuré : **178,8 Ko**) | **tranché 2026-10-25 : garder Next + no-JS pour la beta ; cible Astro v2.1** | passer le voyageur à Astro |
 | **G2** | Le back-office se développe assez vite ? | garder Next | envisager Laravel/Filament pour l'admin |
 | **G3** | Les offres gratuites tiennent la beta ? | rester 0 € | payer 20-40 €/mois |
 | **G4** | Données France obligatoires ? | Scaleway/OVH/Clever Cloud | Netlify/Neon EU |
@@ -964,7 +980,7 @@ et ne remplace pas v1.
 - [ ] CI/CD + preview + staging.
 - [x] Tests Playwright JS on/off + 320 px + PWA.
 - [ ] Lighthouse CI budgets.
-- [ ] Décision G1 : Astro voyageur ou accepter 178,8 Ko.
+- [x] Décision G1 : accepter 178,8 Ko pour la beta, cible Astro v2.1.
 
 ### 90 jours
 
@@ -975,7 +991,7 @@ et ne remplace pas v1.
 - [x] Statuts facture brouillon → émise → payée/annulée + audit.
 - [x] Portail voyageur : lien signé, incident, sans JS, outbox.
 - [x] Portail prestataire + missions assignées.
-- [x] Portail propriétaire + rattachement + relevé.
+- [x] Portail propriétaire + rattachement + commission + net.
 - [x] CRM commercial : prospects, pipeline, offres.
 - [x] Support / messagerie : tickets, réponses, statuts.
 - [x] Guide/check-in + extras voyageur + commandes.
@@ -988,13 +1004,17 @@ et ne remplace pas v1.
 - [x] Flux ICS HTTPS par logement + synchronisation à la demande.
 - [x] Planification cron des flux OTA (GitHub Actions + `CRON_SECRET`).
 - [ ] Emails transactionnels de production (Brevo/OVH : clés + domaine).
+- [x] Webhooks signés HA/Moli + outbox + cron.
+- [ ] Connecteurs HA/Moli spécifiques (API propriétaires).
+- [x] PDF facture avec XML Factur-X incorporé.
 - [ ] Factur-X PDF/A-3 signé + plateforme de dématérialisation.
 - [ ] Portail voyageur complet.
 - [x] Health/readiness + logs structurés.
-- [ ] Sentry + Uptime Kuma + alertes.
+- [x] Sentry (code + endpoint client) et Uptime Kuma (compose + guide).
+- [ ] `SENTRY_DSN` + monitors/alertes configurés.
 - [x] Scripts backup + restore testé en local.
 - [ ] Backup offsite quotidien (secret GitHub `DATABASE_URL`).
-- [ ] Décision G1/G2 (Astro/Laravel) sur données réelles.
+- [x] Décision G1 (Next accepté, cible Astro v2.1) ; G2 à trancher.
 - [ ] Cutover log1 + pilote 7 jours.
 - [ ] Bascule log2/log3 + fallback 30 jours.
 - [ ] Premier client payant après cutover.

@@ -8,6 +8,7 @@ import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/factu
 import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paiement-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { emettreEvenement } from "@/lib/evenements";
 import { centimesDepuisSaisie, formaterEuros } from "@/lib/format";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
@@ -69,6 +70,13 @@ export async function enregistrerPaiementAction(
           },
         }),
       );
+      await emettreEvenement(tenantId, "paiement.created", {
+        factureId,
+        paiementId: resultat.paiement.id,
+        montantCentimes: resultat.paiement.montantCentimes,
+        mode: resultat.paiement.mode,
+        resteCentimes: resultat.resteCentimes,
+      });
     }
 
     revalidatePath(`/hote/factures/${factureId}`);

@@ -8,6 +8,7 @@ import { ChangerStatutMission } from "@/application/use-cases/changer-statut-mis
 import { DrizzleMissionRepository } from "@/infrastructure/db/repositories/mission-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { emettreEvenement } from "@/lib/evenements";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 
@@ -59,6 +60,14 @@ export async function changerStatutMissionAction(formData: FormData) {
         payload: { statut: miseAJour.statut },
       }),
     );
+
+    await emettreEvenement(tenantId, "mission.status", {
+      missionId: miseAJour.id,
+      ref: miseAJour.ref,
+      statut: miseAJour.statut,
+      logementId: miseAJour.logementId,
+      date: miseAJour.date,
+    });
 
     revalidatePath("/presta");
     revalidatePath("/hote/missions");

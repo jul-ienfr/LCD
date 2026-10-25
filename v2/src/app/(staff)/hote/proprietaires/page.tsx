@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { formaterCommissionBp } from "@/domain/commission";
 import { DrizzleLogementProprietaireRepository } from "@/infrastructure/db/repositories/logement-proprietaire-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
@@ -101,6 +102,9 @@ export default async function PageProprietaires() {
                   <p className="text-sm text-stone-600">
                     {parUser.get(a.userId)?.name ?? a.userId} ·{" "}
                     {parUser.get(a.userId)?.email ?? ""}
+                  </p>
+                  <p className="text-xs text-stone-500">
+                    Commission {formaterCommissionBp(a.commissionBp)}
                   </p>
                 </div>
                 <form action={retirerProprietaireAction}>

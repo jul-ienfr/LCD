@@ -48,6 +48,7 @@ const schema = z.object({
 
   // Observabilité (facultatif).
   SENTRY_DSN: z.string().optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;

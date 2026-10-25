@@ -2,8 +2,8 @@
 
 Nouvelle base Next.js 16.4 + React 19.3 + TypeScript 6.0.3 (lint) / 7.0.2
 (tsc) + Tailwind 4.3 + PostgreSQL 18 + Drizzle + Better Auth + SMTP
-(nodemailer). Objectif : remplacer v1 en fast-track, sans perdre la capacité
-de migrer plus tard (voir `docs/78-plan-stack-deploiement.md`).
+(nodemailer) + PDF (pdf-lib). Objectif : remplacer v1 en fast-track, sans
+perdre la capacité de migrer plus tard (voir `docs/78-plan-stack-deploiement.md`).
 
 ## Déploiement beta
 
@@ -57,14 +57,14 @@ npm run test:e2e
 ```
 
 Les tests couvrent : login staff, création d'un logement, prix, planning,
-anti-chevauchement, audit, facture + fiscalité auto + Factur-X + paiements +
-facture publique + email (si Mailpit) + statuts + compta + exports CSV,
-health/readiness, PWA offline, import ICS + blocages + idempotence + conflit +
-flux HTTPS, Stripe (gating sans clés + tests unitaires), voyageur signé +
-incident **sans JavaScript** + idempotence + outbox, missions staff →
-prestataire, propriétaire rattaché + relevé + isolation, CRM prospect +
-pipeline + offre, support ticket + réponse + résolution, guide + extra
-commandé, 320 px.
+anti-chevauchement, audit, facture + fiscalité auto + Factur-X XML + PDF +
+paiements + facture publique + email (si Mailpit) + statuts + compta + exports
+CSV, health/readiness, PWA offline, import ICS + blocages + idempotence +
+conflit + flux HTTPS, Stripe (gating sans clés + tests unitaires), webhooks
+signés + outbox, voyageur signé + incident **sans JavaScript** + idempotence +
+outbox, missions staff → prestataire, propriétaire rattaché + commission +
+relevé + isolation, CRM prospect + pipeline + offre, support ticket + réponse +
+résolution, guide + extra commandé, 320 px.
 
 ## Pages
 
@@ -85,7 +85,8 @@ commandé, 320 px.
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |
 | `/hote/missions` | missions staff + assignation prestataire |
-| `/hote/proprietaires` | rattachement propriétaire ↔ logement |
+| `/hote/proprietaires` | rattachement propriétaire ↔ logement + commission |
+| `/hote/integrations` | webhooks HA/Moli + livraisons |
 | `/hote/securite` | 2FA |
 | `/presta` | missions du prestataire + statuts |
 | `/proprio` | relevé propriétaire (lecture seule) |
@@ -103,8 +104,10 @@ commandé, 320 px.
 | `/api/exports/factures` | export CSV des factures |
 | `/api/exports/paiements` | export CSV des paiements |
 | `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
+| `/api/factures/[id]/pdf` | PDF facture + XML Factur-X incorporé |
 | `/api/stripe/webhook` | webhook Stripe Checkout signé |
 | `/api/cron/sync-ota` | synchronisation cron des flux ICS (`CRON_SECRET`) |
+| `/api/cron/webhooks` | livraison cron des webhooks (`CRON_SECRET`) |
 
 ## Partage client et email
 
@@ -155,8 +158,26 @@ commandé, 320 px.
 - numérotation `PREFIXE-AAAA-0001`, préfixe validé (2-8 caractères A-Z/0-9) ;
 - export `GET /api/factures/[id]/factur-x` : XML CII EN 16931, réservé aux
   rôles `admin`, `hote`, `comptable`, `Cache-Control: private, no-store` ;
-- **préparation** : le PDF/A-3, la signature et la validation par une
-  plateforme de dématérialisation ne sont pas encore branchés.
+- export `GET /api/factures/[id]/pdf` : PDF facture (lignes, totaux, paiements)
+  avec le XML Factur-X en pièce jointe ; accessible avec session staff ou
+  token public `?t=…` ;
+- **préparation** : le PDF n'est pas encore PDF/A-3 signé ; la validation par
+  une plateforme de dématérialisation reste à faire.
+
+## Intégrations HA/Moli
+
+- page `/hote/integrations` : webhooks HTTPS signés HMAC-SHA256 ;
+- événements : `reservation.created`, `paiement.created`, `mission.status`,
+  `ticket.created` ;
+- en-têtes `X-LCD-Event`, `X-LCD-Delivery`, `X-LCD-Signature: sha256=…` ;
+- outbox persistée : livraison immédiate par cron horaire
+  `POST /api/cron/webhooks` (`CRON_SECRET`), 5 essais avec backoff
+  (1, 5, 15, 60 min) ;
+- page de suivi des livraisons (statut, essais, code HTTP, message) ;
+- URL validée (HTTPS public, localhost/IP privées refusés), secret ≥ 16
+  caractères ;
+- audit `webhook.enregistrer` / `webhook.supprimer` ;
+- workflow `.github/workflows/v2-webhooks.yml`.
 
 ## PWA
 
@@ -180,9 +201,11 @@ npm run measure:js
 ```
 
 **Mesure du 2026-10-24 : 178,8 Ko gzip sur `/voyageur` (8 chunks).**
-C'est au-dessus du budget voyageur de 50 Ko : la gate G1 est déclenchée.
-Le HTML fonctionne toujours sans JS ; la décision « Astro pour le voyageur »
-ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
+C'est au-dessus du budget voyageur de 50 Ko. **Décision G1 (2026-10-25)** :
+Next est conservé pour la beta ; le HTML fonctionne sans JS, la PWA/offline est
+intégrée, et un découpage Astro ajouterait une deuxième base de code. La cible
+< 50 Ko reste l'objectif d'une surface voyageur séparée en v2.1, à réévaluer
+après les premiers clients ou si le LCP mobile se dégrade.
 
 ## Import OTA / ICS
 
@@ -249,17 +272,22 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
 
 - rattachement explicite `logement_proprietaires` ;
 - un propriétaire ne voit que ses logements ;
-- relevé mensuel : séjours, CA, factures, TTC ;
+- relevé mensuel : séjours, CA, commission, net propriétaire, TTC ;
+- commission de mandat par logement (0 à 50 %, 20 % par défaut), calculée sur
+  le CA réservations hors taxe de séjour ; net = CA − commission ;
 - lecture seule par construction ;
-- commission de mandat et net propriétaire à venir avec le module mandats.
+- audit `proprietaire.assigner` / `proprietaire.retirer`.
 
 ## Observabilité
 
 - `/api/health` : liveness, ne dépend pas de la DB.
 - `/api/ready` : readiness, ping PostgreSQL, 503 si la DB est down.
 - logs JSON via `src/lib/logger.ts` (ts, niveau, message, contexte).
+- **Sentry sans SDK** : `SENTRY_DSN` → erreurs serveur et erreurs client
+  (`POST /api/telemetry`), secrets masqués, timeout 3 s, no-op sans DSN.
+- **Uptime Kuma** : `compose.monitoring.yml`, monitors `/api/health`,
+  `/api/ready`, `/login` ; guide `v2/MONITORING.md`.
 - pages d'erreur `error.tsx` et `global-error.tsx`.
-- à brancher : Sentry, Uptime Kuma, alertes.
 
 ## Sauvegardes
 
@@ -358,9 +386,12 @@ Migrations actuelles :
 - `0022_*.sql` : blocages calendrier OTA ;
 - `0023_rls_blocages.sql` : RLS des blocages ;
 - `0024_*.sql` : flux ICS OTA par logement ;
-- `0025_rls_flux_ics.sql` : RLS des flux ICS.
+- `0025_rls_flux_ics.sql` : RLS des flux ICS ;
+- `0026_*.sql` : commission de mandat sur les rattachements ;
+- `0027_*.sql` : webhooks + livraisons ;
+- `0028_rls_webhooks.sql` : RLS des webhooks.
 
-Total : **26 tables** (22 métier + 4 Better Auth).
+Total : **28 tables** (24 métier + 4 Better Auth).
 
 ## Ports & adapters
 

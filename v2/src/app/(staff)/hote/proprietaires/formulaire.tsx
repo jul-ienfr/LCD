@@ -22,7 +22,7 @@ export function FormulaireAssignation({
 
   return (
     <form action={action} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <label className="block space-y-1 text-sm font-medium">
           <span>Propriétaire</span>
           <select
@@ -51,6 +51,23 @@ export function FormulaireAssignation({
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Commission (%)</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            defaultValue="20"
+            inputMode="decimal"
+            max="50"
+            min="0"
+            name="commission"
+            step="0.5"
+            type="number"
+          />
+          <span className="block text-xs font-normal text-stone-500">
+            Sur le CA réservations, 0 à 50 %.
+          </span>
         </label>
       </div>
 

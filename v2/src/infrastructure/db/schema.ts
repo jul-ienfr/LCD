@@ -200,6 +200,73 @@ export const fluxIcs = pgTable(
   ],
 );
 
+export const webhooks = pgTable(
+  "webhooks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    libelle: text("libelle").notNull(),
+    url: text("url").notNull(),
+    secret: text("secret").notNull(),
+    events: text("events").notNull(),
+    actif: boolean("actif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("webhooks_tenant_url_uq").on(t.tenantId, t.url),
+    index("webhooks_tenant_idx").on(t.tenantId),
+  ],
+);
+
+export const webhookDeliveries = pgTable(
+  "webhook_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    webhookId: uuid("webhook_id")
+      .notNull()
+      .references(() => webhooks.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(),
+    payload: jsonb("payload")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    statut: text("statut").notNull().default("pending"),
+    tentatives: integer("tentatives").notNull().default(0),
+    prochaineTentative: timestamp("prochaine_tentative", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+    dernierCode: integer("dernier_code"),
+    dernierMessage: text("dernier_message"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index("webhook_deliveries_due_idx").on(t.statut, t.prochaineTentative),
+    index("webhook_deliveries_tenant_idx").on(
+      t.tenantId,
+      t.createdAt,
+    ),
+  ],
+);
+
 export const tarifs = pgTable(
   "tarifs",
   {
@@ -432,6 +499,7 @@ export const logementProprietaires = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    commissionBp: integer("commission_bp").notNull().default(2000),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -696,6 +764,10 @@ export type BlocageRow = typeof blocages.$inferSelect;
 export type NewBlocageRow = typeof blocages.$inferInsert;
 export type FluxIcsRow = typeof fluxIcs.$inferSelect;
 export type NewFluxIcsRow = typeof fluxIcs.$inferInsert;
+export type WebhookRow = typeof webhooks.$inferSelect;
+export type NewWebhookRow = typeof webhooks.$inferInsert;
+export type WebhookDeliveryRow = typeof webhookDeliveries.$inferSelect;
+export type NewWebhookDeliveryRow = typeof webhookDeliveries.$inferInsert;
 export type TarifRow = typeof tarifs.$inferSelect;
 export type NewTarifRow = typeof tarifs.$inferInsert;
 export type ParametresFiscauxRow =

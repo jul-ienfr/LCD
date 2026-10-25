@@ -14,7 +14,8 @@ installable, sans payer au démarrage.
 - **Email** : `EMAIL_ENABLED=false` tant qu'aucun SMTP de production
   (Brevo/OVH/Scaleway) n'est configuré.
 - **Schéma** : bootstrap initial + table `drizzle.__drizzle_migrations`
-  marquée jusqu'à `0021`. Les migrations suivantes se lancent avec
+  marquée jusqu'à `0025` en production. Les migrations `0026` (commission),
+  `0027`-`0028` (webhooks) seront appliquées au prochain déploiement avec
   `DATABASE_URL` owner récupéré depuis Netlify.
 - **Limites Free** : variables d'environnement non secrètes (lisibles par
   l'équipe), base hors UE, pas de backups/PITR, pas de Sentry/Uptime.
@@ -136,6 +137,15 @@ Sans ces deux variables, le bouton est masqué et le webhook répond 503.
 
 L’endpoint renvoie `{ total, reussis, erreurs, details }` ; chaque flux
 conserve son dernier statut et son message dans `/hote/planning/import`.
+
+Le même `CRON_SECRET` protège `POST /api/cron/webhooks`, appelé chaque heure
+par `.github/workflows/v2-webhooks.yml` pour livrer les webhooks HA/Moli.
+
+## 4quater. Monitoring
+
+- `SENTRY_DSN` → erreurs serveur et client (voir `v2/MONITORING.md`) ;
+- `docker compose -f compose.monitoring.yml up -d` pour Uptime Kuma ;
+- monitors `/api/health`, `/api/ready`, `/login` + notification testée.
 
 ## 5. Domaine personnalisé
 

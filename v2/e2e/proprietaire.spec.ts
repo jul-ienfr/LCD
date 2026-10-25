@@ -52,9 +52,12 @@ test("propriétaire : rattachement, relevé et isolation", async ({
   await page.selectOption('select[name="logementId"]', {
     label: `${nomA} (${codeA})`,
   });
+  await page.fill('input[name="commission"]', "20");
   await page.getByRole("button", { name: "Rattacher le propriétaire" }).click();
   await expect(
-    page.getByText(`Propriétaire LCD est rattaché à ${nomA}.`),
+    page.getByText(`Propriétaire LCD est rattaché à ${nomA}`, {
+      exact: false,
+    }),
   ).toBeVisible();
 
   const contexteProprio = await browser.newContext();
@@ -68,6 +71,10 @@ test("propriétaire : rattachement, relevé et isolation", async ({
   await pageProprio.goto("/proprio?mois=2026-12");
   await expect(pageProprio.getByText(nomA).first()).toBeVisible();
   await expect(pageProprio.getByText(refResa).first()).toBeVisible();
+  const ligneA = pageProprio.locator("tr").filter({ hasText: nomA }).first();
+  await expect(ligneA).toContainText("800,00 €");
+  await expect(ligneA).toContainText("160,00 €");
+  await expect(ligneA).toContainText("640,00 €");
   await expect(pageProprio.getByText(nomB)).toHaveCount(0);
 
   await contexteProprio.close();

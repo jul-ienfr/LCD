@@ -1,3 +1,5 @@
+import { capturerErreur } from "./telemetry";
+
 type Contexte = Record<string, unknown>;
 
 function serialiserErreur(error: unknown): Record<string, unknown> {
@@ -33,4 +35,5 @@ export function logErreur(
   contexte?: Contexte,
 ): void {
   ecrire("error", message, { ...contexte, erreur: serialiserErreur(error) });
+  void capturerErreur(message, error, contexte);
 }

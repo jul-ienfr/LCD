@@ -83,6 +83,13 @@ export default async function PageFacture({
           <a
             className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
             download
+            href={`/api/factures/${facture.id}/pdf`}
+          >
+            Télécharger le PDF
+          </a>
+          <a
+            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+            download
             href={`/api/factures/${facture.id}/factur-x`}
           >
             Factur-X (XML)

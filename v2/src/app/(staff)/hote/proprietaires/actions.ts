@@ -1,6 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import {
+  commissionBpValide,
+  formaterCommissionBp,
+} from "@/domain/commission";
 import { DrizzleLogementProprietaireRepository } from "@/infrastructure/db/repositories/logement-proprietaire-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
@@ -20,6 +24,17 @@ export async function assignerProprietaireAction(
 
   const logementId = String(formData.get("logementId") ?? "");
   const userId = String(formData.get("userId") ?? "");
+  const commissionSaisie = String(formData.get("commission") ?? "20")
+    .trim()
+    .replace(",", ".");
+  const commissionBp = Math.round(Number(commissionSaisie) * 100);
+
+  if (!commissionBpValide(commissionBp)) {
+    return {
+      ok: false,
+      message: "Commission invalide (0 à 50 %).",
+    };
+  }
 
   try {
     const logement = await new DrizzleLogementRepository().trouverParId(
@@ -46,6 +61,7 @@ export async function assignerProprietaireAction(
       tenantId,
       logementId,
       userId,
+      commissionBp,
     );
 
     await withTenant(tenantId, (tx) =>
@@ -55,7 +71,7 @@ export async function assignerProprietaireAction(
         action: "proprietaire.assigner",
         cible: logementId,
         ref: proprietaire.email,
-        payload: { logementId, userId },
+        payload: { logementId, userId, commissionBp },
       }),
     );
 
@@ -63,7 +79,7 @@ export async function assignerProprietaireAction(
     revalidatePath("/proprio");
     return {
       ok: true,
-      message: `${proprietaire.name} est rattaché à ${logement.nom}.`,
+      message: `${proprietaire.name} est rattaché à ${logement.nom} (commission ${formaterCommissionBp(commissionBp)}).`,
     };
   } catch (error) {
     logErreur("assignerProprietaireAction", error, { tenantId, logementId, userId });

@@ -6,6 +6,7 @@ import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/factu
 import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paiement-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { emettreEvenement } from "@/lib/evenements";
 import { env } from "@/lib/env";
 import { logErreur } from "@/lib/logger";
 
@@ -59,6 +60,14 @@ export async function POST(request: Request) {
           },
         }),
       );
+      await emettreEvenement(tenantId, "paiement.created", {
+        factureId: evenement.metadata.facture_id,
+        paiementId: resultat.paiement.id,
+        montantCentimes: resultat.paiement.montantCentimes,
+        mode: "cb",
+        resteCentimes: resultat.resteCentimes,
+        stripe: true,
+      });
     }
 
     return Response.json({ received: true, ignored: resultat.ignore });

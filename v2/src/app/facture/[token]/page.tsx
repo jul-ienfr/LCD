@@ -123,6 +123,13 @@ export default async function PageFacturePublique({
             Émise le {facture.dateEmission}
             {facture.echeance ? ` · échéance ${facture.echeance}` : ""}
           </p>
+          <a
+            className="mt-3 inline-block rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+            download
+            href={`/api/factures/${facture.id}/pdf?t=${encodeURIComponent(token)}`}
+          >
+            Télécharger le PDF
+          </a>
         </div>
         <div className="text-left text-sm text-stone-600 sm:text-right">
           <p className="font-semibold text-stone-900">

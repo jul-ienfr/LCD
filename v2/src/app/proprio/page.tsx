@@ -8,6 +8,10 @@ import {
   moisEnFrancais,
   moisValide,
 } from "@/domain/calendrier";
+import {
+  formaterCommissionBp,
+  montantCommission,
+} from "@/domain/commission";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzleLogementProprietaireRepository } from "@/infrastructure/db/repositories/logement-proprietaire-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
@@ -61,6 +65,21 @@ export default async function PageProprietaire({
   }
 
   const ids = new Set(logements.map((l) => l.id));
+  const estProprietaire = session.user.role === "proprietaire";
+  const assignations = estProprietaire
+    ? (
+        await new DrizzleLogementProprietaireRepository().listerAssignations(
+          tenantId,
+        )
+      ).filter((assignation) => assignation.userId === session.user.id)
+    : [];
+  const commissionParLogement = new Map(
+    assignations.map((assignation) => [
+      assignation.logementId,
+      assignation.commissionBp,
+    ]),
+  );
+
   const jours = joursDuMois(mois);
   const premier = jours[0];
   const dernier = jours[jours.length - 1];
@@ -87,6 +106,32 @@ export default async function PageProprietaire({
     .reduce((total, r) => total + r.montantCentimes, 0);
   const ht = factures.reduce((total, f) => total + f.montantHtCentimes, 0);
   const ttc = factures.reduce((total, f) => total + f.montantTtcCentimes, 0);
+
+  const lignes = logements.map((logement) => {
+    const resas = reservations.filter((r) => r.logementId === logement.id);
+    const facts = factures.filter((f) => f.logementId === logement.id);
+    const caLogement = resas
+      .filter((r) => r.statut !== "annulee")
+      .reduce((t, r) => t + r.montantCentimes, 0);
+    const commissionBp = estProprietaire
+      ? (commissionParLogement.get(logement.id) ?? 0)
+      : null;
+    const commission =
+      commissionBp === null ? 0 : montantCommission(caLogement, commissionBp);
+    return {
+      logement,
+      resas,
+      facts,
+      ca: caLogement,
+      ht: facts.reduce((t, f) => t + f.montantHtCentimes, 0),
+      ttc: facts.reduce((t, f) => t + f.montantTtcCentimes, 0),
+      commissionBp,
+      commission,
+      net: caLogement - commission,
+    };
+  });
+  const commissionTotale = lignes.reduce((t, l) => t + l.commission, 0);
+  const netTotal = lignes.reduce((t, l) => t + l.net, 0);
 
   return (
     <main className="mx-auto max-w-4xl space-y-8 px-6 py-12">
@@ -127,7 +172,13 @@ export default async function PageProprietaire({
         </Link>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section
+        className={
+          estProprietaire
+            ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            : "grid gap-4 sm:grid-cols-3"
+        }
+      >
         <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <p className="text-sm text-stone-500">CA réservations</p>
           <p className="mt-1 text-2xl font-semibold">{formaterEuros(ca)}</p>
@@ -135,13 +186,36 @@ export default async function PageProprietaire({
             {reservations.length} séjour{reservations.length > 1 ? "s" : ""}
           </p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">HT facturé</p>
-          <p className="mt-1 text-2xl font-semibold">{formaterEuros(ht)}</p>
-          <p className="text-xs text-stone-500">
-            {factures.length} facture{factures.length > 1 ? "s" : ""}
-          </p>
-        </div>
+        {estProprietaire ? (
+          <>
+            <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+              <p className="text-sm text-stone-500">Commission de mandat</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {formaterEuros(commissionTotale)}
+              </p>
+              <p className="text-xs text-stone-500">
+                taux du mandat par logement
+              </p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+              <p className="text-sm text-stone-500">Net propriétaire</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {formaterEuros(netTotal)}
+              </p>
+              <p className="text-xs text-stone-500">CA − commission</p>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+            <p className="text-sm text-stone-500">HT facturé</p>
+            <p className="mt-1 text-2xl font-semibold">
+              {formaterEuros(ht)}
+            </p>
+            <p className="text-xs text-stone-500">
+              {factures.length} facture{factures.length > 1 ? "s" : ""}
+            </p>
+          </div>
+        )}
         <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <p className="text-sm text-stone-500">TTC facturé</p>
           <p className="mt-1 text-2xl font-semibold">{formaterEuros(ttc)}</p>
@@ -156,43 +230,45 @@ export default async function PageProprietaire({
               <th className="p-3 font-medium">Logement</th>
               <th className="p-3 text-right font-medium">Séjours</th>
               <th className="p-3 text-right font-medium">CA</th>
-              <th className="p-3 text-right font-medium">Factures</th>
+              <th className="p-3 text-right font-medium">Commission</th>
+              <th className="p-3 text-right font-medium">Net</th>
               <th className="p-3 text-right font-medium">TTC</th>
             </tr>
           </thead>
           <tbody>
-            {logements.map((logement) => {
-              const resas = reservations.filter(
-                (r) => r.logementId === logement.id,
-              );
-              const facts = factures.filter(
-                (f) => f.logementId === logement.id,
-              );
-              return (
-                <tr className="border-b border-stone-100" key={logement.id}>
-                  <td className="p-3">
-                    {logement.nom}
-                    <span className="ml-2 text-xs text-stone-500">
-                      {logement.code}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right">{resas.length}</td>
-                  <td className="p-3 text-right">
-                    {formaterEuros(
-                      resas
-                        .filter((r) => r.statut !== "annulee")
-                        .reduce((t, r) => t + r.montantCentimes, 0),
-                    )}
-                  </td>
-                  <td className="p-3 text-right">{facts.length}</td>
-                  <td className="p-3 text-right">
-                    {formaterEuros(
-                      facts.reduce((t, f) => t + f.montantTtcCentimes, 0),
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+            {lignes.map((ligne) => (
+              <tr
+                className="border-b border-stone-100"
+                key={ligne.logement.id}
+              >
+                <td className="p-3">
+                  {ligne.logement.nom}
+                  <span className="ml-2 text-xs text-stone-500">
+                    {ligne.logement.code}
+                  </span>
+                </td>
+                <td className="p-3 text-right">{ligne.resas.length}</td>
+                <td className="p-3 text-right">{formaterEuros(ligne.ca)}</td>
+                <td className="p-3 text-right">
+                  {ligne.commissionBp !== null ? (
+                    <>
+                      {formaterEuros(ligne.commission)}
+                      <span className="block text-xs text-stone-500">
+                        {formaterCommissionBp(ligne.commissionBp)}
+                      </span>
+                    </>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td className="p-3 text-right">
+                  {ligne.commissionBp !== null
+                    ? formaterEuros(ligne.net)
+                    : "—"}
+                </td>
+                <td className="p-3 text-right">{formaterEuros(ligne.ttc)}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </section>
@@ -230,9 +306,10 @@ export default async function PageProprietaire({
       </section>
 
       <p className="text-xs text-stone-500">
-        Relevé brut. La commission de mandat et le net propriétaire seront
-        ajoutés avec le module mandats. La taxe de séjour est suivie séparément
-        du chiffre d’affaires.
+        {estProprietaire
+          ? "Commission calculée sur le CA réservations (hors taxe de séjour), selon le taux du mandat. Net propriétaire = CA − commission."
+          : "Vue administrateur : la commission et le net sont calculés pour un compte propriétaire."}{" "}
+        La taxe de séjour est suivie séparément du chiffre d’affaires.
       </p>
 
       <div className="flex flex-wrap gap-4 text-sm">

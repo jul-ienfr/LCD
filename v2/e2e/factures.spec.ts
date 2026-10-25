@@ -88,6 +88,15 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   );
   expect(contenuXml).toContain("TVA acquittée sur les encaissements.");
 
+  const pdf = await page.request.get(`/api/factures/${factureId}/pdf`);
+  expect(pdf.status()).toBe(200);
+  expect(pdf.headers()["content-type"]).toContain("application/pdf");
+  const pdfBytes = await pdf.body();
+  expect(pdfBytes.subarray(0, 4).toString()).toBe("%PDF");
+  const { PDFDocument } = await import("pdf-lib");
+  const documentPdf = await PDFDocument.load(pdfBytes);
+  expect(documentPdf.getTitle()).toContain(numeroAuto);
+
   // 5. Statut émis puis deux paiements (partiel, puis solde).
   await page.getByRole("button", { name: "Marquer émise" }).click();
   await expect(page.getByText("emise").first()).toBeVisible();
@@ -126,6 +135,14 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   await expect(publicPage.getByText("Payée").first()).toBeVisible();
   await expect(publicPage.getByText("Client Facture E2E").first()).toBeVisible();
   await expect(publicPage.getByText("Payer en ligne")).toHaveCount(0);
+  const lienPdfPublic = await publicPage
+    .getByRole("link", { name: "Télécharger le PDF" })
+    .getAttribute("href");
+  expect(lienPdfPublic).toContain("/api/factures/");
+  expect(lienPdfPublic).toContain("?t=");
+  const pdfPublic = await publicPage.request.get(lienPdfPublic ?? "");
+  expect(pdfPublic.status()).toBe(200);
+  expect(pdfPublic.headers()["content-type"]).toContain("application/pdf");
   await publicContext.close();
 
   // 6b. Envoi par email si Mailpit est disponible en local.

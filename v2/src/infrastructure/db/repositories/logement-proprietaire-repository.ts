@@ -60,6 +60,7 @@ export class DrizzleLogementProprietaireRepository
         .select({
           logementId: logementProprietaires.logementId,
           userId: logementProprietaires.userId,
+          commissionBp: logementProprietaires.commissionBp,
         })
         .from(logementProprietaires)
         .where(eq(logementProprietaires.tenantId, tenantId));
@@ -71,17 +72,19 @@ export class DrizzleLogementProprietaireRepository
     tenantId: string,
     logementId: string,
     userId: string,
+    commissionBp: number,
   ): Promise<void> {
     await withTenant(tenantId, async (tx) => {
       await tx
         .insert(logementProprietaires)
-        .values({ tenantId, logementId, userId })
-        .onConflictDoNothing({
+        .values({ tenantId, logementId, userId, commissionBp })
+        .onConflictDoUpdate({
           target: [
             logementProprietaires.tenantId,
             logementProprietaires.logementId,
             logementProprietaires.userId,
           ],
+          set: { commissionBp },
         });
     });
   }

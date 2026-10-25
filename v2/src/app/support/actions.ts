@@ -9,6 +9,7 @@ import { CreerTicket } from "@/application/use-cases/creer-ticket";
 import { DrizzleTicketRepository } from "@/infrastructure/db/repositories/ticket-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { emettreEvenement } from "@/lib/evenements";
 import { logErreur } from "@/lib/logger";
 import { requireRole, requireSession, tenantIdDeSession } from "@/lib/session";
 
@@ -53,6 +54,13 @@ export async function creerTicketAction(
         payload: { priorite: resultat.ticket.priorite },
       }),
     );
+
+    await emettreEvenement(tenantId, "ticket.created", {
+      ticketId: resultat.ticket.id,
+      ref: resultat.ticket.ref,
+      priorite: resultat.ticket.priorite,
+      sujet: resultat.ticket.sujet,
+    });
 
     revalidatePath("/support");
     return {

@@ -1,0 +1,1 @@
+ALTER TABLE "logement_proprietaires" ADD COLUMN "commission_bp" integer DEFAULT 2000 NOT NULL;

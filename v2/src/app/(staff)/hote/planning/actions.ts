@@ -8,6 +8,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { emettreEvenement } from "@/lib/evenements";
 import { centimesDepuisSaisie } from "@/lib/format";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
@@ -73,6 +74,15 @@ export async function creerReservationAction(
         },
       }),
     );
+
+    await emettreEvenement(tenantId, "reservation.created", {
+      reservationId: reservation.id,
+      ref: reservation.ref,
+      logementId,
+      debut: reservation.debut,
+      fin: reservation.fin,
+      montantCentimes: reservation.montantCentimes,
+    });
 
     revalidatePath("/hote/planning");
     return {
