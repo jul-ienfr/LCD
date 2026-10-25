@@ -5,7 +5,7 @@
 // - API, auth, staff : JAMAIS mis en cache ;
 // - offline : fallback /offline ;
 // - purge explicite par message `lcd-purge`.
-const VERSION = "lcd-v2-2026-10-25-2";
+const VERSION = "lcd-v2-2026-10-25-3";
 
 const PRECACHE = [
   "/",
@@ -18,7 +18,19 @@ const PRECACHE = [
   "/icons/apple-touch-icon.png",
 ];
 
-const SENSIBLE = ["/hote", "/login", "/two-factor", "/api/"];
+// Pages privées ou porteuses de données personnelles : jamais dans le cache
+// HTTP du navigateur, même en network-first.
+const SENSIBLE = [
+  "/hote",
+  "/login",
+  "/two-factor",
+  "/api/",
+  "/presta",
+  "/proprio",
+  "/commercial",
+  "/support",
+  "/facture",
+];
 
 function estSensible(pathname) {
   return SENSIBLE.some(

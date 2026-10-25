@@ -201,6 +201,11 @@ désactivation), 2FA TOTP (activation, connexion, désactivation), 320 px.
 - `/offline` : fallback hors ligne.
 - `public/icons/` : icônes générées localement (aucun CDN).
 - Enregistrement uniquement en production (`PwaRegister`).
+- Jamais mis en cache : `/hote`, `/login`, `/two-factor`, `/api/`,
+  `/presta`, `/proprio`, `/commercial`, `/support` et `/facture/*` ;
+  seules les pages publiques et voyageur sont mises en cache.
+- `public/robots.txt` + en-tête `X-Robots-Tag` : pages privées et liens
+  signés en `noindex, nofollow, noarchive`.
 
 Test réel :
 

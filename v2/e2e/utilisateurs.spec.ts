@@ -46,7 +46,6 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   // Un rôle non-admin ne peut pas ouvrir la gestion des comptes.
   await page1.goto("/hote/utilisateurs");
   await expect(page1).toHaveURL(/\/login\?erreur=acces$/);
-  await contexte1.close();
 
   // Réinitialisation par l'admin.
   await ligne.locator("summary").click();
@@ -63,6 +62,11 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
     ),
   ).toBeVisible();
 
+  // La session ouverte avant la réinitialisation est bien révoquée.
+  await page1.goto("/hote");
+  await expect(page1).toHaveURL(/\/login$/);
+  await contexte1.close();
+
   const contexte2 = await browser.newContext();
   const page2 = await contexte2.newPage();
   await page2.goto("/login");
@@ -70,7 +74,6 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   await page2.fill('input[type="password"]', nouveauMotDePasse);
   await page2.getByRole("button", { name: "Se connecter" }).click();
   await expect(page2).toHaveURL(/\/hote$/);
-  await contexte2.close();
 
   // Désactivation : sessions fermées et connexion refusée.
   await ligne.getByRole("button", { name: "Désactiver le compte" }).click();
@@ -80,6 +83,11 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
     ),
   ).toBeVisible();
   await expect(ligne.getByText("Désactivé", { exact: true })).toBeVisible();
+
+  // La session ouverte avant la désactivation est bien révoquée.
+  await page2.goto("/hote");
+  await expect(page2).toHaveURL(/\/login$/);
+  await contexte2.close();
 
   const contexte3 = await browser.newContext();
   const page3 = await contexte3.newPage();

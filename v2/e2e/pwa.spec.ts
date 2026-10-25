@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("PWA : voyageur en cache, fallback offline, API jamais cachée", async ({
+test("PWA : voyageur en cache, fallback offline, API et factures jamais cachées", async ({
   page,
   context,
 }) => {
@@ -24,6 +24,26 @@ test("PWA : voyageur en cache, fallback offline, API jamais cachée", async ({
     .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
     .toBe(true);
 
+  // Les factures publiques ne doivent jamais entrer dans le cache du PWA.
+  const facture = await page.goto("/facture/invalide");
+  expect(facture?.headers()["x-robots-tag"]).toContain("noindex");
+  const urlsEnCache = await page.evaluate(async () => {
+    const urls: string[] = [];
+    for (const nom of await caches.keys()) {
+      const cache = await caches.open(nom);
+      for (const requete of await cache.keys()) {
+        urls.push(new URL(requete.url).pathname);
+      }
+    }
+    return urls;
+  });
+  expect(urlsEnCache.filter((url) => url.startsWith("/facture"))).toEqual([]);
+
+  // robots.txt interdit aussi l'indexation des liens signés.
+  const robots = await page.request.get("/robots.txt");
+  expect(await robots.text()).toContain("Disallow: /facture/");
+
+  await page.goto("/voyageur");
   await context.setOffline(true);
 
   await page.goto("/voyageur");

@@ -887,7 +887,8 @@ et ne remplace pas v1.
 - parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
   login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
-  cache-first assets, network-first pages, API/auth/staff jamais cachés ;
+  cache-first assets, network-first pages, API/auth/staff/factures jamais
+  cachés, `robots.txt` + `X-Robots-Tag` noindex sur les routes privées ;
 - mesure JS `/voyageur` : **178,8 Ko gzip** — décision G1 : plancher Next
   accepté pour la beta, cible Astro/HTML v2.1 ;
 - **build Netlify validé** (`NETLIFY=true npm run build`), guide

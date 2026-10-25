@@ -18,6 +18,38 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  async headers() {
+    // Les routes privées et les liens signés ne doivent jamais être indexés
+    // ni archivés par un moteur de recherche.
+    const privees = [
+      "/hote",
+      "/hote/:path*",
+      "/login",
+      "/two-factor",
+      "/presta",
+      "/presta/:path*",
+      "/proprio",
+      "/proprio/:path*",
+      "/commercial",
+      "/commercial/:path*",
+      "/support",
+      "/support/:path*",
+      "/facture/:path*",
+      "/voyageur",
+      "/voyageur/:path*",
+      "/api/:path*",
+    ];
+
+    return privees.map((source) => ({
+      source,
+      headers: [
+        {
+          key: "X-Robots-Tag",
+          value: "noindex, nofollow, noarchive",
+        },
+      ],
+    }));
+  },
 };
 
 export default nextConfig;
