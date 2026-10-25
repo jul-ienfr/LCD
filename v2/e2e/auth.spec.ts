@@ -67,6 +67,9 @@ test("prestataire : tableau de bord hôte refusé, sécurité personnelle access
   await page.goto("/hote");
   await expect(page).toHaveURL(/\/login\?erreur=acces$/);
 
+  await page.goto("/hote/audit");
+  await expect(page).toHaveURL(/\/login\?erreur=acces$/);
+
   await page.goto("/hote/securite");
   await expect(page.getByRole("heading", { name: "Sécurité" })).toBeVisible();
   await expect(page.getByText("Authentification à deux facteurs")).toBeVisible();
