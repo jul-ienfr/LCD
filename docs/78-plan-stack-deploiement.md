@@ -902,13 +902,16 @@ et ne remplace pas v1.
 
 - test E2E 2FA avec un utilisateur de test isolé (le parcours manuel passe) ;
 - policies RLS avec un rôle applicatif non propriétaire ;
-- **G1 tranchée** : Next conservé pour la beta, no-JS comme filet, cible
-  Astro/HTML v2.1 ;
-- déploiement effectif Netlify Free + Neon/Supabase (config prête) ;
-- Sentry + Uptime Kuma ;
-- Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
+- débloquer les crédits Netlify (ou migrer vers un VPS) puis appliquer
+  `0026`-`0028` et déployer les tranches commission/PDF/webhooks ;
+- `SENTRY_DSN` + instance Uptime Kuma + monitors/alertes à configurer ;
+- clés SMTP de production (Brevo/OVH) + `EMAIL_ENABLED=true` ;
 - clés Stripe test/live + webhook de production ;
-- connecteurs HA/Moli spécifiques (webhooks génériques faits).
+- secret GitHub `DATABASE_URL` pour le backup offsite et `CRON_SECRET`
+  pour les workflows OTA/webhooks ;
+- Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
+- connecteurs HA/Moli spécifiques (webhooks génériques faits) ;
+- post-beta : caution/dépôt de garantie, i18n voyageur.
 
 ---
 
