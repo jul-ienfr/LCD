@@ -5,7 +5,7 @@
 // - API, auth, staff : JAMAIS mis en cache ;
 // - offline : fallback /offline ;
 // - purge explicite par message `lcd-purge`.
-const VERSION = "lcd-v2-2026-10-24-1";
+const VERSION = "lcd-v2-2026-10-25-2";
 
 const PRECACHE = [
   "/",
@@ -102,6 +102,9 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
+  // Les requêtes RSC de Next.js doivent passer directement au réseau :
+  // les intercepter casse la navigation client (page précédente qui reste).
+  if (url.searchParams.has("_rsc")) return;
 
   if (
     url.pathname.startsWith("/_next/static/") ||

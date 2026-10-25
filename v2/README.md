@@ -59,11 +59,12 @@ npm run test:e2e
 Les tests couvrent : login staff, création d'un logement, prix, planning,
 anti-chevauchement, audit, facture + fiscalité auto + Factur-X + paiements +
 facture publique + email (si Mailpit) + statuts + compta + exports CSV,
-health/readiness, PWA offline, import ICS + blocages + idempotence + conflit,
-Stripe (gating sans clés + tests unitaires), voyageur signé + incident
-**sans JavaScript** + idempotence + outbox, missions staff → prestataire,
-propriétaire rattaché + relevé + isolation, CRM prospect + pipeline + offre,
-support ticket + réponse + résolution, guide + extra commandé, 320 px.
+health/readiness, PWA offline, import ICS + blocages + idempotence + conflit +
+flux HTTPS, Stripe (gating sans clés + tests unitaires), voyageur signé +
+incident **sans JavaScript** + idempotence + outbox, missions staff →
+prestataire, propriétaire rattaché + relevé + isolation, CRM prospect +
+pipeline + offre, support ticket + réponse + résolution, guide + extra
+commandé, 320 px.
 
 ## Pages
 
@@ -193,9 +194,13 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
 - idempotence par UID OTA → `ref` stable `ics-…` ;
 - conflit avec une réservation ou un blocage existant : signalé, non importé ;
 - montant récupéré si `Total: 450` figure dans la description, sinon 0 ;
-- audit `planning.import_ics` ;
-- l’import manuel est disponible ; la synchronisation automatique par URL/API
-  reste à brancher.
+- flux HTTPS enregistrés par logement (libellé + URL), URL validée
+  (HTTPS public, localhost/IP privées refusés), synchronisation à la demande,
+  dernier statut/message conservés ;
+- audit `planning.import_ics`, `flux_ics.enregistrer`, `flux_ics.sync`,
+  `flux_ics.supprimer` ;
+- l’import manuel et la sync à la demande sont disponibles ; la planification
+  cron quotidienne reste à brancher.
 
 ## Portail voyageur
 
@@ -273,6 +278,12 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
 - `requireRole(["admin","hote"])` protège les pages staff.
 - Changement de mot de passe sur `/hote/securite` (12 caractères minimum,
   révoque les autres sessions).
+- La connexion fait une **navigation complète** après sign-in (cookie de
+  session appliqué par le serveur) ; le service worker ignore les requêtes
+  RSC de Next.js.
+- Si la connexion semble bloquée : `Ctrl+F5`, puis DevTools → Application →
+  Service Workers → *Unregister*, et réessayer. La connexion staff nécessite
+  JavaScript ; l’espace voyageur, non.
 - Déconnexion : bouton sur `/hote`.
 
 ## Architecture
@@ -343,9 +354,11 @@ Migrations actuelles :
 - `0020_*.sql` : paiements ;
 - `0021_rls_paiements.sql` : RLS des paiements ;
 - `0022_*.sql` : blocages calendrier OTA ;
-- `0023_rls_blocages.sql` : RLS des blocages.
+- `0023_rls_blocages.sql` : RLS des blocages ;
+- `0024_*.sql` : flux ICS OTA par logement ;
+- `0025_rls_flux_ics.sql` : RLS des flux ICS.
 
-Total : **25 tables** (21 métier + 4 Better Auth).
+Total : **26 tables** (22 métier + 4 Better Auth).
 
 ## Ports & adapters
 

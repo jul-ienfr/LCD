@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 
 export default function PageLogin() {
-  const router = useRouter();
   const [email, setEmail] = useState("admin@lcd.test");
   const [password, setPassword] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -17,28 +15,47 @@ export default function PageLogin() {
     setErreur(null);
     setEnCours(true);
 
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-    });
+    let resultat;
+    try {
+      resultat = await authClient.signIn.email({
+        email,
+        password,
+        fetchOptions: { signal: AbortSignal.timeout(15_000) },
+      });
+    } catch {
+      setErreur(
+        "La connexion prend trop de temps. Vérifiez le réseau puis réessayez.",
+      );
+      setEnCours(false);
+      return;
+    }
 
+    const { data, error } = resultat;
     if (error) {
       setErreur(error.message ?? "Connexion refusée.");
       setEnCours(false);
       return;
     }
 
+    if ((data as { twoFactorRedirect?: boolean } | undefined)?.twoFactorRedirect) {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign("/two-factor");
+      return;
+    }
+
     const role = (data?.user as { role?: string } | undefined)?.role;
-    router.push(
+    const destination =
       role === "presta"
         ? "/presta"
         : role === "proprietaire"
           ? "/proprio"
           : role === "commercial"
             ? "/commercial"
-            : "/hote",
-    );
-    router.refresh();
+            : "/hote";
+
+    // Navigation complète : le cookie de session est pris en compte par le
+    // serveur, sans course avec le routeur client ni le service worker.
+    window.location.assign(destination);
   }
 
   return (

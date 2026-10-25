@@ -25,6 +25,28 @@ test("import ICS : réservation, blocage, idempotence et conflit", async ({
   await page.getByRole("button", { name: "Créer le logement" }).click();
   await expect(page.getByText(`Logement « ${code} » créé.`)).toBeVisible();
 
+  // Flux OTA : validation d'URL puis enregistrement.
+  await page.goto("/hote/planning?mois=2027-01");
+  await page.selectOption('select[name="logement"]', { label: nom });
+  await page.getByRole("button", { name: "Afficher" }).click();
+  await page.getByRole("link", { name: "Importer un calendrier OTA" }).click();
+  await expect(page).toHaveURL(/\/hote\/planning\/import\?logement=/);
+  await page.fill('input[name="libelle"]', "Airbnb");
+  await page.fill('input[name="url"]', "http://localhost/calendar.ics");
+  await page.getByRole("button", { name: "Enregistrer le flux" }).click();
+  await expect(page.getByText("URL ICS invalide", { exact: false })).toBeVisible();
+  await page.fill(
+    'input[name="url"]',
+    "https://www.airbnb.fr/calendar/ical/123.ics",
+  );
+  await page.getByRole("button", { name: "Enregistrer le flux" }).click();
+  await expect(
+    page.getByText("Flux « Airbnb » enregistré."),
+  ).toBeVisible();
+  await expect(
+    page.getByText("https://www.airbnb.fr/calendar/ical/123.ics"),
+  ).toBeVisible();
+
   const ics = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT

@@ -787,8 +787,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **25 tables** (21 métier + 4 Better Auth),
-  migrations `0000` → `0023`, RLS sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **26 tables** (22 métier + 4 Better Auth),
+  migrations `0000` → `0025`, RLS sur les tables métier ;
 - architecture `domain / application / infrastructure / app` ;
 - ports `AuthProvider`, `StockageFichiers`, `EmailSender`, `Paiement`,
   `Queue`, `LlmProvider`, `OtaSource`, `RuntimeBox` ;
@@ -843,14 +843,15 @@ et ne remplace pas v1.
   catalogue d’extras, commande idempotente, suivi staff ;
 - **import OTA/ICS** : parseur iCal pur, réservations confirmées, blocages
   « Not available » sans impact CA, idempotence par UID, détection de
-  conflits, page `/hote/planning/import` ;
+  conflits, page `/hote/planning/import`, flux HTTPS enregistrés par logement
+  et synchronisation à la demande (URL validée, anti-SSRF) ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
 - **backups** : `npm run db:backup` (dump gzip + SHA-256, rétention 14 j),
   `npm run db:restore-test` (restauration dans une base jetable + comptes),
   workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
   (artefact privé 30 j, secret `DATABASE_URL` à configurer) ;
-- tests Vitest : **116/116** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **126/126** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **13/13** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X + paiements + facture publique + email (si Mailpit) + compta + CSV ;
@@ -875,7 +876,7 @@ et ne remplace pas v1.
   Sentry/Uptime encore absents, backup quotidien GitHub à activer avec le
   secret `DATABASE_URL` ;
 - **migrations distantes** : schéma initial appliqué au bootstrap, table
-  `drizzle.__drizzle_migrations` marquée jusqu'à `0023` ; les migrations
+  `drizzle.__drizzle_migrations` marquée jusqu'à `0025` ; les migrations
   suivantes se lancent avec `DATABASE_URL` (owner) récupéré depuis Netlify ;
 - CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
@@ -890,7 +891,7 @@ et ne remplace pas v1.
 - Sentry + Uptime Kuma ;
 - Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
 - clés Stripe test/live + webhook de production ;
-- synchronisation OTA automatique par URL/API (import ICS manuel fait),
+- planification cron des flux OTA (sync automatique quotidienne),
   intégrations HA/Moli.
 
 ---
@@ -984,6 +985,8 @@ et ne remplace pas v1.
 - [ ] Clés Stripe test/live + endpoint webhook à configurer.
 - [x] Facture publique signée + envoi email SMTP.
 - [x] Import ICS OTA + blocages calendrier + conflits.
+- [x] Flux ICS HTTPS par logement + synchronisation à la demande.
+- [ ] Planification cron des flux OTA.
 - [ ] Emails transactionnels de production (Brevo/OVH : clés + domaine).
 - [ ] Factur-X PDF/A-3 signé + plateforme de dématérialisation.
 - [ ] Portail voyageur complet.
