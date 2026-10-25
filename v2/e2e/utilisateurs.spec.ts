@@ -42,6 +42,10 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   await expect(
     page1.getByRole("heading", { name: `Bonjour ${nom}` }),
   ).toBeVisible();
+
+  // Un rôle non-admin ne peut pas ouvrir la gestion des comptes.
+  await page1.goto("/hote/utilisateurs");
+  await expect(page1).toHaveURL(/\/login\?erreur=acces$/);
   await contexte1.close();
 
   // Réinitialisation par l'admin.
