@@ -1051,6 +1051,41 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
+export const entretiens = pgTable(
+  "entretiens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    date: date("date").notNull(),
+    type: text("type").notNull().default("entretien"),
+    titre: text("titre").notNull(),
+    description: text("description").notNull().default(""),
+    prestataire: text("prestataire"),
+    coutCentimes: integer("cout_centimes").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("entretiens_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("entretiens_tenant_logement_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.date,
+    ),
+  ],
+);
+
 export const etatsDesLieux = pgTable(
   "etats_des_lieux",
   {
@@ -1123,6 +1158,8 @@ export type BienEvenementRow = typeof bienEvenements.$inferSelect;
 export type NewBienEvenementRow = typeof bienEvenements.$inferInsert;
 export type EtatDesLieuxRow = typeof etatsDesLieux.$inferSelect;
 export type NewEtatDesLieuxRow = typeof etatsDesLieux.$inferInsert;
+export type EntretienRow = typeof entretiens.$inferSelect;
+export type NewEntretienRow = typeof entretiens.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;

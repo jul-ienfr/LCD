@@ -105,6 +105,7 @@ juridique + mandats, 320 px.
 | `/hote/stocks` | seuils, réassort et liste de courses |
 | `/hote/inventaire` | inventaire durable : QR, usages, états, alertes |
 | `/hote/etats-des-lieux` | constats d’entrée/sortie : manquants, dégradés, coût |
+| `/hote/entretien` | carnet d’entretien : interventions, prestataires, coûts |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |

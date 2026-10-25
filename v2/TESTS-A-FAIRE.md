@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0039` appliquées.
+- [ ] Migrations `0026` → `0040` appliquées.
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
 - [ ] `/api/health` → `200`, `/api/ready` → `200`, `db: up`, `schema: ok`.
@@ -76,6 +76,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] États des lieux : constat depuis l’inventaire durable, bien manquant
   chiffré au prix d’achat, dégradations signalées, historique par logement,
   isolation tenant.
+- [ ] Carnet d’entretien : intervention (entretien/réparation/contrôle), coût
+  cumulé, prestataire, historique par logement, isolation tenant.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -156,8 +158,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **282/282**.
-- Playwright : **28/28** sur `next build` + `next start`, y compris une passe
+- Vitest : **292/292**.
+- Playwright : **29/29** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/
@@ -168,7 +170,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - Build Netlify et build Docker standalone.
 - Pile compose VPS : PostgreSQL 18, migrations `0031`, seed, web, Caddy HTTPS,
   headers, `/api/health`, `/api/ready`.
-- Sauvegarde + restauration complètes : 38 tables, comptes, logements,
+- Sauvegarde + restauration complètes : 39 tables, comptes, logements,
   réservations, factures, paiements, blocages.
 - 2FA TOTP de bout en bout.
 - Inscription publique fermée, tenant/rôle non modifiables, exports protégés.

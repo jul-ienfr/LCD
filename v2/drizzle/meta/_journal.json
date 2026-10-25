@@ -281,6 +281,13 @@
       "when": 1792948669011,
       "tag": "0039_calm_whiplash",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792950936528,
+      "tag": "0040_magenta_gabe_jones",
+      "breakpoints": true
     }
   ]
 }
