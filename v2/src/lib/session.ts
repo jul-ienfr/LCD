@@ -9,7 +9,9 @@ export async function getSession() {
 
 export async function requireSession() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  // Défense en profondeur : même si une session survivait à une désactivation,
+  // le compte inactif n'ouvre aucune page protégée.
+  if (!session || session.user.actif === false) redirect("/login");
   return session;
 }
 

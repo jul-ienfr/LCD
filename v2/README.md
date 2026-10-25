@@ -336,6 +336,7 @@ après les premiers clients ou si le LCP mobile se dégrade.
   personne sont fermées ;
 - désactivation : sessions supprimées immédiatement et connexion refusée
   (`databaseHooks.session.create.before` vérifie `users.actif`) ;
+  `requireSession` refuse aussi tout compte `actif=false` ;
 - garde-fous : impossible de désactiver son propre compte ou le dernier
   administrateur actif ;
 - audit `utilisateur.creer`, `utilisateur.activer`,

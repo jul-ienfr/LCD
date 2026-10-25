@@ -856,7 +856,8 @@ et ne remplace pas v1.
   ouvert → en cours → résolu/fermé, isolation par créateur ou staff ;
 - **gestion des utilisateurs** : page `/hote/utilisateurs` réservée aux admins,
   création email/password avec rôle, réinitialisation (sessions fermées),
-  désactivation immédiate (sessions supprimées + connexion refusée), garde-fous
+  désactivation immédiate (sessions supprimées + connexion refusée + contrôle
+  `actif` dans `requireSession`), garde-fous
   dernier admin / propre compte, audit ; **inscription publique désactivée**,
   `tenantId` et `role` non modifiables par le client ;
 - **guide/check-in + extras voyageur** : WiFi, consignes, règles, urgence,

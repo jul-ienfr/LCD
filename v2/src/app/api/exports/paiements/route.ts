@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   await connection();
 
   const session = await getSession();
-  if (!session) {
+  if (!session || session.user.actif === false) {
     return new Response("Non autorisé", { status: 401 });
   }
   if (!["admin", "hote", "comptable"].includes(session.user.role ?? "")) {

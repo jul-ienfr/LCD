@@ -30,7 +30,9 @@ export async function GET(
     tenantId = payload.tenantId;
   } else {
     const session = await getSession();
-    if (!session) return new Response("Non autorisé", { status: 401 });
+    if (!session || session.user.actif === false) {
+      return new Response("Non autorisé", { status: 401 });
+    }
     if (!["admin", "hote", "comptable"].includes(session.user.role ?? "")) {
       return new Response("Accès refusé", { status: 403 });
     }

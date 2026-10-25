@@ -60,6 +60,12 @@ export const auth = betterAuth({
         defaultValue: "operateur",
         input: false,
       },
+      actif: {
+        type: "boolean",
+        required: false,
+        defaultValue: true,
+        input: false,
+      },
     },
   },
   session: {
