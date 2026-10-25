@@ -48,6 +48,9 @@ const schema = z.object({
   // Tâches planifiées (cron OTA, backups déclenchés par HTTP).
   CRON_SECRET: z.string().optional(),
 
+  // Connecteurs runtime box (Home Assistant / Moli / générique).
+  BOX_RUNTIME_CONFIG: z.string().optional(),
+
   // Observabilité (facultatif).
   SENTRY_DSN: z.string().optional(),
   SENTRY_ENVIRONMENT: z.string().optional(),

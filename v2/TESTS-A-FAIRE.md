@@ -90,12 +90,14 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 - [ ] Webhook HA/Moli : création, secret, livraison, signature
   `X-LCD-Signature`.
+- [ ] Adaptateur `RuntimeBox` réel : config `BOX_RUNTIME_CONFIG`, état,
+  commande HA ou générique, Bearer token, timeout.
 - [ ] Cron `/api/cron/webhooks` avec `CRON_SECRET` ; sans secret → `401/503`.
 - [ ] Cron `/api/cron/sync-ota` avec `CRON_SECRET` ; flux réel.
 - [ ] GitHub Actions `v2-sync-ota` et `v2-webhooks` avec secrets configurés.
 - [ ] Test d’échec : URL webhook morte, retry/backoff, statut `failed`.
-- [ ] Connecteurs HA/Moli spécifiques : non implémentés, à cadrer avec les
-  API réelles.
+- [ ] Connecteurs HA/Moli spécifiques : adaptateur HTTP générique/HA testé ;
+  API Moli propriétaire à cadrer avec le fournisseur.
 
 ## 6. Observabilité, sauvegardes et exploitation
 
@@ -134,7 +136,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **205/205**.
+- Vitest : **208/208**.
 - Playwright : **21/21**, y compris une passe complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/

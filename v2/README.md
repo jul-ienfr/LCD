@@ -208,7 +208,14 @@ juridique + mandats, 320 px.
 - URL validée (HTTPS public, localhost/IP privées refusés), secret ≥ 16
   caractères ;
 - audit `webhook.enregistrer` / `webhook.supprimer` ;
-- workflow `.github/workflows/v2-webhooks.yml`.
+- workflow `.github/workflows/v2-webhooks.yml` ;
+- **adaptateur `RuntimeBox` HTTP** : état et commandes par box, config JSON
+  `BOX_RUNTIME_CONFIG` indexée par `boxId` ;
+- types `home_assistant` (état `/api/`, commande `domaine.service` vers
+  `/api/services/...`) et `generic` (état `/health`, commande
+  `/api/commands`) ;
+- Bearer token, timeout 5/10 s, taille de réponse limitée, aucune box inconnue
+  acceptée ; l’API Moli propriétaire reste à cadrer avec le fournisseur.
 
 ## PWA
 
@@ -556,7 +563,7 @@ une implémentation dans `src/infrastructure/adapters/` :
 | `Queue` | Inngest / QStash / BullMQ |
 | `LlmProvider` | OpenAI / Anthropic / local |
 | `OtaSource` | API/ICS |
-| `RuntimeBox` | HA / Moli HTTP |
+| `RuntimeBox` | HTTP HA / générique (`BOX_RUNTIME_CONFIG`) |
 
 ## Déploiement
 
@@ -568,7 +575,8 @@ Guide pas à pas : [`DEPLOIEMENT.md`](./DEPLOIEMENT.md).
   `NETLIFY=true` (plugin Next). Aucune API Netlify dans le code métier.
 - Build Netlify validé : `NETLIFY=true npm run build`.
 - Variables standard : `DATABASE_URL`, `MIGRATION_DATABASE_URL`,
-  `APP_ROLE_NAME`, `APP_ROLE_PASSWORD`, `S3_*`, `SMTP_URL`,
+  `APP_ROLE_NAME`, `APP_ROLE_PASSWORD`, `BOX_RUNTIME_CONFIG`, `S3_*`,
+  `SMTP_URL`,
   `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `BETTER_AUTH_TRUSTED_ORIGINS`,
   `STRIPE_*`, `SENTRY_DSN`.
 

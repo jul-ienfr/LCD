@@ -862,7 +862,9 @@ et ne remplace pas v1.
 - **intégrations HA/Moli** : webhooks HTTPS signés HMAC-SHA256
   (`X-LCD-Signature`), abonnements par événement (réservation, paiement,
   mission, ticket), outbox avec 5 essais et backoff, cron horaire
-  `/api/cron/webhooks`, page `/hote/integrations` ;
+  `/api/cron/webhooks`, page `/hote/integrations` ; **adaptateur
+  `RuntimeBox`** HTTP HA/générique configuré par `BOX_RUNTIME_CONFIG`, testé
+  (état, commande, auth, erreurs), API Moli propriétaire à cadrer ;
 - **CRM commercial** : prospects, pipeline nouveau → qualifié → visite →
   offre → gagné/perdu, offres brouillon → envoyée → acceptée/refusée, audit ;
 - **support / messagerie** : tickets, priorités, messages, statuts
@@ -898,7 +900,7 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **205/205** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **208/208** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **21/21** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
@@ -955,7 +957,8 @@ et ne remplace pas v1.
 - secret GitHub `MIGRATION_DATABASE_URL` (owner) pour le backup offsite et
   `CRON_SECRET` pour les workflows OTA/webhooks ;
 - Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
-- connecteurs HA/Moli spécifiques (webhooks génériques faits) ;
+- connecteurs HA/Moli spécifiques (webhooks génériques et adaptateur HTTP
+  RuntimeBox faits ; API Moli propriétaire à cadrer) ;
 - recette post-déploiement détaillée : `v2/TESTS-A-FAIRE.md`.
 
 ---
@@ -1058,6 +1061,7 @@ et ne remplace pas v1.
 - [x] Planification cron des flux OTA (GitHub Actions + `CRON_SECRET`).
 - [ ] Emails transactionnels de production (Brevo/OVH : clés + domaine).
 - [x] Webhooks signés HA/Moli + outbox + cron.
+- [x] Adaptateur `RuntimeBox` HTTP HA/générique (tests).
 - [ ] Connecteurs HA/Moli spécifiques (API propriétaires).
 - [x] PDF facture avec XML Factur-X incorporé.
 - [ ] Factur-X PDF/A-3 signé + plateforme de dématérialisation.
