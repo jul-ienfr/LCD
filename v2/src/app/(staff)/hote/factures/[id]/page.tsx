@@ -132,8 +132,12 @@ export default async function PageFacture({
               {tenant?.nom ?? "LCD Parc"}
             </p>
             <p>Conciergerie locative</p>
-            <p className="mt-1">{logement?.nom ?? facture.logementId}</p>
-            <p>{logement?.adresse ?? ""}</p>
+            {tenant?.siren ? (
+              <p className="font-mono text-xs">SIREN {tenant.siren}</p>
+            ) : null}
+            <p className="mt-1">
+              {tenant?.adresse ?? logement?.adresse ?? ""}
+            </p>
           </div>
         </header>
 
@@ -223,9 +227,9 @@ export default async function PageFacture({
             Document généré par LCD Parc. La taxe de séjour est suivie
             séparément du chiffre d’affaires.
           </p>
-          {fiscal.mentionsLegales ? (
+          {fiscal.mentionsLegales ?? tenant?.mentionsLegales ? (
             <p className="mt-2 whitespace-pre-line">
-              {fiscal.mentionsLegales}
+              {fiscal.mentionsLegales ?? tenant?.mentionsLegales}
             </p>
           ) : null}
           <p className="mt-2">

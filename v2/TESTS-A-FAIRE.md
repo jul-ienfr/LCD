@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0030` appliquées.
+- [ ] Migrations `0026` → `0031` appliquées.
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
 - [ ] `/api/health` → `200`, `/api/ready` → `200`, `db: up`, `schema: ok`.
@@ -41,6 +41,12 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 ## 2. Gestion locative
 
 - [ ] Création/modification logement, guide, WiFi, règles.
+- [ ] Entité juridique : nature, régime, TVA, SIREN, adresse, mentions ;
+  SIREN invalide refusé.
+- [ ] Facture HTML/PDF/Factur-X : nom, adresse, SIREN et mentions de l’entité.
+- [ ] Mandat logement : mode propre/mandat tiers, commission, statut, dates,
+  notes ; commission forcée à 0 en mode propre.
+- [ ] Portail propriétaire : commission et net cohérents avec le mandat.
 - [ ] Prix par jour, plusieurs logements, isolation.
 - [ ] Réservation manuelle, anti-chevauchement, annulation.
 - [ ] Import ICS manuel + flux HTTPS + cron OTA.
@@ -128,15 +134,16 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **197/197**.
+- Vitest : **205/205**.
 - Playwright : **21/21**, y compris une passe complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/
   commercial, Mailpit et Caddy.
 - RLS : sans tenant = 0, avec tenant = total, autre tenant = 0, y compris sur
   une base compose fraîchement migrée et seedée.
+- Entité juridique et mandats : validation, E2E, factures HTML/PDF/Factur-X.
 - Build Netlify et build Docker standalone.
-- Pile compose VPS : PostgreSQL 18, migrations `0030`, seed, web, Caddy HTTPS,
+- Pile compose VPS : PostgreSQL 18, migrations `0031`, seed, web, Caddy HTTPS,
   headers, `/api/health`, `/api/ready`.
 - Sauvegarde + restauration complètes : 29 tables, comptes, logements,
   réservations, factures, paiements, blocages.

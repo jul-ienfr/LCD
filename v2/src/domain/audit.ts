@@ -4,6 +4,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "commande_extra.creer": "Commande extra créée",
   "commande_extra.statut": "Commande extra mise à jour",
   "extra.creer": "Extra créé",
+  "entite.mettre_a_jour": "Entité juridique mise à jour",
   "facture.creer": "Facture créée",
   "facture.email": "Facture envoyée",
   "facture.statut": "Statut de facture modifié",

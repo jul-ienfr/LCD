@@ -791,7 +791,7 @@ et ne remplace pas v1.
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
 - PostgreSQL 18.6 + Drizzle : **29 tables** (25 métier + 4 Better Auth),
-  migrations `0000` → `0030`, RLS sur les tables métier ;
+  migrations `0000` → `0031`, RLS sur les tables métier ;
 - **RLS effective** : `DATABASE_URL` sur le rôle `lcd_app` non-propriétaire,
   `MIGRATION_DATABASE_URL` owner pour migrations/seed/sauvegardes ;
   `npm run db:role-app` et `npm run db:test-rls` ; test local
@@ -808,7 +808,7 @@ et ne remplace pas v1.
   `/hote/planning/import`, `/hote/prix`,
   `/hote/compta`, `/hote/compta/parametres`, `/hote/factures`,
   `/hote/factures/[id]`, `/hote/securite`, `/hote/utilisateurs`,
-  `/hote/audit`,
+  `/hote/audit`, `/hote/entite`,
   `/hote/logements/[id]` (guide), `/hote/extras`,
   `/voyageur?t=<token>`, `/hote/missions`, `/hote/proprietaires`,
   `/presta`, `/proprio`, `/commercial`, `/commercial/prospects/[id]`,
@@ -852,6 +852,10 @@ et ne remplace pas v1.
   API incident limitée à 10 Ko, i18n FR/EN/IT/ES/DE sans JS (`?lang=`) ;
 - **portail prestataire + missions** : création staff, assignation, cycle
   planifiée → en cours → terminée/annulée, audit ;
+- **entité juridique + mandats** : une entité par organisation (nature,
+  régime, TVA, SIREN, adresse, mentions) utilisée sur les factures HTML/PDF/
+  Factur-X ; mandat par logement (propriétaire, mode propre/tiers, commission,
+  statut, dates, notes), mode propre = commission 0, audit ;
 - **portail propriétaire** : rattachement logement ↔ propriétaire, relevé
   mensuel, séjours, CA, factures, **commission de mandat paramétrable par
   logement et net propriétaire**, isolation par logements rattachés ;
@@ -883,8 +887,10 @@ et ne remplace pas v1.
   `POST /api/cron/sync-ota` protégé par `CRON_SECRET` ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - **health/readiness** : `/api/health` liveness, `/api/ready` ping DB +
-  vérification des dernières tables/colonnes (503 `schema: pending` avec la
-  liste `manquants` si `0026`-`0030` ne sont pas appliquées) ;
+  vérification des dernières tables/colonnes (`cautions`, `webhooks`,
+  `webhook_deliveries`, `commission_bp`, `tenants.nature`,
+  `logement_proprietaires.mode` ; 503 `schema: pending` avec la liste
+  `manquants` si les migrations ne sont pas appliquées) ;
 - **backups** : `npm run db:backup` (dump gzip + SHA-256, rétention 14 j),
   `npm run db:restore-test` (restauration dans une base jetable + comptes),
   workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
@@ -892,7 +898,7 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **197/197** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **205/205** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **21/21** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
@@ -905,7 +911,8 @@ et ne remplace pas v1.
   (activation, connexion en deux étapes, désactivation) ; inscription publique
   refusée ; tenant/rôle non modifiables ; tableau de bord hôte refusé à un
   prestataire ; exports comptables et export JSON complet refusés à un
-  prestataire ; journal d'audit ; export ICS signé ; 320 px) ;
+  prestataire ; journal d’audit ; export ICS signé ; entité juridique + mandats ;
+  320 px) ;
 - parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
   login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -930,9 +937,9 @@ et ne remplace pas v1.
   Sentry/Uptime encore absents, backup quotidien GitHub à activer avec le
   secret `MIGRATION_DATABASE_URL` (owner) ;
 - **migrations distantes** : production actuellement marquée jusqu'à `0025`
-  (26 tables) ; `0026`-`0030` (commission, webhooks, cautions) sont prêtes et
-  seront appliquées au prochain déploiement ; `/api/ready` renverra
-  `503 schema: pending` tant qu'elles manquent ;
+  (26 tables) ; `0026`-`0031` (commission, webhooks, cautions, entité/mandats)
+  sont prêtes et seront appliquées au prochain déploiement ; `/api/ready`
+  renverra `503 schema: pending` tant qu'elles manquent ;
 - CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
   (Postgres 18 + S3Mock + Mailpit).
@@ -940,8 +947,8 @@ et ne remplace pas v1.
 **Reste à faire :**
 
 - débloquer les crédits Netlify ou déployer sur le VPS préparé
-  (`v2/DEPLOIEMENT-VPS.md`) puis appliquer `0026`-`0030` et déployer les
-  tranches commission/PDF/webhooks/cautions ;
+  (`v2/DEPLOIEMENT-VPS.md`) puis appliquer `0026`-`0031` et déployer les
+  tranches commission/PDF/webhooks/cautions/entité-mandats ;
 - `SENTRY_DSN` + instance Uptime Kuma + monitors/alertes à configurer ;
 - clés SMTP de production (Brevo/OVH) + `EMAIL_ENABLED=true` ;
 - clés Stripe test/live + webhook de production ;
@@ -1027,7 +1034,7 @@ et ne remplace pas v1.
 ### 90 jours
 
 - [x] CRUD logements (création + liste + audit).
-- [ ] Entités + mandats.
+- [x] Entité juridique unique + mandats par logement (multi-entités post-beta).
 - [x] Planning + pricing + anti-chevauchement.
 - [x] Compta légère : factures, totaux, CSV, impression.
 - [x] Statuts facture brouillon → émise → payée/annulée + audit.

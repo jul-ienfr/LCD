@@ -58,15 +58,17 @@ export async function GET(
 
   const xml = genererFacturXXml(facture, {
     vendeurNom: tenant?.nom ?? "LCD Parc",
-    vendeurAdresse: logement?.adresse ?? null,
+    vendeurAdresse: tenant?.adresse ?? logement?.adresse ?? null,
+    vendeurSiren: tenant?.siren ?? null,
     tauxTvaBp: fiscal.tauxTvaBp,
-    mentionsLegales: fiscal.mentionsLegales,
+    mentionsLegales: fiscal.mentionsLegales ?? tenant?.mentionsLegales ?? null,
   });
 
   const montantPaye = totalPaiements(paiements);
   const pdf = await genererPdfFacture(facture, {
     vendeurNom: tenant?.nom ?? "LCD Parc",
-    vendeurAdresse: logement?.adresse ?? null,
+    vendeurAdresse: tenant?.adresse ?? logement?.adresse ?? null,
+    vendeurSiren: tenant?.siren ?? null,
     logementNom: logement?.nom ?? null,
     xmlFacturX: xml,
     montantPayeCentimes: montantPaye,
@@ -74,7 +76,7 @@ export async function GET(
       facture.statut === "payee"
         ? 0
         : resteAPayer(facture.montantTtcCentimes, paiements),
-    mentionsLegales: fiscal.mentionsLegales,
+    mentionsLegales: fiscal.mentionsLegales ?? tenant?.mentionsLegales ?? null,
   });
 
   const corps = new Blob([pdf as unknown as BlobPart], {

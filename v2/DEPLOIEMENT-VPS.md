@@ -180,7 +180,7 @@ Faire une sauvegarde avant chaque migration. Tester `/api/ready` et un login.
 La pile compose a été testée de bout en bout sur Docker Desktop :
 
 - builds `web` et `tools` ;
-- PostgreSQL 18, migrations `0000` → `0030`, seed admin + prestataire ;
+- PostgreSQL 18, migrations `0000` → `0031`, seed admin + prestataire ;
 - rôle applicatif `lcd_app` et `db:test-rls` : **RLS VALIDÉE** sur base fraîche ;
 - `web` healthy, `/api/health` et `/api/ready` verts ;
 - Caddy HTTPS avec certificat local, redirection HTTP 308, HSTS, frame,

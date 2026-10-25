@@ -45,6 +45,26 @@ test("propriétaire : rattachement, relevé et isolation", async ({
   await page.getByRole("button", { name: "Créer la réservation" }).click();
   await expect(page.getByText(`Réservation ${refResa} créée`)).toBeVisible();
 
+  // Entité juridique utilisée sur les factures.
+  await page.goto("/hote/entite");
+  await page.fill('input[name="siren"]', "123456789");
+  await page.selectOption('select[name="nature"]', "sarl");
+  await page.selectOption('select[name="regime"]', "reel_simplifie");
+  await page.selectOption('select[name="tva"]', "reelle");
+  await page.fill(
+    'textarea[name="adresse"]',
+    "12 rue des Lilas, 75011 Paris",
+  );
+  await page.fill(
+    'textarea[name="mentionsLegales"]',
+    "TVA acquittée sur les encaissements.",
+  );
+  await page.getByRole("button", { name: /Enregistrer l/ }).click();
+  await expect(
+    page.getByText("Entité juridique mise à jour."),
+  ).toBeVisible();
+  await expect(page.getByText("123456789", { exact: true })).toBeVisible();
+
   await page.goto("/hote/proprietaires");
   await page.selectOption('select[name="userId"]', {
     label: `Propriétaire LCD (${PROPRIO_EMAIL})`,
@@ -53,11 +73,22 @@ test("propriétaire : rattachement, relevé et isolation", async ({
     label: `${nomA} (${codeA})`,
   });
   await page.fill('input[name="commission"]', "20");
-  await page.getByRole("button", { name: "Rattacher le propriétaire" }).click();
+  await page.selectOption('select[name="mode"]', "mandat_tiers");
+  await page.selectOption('select[name="statut"]', "actif");
+  await page.fill('input[name="dateDebut"]', "2026-01-01");
+  await page.fill('input[name="dateFin"]', "2026-12-31");
+  await page.fill('textarea[name="notes"]', "Mandat E2E");
+  await page.getByRole("button", { name: "Enregistrer le mandat" }).click();
   await expect(
     page.getByText(`Propriétaire LCD est rattaché à ${nomA}`, {
       exact: false,
     }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator("li")
+      .filter({ hasText: nomA })
+      .getByText("Mandat tiers", { exact: false }),
   ).toBeVisible();
 
   const contexteProprio = await browser.newContext();

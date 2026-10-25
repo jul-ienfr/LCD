@@ -42,9 +42,10 @@ export async function GET(
 
   const xml = genererFacturXXml(facture, {
     vendeurNom: tenant?.nom ?? "LCD Parc",
-    vendeurAdresse: logement?.adresse ?? null,
+    vendeurAdresse: tenant?.adresse ?? logement?.adresse ?? null,
+    vendeurSiren: tenant?.siren ?? null,
     tauxTvaBp: fiscal.tauxTvaBp,
-    mentionsLegales: fiscal.mentionsLegales,
+    mentionsLegales: fiscal.mentionsLegales ?? tenant?.mentionsLegales ?? null,
   });
 
   return new Response(xml, {

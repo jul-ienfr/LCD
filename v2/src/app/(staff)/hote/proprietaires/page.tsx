@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { formaterCommissionBp } from "@/domain/commission";
+import {
+  LIBELLES_MODE_MANDAT,
+  LIBELLES_STATUT_MANDAT,
+} from "@/domain/mandat";
 import { DrizzleLogementProprietaireRepository } from "@/infrastructure/db/repositories/logement-proprietaire-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
@@ -39,16 +43,21 @@ export default async function PageProprietaires() {
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
-            Propriétaires
+            Propriétaires et mandats
           </h1>
           <p className="text-stone-600">
-            Rattachement des propriétaires aux logements. Lecture seule côté
-            propriétaire.
+            Mandat par logement : mode, commission, dates et statut. Lecture
+            seule côté propriétaire.
           </p>
         </div>
-        <Link className="text-sm underline" href="/hote">
-          Retour au tableau de bord
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link className="text-sm underline" href="/hote/entite">
+            Entité juridique
+          </Link>
+          <Link className="text-sm underline" href="/hote">
+            Retour au tableau de bord
+          </Link>
+        </div>
       </header>
 
       {proprietaires.length === 0 ? (
@@ -58,9 +67,10 @@ export default async function PageProprietaires() {
         </p>
       ) : (
         <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">Rattacher un propriétaire</h2>
+          <h2 className="text-lg font-semibold">Enregistrer un mandat</h2>
           <p className="mt-1 text-sm text-stone-600">
-            Le propriétaire verra uniquement les logements rattachés.
+            Le propriétaire verra uniquement les logements rattachés. Le mode
+            « bien propre » force une commission à 0.
           </p>
           <div className="mt-5">
             <FormulaireAssignation
@@ -81,12 +91,12 @@ export default async function PageProprietaires() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">
-          {assignations.length} rattachement
+          {assignations.length} mandat
           {assignations.length > 1 ? "s" : ""}
         </h2>
         {assignations.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
-            Aucun logement rattaché à un propriétaire.
+            Aucun mandat propriétaire.
           </p>
         ) : (
           <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
@@ -104,8 +114,19 @@ export default async function PageProprietaires() {
                     {parUser.get(a.userId)?.email ?? ""}
                   </p>
                   <p className="text-xs text-stone-500">
-                    Commission {formaterCommissionBp(a.commissionBp)}
+                    {LIBELLES_MODE_MANDAT[a.mode]} ·{" "}
+                    {LIBELLES_STATUT_MANDAT[a.statut]} · commission{" "}
+                    {formaterCommissionBp(a.commissionBp)}
                   </p>
+                  {a.dateDebut || a.dateFin ? (
+                    <p className="text-xs text-stone-500">
+                      {a.dateDebut ? `Du ${a.dateDebut}` : "Sans début"}
+                      {a.dateFin ? ` au ${a.dateFin}` : ""}
+                    </p>
+                  ) : null}
+                  {a.notes ? (
+                    <p className="mt-1 text-xs text-stone-600">{a.notes}</p>
+                  ) : null}
                 </div>
                 <form action={retirerProprietaireAction}>
                   <input name="logementId" type="hidden" value={a.logementId} />

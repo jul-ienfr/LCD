@@ -3,6 +3,8 @@ export interface EtatSchema {
   webhooks: string | null;
   webhookDeliveries: string | null;
   commissionBp: boolean;
+  tenantNature: boolean;
+  mandatMode: boolean;
 }
 
 /**
@@ -17,5 +19,7 @@ export function manquantsSchema(etat: EtatSchema | undefined): string[] {
   if (!etat?.commissionBp) {
     manquants.push("logement_proprietaires.commission_bp");
   }
+  if (!etat?.tenantNature) manquants.push("tenants.nature");
+  if (!etat?.mandatMode) manquants.push("logement_proprietaires.mode");
   return manquants;
 }

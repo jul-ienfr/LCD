@@ -136,8 +136,12 @@ export default async function PageFacturePublique({
             {tenant?.nom ?? "LCD Parc"}
           </p>
           <p>Conciergerie locative</p>
-          <p className="mt-1">{logement?.nom ?? ""}</p>
-          <p>{logement?.adresse ?? ""}</p>
+          {tenant?.siren ? (
+            <p className="font-mono text-xs">SIREN {tenant.siren}</p>
+          ) : null}
+          <p className="mt-1">
+            {tenant?.adresse ?? logement?.adresse ?? ""}
+          </p>
         </div>
       </header>
 
@@ -281,8 +285,10 @@ export default async function PageFacturePublique({
           Document consultable sans compte. La taxe de séjour est suivie
           séparément du chiffre d&apos;affaires.
         </p>
-        {fiscal.mentionsLegales ? (
-          <p className="mt-2 whitespace-pre-line">{fiscal.mentionsLegales}</p>
+        {fiscal.mentionsLegales ?? tenant?.mentionsLegales ? (
+          <p className="mt-2 whitespace-pre-line">
+            {fiscal.mentionsLegales ?? tenant?.mentionsLegales}
+          </p>
         ) : null}
       </footer>
     </main>

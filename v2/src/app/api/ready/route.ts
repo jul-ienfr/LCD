@@ -22,7 +22,21 @@ export async function GET() {
           where table_schema = 'public'
             and table_name = 'logement_proprietaires'
             and column_name = 'commission_bp'
-        ) as "commissionBp"
+        ) as "commissionBp",
+        exists (
+          select 1
+          from information_schema.columns
+          where table_schema = 'public'
+            and table_name = 'tenants'
+            and column_name = 'nature'
+        ) as "tenantNature",
+        exists (
+          select 1
+          from information_schema.columns
+          where table_schema = 'public'
+            and table_name = 'logement_proprietaires'
+            and column_name = 'mode'
+        ) as "mandatMode"
     `;
 
     const manquants = manquantsSchema(etat);

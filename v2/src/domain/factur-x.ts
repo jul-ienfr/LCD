@@ -8,6 +8,7 @@ import type { Facture } from "./facture";
 export interface FacturXOptions {
   vendeurNom: string;
   vendeurAdresse?: string | null;
+  vendeurSiren?: string | null;
   tauxTvaBp: number;
   mentionsLegales?: string | null;
 }
@@ -135,7 +136,7 @@ ${lignes}
     <ram:ApplicableHeaderTradeAgreement>
       <ram:SellerTradeParty>
         <ram:Name>${echapperXml(options.vendeurNom)}</ram:Name>
-${blocAdresse(options.vendeurAdresse)}      </ram:SellerTradeParty>
+${options.vendeurSiren ? `        <ram:SpecifiedLegalOrganization><ram:ID schemeID="0002">${echapperXml(options.vendeurSiren)}</ram:ID></ram:SpecifiedLegalOrganization>\n` : ""}${blocAdresse(options.vendeurAdresse)}      </ram:SellerTradeParty>
       <ram:BuyerTradeParty>
         <ram:Name>${echapperXml(facture.clientNom)}</ram:Name>
       </ram:BuyerTradeParty>

@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import type {
   AssignationProprietaire,
   LogementProprietaireRepository,
+  MandatData,
 } from "@/application/ports/logement-proprietaire-repository";
 import type { Logement } from "@/domain/logement";
 import { withTenant } from "../client";
@@ -61,10 +62,19 @@ export class DrizzleLogementProprietaireRepository
           logementId: logementProprietaires.logementId,
           userId: logementProprietaires.userId,
           commissionBp: logementProprietaires.commissionBp,
+          mode: logementProprietaires.mode,
+          statut: logementProprietaires.statut,
+          dateDebut: logementProprietaires.dateDebut,
+          dateFin: logementProprietaires.dateFin,
+          notes: logementProprietaires.notes,
         })
         .from(logementProprietaires)
         .where(eq(logementProprietaires.tenantId, tenantId));
-      return rows;
+      return rows.map((row) => ({
+        ...row,
+        mode: row.mode as AssignationProprietaire["mode"],
+        statut: row.statut as AssignationProprietaire["statut"],
+      }));
     });
   }
 
@@ -72,19 +82,36 @@ export class DrizzleLogementProprietaireRepository
     tenantId: string,
     logementId: string,
     userId: string,
-    commissionBp: number,
+    data: MandatData,
   ): Promise<void> {
     await withTenant(tenantId, async (tx) => {
       await tx
         .insert(logementProprietaires)
-        .values({ tenantId, logementId, userId, commissionBp })
+        .values({
+          tenantId,
+          logementId,
+          userId,
+          commissionBp: data.commissionBp,
+          mode: data.mode,
+          statut: data.statut,
+          dateDebut: data.dateDebut,
+          dateFin: data.dateFin,
+          notes: data.notes,
+        })
         .onConflictDoUpdate({
           target: [
             logementProprietaires.tenantId,
             logementProprietaires.logementId,
             logementProprietaires.userId,
           ],
-          set: { commissionBp },
+          set: {
+            commissionBp: data.commissionBp,
+            mode: data.mode,
+            statut: data.statut,
+            dateDebut: data.dateDebut,
+            dateFin: data.dateFin,
+            notes: data.notes,
+          },
         });
     });
   }

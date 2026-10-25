@@ -5,6 +5,13 @@ import {
   commissionBpValide,
   formaterCommissionBp,
 } from "@/domain/commission";
+import {
+  datesMandatValides,
+  modeMandatValide,
+  notesMandatValides,
+  statutMandatValide,
+  LIBELLES_MODE_MANDAT,
+} from "@/domain/mandat";
 import { DrizzleLogementProprietaireRepository } from "@/infrastructure/db/repositories/logement-proprietaire-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
@@ -28,6 +35,11 @@ export async function assignerProprietaireAction(
     .trim()
     .replace(",", ".");
   const commissionBp = Math.round(Number(commissionSaisie) * 100);
+  const mode = String(formData.get("mode") ?? "mandat_tiers");
+  const statut = String(formData.get("statut") ?? "actif");
+  const dateDebut = String(formData.get("dateDebut") ?? "").trim() || null;
+  const dateFin = String(formData.get("dateFin") ?? "").trim() || null;
+  const notes = String(formData.get("notes") ?? "").trim() || null;
 
   if (!commissionBpValide(commissionBp)) {
     return {
@@ -35,6 +47,20 @@ export async function assignerProprietaireAction(
       message: "Commission invalide (0 à 50 %).",
     };
   }
+  if (!modeMandatValide(mode)) {
+    return { ok: false, message: "Mode de mandat invalide." };
+  }
+  if (!statutMandatValide(statut)) {
+    return { ok: false, message: "Statut de mandat invalide." };
+  }
+  if (!datesMandatValides(dateDebut, dateFin)) {
+    return { ok: false, message: "Dates de mandat invalides." };
+  }
+  if (!notesMandatValides(notes)) {
+    return { ok: false, message: "Notes limitées à 1 000 caractères." };
+  }
+
+  const commissionFinale = mode === "propre" ? 0 : commissionBp;
 
   try {
     const logement = await new DrizzleLogementRepository().trouverParId(
@@ -61,7 +87,14 @@ export async function assignerProprietaireAction(
       tenantId,
       logementId,
       userId,
-      commissionBp,
+      {
+        commissionBp: commissionFinale,
+        mode,
+        statut,
+        dateDebut,
+        dateFin,
+        notes,
+      },
     );
 
     await withTenant(tenantId, (tx) =>
@@ -71,7 +104,13 @@ export async function assignerProprietaireAction(
         action: "proprietaire.assigner",
         cible: logementId,
         ref: proprietaire.email,
-        payload: { logementId, userId, commissionBp },
+        payload: {
+          logementId,
+          userId,
+          commissionBp: commissionFinale,
+          mode,
+          statut,
+        },
       }),
     );
 
@@ -79,7 +118,7 @@ export async function assignerProprietaireAction(
     revalidatePath("/proprio");
     return {
       ok: true,
-      message: `${proprietaire.name} est rattaché à ${logement.nom} (commission ${formaterCommissionBp(commissionBp)}).`,
+      message: `${proprietaire.name} est rattaché à ${logement.nom} (${LIBELLES_MODE_MANDAT[mode]}, commission ${formaterCommissionBp(commissionFinale)}).`,
     };
   } catch (error) {
     logErreur("assignerProprietaireAction", error, { tenantId, logementId, userId });

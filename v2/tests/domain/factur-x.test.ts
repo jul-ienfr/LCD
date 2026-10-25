@@ -36,6 +36,7 @@ describe("Factur-X", () => {
     const xml = genererFacturXXml(facture, {
       vendeurNom: "LCD Parc",
       vendeurAdresse: "12 rue des Lilas, 75011 Paris",
+      vendeurSiren: "123456789",
       tauxTvaBp: 1_000,
       mentionsLegales: "TVA non applicable, art. 293 B du CGI",
     });
@@ -55,6 +56,9 @@ describe("Factur-X", () => {
     expect(xml).toContain("<ram:GrandTotalAmount>938.00</ram:GrandTotalAmount>");
     expect(xml).toContain("<ram:Reason>Taxe de séjour</ram:Reason>");
     expect(xml).toContain("<ram:RateApplicablePercent>10.00</ram:RateApplicablePercent>");
+    expect(xml).toContain(
+      '<ram:ID schemeID="0002">123456789</ram:ID>',
+    );
   });
 
   it("échappe les caractères XML et reprend les notes", () => {

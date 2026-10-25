@@ -2,6 +2,12 @@
 
 import { useActionState } from "react";
 import {
+  LIBELLES_MODE_MANDAT,
+  LIBELLES_STATUT_MANDAT,
+  MODES_MANDAT,
+  STATUTS_MANDAT,
+} from "@/domain/mandat";
+import {
   assignerProprietaireAction,
   type EtatAssignation,
 } from "./actions";
@@ -66,10 +72,66 @@ export function FormulaireAssignation({
             type="number"
           />
           <span className="block text-xs font-normal text-stone-500">
-            Sur le CA réservations, 0 à 50 %.
+            Sur le CA réservations, 0 à 50 %. Forcée à 0 pour un bien propre.
           </span>
         </label>
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Mode</span>
+          <select
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            defaultValue="mandat_tiers"
+            name="mode"
+          >
+            {MODES_MANDAT.map((mode) => (
+              <option key={mode} value={mode}>
+                {LIBELLES_MODE_MANDAT[mode]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Statut</span>
+          <select
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            defaultValue="actif"
+            name="statut"
+          >
+            {STATUTS_MANDAT.map((statut) => (
+              <option key={statut} value={statut}>
+                {LIBELLES_STATUT_MANDAT[statut]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Début (facultatif)</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            name="dateDebut"
+            type="date"
+          />
+        </label>
+        <label className="block space-y-1 text-sm font-medium">
+          <span>Fin (facultatif)</span>
+          <input
+            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            name="dateFin"
+            type="date"
+          />
+        </label>
+      </div>
+
+      <label className="block space-y-1 text-sm font-medium">
+        <span>Notes (facultatif)</span>
+        <textarea
+          className="min-h-20 w-full rounded-xl border border-stone-300 p-3 text-base"
+          maxLength={1_000}
+          name="notes"
+        />
+      </label>
 
       {etat.message ? (
         <p
@@ -88,7 +150,7 @@ export function FormulaireAssignation({
         type="submit"
         disabled={enCours}
       >
-        {enCours ? "Rattachement…" : "Rattacher le propriétaire"}
+        {enCours ? "Enregistrement…" : "Enregistrer le mandat"}
       </button>
     </form>
   );

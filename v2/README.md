@@ -76,7 +76,8 @@ commandé, comptes utilisateurs (création, connexion, réinitialisation,
 désactivation), 2FA TOTP (activation, connexion, désactivation), inscription
 publique refusée, tenant/rôle non modifiables, changement de rôle admin,
 prestataire refusé sur le tableau de bord hôte et les exports comptables,
-journal d’audit, export ICS, export JSON complet sans secrets, 320 px.
+journal d'audit, export ICS, export JSON complet sans secrets, entité
+juridique + mandats, 320 px.
 
 ## Pages
 
@@ -98,7 +99,8 @@ journal d’audit, export ICS, export JSON complet sans secrets, 320 px.
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |
 | `/hote/missions` | missions staff + assignation prestataire |
-| `/hote/proprietaires` | rattachement propriétaire ↔ logement + commission |
+| `/hote/proprietaires` | mandats propriétaire ↔ logement + commission |
+| `/hote/entite` | entité juridique de facturation (admin) |
 | `/hote/integrations` | webhooks HA/Moli + livraisons |
 | `/hote/securite` | 2FA |
 | `/hote/utilisateurs` | comptes de l’équipe (admin) |
@@ -318,6 +320,18 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - audit `prospect.*` / `offre.*` ;
 - isolation par tenant via RLS.
 
+## Entité juridique et mandats
+
+- une entité juridique par organisation en beta : nom, nature, régime, TVA,
+  SIREN, adresse de facturation, mentions légales ;
+- paramétrage admin sur `/hote/entite`, audit `entite.mettre_a_jour` ;
+- l’identité de l’entité est utilisée sur les factures HTML, PDF et Factur-X
+  (nom, adresse, SIREN, mentions), avec repli sur les paramètres fiscaux ;
+- mandat par logement sur `/hote/proprietaires` : propriétaire, mode
+  (`propre` / `mandat_tiers`), commission 0-50 %, statut, dates, notes ;
+- mode `propre` force une commission à 0 ;
+- le multi-entités (une entité par logement) est un chantier post-beta.
+
 ## Portail propriétaire
 
 - rattachement explicite `logement_proprietaires` ;
@@ -333,7 +347,8 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - `/api/health` : liveness, ne dépend pas de la DB.
 - `/api/ready` : readiness, ping PostgreSQL + vérification des tables/colonnes
   minimales (`cautions`, `webhooks`, `webhook_deliveries`,
-  `logement_proprietaires.commission_bp`) ; 503 avec la liste `manquants` si
+  `logement_proprietaires.commission_bp`, `tenants.nature`,
+  `logement_proprietaires.mode`) ; 503 avec la liste `manquants` si
   les migrations ne sont pas appliquées.
 - logs JSON via `src/lib/logger.ts` (ts, niveau, message, contexte).
 - **Sentry sans SDK** : `SENTRY_DSN` → erreurs serveur et erreurs client
@@ -522,7 +537,8 @@ Migrations actuelles :
 - `0027_*.sql` : webhooks + livraisons ;
 - `0028_rls_webhooks.sql` : RLS des webhooks ;
 - `0029_*.sql` : cautions / dépôts de garantie ;
-- `0030_rls_cautions.sql` : RLS des cautions.
+- `0030_rls_cautions.sql` : RLS des cautions ;
+- `0031_*.sql` : entité juridique du tenant + champs de mandat propriétaire.
 
 Total : **29 tables** (25 métier + 4 Better Auth).
 

@@ -6,6 +6,8 @@ const complet = {
   webhooks: "webhooks",
   webhookDeliveries: "webhook_deliveries",
   commissionBp: true,
+  tenantNature: true,
+  mandatMode: true,
 };
 
 describe("readiness schéma", () => {
@@ -19,6 +21,8 @@ describe("readiness schéma", () => {
       "webhooks",
       "webhook_deliveries",
       "logement_proprietaires.commission_bp",
+      "tenants.nature",
+      "logement_proprietaires.mode",
     ]);
   });
 

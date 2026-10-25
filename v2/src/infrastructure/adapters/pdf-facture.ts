@@ -11,6 +11,7 @@ import type { Paiement } from "@/domain/paiement";
 export interface PdfFactureOptions {
   vendeurNom: string;
   vendeurAdresse?: string | null;
+  vendeurSiren?: string | null;
   logementNom?: string | null;
   xmlFacturX: string;
   paiements?: Paiement[];
@@ -90,6 +91,15 @@ export async function genererPdfFacture(
       police: normal,
       couleur: rgb(0.4, 0.4, 0.4),
       maxWidth: 250,
+    });
+  }
+  if (options.vendeurSiren) {
+    await ecrire(page, `SIREN ${options.vendeurSiren}`, {
+      x: 50,
+      y: y - 44,
+      taille: 8,
+      police: normal,
+      couleur: rgb(0.4, 0.4, 0.4),
     });
   }
 

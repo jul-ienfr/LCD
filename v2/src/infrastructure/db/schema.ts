@@ -23,6 +23,12 @@ export const tenants = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     slug: text("slug").notNull(),
     nom: text("nom").notNull(),
+    nature: text("nature").notNull().default("nom_propre"),
+    regime: text("regime").notNull().default("micro_bic_non_classe"),
+    tva: text("tva").notNull().default("non"),
+    siren: text("siren"),
+    adresse: text("adresse"),
+    mentionsLegales: text("mentions_legales"),
     statut: text("statut").notNull().default("actif"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -500,6 +506,11 @@ export const logementProprietaires = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     commissionBp: integer("commission_bp").notNull().default(2000),
+    mode: text("mode").notNull().default("mandat_tiers"),
+    statut: text("statut").notNull().default("actif"),
+    dateDebut: date("date_debut", { mode: "string" }),
+    dateFin: date("date_fin", { mode: "string" }),
+    notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
