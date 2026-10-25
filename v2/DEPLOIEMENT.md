@@ -35,6 +35,8 @@ Database) et reste valable pour une installation neuve.
 
 > **Alternative VPS** : si les crédits Netlify sont épuisés, utiliser
 > `v2/DEPLOIEMENT-VPS.md` (Docker + Caddy + PostgreSQL + sauvegardes).
+> **Alternatives gratuites** : `v2/DEPLOIEMENT-GRATUIT.md` (Oracle Always
+> Free, GCP e2-micro + Neon, Render + Neon, home lab + tunnel).
 
 ## 1. Base Postgres managée
 

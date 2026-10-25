@@ -18,6 +18,10 @@ perdre la capacité de migrer plus tard (voir `docs/78-plan-stack-deploiement.md
   `Caddyfile` + Dockerfile multi-stage + sauvegardes ; PostgreSQL, migrations,
   seed, rôle applicatif RLS, web et HTTPS validés en local, suite Playwright
   **21/21** sur la pile compose ; voir `v2/DEPLOIEMENT-VPS.md` ;
+- **alternatives gratuites à Netlify** : Oracle Always Free, GCP e2-micro,
+  Render + Neon, home lab + tunnel ; comparatif et procédures dans
+  `v2/DEPLOIEMENT-GRATUIT.md`, blueprint `v2/render.yaml`, compose sans
+  PostgreSQL local `v2/compose.prod.external-db.yml` ;
 - procédure et limites : `v2/DEPLOIEMENT.md`.
 
 ## Démarrer

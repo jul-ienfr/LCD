@@ -932,6 +932,10 @@ et ne remplace pas v1.
   migrations, seed, rôle applicatif RLS, web, Caddy HTTPS (certificat local en
   test), headers, script de sauvegarde et guide `v2/DEPLOIEMENT-VPS.md` ;
   suite Playwright **21/21** sur cette pile avec Mailpit ;
+- **alternatives gratuites à Netlify** : guide `v2/DEPLOIEMENT-GRATUIT.md`
+  (Oracle Always Free, GCP e2-micro + Neon, Render + Neon, home lab +
+  Cloudflare Tunnel), blueprint `render.yaml` et compose
+  `compose.prod.external-db.yml` ;
 - **limites du déploiement beta** : variables d'environnement non secrètes
   sur le plan Free (`BETTER_AUTH_SECRET`, `DATABASE_URL` lisibles par
   l'équipe), base en `us-east-2` (latence UE), email désactivé

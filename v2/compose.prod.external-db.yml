@@ -1,0 +1,57 @@
+name: lcd-prod
+
+# Variante sans PostgreSQL local : base externe (Neon, Supabase, etc.).
+# Utile sur un petit VPS 1 Go ou un PaaS qui fournit déjà la base.
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: lcd-web
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      NODE_ENV: production
+    networks:
+      - lcd
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: lcd-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    env_file:
+      - .env.prod
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+    networks:
+      - lcd
+
+  tools:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tools
+    profiles: ["tools"]
+    env_file:
+      - .env.prod
+    environment:
+      NODE_ENV: production
+    networks:
+      - lcd
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  lcd:
