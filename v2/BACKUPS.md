@@ -48,6 +48,24 @@ Le dump distant est produit par un conteneur `postgres:18-alpine` qui se
 connecte à la base managée. La restauration de contrôle se fait dans le
 Postgres local : elle ne touche jamais la production.
 
+### VPS Docker
+
+```bash
+cd /opt/lcd/v2
+./scripts/backup-vps.sh
+```
+
+Le script utilise `docker compose exec postgres pg_dump`, écrit dans
+`backups/` avec checksum SHA-256 et applique une rétention de 14 jours.
+Cron quotidien :
+
+```cron
+15 3 * * * cd /opt/lcd/v2 && ./scripts/backup-vps.sh >> /var/log/lcd-backup.log 2>&1
+```
+
+Voir `v2/DEPLOIEMENT-VPS.md` pour la restauration de contrôle et la copie
+hors site.
+
 ## Sauvegarde quotidienne gratuite (GitHub Actions)
 
 Le workflow `.github/workflows/v2-backup.yml` tourne tous les jours à 02:00 UTC

@@ -3,11 +3,20 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+FROM deps AS tools
+WORKDIR /app
+COPY . .
+ENV NODE_ENV=production
+CMD ["npm", "run", "db:migrate"]
+
 FROM node:24-slim AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+# Secret factice uniquement pour la validation d'environnement au build.
+# Le vrai secret est injecté au runtime par .env.prod.
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN BETTER_AUTH_SECRET=build-only-change-me-please-32chars-min npm run build
 
 FROM node:24-slim AS runner
 WORKDIR /app

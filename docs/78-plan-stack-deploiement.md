@@ -889,6 +889,9 @@ et ne remplace pas v1.
 - **déploiement beta live** : <https://lcd-parc.netlify.app> — Netlify Free +
   Netlify Database (Postgres managé, `us-east-2`), admin seedé,
   `/api/health` et `/api/ready` verts ;
+- **fallback VPS prêt** : `compose.prod.yml`, `Caddyfile`, Dockerfile
+  multi-stage (`runner` + `tools`), script de sauvegarde et guide
+  `v2/DEPLOIEMENT-VPS.md` ;
 - **limites du déploiement beta** : variables d'environnement non secrètes
   sur le plan Free (`BETTER_AUTH_SECRET`, `DATABASE_URL` lisibles par
   l'équipe), base en `us-east-2` (latence UE), email désactivé
@@ -906,8 +909,9 @@ et ne remplace pas v1.
 
 - test E2E 2FA avec un utilisateur de test isolé (le parcours manuel passe) ;
 - policies RLS avec un rôle applicatif non propriétaire ;
-- débloquer les crédits Netlify (ou migrer vers un VPS) puis appliquer
-  `0026`-`0030` et déployer les tranches commission/PDF/webhooks/cautions ;
+- débloquer les crédits Netlify ou déployer sur le VPS préparé
+  (`v2/DEPLOIEMENT-VPS.md`) puis appliquer `0026`-`0030` et déployer les
+  tranches commission/PDF/webhooks/cautions ;
 - `SENTRY_DSN` + instance Uptime Kuma + monitors/alertes à configurer ;
 - clés SMTP de production (Brevo/OVH) + `EMAIL_ENABLED=true` ;
 - clés Stripe test/live + webhook de production ;
@@ -1021,7 +1025,8 @@ et ne remplace pas v1.
 - [x] Sentry (code + endpoint client) et Uptime Kuma (compose + guide).
 - [ ] `SENTRY_DSN` + monitors/alertes configurés.
 - [x] Scripts backup + restore testé en local.
-- [ ] Backup offsite quotidien (secret GitHub `DATABASE_URL`).
+- [x] Stack VPS prête (compose, Caddy, migrations, backup).
+- [ ] Backup offsite quotidien activé (secret GitHub ou cron VPS).
 - [x] Décision G1 (Next accepté, cible Astro v2.1) ; G2 à trancher.
 - [ ] Cutover log1 + pilote 7 jours.
 - [ ] Bascule log2/log3 + fallback 30 jours.

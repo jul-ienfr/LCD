@@ -1,0 +1,20 @@
+{$DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy web:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		-Server
+	}
+
+	@sw path /sw.js
+	header @sw Cache-Control "no-cache"
+
+	@icons path /icons/*
+	header @icons Cache-Control "public, max-age=31536000, immutable"
+}

@@ -26,3 +26,5 @@ npm-debug.log*
 
 # Sauvegardes locales (données personnelles)
 backups/
+
+!.env.prod.example

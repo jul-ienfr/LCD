@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.gitignore
+backups
+test-results
+playwright-report
+.netlify
+.env
+.env.*
+!.env.example
+!.env.prod.example
+docs
+*.md
+!README.md

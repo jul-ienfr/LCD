@@ -29,6 +29,9 @@ installable, sans payer au démarrage.
 La suite du document décrit la procédure cible (Neon/Supabase ou Netlify
 Database) et reste valable pour une installation neuve.
 
+> **Alternative VPS** : si les crédits Netlify sont épuisés, utiliser
+> `v2/DEPLOIEMENT-VPS.md` (Docker + Caddy + PostgreSQL + sauvegardes).
+
 ## 1. Base Postgres managée
 
 Créer une base **Neon** ou **Supabase** en région **UE** (Paris/Francfort).
