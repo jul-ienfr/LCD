@@ -16,6 +16,7 @@ export class ReservationRepositoryMemoire implements ReservationRepository {
       logementId: data.logementId,
       ref: data.ref,
       clientNom: data.clientNom ?? null,
+      clientEmail: data.clientEmail ?? null,
       voyageurs: data.voyageurs,
       debut: data.debut,
       fin: data.fin,

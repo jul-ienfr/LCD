@@ -39,13 +39,13 @@ export default async function PageProprietaires() {
     <main className="mx-auto max-w-4xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Propriétaires et mandats
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             Mandat par logement : mode, commission, dates et statut. Lecture
             seule côté propriétaire.
           </p>
@@ -61,14 +61,14 @@ export default async function PageProprietaires() {
       </header>
 
       {proprietaires.length === 0 ? (
-        <p className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        <p className="rounded-2xl border border-alerte bg-alerte-douce p-4 text-sm text-alerte">
           Aucun propriétaire actif. Lancez le seed ou créez un utilisateur de
           rôle <code>proprietaire</code>.
         </p>
       ) : (
-        <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
           <h2 className="text-lg font-semibold">Enregistrer un mandat</h2>
-          <p className="mt-1 text-sm text-stone-600">
+          <p className="mt-1 text-sm text-encre-douce">
             Le propriétaire verra uniquement les logements rattachés. Le mode
             « bien propre » force une commission à 0.
           </p>
@@ -95,11 +95,11 @@ export default async function PageProprietaires() {
           {assignations.length > 1 ? "s" : ""}
         </h2>
         {assignations.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucun mandat propriétaire.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {assignations.map((a) => (
               <li
                 className="flex flex-wrap items-center justify-between gap-3 p-4"
@@ -109,30 +109,30 @@ export default async function PageProprietaires() {
                   <p className="font-medium">
                     {parLogement.get(a.logementId)?.nom ?? a.logementId}
                   </p>
-                  <p className="text-sm text-stone-600">
+                  <p className="text-sm text-encre-douce">
                     {parUser.get(a.userId)?.name ?? a.userId} ·{" "}
                     {parUser.get(a.userId)?.email ?? ""}
                   </p>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-encre-faine">
                     {LIBELLES_MODE_MANDAT[a.mode]} ·{" "}
                     {LIBELLES_STATUT_MANDAT[a.statut]} · commission{" "}
                     {formaterCommissionBp(a.commissionBp)}
                   </p>
                   {a.dateDebut || a.dateFin ? (
-                    <p className="text-xs text-stone-500">
+                    <p className="text-xs text-encre-faine">
                       {a.dateDebut ? `Du ${a.dateDebut}` : "Sans début"}
                       {a.dateFin ? ` au ${a.dateFin}` : ""}
                     </p>
                   ) : null}
                   {a.notes ? (
-                    <p className="mt-1 text-xs text-stone-600">{a.notes}</p>
+                    <p className="mt-1 text-xs text-encre-douce">{a.notes}</p>
                   ) : null}
                 </div>
                 <form action={retirerProprietaireAction}>
                   <input name="logementId" type="hidden" value={a.logementId} />
                   <input name="userId" type="hidden" value={a.userId} />
                   <button
-                    className="rounded-full border border-red-300 px-4 py-2 text-sm font-medium text-red-800"
+                    className="rounded-full border border-danger px-4 py-2 text-sm font-medium text-danger"
                     type="submit"
                   >
                     Retirer

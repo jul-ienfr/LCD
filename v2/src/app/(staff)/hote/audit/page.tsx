@@ -19,18 +19,18 @@ function couleurAction(action: string): string {
     return "bg-violet-100 text-violet-900";
   }
   if (action.startsWith("paiement.") || action.startsWith("facture.")) {
-    return "bg-emerald-100 text-emerald-900";
+    return "bg-accent-douce text-accent";
   }
   if (action.startsWith("caution.")) {
-    return "bg-amber-100 text-amber-900";
+    return "bg-alerte-douce text-alerte";
   }
   if (action.startsWith("mission.")) {
-    return "bg-sky-100 text-sky-900";
+    return "bg-accent-douce text-accent";
   }
   if (action.startsWith("ticket.")) {
     return "bg-rose-100 text-rose-900";
   }
-  return "bg-stone-100 text-stone-700";
+  return "bg-surface-2 text-encre-douce";
 }
 
 export default async function PageAudit({
@@ -70,20 +70,20 @@ export default async function PageAudit({
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Journal d’audit
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             {total} action{total > 1 ? "s" : ""} enregistrée
             {total > 1 ? "s" : ""} pour votre organisation.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <a
-            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+            className="rounded-full border border-bordure px-4 py-2 text-sm font-medium"
             href="/api/exports/tenant"
           >
             Exporter les données JSON
@@ -96,12 +96,12 @@ export default async function PageAudit({
 
       <form
         action="/hote/audit"
-        className="flex flex-wrap items-end gap-3 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
+        className="flex flex-wrap items-end gap-3 rounded-2xl border border-bordure bg-surface p-5 shadow-sm"
       >
         <label className="min-w-0 flex-1 space-y-1 text-sm font-medium">
           <span>Rechercher</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={recherche}
             maxLength={100}
             name="q"
@@ -110,7 +110,7 @@ export default async function PageAudit({
           />
         </label>
         <button
-          className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white"
+          className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond"
           type="submit"
         >
           Filtrer
@@ -123,11 +123,11 @@ export default async function PageAudit({
       </form>
 
       {entrees.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+        <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
           Aucune action pour cette recherche.
         </p>
       ) : (
-        <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+        <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
           {entrees.map((entree) => (
             <li className="p-4" key={entree.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -138,18 +138,18 @@ export default async function PageAudit({
                     >
                       {libelleActionAudit(entree.action)}
                     </span>
-                    <code className="text-xs text-stone-500">
+                    <code className="text-xs text-encre-faine">
                       {entree.action}
                     </code>
                   </p>
-                  <p className="break-words text-sm text-stone-600">
+                  <p className="break-words text-sm text-encre-douce">
                     Par <span className="font-medium">{entree.qui}</span>
                     {entree.cible ? ` · cible ${entree.cible}` : ""}
                     {entree.ref ? ` · réf ${entree.ref}` : ""}
                   </p>
                 </div>
                 <time
-                  className="text-xs text-stone-500"
+                  className="text-xs text-encre-faine"
                   dateTime={entree.createdAt.toISOString()}
                 >
                   {formateurDate.format(entree.createdAt)}
@@ -157,11 +157,11 @@ export default async function PageAudit({
               </div>
 
               {Object.keys(entree.payload).length > 0 ? (
-                <details className="mt-2 text-xs text-stone-600">
+                <details className="mt-2 text-xs text-encre-douce">
                   <summary className="cursor-pointer underline">
                     Détails
                   </summary>
-                  <pre className="mt-2 overflow-x-auto rounded-lg bg-stone-50 p-3">
+                  <pre className="mt-2 overflow-x-auto rounded-lg bg-fond p-3">
                     {JSON.stringify(entree.payload, null, 2)}
                   </pre>
                 </details>
@@ -178,18 +178,18 @@ export default async function PageAudit({
         >
           {pageCourante > 1 ? (
             <Link
-              className="rounded-full border border-stone-300 px-4 py-2"
+              className="rounded-full border border-bordure px-4 py-2"
               href={lien(pageCourante - 1)}
             >
               ← Précédent
             </Link>
           ) : null}
-          <span className="text-stone-500">
+          <span className="text-encre-faine">
             Page {pageCourante} / {pages}
           </span>
           {pageCourante < pages ? (
             <Link
-              className="rounded-full border border-stone-300 px-4 py-2"
+              className="rounded-full border border-bordure px-4 py-2"
               href={lien(pageCourante + 1)}
             >
               Suivant →

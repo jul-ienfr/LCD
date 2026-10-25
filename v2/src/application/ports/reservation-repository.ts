@@ -5,6 +5,7 @@ export interface CreerReservationData {
   logementId: string;
   ref: string;
   clientNom?: string;
+  clientEmail?: string;
   voyageurs: number;
   debut: string;
   fin: string;

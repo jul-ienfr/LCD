@@ -30,7 +30,7 @@ export default async function PageImportIcs({
         <h1 className="text-3xl font-semibold tracking-tight">
           Importer un calendrier OTA
         </h1>
-        <p className="text-stone-600">
+        <p className="text-encre-douce">
           Créez d’abord un logement pour importer son calendrier.
         </p>
         <Link className="underline" href="/hote/logements">
@@ -54,13 +54,13 @@ export default async function PageImportIcs({
     <main className="mx-auto max-w-3xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte · Planning
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Importer un calendrier OTA
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             Airbnb, Booking, Abritel : exportez le flux ICS du logement puis
             collez-le ici ou déposez le fichier.
           </p>
@@ -70,7 +70,7 @@ export default async function PageImportIcs({
         </Link>
       </header>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <FormulaireImportIcs
           logementDefaut={logementDefaut}
           logements={logements.map((logement) => ({
@@ -81,22 +81,22 @@ export default async function PageImportIcs({
         />
       </section>
 
-      <section className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="space-y-4 rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <div>
           <h2 className="text-lg font-semibold">Flux OTA automatiques</h2>
-          <p className="mt-1 text-sm text-stone-600">
+          <p className="mt-1 text-sm text-encre-douce">
             Enregistrez l’URL ICS du logement, puis synchronisez à la demande.
             L’URL doit être HTTPS et publique.
           </p>
         </div>
 
         {params.sync === "ok" ? (
-          <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+          <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
             Synchronisation terminée.
           </p>
         ) : null}
         {params.sync === "erreur" ? (
-          <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
             La synchronisation a échoué. Le détail est affiché dans la liste.
           </p>
         ) : null}
@@ -104,20 +104,20 @@ export default async function PageImportIcs({
         <FormulaireFluxIcs logementId={logementDefaut} />
 
         {flux.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-stone-300 p-4 text-sm text-stone-600">
+          <p className="rounded-xl border border-dashed border-bordure p-4 text-sm text-encre-douce">
             Aucun flux enregistré pour ce logement.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-100">
+          <ul className="divide-y divide-bordure">
             {flux.map((item) => (
               <li className="py-3" key={item.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-medium">{item.libelle}</p>
-                    <p className="truncate text-xs text-stone-500">
+                    <p className="truncate text-xs text-encre-faine">
                       {item.url}
                     </p>
-                    <p className="mt-1 text-xs text-stone-500">
+                    <p className="mt-1 text-xs text-encre-faine">
                       {item.derniereSync
                         ? `Dernière sync : ${item.derniereSync
                             .toISOString()
@@ -129,7 +129,7 @@ export default async function PageImportIcs({
                         : ""}
                     </p>
                     {item.dernierMessage ? (
-                      <p className="mt-1 text-xs text-stone-500">
+                      <p className="mt-1 text-xs text-encre-faine">
                         {item.dernierMessage}
                       </p>
                     ) : null}
@@ -147,7 +147,7 @@ export default async function PageImportIcs({
                         value={logementDefaut}
                       />
                       <button
-                        className="rounded-full border border-stone-300 px-3 py-2 text-xs font-medium"
+                        className="rounded-full border border-bordure px-3 py-2 text-xs font-medium"
                         type="submit"
                       >
                         Synchroniser
@@ -165,7 +165,7 @@ export default async function PageImportIcs({
                         value={logementDefaut}
                       />
                       <button
-                        className="rounded-full border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                        className="rounded-full border border-danger px-3 py-2 text-xs font-medium text-danger"
                         type="submit"
                       >
                         Supprimer
@@ -179,8 +179,8 @@ export default async function PageImportIcs({
         )}
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-stone-50 p-5 text-sm text-stone-700">
-        <h2 className="font-semibold text-stone-900">Comment ça marche</h2>
+      <section className="rounded-2xl border border-bordure bg-fond p-5 text-sm text-encre-douce">
+        <h2 className="font-semibold text-encre">Comment ça marche</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>
             Les réservations OTA sont importées en <strong>confirmé</strong>,

@@ -32,7 +32,7 @@ export function FormulaireAssignation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Propriétaire</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="userId"
             required
           >
@@ -47,7 +47,7 @@ export function FormulaireAssignation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Logement</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="logementId"
             required
           >
@@ -62,7 +62,7 @@ export function FormulaireAssignation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Commission (%)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue="20"
             inputMode="decimal"
             max="50"
@@ -71,7 +71,7 @@ export function FormulaireAssignation({
             step="0.5"
             type="number"
           />
-          <span className="block text-xs font-normal text-stone-500">
+          <span className="block text-xs font-normal text-encre-faine">
             Sur le CA réservations, 0 à 50 %. Forcée à 0 pour un bien propre.
           </span>
         </label>
@@ -81,7 +81,7 @@ export function FormulaireAssignation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Mode</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue="mandat_tiers"
             name="mode"
           >
@@ -95,7 +95,7 @@ export function FormulaireAssignation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Statut</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue="actif"
             name="statut"
           >
@@ -109,7 +109,7 @@ export function FormulaireAssignation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Début (facultatif)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="dateDebut"
             type="date"
           />
@@ -117,7 +117,7 @@ export function FormulaireAssignation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Fin (facultatif)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="dateFin"
             type="date"
           />
@@ -127,7 +127,7 @@ export function FormulaireAssignation({
       <label className="block space-y-1 text-sm font-medium">
         <span>Notes (facultatif)</span>
         <textarea
-          className="min-h-20 w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="min-h-20 w-full rounded-xl border border-bordure p-3 text-base"
           maxLength={1_000}
           name="notes"
         />
@@ -137,8 +137,8 @@ export function FormulaireAssignation({
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -146,7 +146,7 @@ export function FormulaireAssignation({
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

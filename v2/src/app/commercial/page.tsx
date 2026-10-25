@@ -36,13 +36,13 @@ export default async function PageCommercial() {
     <main className="mx-auto max-w-6xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace commercial
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Pipeline commercial
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             {prospects.length} prospect{prospects.length > 1 ? "s" : ""} ·{" "}
             {enCours} en cours · {gagnes} gagné{gagnes > 1 ? "s" : ""} ·{" "}
             {offres.length} offre{offres.length > 1 ? "s" : ""}
@@ -61,7 +61,7 @@ export default async function PageCommercial() {
         </div>
       </header>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Nouveau prospect</h2>
         <div className="mt-5">
           <FormulaireProspect />
@@ -73,12 +73,12 @@ export default async function PageCommercial() {
           const items = prospects.filter((p) => p.statut === colonne.statut);
           return (
             <div
-              className="rounded-2xl border border-stone-200 bg-white p-4"
+              className="rounded-2xl border border-bordure bg-surface p-4"
               key={colonne.statut}
             >
-              <h2 className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-stone-600">
+              <h2 className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-encre-douce">
                 <span>{colonne.libelle}</span>
-                <span className="rounded-full bg-stone-100 px-2 py-1 text-xs">
+                <span className="rounded-full bg-surface-2 px-2 py-1 text-xs">
                   {items.length}
                 </span>
               </h2>
@@ -86,11 +86,11 @@ export default async function PageCommercial() {
                 {items.map((prospect) => (
                   <li key={prospect.id}>
                     <Link
-                      className="block rounded-xl border border-stone-200 p-3 hover:bg-stone-50"
+                      className="block rounded-xl border border-bordure p-3 hover:bg-surface-2"
                       href={`/commercial/prospects/${prospect.id}`}
                     >
                       <p className="font-medium">{prospect.nom}</p>
-                      <p className="text-xs text-stone-500">
+                      <p className="text-xs text-encre-faine">
                         {prospect.source}
                         {prospect.email ? ` · ${prospect.email}` : ""}
                       </p>
@@ -98,7 +98,7 @@ export default async function PageCommercial() {
                   </li>
                 ))}
                 {items.length === 0 ? (
-                  <li className="text-xs text-stone-400">Aucun prospect.</li>
+                  <li className="text-xs text-encre-faine">Aucun prospect.</li>
                 ) : null}
               </ul>
             </div>

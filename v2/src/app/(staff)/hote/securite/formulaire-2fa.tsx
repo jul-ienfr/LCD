@@ -91,7 +91,7 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
   if (actif) {
     return (
       <div className="space-y-4">
-        <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
           2FA active sur ce compte.
         </p>
 
@@ -99,7 +99,7 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
           <label className="block space-y-1 text-sm font-medium">
             <span>Mot de passe pour désactiver</span>
             <input
-              className="w-full rounded-xl border border-stone-300 p-3 text-base"
+              className="w-full rounded-xl border border-bordure p-3 text-base"
               type="password"
               autoComplete="current-password"
               value={password}
@@ -108,17 +108,17 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
             />
           </label>
           {erreur ? (
-            <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+            <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
               {erreur}
             </p>
           ) : null}
           {message ? (
-            <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+            <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
               {message}
             </p>
           ) : null}
           <button
-            className="rounded-full border border-red-300 px-5 py-3 text-sm font-medium text-red-800 disabled:opacity-50"
+            className="rounded-full border border-danger px-5 py-3 text-sm font-medium text-danger disabled:opacity-50"
             type="submit"
             disabled={enCours}
           >
@@ -132,7 +132,7 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
   if (donnees) {
     return (
       <div className="space-y-5">
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-encre-douce">
           Scannez ce QR code avec votre application d’authentification
           (Google Authenticator, 1Password, Aegis…), puis saisissez le code
           à 6 chiffres.
@@ -142,23 +142,23 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             alt="QR code TOTP"
-            className="rounded-xl border border-stone-200 bg-white p-3"
+            className="rounded-xl border border-bordure bg-surface p-3"
             height={240}
             src={qr}
             width={240}
           />
         ) : null}
 
-        <details className="text-sm text-stone-600">
+        <details className="text-sm text-encre-douce">
           <summary className="cursor-pointer font-medium">
             Saisie manuelle
           </summary>
-          <code className="mt-2 block break-all rounded-xl bg-stone-100 p-3 text-xs">
+          <code className="mt-2 block break-all rounded-xl bg-surface-2 p-3 text-xs">
             {donnees.totpURI}
           </code>
         </details>
 
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="rounded-xl border border-alerte bg-alerte-douce p-4 text-sm text-alerte">
           <p className="font-medium">Codes de secours (à conserver hors ligne)</p>
           <ul className="mt-2 grid grid-cols-2 gap-1 font-mono text-xs">
             {donnees.backupCodes.map((backupCode) => (
@@ -171,7 +171,7 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
           <label className="block space-y-1 text-sm font-medium">
             <span>Code TOTP</span>
             <input
-              className="w-full rounded-xl border border-stone-300 p-3 text-center font-mono text-2xl tracking-[0.4em]"
+              className="w-full rounded-xl border border-bordure p-3 text-center font-mono text-2xl tracking-[0.4em]"
               inputMode="numeric"
               autoComplete="one-time-code"
               pattern="[0-9]{6}"
@@ -182,12 +182,12 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
             />
           </label>
           {erreur ? (
-            <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+            <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
               {erreur}
             </p>
           ) : null}
           <button
-            className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
             type="submit"
             disabled={enCours || code.length !== 6}
           >
@@ -200,14 +200,14 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
 
   return (
     <form className="space-y-3" onSubmit={activer}>
-      <p className="text-sm text-stone-600">
+      <p className="text-sm text-encre-douce">
         Ajoutez une deuxième étape à la connexion. Vous aurez besoin de votre
         mot de passe et d’une application d’authentification.
       </p>
       <label className="block space-y-1 text-sm font-medium">
         <span>Mot de passe actuel</span>
         <input
-          className="w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="w-full rounded-xl border border-bordure p-3 text-base"
           type="password"
           autoComplete="current-password"
           value={password}
@@ -216,17 +216,17 @@ export function Formulaire2FA({ actif }: { actif: boolean }) {
         />
       </label>
       {erreur ? (
-        <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+        <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
           {erreur}
         </p>
       ) : null}
       {message ? (
-        <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
           {message}
         </p>
       ) : null}
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

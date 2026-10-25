@@ -21,7 +21,7 @@ export function FormulaireExtra({
         <label className="block space-y-1 text-sm font-medium">
           <span>Code</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 font-mono text-base"
+            className="w-full rounded-xl border border-bordure p-3 font-mono text-base"
             name="code"
             placeholder="petit-dej"
             required
@@ -30,7 +30,7 @@ export function FormulaireExtra({
         <label className="block space-y-1 text-sm font-medium">
           <span>Nom</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="nom"
             placeholder="Petit déjeuner"
             required
@@ -39,7 +39,7 @@ export function FormulaireExtra({
         <label className="block space-y-1 text-sm font-medium">
           <span>Prix (€)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             inputMode="decimal"
             name="prixEuros"
             placeholder="12"
@@ -49,7 +49,7 @@ export function FormulaireExtra({
         <label className="block space-y-1 text-sm font-medium">
           <span>Logement (facultatif)</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="logementId"
           >
             <option value="">Tous les logements</option>
@@ -65,7 +65,7 @@ export function FormulaireExtra({
       <label className="block space-y-1 text-sm font-medium">
         <span>Description (facultatif)</span>
         <textarea
-          className="min-h-20 w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="min-h-20 w-full rounded-xl border border-bordure p-3 text-base"
           name="description"
         />
       </label>
@@ -74,8 +74,8 @@ export function FormulaireExtra({
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -83,7 +83,7 @@ export function FormulaireExtra({
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

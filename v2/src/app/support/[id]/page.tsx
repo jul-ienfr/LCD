@@ -45,13 +45,13 @@ export default async function PageTicket({
     <main className="mx-auto max-w-3xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Ticket {ticket.ref}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             {ticket.sujet}
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             {ticket.statut} · priorité {ticket.priorite} ·{" "}
             {ticket.createdAt.toISOString().slice(0, 10)}
           </p>
@@ -68,7 +68,7 @@ export default async function PageTicket({
               <input name="ticketId" type="hidden" value={ticket.id} />
               <input name="statut" type="hidden" value={statut} />
               <button
-                className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+                className="rounded-full border border-bordure px-4 py-2 text-sm font-medium"
                 type="submit"
               >
                 {LIBELLES[statut]}
@@ -81,23 +81,23 @@ export default async function PageTicket({
       <section className="space-y-3">
         {messages.map((message) => (
           <article
-            className="rounded-2xl border border-stone-200 bg-white p-4"
+            className="rounded-2xl border border-bordure bg-surface p-4"
             key={message.id}
           >
             <header className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <p className="font-medium">{message.auteurLabel}</p>
-              <p className="text-stone-500">
+              <p className="text-encre-faine">
                 {message.createdAt.toISOString().slice(0, 16).replace("T", " ")}
               </p>
             </header>
-            <p className="mt-2 whitespace-pre-line text-stone-700">
+            <p className="mt-2 whitespace-pre-line text-encre-douce">
               {message.contenu}
             </p>
           </article>
         ))}
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Répondre</h2>
         <div className="mt-4">
           <FormulaireReponse ticketId={ticket.id} />

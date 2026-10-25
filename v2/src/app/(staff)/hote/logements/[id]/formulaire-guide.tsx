@@ -20,7 +20,7 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
         <label className="block space-y-1 text-sm font-medium">
           <span>Heure de check-in</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={logement.checkinHeure ?? ""}
             name="checkinHeure"
             placeholder="15:00"
@@ -29,7 +29,7 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
         <label className="block space-y-1 text-sm font-medium">
           <span>Téléphone d’urgence</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={logement.urgenceTel ?? ""}
             name="urgenceTel"
           />
@@ -37,7 +37,7 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
         <label className="block space-y-1 text-sm font-medium">
           <span>WiFi — réseau</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={logement.wifiSsid ?? ""}
             name="wifiSsid"
           />
@@ -45,7 +45,7 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
         <label className="block space-y-1 text-sm font-medium">
           <span>WiFi — mot de passe</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={logement.wifiPassword ?? ""}
             name="wifiPassword"
           />
@@ -55,7 +55,7 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
       <label className="block space-y-1 text-sm font-medium">
         <span>Consignes d’arrivée</span>
         <textarea
-          className="min-h-24 w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="min-h-24 w-full rounded-xl border border-bordure p-3 text-base"
           defaultValue={logement.checkinInstructions ?? ""}
           name="checkinInstructions"
         />
@@ -64,7 +64,7 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
       <label className="block space-y-1 text-sm font-medium">
         <span>Règles du logement</span>
         <textarea
-          className="min-h-24 w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="min-h-24 w-full rounded-xl border border-bordure p-3 text-base"
           defaultValue={logement.regles ?? ""}
           name="regles"
         />
@@ -73,7 +73,7 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
       <label className="block space-y-1 text-sm font-medium">
         <span>Guide / bonnes adresses</span>
         <textarea
-          className="min-h-32 w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="min-h-32 w-full rounded-xl border border-bordure p-3 text-base"
           defaultValue={logement.guideTexte ?? ""}
           name="guideTexte"
         />
@@ -83,8 +83,8 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -92,7 +92,7 @@ export function FormulaireGuide({ logement }: { logement: Logement }) {
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

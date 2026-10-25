@@ -22,10 +22,10 @@ import { FormulaireCaution } from "./formulaire";
 export const instant = false;
 
 const COULEURS_STATUT: Record<StatutCaution, string> = {
-  attendue: "bg-amber-100 text-amber-900",
-  recue: "bg-emerald-100 text-emerald-900",
-  restituee: "bg-stone-100 text-stone-700",
-  retenue: "bg-red-100 text-red-900",
+  attendue: "bg-alerte-douce text-alerte",
+  recue: "bg-accent-douce text-accent",
+  restituee: "bg-surface-2 text-encre-douce",
+  retenue: "bg-danger-douce text-danger",
 };
 
 export default async function PageCautions({
@@ -75,13 +75,13 @@ export default async function PageCautions({
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Cautions — {moisEnFrancais(mois)}
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             Dépôts de garantie des réservations du mois.
           </p>
         </div>
@@ -92,19 +92,19 @@ export default async function PageCautions({
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/cautions?mois=${decalerMois(mois, -1)}`}
         >
           ← Mois précédent
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/cautions?mois=${moisCourant()}`}
         >
           Mois courant
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/cautions?mois=${decalerMois(mois, 1)}`}
         >
           Mois suivant →
@@ -115,34 +115,34 @@ export default async function PageCautions({
       </div>
 
       {params.caution === "creee" ? (
-        <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
           Caution créée.
         </p>
       ) : null}
       {params.caution === "ok" ? (
-        <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
           Caution mise à jour.
         </p>
       ) : null}
       {params.caution === "erreur" ? (
-        <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+        <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
           Mise à jour refusée : vérifiez le montant retenu et le motif.
         </p>
       ) : null}
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">Cautions du mois</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Cautions du mois</p>
           <p className="mt-1 text-2xl font-semibold">{cautions.length}</p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">Montant total</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Montant total</p>
           <p className="mt-1 text-2xl font-semibold">
             {formaterEuros(totalCaution)}
           </p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">Retenu</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Retenu</p>
           <p className="mt-1 text-2xl font-semibold">
             {formaterEuros(totalRetenu)}
           </p>
@@ -150,9 +150,9 @@ export default async function PageCautions({
       </section>
 
       {sansCaution.length > 0 ? (
-        <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
           <h2 className="text-lg font-semibold">Créer une caution</h2>
-          <p className="mt-1 text-sm text-stone-600">
+          <p className="mt-1 text-sm text-encre-douce">
             Une seule caution par réservation.
           </p>
           <div className="mt-5">
@@ -172,11 +172,11 @@ export default async function PageCautions({
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Cautions et réservations</h2>
         {reservations.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucune réservation sur ce mois.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {reservations.map((reservation) => {
               const caution = parReservation.get(reservation.id);
               return (
@@ -189,14 +189,14 @@ export default async function PageCautions({
                           ? ` — ${reservation.clientNom}`
                           : ""}
                       </p>
-                      <p className="text-sm text-stone-600">
+                      <p className="text-sm text-encre-douce">
                         {reservation.debut} → {reservation.fin}
                         {caution
                           ? ` · caution ${formaterEuros(caution.montantCentimes)}`
                           : " · aucune caution"}
                       </p>
                       {caution ? (
-                        <p className="mt-1 text-xs text-stone-500">
+                        <p className="mt-1 text-xs text-encre-faine">
                           {caution.dateReception
                             ? `Reçue le ${caution.dateReception} · `
                             : ""}
@@ -216,7 +216,7 @@ export default async function PageCautions({
                       className={`rounded-full px-3 py-1 text-xs font-medium ${
                         caution
                           ? COULEURS_STATUT[caution.statut]
-                          : "bg-stone-100 text-stone-600"
+                          : "bg-surface-2 text-encre-douce"
                       }`}
                     >
                       {caution
@@ -234,7 +234,7 @@ export default async function PageCautions({
                       <input name="statut" type="hidden" value="recue" />
                       <input name="mois" type="hidden" value={mois} />
                       <button
-                        className="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium"
+                        className="rounded-full border border-bordure px-4 py-2 text-xs font-medium"
                         type="submit"
                       >
                         Marquer reçue
@@ -253,7 +253,7 @@ export default async function PageCautions({
                         <input name="statut" type="hidden" value="restituee" />
                         <input name="mois" type="hidden" value={mois} />
                         <button
-                          className="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium"
+                          className="rounded-full border border-bordure px-4 py-2 text-xs font-medium"
                           type="submit"
                         >
                           Restituer intégralement
@@ -270,27 +270,27 @@ export default async function PageCautions({
                         />
                         <input name="statut" type="hidden" value="retenue" />
                         <input name="mois" type="hidden" value={mois} />
-                        <label className="text-xs text-stone-600">
+                        <label className="text-xs text-encre-douce">
                           Retenue (€)
                           <input
-                            className="ml-2 w-24 rounded-lg border border-stone-300 p-2 text-sm"
+                            className="ml-2 w-24 rounded-lg border border-bordure p-2 text-sm"
                             inputMode="decimal"
                             name="montantRetenuEuros"
                             placeholder="100"
                             required
                           />
                         </label>
-                        <label className="text-xs text-stone-600">
+                        <label className="text-xs text-encre-douce">
                           Motif
                           <input
-                            className="ml-2 rounded-lg border border-stone-300 p-2 text-sm"
+                            className="ml-2 rounded-lg border border-bordure p-2 text-sm"
                             name="motifRetenue"
                             placeholder="Dégât"
                             required
                           />
                         </label>
                         <button
-                          className="rounded-full border border-red-300 px-4 py-2 text-xs font-medium text-red-700"
+                          className="rounded-full border border-danger px-4 py-2 text-xs font-medium text-danger"
                           type="submit"
                         >
                           Retenir

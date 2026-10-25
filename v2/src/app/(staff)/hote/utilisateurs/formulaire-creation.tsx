@@ -24,7 +24,7 @@ export function FormulaireCreationUtilisateur() {
           <span>Nom</span>
           <input
             autoComplete="name"
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             maxLength={120}
             minLength={2}
             name="name"
@@ -35,7 +35,7 @@ export function FormulaireCreationUtilisateur() {
           <span>Email</span>
           <input
             autoComplete="off"
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             maxLength={254}
             name="email"
             required
@@ -45,7 +45,7 @@ export function FormulaireCreationUtilisateur() {
         <label className="block space-y-1 text-sm font-medium">
           <span>Rôle</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue="hote"
             name="role"
             required
@@ -61,7 +61,7 @@ export function FormulaireCreationUtilisateur() {
           <span>Mot de passe provisoire</span>
           <input
             autoComplete="new-password"
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             maxLength={128}
             minLength={12}
             name="password"
@@ -71,7 +71,7 @@ export function FormulaireCreationUtilisateur() {
         </label>
       </div>
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-encre-faine">
         12 caractères minimum. Communiquez-le à la personne par un canal sûr :
         elle pourra le changer dans Sécurité / 2FA.
       </p>
@@ -80,8 +80,8 @@ export function FormulaireCreationUtilisateur() {
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -89,7 +89,7 @@ export function FormulaireCreationUtilisateur() {
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         disabled={enCours}
         type="submit"
       >

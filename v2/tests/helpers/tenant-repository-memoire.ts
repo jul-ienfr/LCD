@@ -15,6 +15,10 @@ export class TenantRepositoryMemoire implements TenantRepository {
     return this.rows.find((t) => t.id === tenantId) ?? null;
   }
 
+  async trouverParSlug(slug: string): Promise<Tenant | null> {
+    return this.rows.find((t) => t.slug === slug) ?? null;
+  }
+
   async mettreAJourEntite(
     tenantId: string,
     data: EntiteData,

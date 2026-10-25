@@ -31,13 +31,13 @@ export default function PageTwoFactor() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-6 py-16">
       <header className="space-y-2">
-        <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+        <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
           LCD Parc
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">
           Vérification en deux étapes
         </h1>
-        <p className="text-stone-600">
+        <p className="text-encre-douce">
           Saisissez le code à 6 chiffres de votre application
           d’authentification.
         </p>
@@ -47,7 +47,7 @@ export default function PageTwoFactor() {
         <label className="block space-y-1 text-sm font-medium">
           <span>Code TOTP</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-center font-mono text-2xl tracking-[0.4em]"
+            className="w-full rounded-xl border border-bordure p-3 text-center font-mono text-2xl tracking-[0.4em]"
             inputMode="numeric"
             autoComplete="one-time-code"
             pattern="[0-9]{6}"
@@ -60,13 +60,13 @@ export default function PageTwoFactor() {
         </label>
 
         {erreur ? (
-          <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
             {erreur}
           </p>
         ) : null}
 
         <button
-          className="w-full rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+          className="w-full rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
           type="submit"
           disabled={enCours || code.length !== 6}
         >

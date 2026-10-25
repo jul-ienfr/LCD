@@ -30,7 +30,7 @@ export function FormulaireParametresFiscaux({
         <label className="block space-y-1 text-sm font-medium">
           <span>Taux de TVA (%)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={(parametres.tauxTvaBp / 100)
               .toString()
               .replace(".", ",")}
@@ -39,7 +39,7 @@ export function FormulaireParametresFiscaux({
             placeholder="10"
             required
           />
-          <span className="block text-xs font-normal text-stone-500">
+          <span className="block text-xs font-normal text-encre-faine">
             Taux appliqué par défaut lors de la création d’une facture.
           </span>
         </label>
@@ -47,14 +47,14 @@ export function FormulaireParametresFiscaux({
         <label className="block space-y-1 text-sm font-medium">
           <span>Préfixe des factures</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 font-mono text-base uppercase"
+            className="w-full rounded-xl border border-bordure p-3 font-mono text-base uppercase"
             defaultValue={parametres.prefixeFacture}
             maxLength={8}
             name="prefixeFacture"
             placeholder="FAC"
             required
           />
-          <span className="block text-xs font-normal text-stone-500">
+          <span className="block text-xs font-normal text-encre-faine">
             2 à 8 caractères A-Z ou 0-9. Numérotation : PREFIXE-AAAA-0001.
           </span>
         </label>
@@ -62,7 +62,7 @@ export function FormulaireParametresFiscaux({
         <label className="block space-y-1 text-sm font-medium">
           <span>Taxe de séjour (€ / nuit / personne)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={euros(
               parametres.taxeSejourNuitPersonneCentimes,
             )}
@@ -70,7 +70,7 @@ export function FormulaireParametresFiscaux({
             name="taxeNuitEuros"
             placeholder="0"
           />
-          <span className="block text-xs font-normal text-stone-500">
+          <span className="block text-xs font-normal text-encre-faine">
             Montant appliqué par nuit et par voyageur. 0 si non applicable.
           </span>
         </label>
@@ -78,13 +78,13 @@ export function FormulaireParametresFiscaux({
         <label className="block space-y-1 text-sm font-medium">
           <span>Plafond (€ / nuit / personne, facultatif)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={euros(parametres.taxeSejourPlafondCentimes)}
             inputMode="decimal"
             name="plafondEuros"
             placeholder="Ex. 4,20"
           />
-          <span className="block text-xs font-normal text-stone-500">
+          <span className="block text-xs font-normal text-encre-faine">
             Laisser vide si aucun plafond.
           </span>
         </label>
@@ -93,7 +93,7 @@ export function FormulaireParametresFiscaux({
       <label className="block space-y-1 text-sm font-medium">
         <span>Mentions légales (facultatif)</span>
         <textarea
-          className="min-h-24 w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="min-h-24 w-full rounded-xl border border-bordure p-3 text-base"
           defaultValue={parametres.mentionsLegales ?? ""}
           maxLength={2000}
           name="mentionsLegales"
@@ -105,8 +105,8 @@ export function FormulaireParametresFiscaux({
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -114,7 +114,7 @@ export function FormulaireParametresFiscaux({
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

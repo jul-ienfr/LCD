@@ -27,20 +27,20 @@ export default async function PageSecurite({
   return (
     <main className="mx-auto max-w-2xl space-y-8 px-6 py-12">
       <header className="space-y-2">
-        <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+        <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
           Mon compte
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">Sécurité</h1>
-        <p className="text-stone-600">
+        <p className="text-encre-douce">
           Compte : <span className="font-medium">{session.user.email}</span>
         </p>
       </header>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">
           Authentification à deux facteurs
         </h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-encre-douce">
           TOTP : compatible Google Authenticator, Aegis, 1Password, etc.
         </p>
         <div className="mt-5">
@@ -48,13 +48,13 @@ export default async function PageSecurite({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Mot de passe</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-encre-douce">
           La modification déconnecte les autres sessions ouvertes.
         </p>
         {params.motdepasse === "ok" ? (
-          <p className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+          <p className="mt-4 rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
             Mot de passe modifié. Les autres sessions ont été déconnectées.
           </p>
         ) : null}

@@ -117,6 +117,7 @@ export const reservations = pgTable(
       .references(() => logements.id, { onDelete: "restrict" }),
     ref: text("ref").notNull(),
     clientNom: text("client_nom"),
+    clientEmail: text("client_email"),
     voyageurs: integer("voyageurs").notNull().default(1),
     debut: text("debut").notNull(), // AAAA-MM-JJ
     fin: text("fin").notNull(), // AAAA-MM-JJ, exclusive
@@ -801,6 +802,267 @@ export const idempotencyKeys = pgTable(
   ],
 );
 
+export const consommables = pgTable(
+  "consommables",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    label: text("label").notNull(),
+    stock: integer("stock").notNull().default(0),
+    unite: text("unite").notNull().default("unité"),
+    seuil: integer("seuil").notNull().default(0),
+    cible: integer("cible").notNull().default(0),
+    consoRotation: integer("conso_rotation").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("consommables_tenant_logement_code_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.code,
+    ),
+    index("consommables_logement_idx").on(t.tenantId, t.logementId),
+  ],
+);
+
+export const mouvementsStock = pgTable(
+  "mouvements_stock",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    consommableId: uuid("consommable_id")
+      .notNull()
+      .references(() => consommables.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    quantite: integer("quantite").notNull(),
+    avant: integer("avant").notNull(),
+    apres: integer("apres").notNull(),
+    qui: text("qui").notNull(),
+    ref: text("ref").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("mouvements_stock_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("mouvements_stock_logement_date_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.createdAt,
+    ),
+  ],
+);
+
+export const biens = pgTable(
+  "biens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    qr: text("qr").notNull(),
+    categorie: text("categorie").notNull(),
+    label: text("label").notNull(),
+    dateAchat: date("date_achat"),
+    prixAchatCentimes: integer("prix_achat_centimes"),
+    fournisseur: text("fournisseur"),
+    garantieFin: date("garantie_fin"),
+    lavagesNb: integer("lavages_nb").notNull().default(0),
+    utilisationsNb: integer("utilisations_nb").notNull().default(0),
+    derniereUtilisation: date("derniere_utilisation"),
+    etat: integer("etat").notNull().default(5),
+    photoUrl: text("photo_url"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("biens_tenant_logement_qr_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.qr,
+    ),
+    index("biens_logement_idx").on(t.tenantId, t.logementId),
+  ],
+);
+
+export const bienEvenements = pgTable(
+  "bien_evenements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    bienId: uuid("bien_id")
+      .notNull()
+      .references(() => biens.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    ref: text("ref").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("bien_evenements_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("bien_evenements_bien_date_idx").on(
+      t.tenantId,
+      t.bienId,
+      t.createdAt,
+    ),
+  ],
+);
+
+export const avis = pgTable(
+  "avis",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    nom: text("nom").notNull(),
+    note: integer("note").notNull(),
+    commentaire: text("commentaire").default("").notNull(),
+    statut: text("statut").default("publie").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("avis_tenant_reservation_uq").on(
+      table.tenantId,
+      table.reservationId,
+    ),
+    uniqueIndex("avis_tenant_ref_uq").on(table.tenantId, table.ref),
+    index("avis_tenant_statut_idx").on(table.tenantId, table.statut),
+  ],
+);
+
+export const memoireVoyageurs = pgTable(
+  "memoire_voyageurs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    emailHash: text("email_hash").notNull(),
+    nom: text("nom").notNull(),
+    preferences: text("preferences").default("").notNull(),
+    consentementAt: timestamp("consentement_at", { withTimezone: true })
+      .notNull(),
+    expireAt: timestamp("expire_at", { withTimezone: true }).notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("memoire_voyageurs_tenant_email_uq").on(
+      table.tenantId,
+      table.emailHash,
+    ),
+    index("memoire_voyageurs_expire_idx").on(table.expireAt),
+  ],
+);
+
+export const lieuxTourisme = pgTable(
+  "lieux_tourisme",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "cascade",
+    }),
+    slug: text("slug").notNull(),
+    nom: text("nom").notNull(),
+    categorie: text("categorie").notNull().default("visite"),
+    commune: text("commune"),
+    acces: text("acces"),
+    prixIndicatif: text("prix_indicatif"),
+    lien: text("lien"),
+    mode: text("mode"),
+    extraId: text("extra_id"),
+    actif: boolean("actif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("lieux_tourisme_tenant_slug_uq").on(t.tenantId, t.slug),
+    index("lieux_tourisme_tenant_idx").on(t.tenantId, t.actif),
+  ],
+);
+
+export const parametresSite = pgTable("parametres_site", {
+  cle: text("cle").primaryKey(),
+  valeur: text("valeur").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export type ParametreSiteRow = typeof parametresSite.$inferSelect;
+export type NewParametreSiteRow = typeof parametresSite.$inferInsert;
+export type ConsommableRow = typeof consommables.$inferSelect;
+export type NewConsommableRow = typeof consommables.$inferInsert;
+export type MouvementStockRow = typeof mouvementsStock.$inferSelect;
+export type NewMouvementStockRow = typeof mouvementsStock.$inferInsert;
+export type BienRow = typeof biens.$inferSelect;
+export type NewBienRow = typeof biens.$inferInsert;
+export type BienEvenementRow = typeof bienEvenements.$inferSelect;
+export type NewBienEvenementRow = typeof bienEvenements.$inferInsert;
+export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;
+export type NewLieuTourismeRow = typeof lieuxTourisme.$inferInsert;
 export type TenantRow = typeof tenants.$inferSelect;
 export type NewTenantRow = typeof tenants.$inferInsert;
 export type LogementRow = typeof logements.$inferSelect;

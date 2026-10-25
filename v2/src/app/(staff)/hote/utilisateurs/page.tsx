@@ -13,11 +13,11 @@ import {
 export const instant = false;
 
 const COULEURS_ROLE: Record<string, string> = {
-  admin: "bg-stone-900 text-white",
-  hote: "bg-sky-100 text-sky-900",
-  comptable: "bg-amber-100 text-amber-900",
+  admin: "bg-encre text-fond",
+  hote: "bg-accent-douce text-accent",
+  comptable: "bg-alerte-douce text-alerte",
   presta: "bg-violet-100 text-violet-900",
-  proprietaire: "bg-emerald-100 text-emerald-900",
+  proprietaire: "bg-accent-douce text-accent",
   commercial: "bg-rose-100 text-rose-900",
 };
 
@@ -44,11 +44,11 @@ export default async function PageUtilisateurs() {
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">Utilisateurs</h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             Comptes de l’équipe, rôles et accès à la plateforme.
           </p>
         </div>
@@ -58,23 +58,23 @@ export default async function PageUtilisateurs() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">Comptes</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Comptes</p>
           <p className="mt-1 text-2xl font-semibold">{utilisateurs.length}</p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">Actifs</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Actifs</p>
           <p className="mt-1 text-2xl font-semibold">{actifs}</p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">Administrateurs actifs</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Administrateurs actifs</p>
           <p className="mt-1 text-2xl font-semibold">{admins}</p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Créer un compte</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-encre-douce">
           Chaque compte est rattaché à votre organisation. Le rôle détermine les
           pages accessibles.
         </p>
@@ -86,17 +86,17 @@ export default async function PageUtilisateurs() {
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 className="text-lg font-semibold">Comptes de l’équipe</h2>
-          <p className="text-xs text-stone-500">
+          <p className="text-xs text-encre-faine">
             La désactivation ferme immédiatement les sessions ouvertes.
           </p>
         </div>
 
         {tries.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucun utilisateur pour le moment.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {tries.map((utilisateur) => {
               const soi = utilisateur.id === session.user.id;
               return (
@@ -106,19 +106,19 @@ export default async function PageUtilisateurs() {
                       <p className="flex flex-wrap items-center gap-2 font-medium">
                         <span className="truncate">{utilisateur.name}</span>
                         {soi ? (
-                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">
+                          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-encre-douce">
                             Vous
                           </span>
                         ) : null}
                       </p>
-                      <p className="break-all text-sm text-stone-600">
+                      <p className="break-all text-sm text-encre-douce">
                         {utilisateur.email}
                       </p>
                       <p className="flex flex-wrap items-center gap-2 pt-1 text-xs">
                         <span
                           className={`rounded-full px-3 py-1 font-medium ${
                             COULEURS_ROLE[utilisateur.role] ??
-                            "bg-stone-100 text-stone-700"
+                            "bg-surface-2 text-encre-douce"
                           }`}
                         >
                           {libelleRole(utilisateur.role)}
@@ -126,8 +126,8 @@ export default async function PageUtilisateurs() {
                         <span
                           className={
                             utilisateur.actif
-                              ? "rounded-full bg-emerald-100 px-3 py-1 font-medium text-emerald-900"
-                              : "rounded-full bg-red-100 px-3 py-1 font-medium text-red-900"
+                              ? "rounded-full bg-accent-douce px-3 py-1 font-medium text-accent"
+                              : "rounded-full bg-danger-douce px-3 py-1 font-medium text-danger"
                           }
                         >
                           {utilisateur.actif ? "Actif" : "Désactivé"}
@@ -137,7 +137,7 @@ export default async function PageUtilisateurs() {
 
                     <div className="w-full max-w-sm space-y-3">
                       {soi ? (
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-encre-faine">
                           Votre propre mot de passe se change dans{" "}
                           <Link className="underline" href="/hote/securite">
                             Sécurité / 2FA

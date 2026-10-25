@@ -37,13 +37,13 @@ export default async function PageGuideLogement({
     <main className="mx-auto max-w-2xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Logement {logement.code}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Guide — {logement.nom}
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             Ces informations apparaissent dans l’espace voyageur signé.
           </p>
         </div>
@@ -52,33 +52,33 @@ export default async function PageGuideLogement({
         </Link>
       </header>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <FormulaireGuide logement={logement} />
       </section>
 
       <section
-        className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+        className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm"
         id="calendrier"
       >
         <h2 className="text-lg font-semibold">Abonnement calendrier</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-encre-douce">
           Ajoutez cette URL dans Google Calendar, Apple Calendar ou Outlook
           pour suivre les réservations et blocages de ce logement. Le flux ne
           contient ni nom de client ni montant.
         </p>
-        <code className="mt-4 block break-all rounded-xl bg-stone-100 p-3 text-xs">
+        <code className="mt-4 block break-all rounded-xl bg-surface-2 p-3 text-xs">
           {urlCalendrier}
         </code>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <BoutonCopier valeur={urlCalendrier} />
           <a
-            className="rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white"
+            className="rounded-full bg-encre px-4 py-2 text-sm font-medium text-fond"
             href={urlCalendrier}
           >
             Télécharger l’ICS
           </a>
         </div>
-        <p className="mt-3 text-xs text-stone-500">
+        <p className="mt-3 text-xs text-encre-faine">
           Lien signé, valable 10 ans. La rotation de{" "}
           <code>BETTER_AUTH_SECRET</code> l’invalide.
         </p>

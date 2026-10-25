@@ -30,6 +30,29 @@ export interface Traductions {
   commandeEnregistree: string;
   commandeErreur: string;
   aucunExtra: string;
+  tourisme: string;
+  tousLesLieux: string;
+  aucunLieu: string;
+  reserverExtra: string;
+  memoire: string;
+  memoireTexte: string;
+  memoireConsentement: string;
+  memoireEnregistrer: string;
+  memoireMettreAJour: string;
+  memoireOublier: string;
+  memoireOk: string;
+  memoireOublie: string;
+  memoireErreur: string;
+  memoireNom: string;
+  memoireChamp: string;
+  avis: string;
+  avisTexte: string;
+  avisNote: string;
+  avisCommentaire: string;
+  avisEnvoyer: string;
+  avisOk: string;
+  avisErreur: string;
+  avisDeja: string;
   quantite: string;
   commander: string;
   vosCommandes: string;
@@ -90,6 +113,32 @@ const FR: Traductions = {
   commandeEnregistree: "Commande enregistrée. Votre hôte la confirmera.",
   commandeErreur: "La commande n’a pas pu être enregistrée.",
   aucunExtra: "Aucun extra disponible pour ce séjour.",
+  tourisme: "Bonnes adresses",
+  tousLesLieux: "Tout",
+  aucunLieu: "Aucune adresse partagée pour ce logement.",
+  reserverExtra: "Réserver",
+  memoire: "Mes préférences",
+  memoireTexte:
+    "Facultatif : gardez vos habitudes pour vos prochains séjours. Seule une empreinte de votre email est conservée, jamais l’adresse en clair. Effacement possible à tout moment ; expiration automatique après 24 mois.",
+  memoireConsentement:
+    "J’accepte que mes préférences soient conservées pendant 24 mois.",
+  memoireEnregistrer: "Enregistrer mes préférences",
+  memoireMettreAJour: "Mettre à jour",
+  memoireOublier: "Oublier mes préférences",
+  memoireOk: "Préférences enregistrées pour 24 mois.",
+  memoireOublie: "Préférences effacées.",
+  memoireErreur: "Impossible d’enregistrer vos préférences.",
+  memoireNom: "Nom",
+  memoireChamp: "Préférences (lit bébé, allergie, étage…)",
+  avis: "Votre avis",
+  avisTexte:
+    "Votre retour aide l’hôte à améliorer le séjour. Il est publié après validation.",
+  avisNote: "Note",
+  avisCommentaire: "Commentaire",
+  avisEnvoyer: "Publier mon avis",
+  avisOk: "Merci pour votre avis.",
+  avisErreur: "Impossible d’enregistrer votre avis.",
+  avisDeja: "Vous avez déjà laissé un avis pour ce séjour.",
   quantite: "Quantité",
   commander: "Commander",
   vosCommandes: "Vos commandes",
@@ -155,6 +204,32 @@ const EN: Traductions = {
   commandeEnregistree: "Order recorded. Your host will confirm it.",
   commandeErreur: "The order could not be recorded.",
   aucunExtra: "No extras available for this stay.",
+  tourisme: "Local recommendations",
+  tousLesLieux: "All",
+  aucunLieu: "No recommendations shared for this property.",
+  reserverExtra: "Book",
+  memoire: "My preferences",
+  memoireTexte:
+    "Optional: keep your habits for future stays. Only a hash of your email is stored, never the address itself. You can erase it any time; it expires after 24 months.",
+  memoireConsentement:
+    "I agree that my preferences are kept for 24 months.",
+  memoireEnregistrer: "Save my preferences",
+  memoireMettreAJour: "Update",
+  memoireOublier: "Forget my preferences",
+  memoireOk: "Preferences saved for 24 months.",
+  memoireOublie: "Preferences erased.",
+  memoireErreur: "Your preferences could not be saved.",
+  memoireNom: "Name",
+  memoireChamp: "Preferences (cot, allergy, floor…)",
+  avis: "Your review",
+  avisTexte:
+    "Your feedback helps the host improve the stay. It is published after moderation.",
+  avisNote: "Rating",
+  avisCommentaire: "Comment",
+  avisEnvoyer: "Publish my review",
+  avisOk: "Thank you for your review.",
+  avisErreur: "Your review could not be saved.",
+  avisDeja: "You already reviewed this stay.",
   quantite: "Quantity",
   commander: "Order",
   vosCommandes: "Your orders",
@@ -219,6 +294,32 @@ const IT: Traductions = {
   commandeEnregistree: "Ordine registrato. Il tuo host lo confermerà.",
   commandeErreur: "L’ordine non è stato registrato.",
   aucunExtra: "Nessun extra disponibile per questo soggiorno.",
+  tourisme: "Dintorni",
+  tousLesLieux: "Tutti",
+  aucunLieu: "Nessun indirizzo condiviso per questo alloggio.",
+  reserverExtra: "Prenota",
+  memoire: "Le mie preferenze",
+  memoireTexte:
+    "Facoltativo: conserva le tue abitudini per i prossimi soggiorni. Viene salvata solo un’impronta della tua email, mai l’indirizzo in chiaro. Puoi cancellarla in qualsiasi momento; scade dopo 24 mesi.",
+  memoireConsentement:
+    "Accetto che le mie preferenze siano conservate per 24 mesi.",
+  memoireEnregistrer: "Salva le mie preferenze",
+  memoireMettreAJour: "Aggiorna",
+  memoireOublier: "Dimentica le mie preferenze",
+  memoireOk: "Preferenze salvate per 24 mesi.",
+  memoireOublie: "Preferenze cancellate.",
+  memoireErreur: "Impossibile salvare le preferenze.",
+  memoireNom: "Nome",
+  memoireChamp: "Preferenze (lettino, allergia, piano…)",
+  avis: "La tua recensione",
+  avisTexte:
+    "Il tuo parere aiuta l’host a migliorare il soggiorno. Sarà pubblicato dopo la moderazione.",
+  avisNote: "Voto",
+  avisCommentaire: "Commento",
+  avisEnvoyer: "Pubblica la recensione",
+  avisOk: "Grazie per la recensione.",
+  avisErreur: "Impossibile salvare la recensione.",
+  avisDeja: "Hai già lasciato una recensione per questo soggiorno.",
   quantite: "Quantità",
   commander: "Ordina",
   vosCommandes: "I tuoi ordini",
@@ -284,6 +385,32 @@ const ES: Traductions = {
   commandeEnregistree: "Pedido registrado. Tu anfitrión lo confirmará.",
   commandeErreur: "El pedido no se ha podido registrar.",
   aucunExtra: "No hay extras disponibles para esta estancia.",
+  tourisme: "Alrededores",
+  tousLesLieux: "Todos",
+  aucunLieu: "No hay direcciones compartidas para este alojamiento.",
+  reserverExtra: "Reservar",
+  memoire: "Mis preferencias",
+  memoireTexte:
+    "Opcional: guarda tus costumbres para próximas estancias. Solo se conserva una huella de tu email, nunca la dirección en claro. Puedes borrarla en cualquier momento; caduca a los 24 meses.",
+  memoireConsentement:
+    "Acepto que mis preferencias se conserven durante 24 meses.",
+  memoireEnregistrer: "Guardar mis preferencias",
+  memoireMettreAJour: "Actualizar",
+  memoireOublier: "Olvidar mis preferencias",
+  memoireOk: "Preferencias guardadas durante 24 meses.",
+  memoireOublie: "Preferencias borradas.",
+  memoireErreur: "No se pudieron guardar las preferencias.",
+  memoireNom: "Nombre",
+  memoireChamp: "Preferencias (cuna, alergia, planta…)",
+  avis: "Tu opinión",
+  avisTexte:
+    "Tu opinión ayuda al anfitrión a mejorar la estancia. Se publica tras la moderación.",
+  avisNote: "Nota",
+  avisCommentaire: "Comentario",
+  avisEnvoyer: "Publicar mi opinión",
+  avisOk: "Gracias por tu opinión.",
+  avisErreur: "No se pudo guardar tu opinión.",
+  avisDeja: "Ya has dejado una opinión para esta estancia.",
   quantite: "Cantidad",
   commander: "Pedir",
   vosCommandes: "Tus pedidos",
@@ -348,6 +475,32 @@ const DE: Traductions = {
   commandeEnregistree: "Bestellung erfasst. Ihr Gastgeber bestätigt sie.",
   commandeErreur: "Die Bestellung konnte nicht erfasst werden.",
   aucunExtra: "Keine Extras für diesen Aufenthalt verfügbar.",
+  tourisme: "In der Umgebung",
+  tousLesLieux: "Alle",
+  aucunLieu: "Für diese Unterkunft wurden keine Adressen geteilt.",
+  reserverExtra: "Buchen",
+  memoire: "Meine Vorlieben",
+  memoireTexte:
+    "Optional: Speichern Sie Ihre Gewohnheiten für künftige Aufenthalte. Es wird nur ein Hash Ihrer E-Mail gespeichert, nie die Adresse im Klartext. Löschung jederzeit möglich; Ablauf nach 24 Monaten.",
+  memoireConsentement:
+    "Ich stimme zu, dass meine Vorlieben 24 Monate lang gespeichert werden.",
+  memoireEnregistrer: "Vorlieben speichern",
+  memoireMettreAJour: "Aktualisieren",
+  memoireOublier: "Vorlieben vergessen",
+  memoireOk: "Vorlieben für 24 Monate gespeichert.",
+  memoireOublie: "Vorlieben gelöscht.",
+  memoireErreur: "Vorlieben konnten nicht gespeichert werden.",
+  memoireNom: "Name",
+  memoireChamp: "Vorlieben (Babybett, Allergie, Etage…)",
+  avis: "Ihre Bewertung",
+  avisTexte:
+    "Ihr Feedback hilft dem Gastgeber, den Aufenthalt zu verbessern. Es wird nach Prüfung veröffentlicht.",
+  avisNote: "Bewertung",
+  avisCommentaire: "Kommentar",
+  avisEnvoyer: "Bewertung veröffentlichen",
+  avisOk: "Vielen Dank für Ihre Bewertung.",
+  avisErreur: "Bewertung konnte nicht gespeichert werden.",
+  avisDeja: "Sie haben diesen Aufenthalt bereits bewertet.",
   quantite: "Menge",
   commander: "Bestellen",
   vosCommandes: "Ihre Bestellungen",

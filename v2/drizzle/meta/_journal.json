@@ -225,6 +225,55 @@
       "when": 1792920238417,
       "tag": "0031_freezing_the_call",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792942093926,
+      "tag": "0032_nostalgic_silverclaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792942931057,
+      "tag": "0033_luxuriant_cardiac",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792943859819,
+      "tag": "0034_glamorous_imperial_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792944211402,
+      "tag": "0035_empty_ultragirl",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792945005362,
+      "tag": "0036_soft_klaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1792945524324,
+      "tag": "0037_shiny_tomorrow_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1792945956901,
+      "tag": "0038_sticky_fat_cobra",
+      "breakpoints": true
     }
   ]
 }

@@ -98,7 +98,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Réservation liée (facultatif)</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="reservationId"
             value={reservationId}
             onChange={(e) => choisirReservation(e.target.value)}
@@ -116,7 +116,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Logement</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="logementId"
             value={logementId}
             onChange={(e) => setLogementId(e.target.value)}
@@ -133,7 +133,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Numéro</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 font-mono text-base"
+            className="w-full rounded-xl border border-bordure p-3 font-mono text-base"
             defaultValue={numeroDefaut}
             name="numero"
             required
@@ -143,7 +143,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Client</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="clientNom"
             value={clientNom}
             onChange={(e) => setClientNom(e.target.value)}
@@ -154,7 +154,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Email client (facultatif)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="clientEmail"
             type="email"
           />
@@ -163,7 +163,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Date d’émission</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={dateDefaut}
             name="dateEmission"
             type="date"
@@ -174,7 +174,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Échéance (facultatif)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="echeance"
             type="date"
           />
@@ -185,7 +185,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium sm:col-span-2">
           <span>Désignation</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="designation"
             value={designation}
             onChange={(e) => setDesignation(e.target.value)}
@@ -195,7 +195,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Quantité</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             min={1}
             name="quantite"
             type="number"
@@ -207,7 +207,7 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>Prix unitaire (€)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             inputMode="decimal"
             name="prixUnitaireEuros"
             value={prixUnitaire}
@@ -221,34 +221,34 @@ export function FormulaireFacture({
         <label className="block space-y-1 text-sm font-medium">
           <span>TVA (€)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             inputMode="decimal"
             name="tvaEuros"
             placeholder={`Auto : ${formaterTauxTva(fiscal.tauxTvaBp)}`}
             value={tva}
             onChange={(e) => setTva(e.target.value)}
           />
-          <span className="block text-xs font-normal text-stone-500">
+          <span className="block text-xs font-normal text-encre-faine">
             Laisser vide pour calculer avec le taux du tenant.
           </span>
         </label>
         <label className="block space-y-1 text-sm font-medium">
           <span>Taxe de séjour (€)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             inputMode="decimal"
             name="taxeEuros"
             placeholder="Auto"
             value={taxe}
             onChange={(e) => setTaxe(e.target.value)}
           />
-          <span className="block text-xs font-normal text-stone-500">
+          <span className="block text-xs font-normal text-encre-faine">
             {reservationChoisie
               ? `Auto : ${formaterEuros(taxeAuto)} (${reservationChoisie.voyageurs} voyageur(s), nuits du séjour).`
               : "Auto : 0 € sans réservation liée ; saisir un montant pour forcer."}
           </span>
         </label>
-        <div className="rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm">
+        <div className="rounded-xl border border-bordure bg-fond p-3 text-sm">
           <p>HT : {formaterEuros(ht)}</p>
           <p>TVA : {formaterEuros(tvaCentimes)}</p>
           <p>Taxe : {formaterEuros(taxeCentimes)}</p>
@@ -259,19 +259,19 @@ export function FormulaireFacture({
       <label className="block space-y-1 text-sm font-medium">
         <span>Notes (facultatif)</span>
         <textarea
-          className="min-h-20 w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="min-h-20 w-full rounded-xl border border-bordure p-3 text-base"
           name="notes"
         />
       </label>
 
       {etat.message ? (
-        <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+        <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
           {etat.message}
         </p>
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

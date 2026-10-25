@@ -35,13 +35,13 @@ const LIBELLES_STATUT: Record<StatutFacture, string> = {
 function Message({ children }: { children: React.ReactNode }) {
   return (
     <main className="mx-auto max-w-md space-y-4 px-4 py-16 text-center">
-      <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+      <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
         LCD Parc
       </p>
       <h1 className="text-2xl font-semibold tracking-tight">
         Lien indisponible
       </h1>
-      <p className="text-stone-600">{children}</p>
+      <p className="text-encre-douce">{children}</p>
       <Link className="text-sm underline" href="/">
         Retour à l&apos;accueil
       </Link>
@@ -111,28 +111,28 @@ export default async function PageFacturePublique({
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
-      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-stone-200 pb-5">
+      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-bordure pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Facture
           </p>
           <h1 className="mt-1 font-mono text-xl font-semibold break-all sm:text-2xl">
             {facture.numero}
           </h1>
-          <p className="mt-2 text-sm text-stone-600">
+          <p className="mt-2 text-sm text-encre-douce">
             Émise le {facture.dateEmission}
             {facture.echeance ? ` · échéance ${facture.echeance}` : ""}
           </p>
           <a
-            className="mt-3 inline-block rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+            className="mt-3 inline-block rounded-full border border-bordure px-4 py-2 text-sm font-medium"
             download
             href={`/api/factures/${facture.id}/pdf?t=${encodeURIComponent(token)}`}
           >
             Télécharger le PDF
           </a>
         </div>
-        <div className="text-left text-sm text-stone-600 sm:text-right">
-          <p className="font-semibold text-stone-900">
+        <div className="text-left text-sm text-encre-douce sm:text-right">
+          <p className="font-semibold text-encre">
             {tenant?.nom ?? "LCD Parc"}
           </p>
           <p>Conciergerie locative</p>
@@ -146,54 +146,54 @@ export default async function PageFacturePublique({
       </header>
 
       {query.paiement === "ok" ? (
-        <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
           Paiement reçu. La confirmation peut prendre quelques secondes ;
           rechargez la page si le statut n’est pas encore à jour.
         </p>
       ) : null}
       {query.paiement === "annule" ? (
-        <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <p className="rounded-xl border border-alerte bg-alerte-douce p-3 text-sm text-alerte">
           Paiement annulé. Vous pouvez réessayer quand vous le souhaitez.
         </p>
       ) : null}
       {query.paiement === "erreur" ? (
-        <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+        <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
           Le paiement en ligne n’a pas pu être ouvert. Contactez votre hôte.
         </p>
       ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-stone-200 bg-white p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+        <div className="rounded-2xl border border-bordure bg-surface p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-encre-faine">
             Client
           </h2>
           <p className="mt-1 font-medium">{facture.clientNom}</p>
           {facture.clientEmail ? (
-            <p className="text-sm break-all text-stone-600">
+            <p className="text-sm break-all text-encre-douce">
               {facture.clientEmail}
             </p>
           ) : null}
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+        <div className="rounded-2xl border border-bordure bg-surface p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-encre-faine">
             Statut
           </h2>
           <p className="mt-1 font-medium">{LIBELLES_STATUT[facture.statut]}</p>
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-encre-douce">
             Reste à payer : {formaterEuros(reste)}
           </p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-6">
+      <section className="rounded-2xl border border-bordure bg-surface p-4 sm:p-6">
         <h2 className="text-lg font-semibold">Détail</h2>
-        <ul className="mt-3 divide-y divide-stone-100">
+        <ul className="mt-3 divide-y divide-bordure">
           {facture.lignes.map((ligne) => (
             <li className="py-3" key={ligne.id}>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="font-medium">{ligne.designation}</p>
-                  <p className="text-sm text-stone-600">
+                  <p className="text-sm text-encre-douce">
                     {ligne.quantite} ×{" "}
                     {formaterEuros(ligne.prixUnitaireCentimes)}
                   </p>
@@ -206,27 +206,27 @@ export default async function PageFacturePublique({
           ))}
         </ul>
 
-        <dl className="mt-4 ml-auto max-w-xs space-y-1 border-t border-stone-200 pt-4 text-sm">
+        <dl className="mt-4 ml-auto max-w-xs space-y-1 border-t border-bordure pt-4 text-sm">
           <div className="flex justify-between gap-4">
-            <dt className="text-stone-600">Total HT</dt>
+            <dt className="text-encre-douce">Total HT</dt>
             <dd>{formaterEuros(facture.montantHtCentimes)}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-stone-600">TVA</dt>
+            <dt className="text-encre-douce">TVA</dt>
             <dd>{formaterEuros(facture.tvaCentimes)}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-stone-600">Taxe de séjour</dt>
+            <dt className="text-encre-douce">Taxe de séjour</dt>
             <dd>{formaterEuros(facture.taxeSejourCentimes)}</dd>
           </div>
-          <div className="flex justify-between gap-4 border-t border-stone-200 pt-2 text-base font-semibold">
+          <div className="flex justify-between gap-4 border-t border-bordure pt-2 text-base font-semibold">
             <dt>Total TTC</dt>
             <dd>{formaterEuros(facture.montantTtcCentimes)}</dd>
           </div>
           {paiements.length > 0 ? (
             <>
               <div className="flex justify-between gap-4 pt-2">
-                <dt className="text-stone-600">Déjà payé</dt>
+                <dt className="text-encre-douce">Déjà payé</dt>
                 <dd>{formaterEuros(totalPaye)}</dd>
               </div>
               <div className="flex justify-between gap-4 font-medium">
@@ -239,9 +239,9 @@ export default async function PageFacturePublique({
       </section>
 
       {paiements.length > 0 ? (
-        <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-6">
+        <section className="rounded-2xl border border-bordure bg-surface p-4 sm:p-6">
           <h2 className="text-lg font-semibold">Paiements reçus</h2>
-          <ul className="mt-3 divide-y divide-stone-100">
+          <ul className="mt-3 divide-y divide-bordure">
             {paiements.map((paiement) => (
               <li
                 className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
@@ -262,16 +262,16 @@ export default async function PageFacturePublique({
       ) : null}
 
       {stripeConfigured && facture.statut === "emise" && reste > 0 ? (
-        <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-6">
+        <section className="rounded-2xl border border-bordure bg-surface p-4 sm:p-6">
           <h2 className="text-lg font-semibold">Payer en ligne</h2>
-          <p className="mt-1 text-sm text-stone-600">
+          <p className="mt-1 text-sm text-encre-douce">
             Paiement sécurisé par carte bancaire via Stripe. Montant :{" "}
             {formaterEuros(reste)}.
           </p>
           <form action={payerFactureAction} className="mt-4">
             <input name="token" type="hidden" value={token} />
             <button
-              className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white"
+              className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond"
               type="submit"
             >
               Payer {formaterEuros(reste)}
@@ -280,7 +280,7 @@ export default async function PageFacturePublique({
         </section>
       ) : null}
 
-      <footer className="border-t border-stone-200 pt-4 text-xs text-stone-500">
+      <footer className="border-t border-bordure pt-4 text-xs text-encre-faine">
         <p>
           Document consultable sans compte. La taxe de séjour est suivie
           séparément du chiffre d&apos;affaires.

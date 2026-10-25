@@ -4,7 +4,7 @@ import type {
   TenantRepository,
 } from "@/application/ports/tenant-repository";
 import type { Tenant } from "@/domain/tenant";
-import { withTenant } from "../client";
+import { db, withTenant } from "../client";
 import { tenants } from "../schema";
 
 function versDomaine(row: typeof tenants.$inferSelect): Tenant {
@@ -34,6 +34,15 @@ export class DrizzleTenantRepository implements TenantRepository {
         .limit(1);
       return row ? versDomaine(row) : null;
     });
+  }
+
+  async trouverParSlug(slug: string): Promise<Tenant | null> {
+    const [row] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.slug, slug))
+      .limit(1);
+    return row ? versDomaine(row) : null;
   }
 
   async mettreAJourEntite(

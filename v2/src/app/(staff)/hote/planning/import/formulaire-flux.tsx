@@ -27,7 +27,7 @@ export function FormulaireFluxIcs({
         <label className="block space-y-1 text-sm font-medium">
           <span>Libellé</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="libelle"
             onChange={(event) => setLibelle(event.target.value)}
             placeholder="Airbnb"
@@ -38,7 +38,7 @@ export function FormulaireFluxIcs({
         <label className="block space-y-1 text-sm font-medium sm:col-span-2">
           <span>URL du flux ICS</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="url"
             onChange={(event) => setUrl(event.target.value)}
             placeholder="https://www.airbnb.fr/calendar/ical/..."
@@ -53,8 +53,8 @@ export function FormulaireFluxIcs({
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -62,7 +62,7 @@ export function FormulaireFluxIcs({
       ) : null}
 
       <button
-        className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium disabled:opacity-50"
+        className="rounded-full border border-bordure px-4 py-2 text-sm font-medium disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

@@ -40,7 +40,7 @@ export default async function PageFactures({
     return (
       <main className="mx-auto max-w-2xl space-y-4 px-6 py-12">
         <h1 className="text-3xl font-semibold tracking-tight">Factures</h1>
-        <p className="text-stone-600">
+        <p className="text-encre-douce">
           Créez d’abord un logement pour facturer.
         </p>
         <Link className="underline" href="/hote/logements">
@@ -79,13 +79,13 @@ export default async function PageFactures({
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Factures — {moisEnFrancais(mois)}
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             {factures.length} facture{factures.length > 1 ? "s" : ""} ·{" "}
             {formaterEuros(
               factures.reduce((total, f) => total + f.montantTtcCentimes, 0),
@@ -100,31 +100,31 @@ export default async function PageFactures({
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/factures?mois=${decalerMois(mois, -1)}`}
         >
           ← Mois précédent
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/factures?mois=${moisCourant()}`}
         >
           Mois courant
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/factures?mois=${decalerMois(mois, 1)}`}
         >
           Mois suivant →
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/api/exports/factures?mois=${mois}`}
         >
           Export CSV factures
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href="/hote/compta/parametres"
         >
           Paramètres fiscaux
@@ -134,9 +134,9 @@ export default async function PageFactures({
         </Link>
       </div>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Créer une facture</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-encre-douce">
           Les totaux HT/TTC sont calculés à partir des lignes. Laisser la TVA
           et la taxe de séjour vides pour appliquer automatiquement les
           paramètres fiscaux. La facture est créée en brouillon.
@@ -159,11 +159,11 @@ export default async function PageFactures({
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Factures du mois</h2>
         {factures.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucune facture sur ce mois.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {factures.map((facture) => (
               <li
                 className="flex flex-wrap items-center justify-between gap-3 p-4"
@@ -176,7 +176,7 @@ export default async function PageFactures({
                   >
                     {facture.numero}
                   </Link>
-                  <p className="text-sm text-stone-600">
+                  <p className="text-sm text-encre-douce">
                     {facture.clientNom} · {facture.dateEmission} ·{" "}
                     {facture.statut}
                   </p>

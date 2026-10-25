@@ -46,7 +46,7 @@ export default async function PagePlanning({
     return (
       <main className="mx-auto max-w-2xl space-y-4 px-6 py-12">
         <h1 className="text-3xl font-semibold tracking-tight">Planning</h1>
-        <p className="text-stone-600">
+        <p className="text-encre-douce">
           Créez d’abord un logement pour planifier des séjours.
         </p>
         <Link className="underline" href="/hote/logements">
@@ -90,13 +90,13 @@ export default async function PagePlanning({
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Planning — {moisEnFrancais(mois)}
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             {logement.nom} ({logement.code}) · {reservations.length}{" "}
             réservation{reservations.length > 1 ? "s" : ""} ·{" "}
             {blocages.length} blocage{blocages.length > 1 ? "s" : ""}
@@ -109,25 +109,25 @@ export default async function PagePlanning({
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={lienMois(decalerMois(mois, -1))}
         >
           ← Mois précédent
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/planning?mois=${moisCourant()}&logement=${logement.id}`}
         >
           Mois courant
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={lienMois(decalerMois(mois, 1))}
         >
           Mois suivant →
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/planning/import?logement=${logement.id}`}
         >
           Importer un calendrier OTA
@@ -139,7 +139,7 @@ export default async function PagePlanning({
             Logement
           </label>
           <select
-            className="rounded-xl border border-stone-300 p-2 text-sm"
+            className="rounded-xl border border-bordure p-2 text-sm"
             defaultValue={logement.id}
             id="logement"
             name="logement"
@@ -150,15 +150,15 @@ export default async function PagePlanning({
               </option>
             ))}
           </select>
-          <button className="rounded-full border border-stone-300 px-3 py-2 text-sm" type="submit">
+          <button className="rounded-full border border-bordure px-3 py-2 text-sm" type="submit">
             Afficher
           </button>
         </form>
       </div>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Créer une réservation</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-encre-douce">
           Le chevauchement avec une réservation existante est refusé.
         </p>
         <div className="mt-5">
@@ -171,10 +171,10 @@ export default async function PagePlanning({
         </div>
       </section>
 
-      <section className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+      <section className="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-stone-200 bg-stone-50">
+            <tr className="border-b border-bordure bg-fond">
               {JOURS.map((jour) => (
                 <th className="p-2 text-left font-medium" key={jour}>
                   {jour}
@@ -184,7 +184,7 @@ export default async function PagePlanning({
           </thead>
           <tbody>
             {grilleMois(mois).map((semaine, index) => (
-              <tr className="border-b border-stone-100" key={index}>
+              <tr className="border-b border-bordure" key={index}>
                 {semaine.map((date, i) => {
                   if (!date) {
                     return <td className="p-2" key={`vide-${index}-${i}`} />;
@@ -197,26 +197,26 @@ export default async function PagePlanning({
                   );
                   return (
                     <td className="p-2 align-top" key={date}>
-                      <div className="min-h-20 rounded-lg border border-stone-100 p-2">
-                        <span className="block text-xs text-stone-500">
+                      <div className="min-h-20 rounded-lg border border-bordure p-2">
+                        <span className="block text-xs text-encre-faine">
                           {date.slice(8)}
                         </span>
                         <ul className="mt-1 space-y-1">
                           {blocageJour.length > 0 ? (
-                            <li className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-900">
+                            <li className="rounded bg-alerte-douce px-2 py-1 text-xs text-alerte">
                               Bloqué
                             </li>
                           ) : null}
                           {duJour.slice(0, 2).map((r) => (
                             <li
-                              className="rounded bg-stone-100 px-2 py-1 text-xs"
+                              className="rounded bg-surface-2 px-2 py-1 text-xs"
                               key={r.id}
                             >
                               {r.ref}
                             </li>
                           ))}
                           {duJour.length > 2 ? (
-                            <li className="text-xs text-stone-500">
+                            <li className="text-xs text-encre-faine">
                               +{duJour.length - 2}
                             </li>
                           ) : null}
@@ -234,11 +234,11 @@ export default async function PagePlanning({
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Réservations du mois</h2>
         {reservations.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucune réservation sur ce mois pour ce logement.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {reservations.map((reservation) => {
               const token = creerTokenVoyageur({
                 tenantId,
@@ -257,11 +257,11 @@ export default async function PagePlanning({
                         ? ` — ${reservation.clientNom}`
                         : ""}
                     </p>
-                    <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">
+                    <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-medium text-encre-douce">
                       {reservation.statut}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-stone-600">
+                  <p className="mt-1 text-sm text-encre-douce">
                     {reservation.debut} → {reservation.fin} ·{" "}
                     {nuitsSejour(reservation.debut, reservation.fin)} nuit
                     {nuitsSejour(reservation.debut, reservation.fin) > 1
@@ -289,11 +289,11 @@ export default async function PagePlanning({
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Blocages OTA du mois</h2>
         {blocages.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucun blocage sur ce mois pour ce logement.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {blocages.map((blocage) => (
               <li
                 className="flex flex-wrap items-center justify-between gap-2 p-4"
@@ -303,11 +303,11 @@ export default async function PagePlanning({
                   <p className="font-medium">
                     {blocage.motif ?? "Indisponibilité OTA"}
                   </p>
-                  <p className="text-sm text-stone-600">
+                  <p className="text-sm text-encre-douce">
                     {blocage.debut} → {blocage.fin}
                   </p>
                 </div>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">
+                <span className="rounded-full bg-alerte-douce px-3 py-1 text-xs font-medium text-alerte">
                   bloqué
                 </span>
               </li>

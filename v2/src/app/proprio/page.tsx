@@ -48,13 +48,13 @@ export default async function PageProprietaire({
     return (
       <main className="mx-auto max-w-2xl space-y-6 px-6 py-12">
         <header className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace propriétaire
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Relevé de mandat
           </h1>
-          <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+          <p className="rounded-xl border border-alerte bg-alerte-douce p-4 text-alerte">
             Aucun logement n’est encore rattaché à votre compte. Contactez
             votre gestionnaire.
           </p>
@@ -142,13 +142,13 @@ export default async function PageProprietaire({
     <main className="mx-auto max-w-4xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace propriétaire
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Relevé de mandat — {moisEnFrancais(mois)}
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             {logements.length} logement{logements.length > 1 ? "s" : ""} ·{" "}
             {session.user.name}
           </p>
@@ -163,19 +163,19 @@ export default async function PageProprietaire({
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/proprio?mois=${decalerMois(mois, -1)}`}
         >
           ← Mois précédent
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/proprio?mois=${moisCourant()}`}
         >
           Mois courant
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/proprio?mois=${decalerMois(mois, 1)}`}
         >
           Mois suivant →
@@ -189,54 +189,54 @@ export default async function PageProprietaire({
             : "grid gap-4 sm:grid-cols-3"
         }
       >
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">CA réservations</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">CA réservations</p>
           <p className="mt-1 text-2xl font-semibold">{formaterEuros(ca)}</p>
-          <p className="text-xs text-stone-500">
+          <p className="text-xs text-encre-faine">
             {reservations.length} séjour{reservations.length > 1 ? "s" : ""}
           </p>
         </div>
         {estProprietaire ? (
           <>
-            <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-stone-500">Commission de mandat</p>
+            <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+              <p className="text-sm text-encre-faine">Commission de mandat</p>
               <p className="mt-1 text-2xl font-semibold">
                 {formaterEuros(commissionTotale)}
               </p>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-encre-faine">
                 taux du mandat par logement
               </p>
             </div>
-            <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-stone-500">Net propriétaire</p>
+            <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+              <p className="text-sm text-encre-faine">Net propriétaire</p>
               <p className="mt-1 text-2xl font-semibold">
                 {formaterEuros(netTotal)}
               </p>
-              <p className="text-xs text-stone-500">CA − commission</p>
+              <p className="text-xs text-encre-faine">CA − commission</p>
             </div>
           </>
         ) : (
-          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-stone-500">HT facturé</p>
+          <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+            <p className="text-sm text-encre-faine">HT facturé</p>
             <p className="mt-1 text-2xl font-semibold">
               {formaterEuros(ht)}
             </p>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-encre-faine">
               {factures.length} facture{factures.length > 1 ? "s" : ""}
             </p>
           </div>
         )}
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">TTC facturé</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">TTC facturé</p>
           <p className="mt-1 text-2xl font-semibold">{formaterEuros(ttc)}</p>
-          <p className="text-xs text-stone-500">taxe de séjour incluse</p>
+          <p className="text-xs text-encre-faine">taxe de séjour incluse</p>
         </div>
       </section>
 
-      <section className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+      <section className="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-stone-200 bg-stone-50 text-left">
+            <tr className="border-b border-bordure bg-fond text-left">
               <th className="p-3 font-medium">Logement</th>
               <th className="p-3 text-right font-medium">Séjours</th>
               <th className="p-3 text-right font-medium">CA</th>
@@ -248,12 +248,12 @@ export default async function PageProprietaire({
           <tbody>
             {lignes.map((ligne) => (
               <tr
-                className="border-b border-stone-100"
+                className="border-b border-bordure"
                 key={ligne.logement.id}
               >
                 <td className="p-3">
                   {ligne.logement.nom}
-                  <span className="ml-2 text-xs text-stone-500">
+                  <span className="ml-2 text-xs text-encre-faine">
                     {ligne.logement.code}
                   </span>
                 </td>
@@ -263,7 +263,7 @@ export default async function PageProprietaire({
                   {ligne.commissionBp !== null ? (
                     <>
                       {formaterEuros(ligne.commission)}
-                      <span className="block text-xs text-stone-500">
+                      <span className="block text-xs text-encre-faine">
                         {formaterCommissionBp(ligne.commissionBp)}
                       </span>
                     </>
@@ -286,20 +286,20 @@ export default async function PageProprietaire({
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Séjours du mois</h2>
         {reservations.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucun séjour sur ce mois.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {reservations.map((reservation) => (
               <li className="p-4" key={reservation.id}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">{reservation.ref}</p>
-                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs text-stone-700">
+                  <span className="rounded-full bg-surface-2 px-3 py-1 text-xs text-encre-douce">
                     {reservation.statut}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-stone-600">
+                <p className="mt-1 text-sm text-encre-douce">
                   {logements.find((l) => l.id === reservation.logementId)?.nom ??
                     reservation.logementId}{" "}
                   · {reservation.debut} → {reservation.fin} ·{" "}
@@ -315,7 +315,7 @@ export default async function PageProprietaire({
         )}
       </section>
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-encre-faine">
         {estProprietaire
           ? "Commission calculée sur le CA réservations (hors taxe de séjour), selon le taux du mandat. Net propriétaire = CA − commission."
           : "Vue administrateur : la commission et le net sont calculés pour un compte propriétaire."}{" "}

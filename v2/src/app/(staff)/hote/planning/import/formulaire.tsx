@@ -38,7 +38,7 @@ export function FormulaireImportIcs({
         <label className="block space-y-1 text-sm font-medium">
           <span>Logement</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="logementId"
             onChange={(event) => setLogementId(event.target.value)}
             required
@@ -56,7 +56,7 @@ export function FormulaireImportIcs({
           <span>Fichier .ics (facultatif)</span>
           <input
             accept=".ics,text/calendar"
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="fichier"
             type="file"
           />
@@ -65,7 +65,7 @@ export function FormulaireImportIcs({
         <label className="block space-y-1 text-sm font-medium">
           <span>Ou collez le contenu ICS</span>
           <textarea
-            className="min-h-48 w-full rounded-xl border border-stone-300 p-3 font-mono text-xs"
+            className="min-h-48 w-full rounded-xl border border-bordure p-3 font-mono text-xs"
             name="ics"
             placeholder="BEGIN:VCALENDAR&#10;VERSION:2.0&#10;..."
           />
@@ -75,8 +75,8 @@ export function FormulaireImportIcs({
           <p
             className={
               etat.ok
-                ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-                : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+                ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+                : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
             }
           >
             {etat.message}
@@ -84,7 +84,7 @@ export function FormulaireImportIcs({
         ) : null}
 
         <button
-          className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
           type="submit"
           disabled={enCours}
         >
@@ -93,9 +93,9 @@ export function FormulaireImportIcs({
       </form>
 
       {etat.resultat ? (
-        <section className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4">
+        <section className="space-y-3 rounded-2xl border border-bordure bg-surface p-4">
           <h3 className="font-semibold">Détail de l’import</h3>
-          <ul className="divide-y divide-stone-100 text-sm">
+          <ul className="divide-y divide-bordure text-sm">
             {etat.resultat.lignes.map((ligne, index) => (
               <li
                 className="flex flex-wrap items-center justify-between gap-2 py-2"
@@ -106,14 +106,14 @@ export function FormulaireImportIcs({
                     {ligne.type === "blocage" ? "Blocage" : "Réservation"}{" "}
                     {ligne.debut} → {ligne.fin}
                   </p>
-                  <p className="font-mono text-xs text-stone-500">
+                  <p className="font-mono text-xs text-encre-faine">
                     {ligne.ref}
                   </p>
                   {ligne.message ? (
-                    <p className="text-xs text-stone-500">{ligne.message}</p>
+                    <p className="text-xs text-encre-faine">{ligne.message}</p>
                   ) : null}
                 </div>
-                <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium">
+                <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-medium">
                   {LIBELLES_RESULTAT[ligne.resultat]}
                 </span>
               </li>

@@ -17,6 +17,7 @@ export interface EntiteData {
 
 export interface TenantRepository {
   trouver(tenantId: string): Promise<Tenant | null>;
+  trouverParSlug(slug: string): Promise<Tenant | null>;
   mettreAJourEntite(
     tenantId: string,
     data: EntiteData,

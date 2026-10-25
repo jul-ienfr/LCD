@@ -15,6 +15,7 @@ export interface Reservation {
   logementId: LogementId;
   ref: string;
   clientNom: string | null;
+  clientEmail: string | null;
   voyageurs: number;
   debut: string; // AAAA-MM-JJ
   fin: string; // AAAA-MM-JJ, exclusive

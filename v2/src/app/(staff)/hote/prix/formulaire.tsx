@@ -29,7 +29,7 @@ export function FormulairePrix({
         <label className="block space-y-1 text-sm font-medium">
           <span>Logement</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={logementId}
             name="logementId"
             required
@@ -45,7 +45,7 @@ export function FormulairePrix({
         <label className="block space-y-1 text-sm font-medium">
           <span>Date</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={dateDefaut}
             name="date"
             type="date"
@@ -56,7 +56,7 @@ export function FormulairePrix({
         <label className="block space-y-1 text-sm font-medium">
           <span>Prix de la nuit (€)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             inputMode="decimal"
             name="prixEuros"
             placeholder="120,00"
@@ -69,8 +69,8 @@ export function FormulairePrix({
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -78,7 +78,7 @@ export function FormulairePrix({
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

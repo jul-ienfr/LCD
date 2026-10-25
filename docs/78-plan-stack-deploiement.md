@@ -781,7 +781,7 @@ fast-track marche parce qu’on accepte de reporter le CRM, le support, les
 secrets, la compta avancée et le LLM. Si on veut 100 % de parité, on retombe
 sur le mode A (4-6 mois).
 
-### §11.6 État du squelette v2 (2026-10-24)
+### §11.6 État du squelette v2 (2026-10-25)
 
 Le squelette `v2/` existe sur la branche `v2`. Il n'est pas encore déployé
 et ne remplace pas v1.
@@ -790,8 +790,8 @@ et ne remplace pas v1.
 
 - Next.js 16.4.3 + React 19.3.1 + Tailwind 4.3.3, build vert ;
 - TypeScript 6.0.3 pour lint/typecheck (voir §3.1) ;
-- PostgreSQL 18.6 + Drizzle : **29 tables** (25 métier + 4 Better Auth),
-  migrations `0000` → `0031`, RLS sur les tables métier ;
+- PostgreSQL 18.6 + Drizzle : **36 tables** (32 métier + 4 Better Auth),
+  migrations `0000` → `0037`, RLS sur les tables métier ;
 - **RLS effective** : `DATABASE_URL` sur le rôle `lcd_app` non-propriétaire,
   `MIGRATION_DATABASE_URL` owner pour migrations/seed/sauvegardes ;
   `npm run db:role-app` et `npm run db:test-rls` ; test local
@@ -810,6 +810,9 @@ et ne remplace pas v1.
   `/hote/factures/[id]`, `/hote/securite`, `/hote/utilisateurs`,
   `/hote/audit`, `/hote/entite`,
   `/hote/logements/[id]` (guide), `/hote/extras`,
+  `/hote/design`, `/hote/stocks`, `/hote/inventaire`,
+  `/hote/tourisme`,
+  `/reserver?tenant=<slug>` (tunnel public sans paiement),
   `/voyageur?t=<token>`, `/hote/missions`, `/hote/proprietaires`,
   `/presta`, `/proprio`, `/commercial`, `/commercial/prospects/[id]`,
   `/support`, `/support/[id]`, `/facture/[token]`,
@@ -879,6 +882,26 @@ et ne remplace pas v1.
   action/auteur/cible/référence, libellés français, payload JSON replié ;
 - **guide/check-in + extras voyageur** : WiFi, consignes, règles, urgence,
   catalogue d’extras, commande idempotente, suivi staff ;
+- **design system** : 4 thèmes (`sejour`, `ocean`, `sable`, `nuit`), jetons
+  sémantiques (`--fond`, `--surface`, `--encre`, `--accent`…), bascule admin
+  `/hote/design` persistée dans `parametres_site`, injection CSS sans JS,
+  contrastes WCAG testés ;
+- **stocks/consommables** : seuils et cibles par logement, rotation de ménage
+  idempotente, décrément borné à zéro, réassort, liste de courses
+  automatique, mouvements historisés (`mouvements_stock`) ;
+- **inventaire durable** : biens QR par logement, catégories, prix, garantie,
+  compteurs d’usage/lavage, notes, alertes dormants > 90 j, remplacement
+  (état ≤ 2), garantie < 30 j, coût par séjour et budget prévisionnel ;
+- **office de tourisme** : lieux par tenant/logement, catégories, filtre
+  voyageur sans JS (`?cat=`), lien vers un extra, désactivation staff ;
+- **réservation directe publique** : catalogue par tenant, devis nuit par
+  nuit à partir des tarifs, contrôle d’anti-chevauchement, demande en
+  brouillon avec email client, anti-spam honeypot, audit et ouverture
+  immédiate de l’espace séjour signé ;
+- **mémoire voyageur** : opt-in explicite depuis l’espace séjour, empreinte
+  HMAC de l’email uniquement (jamais l’adresse en clair), préférences libres,
+  mise à jour et effacement immédiats, expiration à 24 mois, purge cron
+  protégée par `CRON_SECRET` ;
 - **export calendrier ICS** : URL signée par logement, réservations non
   annulées + blocages, événements toute la journée, aucune donnée client,
   abonnement Google/Apple/Outlook, token 10 ans séparé des autres liens ;
@@ -900,8 +923,9 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **208/208** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **21/21** (login + logement ; prix + planning + anti-chevauchement ;
+- tests Vitest : **261/261** (domaine + cas d'usage avec dépôts mémoire) ;
+- Playwright : **26/26** sur build de production (`next build` + `next start`,
+  rôle applicatif) — login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
   compta + CSV ; import ICS + blocages + idempotence + conflit ; webhook
@@ -943,18 +967,24 @@ et ne remplace pas v1.
   Sentry/Uptime encore absents, backup quotidien GitHub à activer avec le
   secret `MIGRATION_DATABASE_URL` (owner) ;
 - **migrations distantes** : production actuellement marquée jusqu'à `0025`
-  (26 tables) ; `0026`-`0031` (commission, webhooks, cautions, entité/mandats)
-  sont prêtes et seront appliquées au prochain déploiement ; `/api/ready`
-  renverra `503 schema: pending` tant qu'elles manquent ;
+  (26 tables) ; `0026`-`0037` (commission, webhooks, cautions, entité/mandats,
+  design, stocks, inventaire, tourisme, email de réservation, mémoire
+  voyageur) sont prêtes et seront appliquées au prochain déploiement ;
+  `/api/ready` renverra `503 schema: pending` tant qu'elles manquent ;
 - CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
   (Postgres 18 + S3Mock + Mailpit).
 
 **Reste à faire :**
 
+- **parité v1 restante** : questionnaire/contrat/avis, moteur de décision
+  (règles sécurité > occupation > énergie > confort > prix), proxy LLM et UI
+  de routage, adaptateur Moli, EDL, bruit/serrures, tableaux de bord
+  super-admin/opérateur/comptable, migration des données v1 ;
 - débloquer les crédits Netlify ou déployer sur le VPS préparé
-  (`v2/DEPLOIEMENT-VPS.md`) puis appliquer `0026`-`0031` et déployer les
-  tranches commission/PDF/webhooks/cautions/entité-mandats ;
+  (`v2/DEPLOIEMENT-VPS.md`) puis appliquer `0026`-`0037` et déployer les
+  tranches commission/PDF/webhooks/cautions/entité-mandats/design/stocks/
+  inventaire/tourisme/réservation-directe/mémoire ;
 - `SENTRY_DSN` + instance Uptime Kuma + monitors/alertes à configurer ;
 - clés SMTP de production (Brevo/OVH) + `EMAIL_ENABLED=true` ;
 - clés Stripe test/live + webhook de production ;

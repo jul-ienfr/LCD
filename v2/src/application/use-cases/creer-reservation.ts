@@ -8,6 +8,7 @@ export interface CreerReservationInput {
   logementId: string;
   ref: string;
   clientNom?: string;
+  clientEmail?: string;
   voyageurs: number;
   debut: string;
   fin: string;
@@ -24,6 +25,17 @@ export class CreerReservation {
   async executer(input: CreerReservationInput) {
     const ref = input.ref.trim();
     const clientNom = input.clientNom?.trim() || undefined;
+    const clientEmail = input.clientEmail?.trim().toLowerCase() || undefined;
+
+    if (
+      clientEmail &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(clientEmail)
+    ) {
+      throw new ErreurMetier(
+        "EMAIL_INVALIDE",
+        "L’adresse email est invalide.",
+      );
+    }
 
     if (!input.tenantId || !input.logementId) {
       throw new ErreurMetier("TENANT_INVALIDE", "Tenant et logement requis.");
@@ -85,6 +97,7 @@ export class CreerReservation {
       logementId: input.logementId,
       ref,
       clientNom,
+      clientEmail,
       voyageurs: input.voyageurs,
       debut: input.debut,
       fin: input.fin,

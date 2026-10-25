@@ -88,13 +88,13 @@ export default async function PageCompta({
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Comptabilité — {moisEnFrancais(mois)}
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             Réservations, factures, TVA et taxe de séjour.
           </p>
         </div>
@@ -105,43 +105,43 @@ export default async function PageCompta({
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/compta?mois=${decalerMois(mois, -1)}`}
         >
           ← Mois précédent
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/compta?mois=${moisCourant()}`}
         >
           Mois courant
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/hote/compta?mois=${decalerMois(mois, 1)}`}
         >
           Mois suivant →
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/api/exports/reservations?mois=${mois}`}
         >
           Export CSV réservations
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/api/exports/factures?mois=${mois}`}
         >
           Export CSV factures
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href={`/api/exports/paiements?mois=${mois}`}
         >
           Export CSV paiements
         </Link>
         <Link
-          className="rounded-full border border-stone-300 px-4 py-2 text-sm"
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href="/hote/compta/parametres"
         >
           Paramètres fiscaux
@@ -152,49 +152,49 @@ export default async function PageCompta({
       </div>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">CA réservations</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">CA réservations</p>
           <p className="mt-1 text-2xl font-semibold">
             {formaterEuros(caReservations)}
           </p>
-          <p className="text-xs text-stone-500">{reservations.length} séjours</p>
+          <p className="text-xs text-encre-faine">{reservations.length} séjours</p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">HT facturé</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">HT facturé</p>
           <p className="mt-1 text-2xl font-semibold">
             {formaterEuros(htFacture)}
           </p>
-          <p className="text-xs text-stone-500">{factures.length} factures</p>
+          <p className="text-xs text-encre-faine">{factures.length} factures</p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">TVA + taxe de séjour</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">TVA + taxe de séjour</p>
           <p className="mt-1 text-2xl font-semibold">
             {formaterEuros(tva + taxe)}
           </p>
-          <p className="text-xs text-stone-500">
+          <p className="text-xs text-encre-faine">
             TVA {formaterEuros(tva)} · taxe {formaterEuros(taxe)}
           </p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">TTC facturé</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">TTC facturé</p>
           <p className="mt-1 text-2xl font-semibold">{formaterEuros(ttc)}</p>
-          <p className="text-xs text-stone-500">hors CA réservations</p>
+          <p className="text-xs text-encre-faine">hors CA réservations</p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-stone-500">Encaissé</p>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Encaissé</p>
           <p className="mt-1 text-2xl font-semibold">
             {formaterEuros(encaisse)}
           </p>
-          <p className="text-xs text-stone-500">
+          <p className="text-xs text-encre-faine">
             {paiements.length} paiement{paiements.length > 1 ? "s" : ""}
           </p>
         </div>
       </section>
 
-      <section className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+      <section className="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-stone-200 bg-stone-50 text-left">
+            <tr className="border-b border-bordure bg-fond text-left">
               <th className="p-3 font-medium">Logement</th>
               <th className="p-3 text-right font-medium">Séjours</th>
               <th className="p-3 text-right font-medium">CA réservations</th>
@@ -204,10 +204,10 @@ export default async function PageCompta({
           </thead>
           <tbody>
             {parLogement.map((ligne) => (
-              <tr className="border-b border-stone-100" key={ligne.logement.id}>
+              <tr className="border-b border-bordure" key={ligne.logement.id}>
                 <td className="p-3">
                   {ligne.logement.nom}
-                  <span className="ml-2 text-xs text-stone-500">
+                  <span className="ml-2 text-xs text-encre-faine">
                     {ligne.logement.code}
                   </span>
                 </td>
@@ -228,14 +228,14 @@ export default async function PageCompta({
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Paiements du mois</h2>
         {paiements.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucun paiement encaissé sur ce mois.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-bordure bg-surface">
             <table className="w-full min-w-[640px] border-collapse text-sm">
               <thead>
-                <tr className="border-b border-stone-200 bg-stone-50 text-left">
+                <tr className="border-b border-bordure bg-fond text-left">
                   <th className="p-3 font-medium">Date</th>
                   <th className="p-3 font-medium">Facture</th>
                   <th className="p-3 font-medium">Mode</th>
@@ -248,7 +248,7 @@ export default async function PageCompta({
                   const facture = parFacture.get(paiement.factureId);
                   return (
                     <tr
-                      className="border-b border-stone-100"
+                      className="border-b border-bordure"
                       key={paiement.id}
                     >
                       <td className="p-3">{paiement.datePaiement}</td>

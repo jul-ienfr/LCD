@@ -2,6 +2,7 @@ export type CodeErreurMetier =
   | "CODE_INVALIDE"
   | "NOM_INVALIDE"
   | "LOGEMENT_DEJA_EXISTANT"
+  | "LOGEMENT_INTROUVABLE"
   | "TENANT_INVALIDE"
   | "NON_AUTORISE"
   | "DATE_INVALIDE"
@@ -24,7 +25,14 @@ export type CodeErreurMetier =
   | "FLUX_ICS_INVALIDE"
   | "WEBHOOK_INVALIDE"
   | "CAUTION_INVALIDE"
-  | "UTILISATEUR_INVALIDE";
+  | "UTILISATEUR_INVALIDE"
+  | "DESIGN_INVALIDE"
+  | "STOCK_INVALIDE"
+  | "INVENTAIRE_INVALIDE"
+  | "TOURISME_INVALIDE"
+  | "MEMOIRE_INVALIDE"
+  | "AVIS_INVALIDE"
+  | "TARIF_MANQUANT";
 
 /**
  * Erreur métier : porte un code stable, indépendant du framework HTTP.

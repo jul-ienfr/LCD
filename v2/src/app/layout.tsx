@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
+import { DesignSite } from "./design-site";
 import { PwaRegister } from "./pwa-register";
 
 export const metadata: Metadata = {
@@ -25,7 +27,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="fr">
-      <body className="min-h-dvh bg-stone-50 text-stone-900 antialiased">
+      <body className="min-h-dvh bg-fond text-encre antialiased">
+        <Suspense fallback={null}>
+          <DesignSite />
+        </Suspense>
         {children}
         <PwaRegister />
       </body>

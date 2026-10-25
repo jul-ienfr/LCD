@@ -40,7 +40,7 @@ export default function GlobalError({
             <p className="font-mono text-xs">Référence : {error.digest}</p>
           ) : null}
           <button
-            className="w-fit rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white"
+            className="w-fit rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond"
             onClick={reset}
             type="button"
           >

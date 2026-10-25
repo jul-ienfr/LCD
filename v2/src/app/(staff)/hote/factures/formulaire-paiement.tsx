@@ -40,21 +40,21 @@ export function FormulairePaiement({
         <label className="block space-y-1 text-sm font-medium">
           <span>Montant (€)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             inputMode="decimal"
             name="montantEuros"
             value={montant}
             onChange={(e) => setMontant(e.target.value)}
             required
           />
-          <span className="block text-xs font-normal text-stone-500">
+          <span className="block text-xs font-normal text-encre-faine">
             Reste à payer : {formaterEuros(resteCentimes)}
           </span>
         </label>
         <label className="block space-y-1 text-sm font-medium">
           <span>Date</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={dateDefaut}
             name="datePaiement"
             type="date"
@@ -64,7 +64,7 @@ export function FormulairePaiement({
         <label className="block space-y-1 text-sm font-medium">
           <span>Mode</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue="virement"
             name="mode"
           >
@@ -78,7 +78,7 @@ export function FormulairePaiement({
         <label className="block space-y-1 text-sm font-medium">
           <span>Référence (facultatif)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="reference"
             placeholder="VIR-2026-11"
           />
@@ -88,7 +88,7 @@ export function FormulairePaiement({
       <label className="block space-y-1 text-sm font-medium">
         <span>Notes (facultatif)</span>
         <textarea
-          className="min-h-16 w-full rounded-xl border border-stone-300 p-3 text-base"
+          className="min-h-16 w-full rounded-xl border border-bordure p-3 text-base"
           name="notes"
         />
       </label>
@@ -97,8 +97,8 @@ export function FormulairePaiement({
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -106,7 +106,7 @@ export function FormulairePaiement({
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

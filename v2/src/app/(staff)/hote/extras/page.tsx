@@ -45,13 +45,13 @@ export default async function PageExtras() {
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace hôte
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Extras voyageur
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             {extras.length} extra{extras.length > 1 ? "s" : ""} ·{" "}
             {commandes.length} commande{commandes.length > 1 ? "s" : ""}
           </p>
@@ -61,9 +61,9 @@ export default async function PageExtras() {
         </Link>
       </header>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Créer un extra</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-encre-douce">
           Un extra global est proposé à tous les logements ; un extra lié à un
           logement n’apparaît que pour ce logement.
         </p>
@@ -81,11 +81,11 @@ export default async function PageExtras() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Catalogue</h2>
         {extras.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucun extra au catalogue.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {extras.map((extra) => (
               <li
                 className="flex flex-wrap items-center justify-between gap-3 p-4"
@@ -94,14 +94,14 @@ export default async function PageExtras() {
                 <div>
                   <p className="font-medium">
                     {extra.nom}{" "}
-                    <span className="font-mono text-xs text-stone-500">
+                    <span className="font-mono text-xs text-encre-faine">
                       {extra.code}
                     </span>
                   </p>
-                  <p className="text-sm text-stone-600">
+                  <p className="text-sm text-encre-douce">
                     {extra.description ?? ""}
                   </p>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-encre-faine">
                     {extra.logementId
                       ? parLogement.get(extra.logementId)?.nom ??
                         extra.logementId
@@ -112,7 +112,7 @@ export default async function PageExtras() {
                   <p className="font-medium">
                     {formaterEuros(extra.prixCentimes)}
                   </p>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-encre-faine">
                     {extra.actif ? "actif" : "inactif"}
                   </p>
                 </div>
@@ -125,11 +125,11 @@ export default async function PageExtras() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Commandes</h2>
         {commandes.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+          <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
             Aucune commande pour le moment.
           </p>
         ) : (
-          <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
             {commandes.map((commande) => (
               <li className="p-4" key={commande.id}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -137,11 +137,11 @@ export default async function PageExtras() {
                     {parExtra.get(commande.extraId)?.nom ?? commande.extraId} ×{" "}
                     {commande.quantite}
                   </p>
-                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium">
+                  <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-medium">
                     {commande.statut}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-stone-600">
+                <p className="mt-1 text-sm text-encre-douce">
                   {commande.ref} ·{" "}
                   {parReservation.get(commande.reservationId)?.ref ??
                     commande.reservationId}{" "}
@@ -162,7 +162,7 @@ export default async function PageExtras() {
                           />
                           <input name="statut" type="hidden" value={statut} />
                           <button
-                            className="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium"
+                            className="rounded-full border border-bordure px-4 py-2 text-xs font-medium"
                             type="submit"
                           >
                             {LIBELLES[statut]}

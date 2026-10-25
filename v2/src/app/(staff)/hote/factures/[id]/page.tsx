@@ -81,14 +81,14 @@ export default async function PageFacture({
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <a
-            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+            className="rounded-full border border-bordure px-4 py-2 text-sm font-medium"
             download
             href={`/api/factures/${facture.id}/pdf`}
           >
             Télécharger le PDF
           </a>
           <a
-            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+            className="rounded-full border border-bordure px-4 py-2 text-sm font-medium"
             download
             href={`/api/factures/${facture.id}/factur-x`}
           >
@@ -104,7 +104,7 @@ export default async function PageFacture({
             <input name="factureId" type="hidden" value={facture.id} />
             <input name="statut" type="hidden" value={statut} />
             <button
-              className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+              className="rounded-full border border-bordure px-4 py-2 text-sm font-medium"
               type="submit"
             >
               {LIBELLES_STATUT[statut]}
@@ -113,22 +113,22 @@ export default async function PageFacture({
         ))}
       </div>
 
-      <article className="space-y-8 rounded-2xl border border-stone-200 bg-white p-8 shadow-sm print:rounded-none print:border-0 print:p-0 print:shadow-none">
-        <header className="flex flex-wrap items-start justify-between gap-6 border-b border-stone-200 pb-6">
+      <article className="space-y-8 rounded-2xl border border-bordure bg-surface p-8 shadow-sm print:rounded-none print:border-0 print:p-0 print:shadow-none">
+        <header className="flex flex-wrap items-start justify-between gap-6 border-b border-bordure pb-6">
           <div>
-            <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+            <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
               Facture
             </p>
             <h1 className="mt-1 font-mono text-2xl font-semibold">
               {facture.numero}
             </h1>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-encre-douce">
               Émise le {facture.dateEmission}
               {facture.echeance ? ` · échéance ${facture.echeance}` : ""}
             </p>
           </div>
-          <div className="text-right text-sm text-stone-600">
-            <p className="font-semibold text-stone-900">
+          <div className="text-right text-sm text-encre-douce">
+            <p className="font-semibold text-encre">
               {tenant?.nom ?? "LCD Parc"}
             </p>
             <p>Conciergerie locative</p>
@@ -143,16 +143,16 @@ export default async function PageFacture({
 
         <section className="grid gap-6 sm:grid-cols-2">
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-encre-faine">
               Client
             </h2>
             <p className="mt-1 font-medium">{facture.clientNom}</p>
             {facture.clientEmail ? (
-              <p className="text-sm text-stone-600">{facture.clientEmail}</p>
+              <p className="text-sm text-encre-douce">{facture.clientEmail}</p>
             ) : null}
           </div>
           <div className="sm:text-right">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-encre-faine">
               Statut
             </h2>
             <p className="mt-1 font-medium">{facture.statut}</p>
@@ -161,7 +161,7 @@ export default async function PageFacture({
 
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-stone-200 text-left">
+            <tr className="border-b border-bordure text-left">
               <th className="py-2 font-medium">Désignation</th>
               <th className="py-2 text-right font-medium">Qté</th>
               <th className="py-2 text-right font-medium">P.U.</th>
@@ -170,7 +170,7 @@ export default async function PageFacture({
           </thead>
           <tbody>
             {facture.lignes.map((ligne) => (
-              <tr className="border-b border-stone-100" key={ligne.id}>
+              <tr className="border-b border-bordure" key={ligne.id}>
                 <td className="py-2">{ligne.designation}</td>
                 <td className="py-2 text-right">{ligne.quantite}</td>
                 <td className="py-2 text-right">
@@ -186,25 +186,25 @@ export default async function PageFacture({
 
         <section className="ml-auto max-w-xs space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-stone-600">Total HT</span>
+            <span className="text-encre-douce">Total HT</span>
             <span>{formaterEuros(facture.montantHtCentimes)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-stone-600">TVA</span>
+            <span className="text-encre-douce">TVA</span>
             <span>{formaterEuros(facture.tvaCentimes)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-stone-600">Taxe de séjour</span>
+            <span className="text-encre-douce">Taxe de séjour</span>
             <span>{formaterEuros(facture.taxeSejourCentimes)}</span>
           </div>
-          <div className="flex justify-between border-t border-stone-200 pt-2 text-base font-semibold">
+          <div className="flex justify-between border-t border-bordure pt-2 text-base font-semibold">
             <span>Total TTC</span>
             <span>{formaterEuros(facture.montantTtcCentimes)}</span>
           </div>
           {paiements.length > 0 ? (
             <>
               <div className="flex justify-between pt-2">
-                <span className="text-stone-600">Déjà payé</span>
+                <span className="text-encre-douce">Déjà payé</span>
                 <span>{formaterEuros(totalPaye)}</span>
               </div>
               <div className="flex justify-between font-medium">
@@ -216,13 +216,13 @@ export default async function PageFacture({
         </section>
 
         {facture.notes ? (
-          <section className="border-t border-stone-200 pt-4 text-sm text-stone-600">
-            <h2 className="font-semibold text-stone-900">Notes</h2>
+          <section className="border-t border-bordure pt-4 text-sm text-encre-douce">
+            <h2 className="font-semibold text-encre">Notes</h2>
             <p className="mt-1 whitespace-pre-line">{facture.notes}</p>
           </section>
         ) : null}
 
-        <footer className="border-t border-stone-200 pt-4 text-xs text-stone-500">
+        <footer className="border-t border-bordure pt-4 text-xs text-encre-faine">
           <p>
             Document généré par LCD Parc. La taxe de séjour est suivie
             séparément du chiffre d’affaires.
@@ -239,11 +239,11 @@ export default async function PageFacture({
         </footer>
       </article>
 
-      <section className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm print:hidden">
+      <section className="space-y-4 rounded-2xl border border-bordure bg-surface p-6 shadow-sm print:hidden">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h2 className="text-lg font-semibold">Paiements</h2>
-            <p className="text-sm text-stone-600">
+            <p className="text-sm text-encre-douce">
               {totalPaye > 0
                 ? `${formaterEuros(totalPaye)} encaissés · ${formaterEuros(reste)} restants`
                 : "Aucun encaissement enregistré."}
@@ -252,7 +252,7 @@ export default async function PageFacture({
         </div>
 
         {paiements.length > 0 ? (
-          <ul className="divide-y divide-stone-100">
+          <ul className="divide-y divide-bordure">
             {paiements.map((paiement) => (
               <li
                 className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
@@ -263,13 +263,13 @@ export default async function PageFacture({
                     {LIBELLES_MODE_PAIEMENT[paiement.mode]} ·{" "}
                     {formaterEuros(paiement.montantCentimes)}
                   </p>
-                  <p className="text-stone-500">
+                  <p className="text-encre-faine">
                     {paiement.datePaiement}
                     {paiement.reference ? ` · ${paiement.reference}` : ""}
                     {paiement.notes ? ` · ${paiement.notes}` : ""}
                   </p>
                 </div>
-                <span className="font-mono text-xs text-stone-400">
+                <span className="font-mono text-xs text-encre-faine">
                   {paiement.ref}
                 </span>
               </li>
@@ -278,9 +278,9 @@ export default async function PageFacture({
         ) : null}
 
         {facture.statut === "emise" && reste > 0 ? (
-          <div className="border-t border-stone-200 pt-4">
+          <div className="border-t border-bordure pt-4">
             <h3 className="text-sm font-semibold">Encaisser un paiement</h3>
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-sm text-encre-douce">
               Le paiement est idempotent et la facture passe automatiquement
               en « payée » quand le solde est atteint.
             </p>
@@ -296,22 +296,22 @@ export default async function PageFacture({
         ) : null}
 
         {facture.statut === "brouillon" ? (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <p className="rounded-xl border border-alerte bg-alerte-douce p-3 text-sm text-alerte">
             Émettez la facture pour pouvoir enregistrer un paiement.
           </p>
         ) : null}
 
         {facture.statut === "payee" ? (
-          <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+          <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
             Facture soldée.
           </p>
         ) : null}
       </section>
 
-      <section className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm print:hidden">
+      <section className="space-y-4 rounded-2xl border border-bordure bg-surface p-6 shadow-sm print:hidden">
         <div>
           <h2 className="text-lg font-semibold">Partage client</h2>
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-encre-douce">
             Lien signé, valable 90 jours, consultable sans compte et sans
             JavaScript.
           </p>
@@ -322,14 +322,14 @@ export default async function PageFacture({
             <label className="block space-y-1 text-sm font-medium">
               <span>Lien de la facture</span>
               <input
-                className="w-full rounded-xl border border-stone-300 bg-stone-50 p-3 font-mono text-xs"
+                className="w-full rounded-xl border border-bordure bg-fond p-3 font-mono text-xs"
                 readOnly
                 value={lienClient}
               />
             </label>
             <div className="flex flex-wrap items-center gap-3">
               <a
-                className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+                className="rounded-full border border-bordure px-4 py-2 text-sm font-medium"
                 href={lienClient}
                 rel="noreferrer"
                 target="_blank"
@@ -337,7 +337,7 @@ export default async function PageFacture({
                 Ouvrir la facture client
               </a>
             </div>
-            <div className="border-t border-stone-200 pt-4">
+            <div className="border-t border-bordure pt-4">
               <h3 className="text-sm font-semibold">Envoyer par email</h3>
               <div className="mt-3">
                 <FormulaireEnvoiFacture
@@ -348,7 +348,7 @@ export default async function PageFacture({
             </div>
           </>
         ) : (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <p className="rounded-xl border border-alerte bg-alerte-douce p-3 text-sm text-alerte">
             Émettez la facture pour générer le lien client et l&apos;envoyer
             par email.
           </p>

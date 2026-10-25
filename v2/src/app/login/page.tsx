@@ -61,18 +61,18 @@ export default function PageLogin() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-6 py-16">
       <header className="space-y-2">
-        <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+        <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
           LCD Parc
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">Connexion staff</h1>
-        <p className="text-stone-600">
+        <p className="text-encre-douce">
           Espace hôte, admin et exploitation. La 2FA sera demandée après
           l’activation du compte.
         </p>
       </header>
 
       <noscript>
-        <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        <p className="rounded-xl border border-alerte bg-alerte-douce p-4 text-sm text-alerte">
           La connexion staff nécessite JavaScript. L’espace voyageur, lui,
           fonctionne sans JavaScript.
         </p>
@@ -82,7 +82,7 @@ export default function PageLogin() {
         <label className="block space-y-1 text-sm font-medium">
           <span>Email</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             type="email"
             autoComplete="email"
             value={email}
@@ -94,7 +94,7 @@ export default function PageLogin() {
         <label className="block space-y-1 text-sm font-medium">
           <span>Mot de passe</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             type="password"
             autoComplete="current-password"
             value={password}
@@ -104,13 +104,13 @@ export default function PageLogin() {
         </label>
 
         {erreur ? (
-          <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
             {erreur}
           </p>
         ) : null}
 
         <button
-          className="w-full rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+          className="w-full rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
           type="submit"
           disabled={enCours}
         >

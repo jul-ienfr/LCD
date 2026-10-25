@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0031` appliquées.
+- [ ] Migrations `0026` → `0038` appliquées.
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
 - [ ] `/api/health` → `200`, `/api/ready` → `200`, `db: up`, `schema: ok`.
@@ -58,6 +58,21 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] PWA installée, hors ligne, rejeu IndexedDB.
 - [ ] Facture : PDF, XML Factur-X, envoi email, paiement manuel, solde.
 - [ ] Caution : réception, restitution, retenue motivée.
+- [ ] Design : bascule des 4 thèmes, persistance après reconnexion, rendu
+  mobile et contraste réel sur écran.
+- [ ] Stocks : rotation de ménage, seuils, liste de courses, réassort,
+  historique des mouvements.
+- [ ] Inventaire : QR imprimé scanné sur place, usage + lavage, état,
+  alertes dormant/garantie/remplacement, coût par séjour.
+- [ ] Tourisme : lieu global et lieu par logement, filtre `?cat=`, lien extra,
+  désactivation, rendu sans JavaScript.
+- [ ] Réservation directe : catalogue tenant, devis complet, dates sans tarif
+  refusées, chevauchement refusé, email client enregistré, honeypot, lien
+  espace séjour, visibilité en brouillon côté planning.
+- [ ] Mémoire voyageur : opt-in, mise à jour, effacement, email absent de la
+  base (seulement le hash), expiration à 24 mois, purge cron.
+- [ ] Avis : dépôt voyageur sans JavaScript, un seul avis par séjour,
+  moyenne des avis publiés, masquage/publication côté hôte, isolation tenant.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -94,6 +109,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
   commande HA ou générique, Bearer token, timeout.
 - [ ] Cron `/api/cron/webhooks` avec `CRON_SECRET` ; sans secret → `401/503`.
 - [ ] Cron `/api/cron/sync-ota` avec `CRON_SECRET` ; flux réel.
+- [ ] Cron `/api/cron/memoire` avec `CRON_SECRET` ; sans secret → `401/503`,
+  purge réelle des entrées expirées.
 - [ ] GitHub Actions `v2-sync-ota` et `v2-webhooks` avec secrets configurés.
 - [ ] Test d’échec : URL webhook morte, retry/backoff, statut `failed`.
 - [ ] Connecteurs HA/Moli spécifiques : adaptateur HTTP générique/HA testé ;
@@ -136,8 +153,9 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **208/208**.
-- Playwright : **21/21**, y compris une passe complète avec `DATABASE_URL`
+- Vitest : **272/272**.
+- Playwright : **27/27** sur `next build` + `next start`, y compris une passe
+  complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/
   commercial, Mailpit et Caddy.
@@ -147,7 +165,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - Build Netlify et build Docker standalone.
 - Pile compose VPS : PostgreSQL 18, migrations `0031`, seed, web, Caddy HTTPS,
   headers, `/api/health`, `/api/ready`.
-- Sauvegarde + restauration complètes : 29 tables, comptes, logements,
+- Sauvegarde + restauration complètes : 36 tables, comptes, logements,
   réservations, factures, paiements, blocages.
 - 2FA TOTP de bout en bout.
 - Inscription publique fermée, tenant/rôle non modifiables, exports protégés.

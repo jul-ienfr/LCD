@@ -100,6 +100,11 @@ juridique + mandats, 320 px.
 | `/hote/cautions` | dépôts de garantie + retenues |
 | `/hote/compta` | CA, factures, TVA, taxe, paiements, exports |
 | `/hote/compta/parametres` | TVA, taxe de séjour, préfixe et mentions légales |
+| `/hote/avis` | avis voyageurs : moyenne, publication, masquage |
+| `/hote/design` | design du site : 4 thèmes et bascule |
+| `/hote/stocks` | seuils, réassort et liste de courses |
+| `/hote/inventaire` | inventaire durable : QR, usages, états, alertes |
+| `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |
 | `/hote/missions` | missions staff + assignation prestataire |
@@ -116,7 +121,8 @@ juridique + mandats, 320 px.
 | `/support` | tickets support (staff = tous, autres = les leurs) |
 | `/support/[id]` | fil de messages + réponses + statuts |
 | `/facture/[token]` | facture publique signée, sans compte |
-| `/voyageur?t=<token>` | séjour réel + incident (sans JS) |
+| `/reserver` | réservation directe (catalogue, devis, demande) |
+| `/voyageur?t=<token>` | séjour, guide, extras, mémoire, avis, incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
 | `/api/ready` | readiness (ping DB + tables/colonnes minimales) |
@@ -131,6 +137,7 @@ juridique + mandats, 320 px.
 | `/api/stripe/webhook` | webhook Stripe Checkout signé |
 | `/api/cron/sync-ota` | synchronisation cron des flux ICS (`CRON_SECRET`) |
 | `/api/cron/webhooks` | livraison cron des webhooks (`CRON_SECRET`) |
+| `/api/cron/memoire` | purge des préférences voyageur expirées (`CRON_SECRET`) |
 
 ## Partage client et email
 

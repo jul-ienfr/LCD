@@ -43,13 +43,13 @@ export default async function PagePresta() {
     <main className="mx-auto max-w-3xl space-y-8 px-6 py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
+          <p className="text-sm font-medium uppercase tracking-widest text-encre-faine">
             Espace prestataire
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
             Bonjour {session.user.name}
           </h1>
-          <p className="text-stone-600">
+          <p className="text-encre-douce">
             {missions.length} mission{missions.length > 1 ? "s" : ""} ·{" "}
             {session.user.email}
           </p>
@@ -63,32 +63,32 @@ export default async function PagePresta() {
       </header>
 
       {missions.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-stone-600">
+        <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
           Aucune mission assignée pour le moment.
         </p>
       ) : (
         <ul className="space-y-3">
           {missions.map((mission) => (
             <li
-              className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm"
               key={mission.id}
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-medium">
                   {mission.ref} — {mission.type}
                 </p>
-                <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">
+                <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-medium text-encre-douce">
                   {mission.statut}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-stone-600">
+              <p className="mt-1 text-sm text-encre-douce">
                 {mission.date}
                 {mission.heure ? ` ${mission.heure}` : ""} ·{" "}
                 {parLogement.get(mission.logementId)?.nom ??
                   mission.logementId}
               </p>
               {mission.notes ? (
-                <p className="mt-1 text-sm text-stone-500">{mission.notes}</p>
+                <p className="mt-1 text-sm text-encre-faine">{mission.notes}</p>
               ) : null}
 
               {TRANSITIONS_MISSION[mission.statut].length > 0 ? (
@@ -98,7 +98,7 @@ export default async function PagePresta() {
                       <input name="missionId" type="hidden" value={mission.id} />
                       <input name="statut" type="hidden" value={statut} />
                       <button
-                        className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+                        className="rounded-full border border-bordure px-4 py-2 text-sm font-medium"
                         type="submit"
                       >
                         {LIBELLES[statut]}

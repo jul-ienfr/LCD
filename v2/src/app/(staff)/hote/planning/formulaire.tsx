@@ -31,7 +31,7 @@ export function FormulaireReservation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Logement</span>
           <select
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={logementId}
             name="logementId"
             required
@@ -47,7 +47,7 @@ export function FormulaireReservation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Référence</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="ref"
             placeholder="resa-2026-001"
             required
@@ -57,7 +57,7 @@ export function FormulaireReservation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Client (facultatif)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             name="clientNom"
             placeholder="Nom du voyageur"
           />
@@ -66,7 +66,7 @@ export function FormulaireReservation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Voyageurs</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={2}
             max={20}
             min={1}
@@ -78,7 +78,7 @@ export function FormulaireReservation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Début</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={debutDefaut}
             name="debut"
             type="date"
@@ -89,7 +89,7 @@ export function FormulaireReservation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Fin (exclusive)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue={finDefaut}
             name="fin"
             type="date"
@@ -100,7 +100,7 @@ export function FormulaireReservation({
         <label className="block space-y-1 text-sm font-medium">
           <span>Montant (€)</span>
           <input
-            className="w-full rounded-xl border border-stone-300 p-3 text-base"
+            className="w-full rounded-xl border border-bordure p-3 text-base"
             defaultValue="0"
             inputMode="decimal"
             name="montantEuros"
@@ -112,8 +112,8 @@ export function FormulaireReservation({
         <p
           className={
             etat.ok
-              ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-              : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+              : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
           }
         >
           {etat.message}
@@ -121,7 +121,7 @@ export function FormulaireReservation({
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         type="submit"
         disabled={enCours}
       >

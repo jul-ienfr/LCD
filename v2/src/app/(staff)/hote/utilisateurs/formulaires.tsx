@@ -17,8 +17,8 @@ function MessageEtat({ etat }: { etat: EtatUtilisateur }) {
     <p
       className={
         etat.ok
-          ? "rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900"
-          : "rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+          ? "rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+          : "rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
       }
     >
       {etat.message}
@@ -45,8 +45,8 @@ export function FormulaireActivation({
       <button
         className={
           actif
-            ? "rounded-full border border-red-300 px-4 py-2 text-xs font-medium text-red-700 disabled:opacity-50"
-            : "rounded-full border border-emerald-300 px-4 py-2 text-xs font-medium text-emerald-800 disabled:opacity-50"
+            ? "rounded-full border border-danger px-4 py-2 text-xs font-medium text-danger disabled:opacity-50"
+            : "rounded-full border border-accent px-4 py-2 text-xs font-medium text-accent disabled:opacity-50"
         }
         disabled={enCours}
         type="submit"
@@ -72,11 +72,11 @@ export function FormulaireMotDePasse({ userId }: { userId: string }) {
     <form action={action} className="space-y-3">
       <input name="userId" type="hidden" value={userId} />
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block space-y-1 text-xs font-medium text-stone-600">
+        <label className="block space-y-1 text-xs font-medium text-encre-douce">
           <span>Nouveau mot de passe</span>
           <input
             autoComplete="new-password"
-            className="w-full rounded-lg border border-stone-300 p-2 text-sm"
+            className="w-full rounded-lg border border-bordure p-2 text-sm"
             maxLength={128}
             minLength={12}
             name="password"
@@ -84,11 +84,11 @@ export function FormulaireMotDePasse({ userId }: { userId: string }) {
             type="password"
           />
         </label>
-        <label className="block space-y-1 text-xs font-medium text-stone-600">
+        <label className="block space-y-1 text-xs font-medium text-encre-douce">
           <span>Confirmation</span>
           <input
             autoComplete="new-password"
-            className="w-full rounded-lg border border-stone-300 p-2 text-sm"
+            className="w-full rounded-lg border border-bordure p-2 text-sm"
             maxLength={128}
             minLength={12}
             name="confirmation"
@@ -98,7 +98,7 @@ export function FormulaireMotDePasse({ userId }: { userId: string }) {
         </label>
       </div>
       <button
-        className="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium disabled:opacity-50"
+        className="rounded-full border border-bordure px-4 py-2 text-xs font-medium disabled:opacity-50"
         disabled={enCours}
         type="submit"
       >
@@ -124,10 +124,10 @@ export function FormulaireRole({
   return (
     <form action={action} className="space-y-3">
       <input name="userId" type="hidden" value={userId} />
-      <label className="block space-y-1 text-xs font-medium text-stone-600">
+      <label className="block space-y-1 text-xs font-medium text-encre-douce">
         <span>Rôle</span>
         <select
-          className="w-full rounded-lg border border-stone-300 p-2 text-sm"
+          className="w-full rounded-lg border border-bordure p-2 text-sm"
           defaultValue={roleActuel}
           key={roleActuel}
           name="role"
@@ -141,7 +141,7 @@ export function FormulaireRole({
         </select>
       </label>
       <button
-        className="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium disabled:opacity-50"
+        className="rounded-full border border-bordure px-4 py-2 text-xs font-medium disabled:opacity-50"
         disabled={enCours}
         type="submit"
       >

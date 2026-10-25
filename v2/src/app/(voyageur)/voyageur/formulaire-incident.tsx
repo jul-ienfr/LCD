@@ -128,7 +128,7 @@ export function FormulaireIncident({
         {traductions.queSestIlPasse}
       </label>
       <textarea
-        className="min-h-32 w-full rounded-xl border border-stone-300 p-3 text-base"
+        className="min-h-32 w-full rounded-xl border border-bordure p-3 text-base"
         id="message"
         name="message"
         onChange={(e) => setMessage(e.target.value)}
@@ -138,13 +138,13 @@ export function FormulaireIncident({
       />
 
       {erreur ? (
-        <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+        <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
           {erreur}
         </p>
       ) : null}
 
       {statut === "queued" ? (
-        <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <p className="rounded-xl border border-alerte bg-alerte-douce p-3 text-sm text-alerte">
           {traductions.horsLigne}
           {enAttente > 0
             ? ` ${traductions.enAttente.replace("{n}", String(enAttente))}`
@@ -153,13 +153,13 @@ export function FormulaireIncident({
       ) : null}
 
       {statut === "sent" ? (
-        <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
           {traductions.signalementEnvoye}
         </p>
       ) : null}
 
       <button
-        className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond disabled:opacity-50"
         disabled={statut === "sending"}
         type="submit"
       >
