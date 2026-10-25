@@ -1,5 +1,6 @@
 import { config } from "dotenv";
 import { eq } from "drizzle-orm";
+import type { RoleUtilisateur } from "../src/domain/utilisateur";
 
 // Charge .env.local (gitignoré) avant d'importer la config DB/auth.
 config({ path: ".env.local", quiet: true });
@@ -7,7 +8,9 @@ config({ path: ".env.local", quiet: true });
 async function main() {
   const { db, sql } = await import("../src/infrastructure/db/client");
   const { tenants, users } = await import("../src/infrastructure/db/schema");
-  const { auth } = await import("../src/lib/auth");
+  const { DrizzleUserRepository } = await import(
+    "../src/infrastructure/db/repositories/user-repository"
+  );
 
   const email = process.env.SEED_ADMIN_EMAIL;
   const password = process.env.SEED_ADMIN_PASSWORD;
@@ -38,12 +41,13 @@ async function main() {
 
   if (!tenant) throw new Error("Tenant introuvable après création.");
   const tenantId = tenant.id;
+  const depotUtilisateurs = new DrizzleUserRepository();
 
   async function creerUtilisateur(
     utilisateurEmail: string,
     utilisateurPassword: string,
     nom: string,
-    role: string,
+    role: RoleUtilisateur,
   ) {
     const existant = (
       await db
@@ -58,18 +62,15 @@ async function main() {
       return;
     }
 
-    await auth.api.signUpEmail({
-      body: {
-        email: utilisateurEmail,
-        password: utilisateurPassword,
-        name: nom,
-        tenantId,
-      },
+    // Inscription publique désactivée : le seed passe par le même dépôt que
+    // la page admin, sans créer de session.
+    await depotUtilisateurs.creer({
+      tenantId,
+      name: nom,
+      email: utilisateurEmail,
+      role,
+      password: utilisateurPassword,
     });
-    await db
-      .update(users)
-      .set({ role })
-      .where(eq(users.email, utilisateurEmail));
     console.log(`utilisateur créé : ${utilisateurEmail} (${role})`);
   }
 

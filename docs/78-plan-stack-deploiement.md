@@ -857,7 +857,8 @@ et ne remplace pas v1.
 - **gestion des utilisateurs** : page `/hote/utilisateurs` réservée aux admins,
   création email/password avec rôle, réinitialisation (sessions fermées),
   désactivation immédiate (sessions supprimées + connexion refusée), garde-fous
-  dernier admin / propre compte, audit ;
+  dernier admin / propre compte, audit ; **inscription publique désactivée**,
+  `tenantId` et `role` non modifiables par le client ;
 - **guide/check-in + extras voyageur** : WiFi, consignes, règles, urgence,
   catalogue d’extras, commande idempotente, suivi staff ;
 - **import OTA/ICS** : parseur iCal pur, réservations confirmées, blocages
@@ -875,7 +876,7 @@ et ne remplace pas v1.
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
 - tests Vitest : **179/179** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **17/17** (login + logement ; prix + planning + anti-chevauchement ;
+- Playwright : **19/19** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
   compta + CSV ; import ICS + blocages + idempotence + conflit ; webhook
@@ -884,7 +885,8 @@ et ne remplace pas v1.
   relevé + isolation ; CRM prospect + pipeline + offre ; support ticket +
   réponse + résolution ; guide + extra commandé ; utilisateurs (création,
   connexion, réinitialisation, désactivation) ; 2FA TOTP (activation,
-  connexion en deux étapes, désactivation) ; 320 px) ;
+  connexion en deux étapes, désactivation) ; inscription publique refusée ;
+  tenant/rôle non modifiables ; 320 px) ;
 - parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
   login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,

@@ -40,6 +40,9 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    // Les comptes sont créés par un admin depuis /hote/utilisateurs.
+    // L'endpoint public Better Auth /sign-up/email reste fermé.
+    disableSignUp: true,
   },
   user: {
     modelName: "users",
@@ -47,7 +50,9 @@ export const auth = betterAuth({
       tenantId: {
         type: "string",
         required: true,
-        input: true,
+        // Jamais modifiable par le client : le tenant vient de la session et
+        // les comptes sont créés directement par l'admin/le seed.
+        input: false,
       },
       role: {
         type: "string",

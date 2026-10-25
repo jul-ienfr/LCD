@@ -68,7 +68,8 @@ JavaScript** + idempotence + outbox + i18n FR/EN, missions staff → prestataire
 propriétaire rattaché + commission + relevé + isolation, CRM prospect +
 pipeline + offre, support ticket + réponse + résolution, guide + extra
 commandé, comptes utilisateurs (création, connexion, réinitialisation,
-désactivation), 2FA TOTP (activation, connexion, désactivation), 320 px.
+désactivation), 2FA TOTP (activation, connexion, désactivation), inscription
+publique refusée, tenant/rôle non modifiables, 320 px.
 
 ## Pages
 
@@ -343,6 +344,11 @@ après les premiers clients ou si le LCP mobile se dégrade.
 ## Auth
 
 - **Better Auth 1.7.12**, email/password, TOTP actif.
+- **Inscription publique fermée** (`disableSignUp`) : aucun compte ne peut être
+  créé via `/api/auth/sign-up/email` ; les comptes naissent dans
+  `/hote/utilisateurs` ou via le seed.
+- `tenantId` et `role` sont en `input: false` : `/api/auth/update-user` les
+  refuse (`FIELD_NOT_ALLOWED`), isolation multi-tenant préservée.
 - Routes : `/login`, `/two-factor`, `/hote/securite`, `/api/auth/[...all]`.
 - Enrôlement TOTP : `/hote/securite` (QR code + codes de secours).
 - Vérification à la connexion : `/two-factor`.
