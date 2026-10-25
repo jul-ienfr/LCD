@@ -28,7 +28,7 @@ export default async function PageSecurite({
     <main className="mx-auto max-w-2xl space-y-8 px-6 py-12">
       <header className="space-y-2">
         <p className="text-sm font-medium uppercase tracking-widest text-stone-500">
-          Espace hôte
+          Mon compte
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">Sécurité</h1>
         <p className="text-stone-600">
