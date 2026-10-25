@@ -238,6 +238,15 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
 - pages d'erreur `error.tsx` et `global-error.tsx`.
 - à brancher : Sentry, Uptime Kuma, alertes.
 
+## Sauvegardes
+
+- `npm run db:backup` : dump gzip + checksum SHA-256, rétention 14 jours ;
+- `npm run db:restore-test` : restauration dans une base jetable + contrôle
+  des comptes tenants/users/logements/réservations/factures/paiements/blocages ;
+- workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
+  (artefact privé 30 jours) ; secret `DATABASE_URL` à configurer ;
+- procédure, variables et drill mensuel : `v2/BACKUPS.md`.
+
 ## Auth
 
 - **Better Auth 1.7.12**, email/password, TOTP actif.

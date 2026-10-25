@@ -842,7 +842,10 @@ et ne remplace pas v1.
   conflits, page `/hote/planning/import` ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
 - **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
-- **logs JSON** + pages d'erreur brandées ;
+- **backups** : `npm run db:backup` (dump gzip + SHA-256, rétention 14 j),
+  `npm run db:restore-test` (restauration dans une base jetable + comptes),
+  workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
+  (artefact privé 30 j, secret `DATABASE_URL` à configurer) ;
 - tests Vitest : **103/103** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **13/13** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
@@ -865,7 +868,8 @@ et ne remplace pas v1.
   sur le plan Free (`BETTER_AUTH_SECRET`, `DATABASE_URL` lisibles par
   l'équipe), base en `us-east-2` (latence UE), email désactivé
   (`EMAIL_ENABLED=false`) tant qu'aucun SMTP de production n'est branché,
-  Sentry/Uptime/backups encore absents ;
+  Sentry/Uptime encore absents, backup quotidien GitHub à activer avec le
+  secret `DATABASE_URL` ;
 - **migrations distantes** : schéma initial appliqué au bootstrap, table
   `drizzle.__drizzle_migrations` marquée jusqu'à `0023` ; les migrations
   suivantes se lancent avec `DATABASE_URL` (owner) récupéré depuis Netlify ;
@@ -980,7 +984,8 @@ et ne remplace pas v1.
 - [ ] Portail voyageur complet.
 - [x] Health/readiness + logs structurés.
 - [ ] Sentry + Uptime Kuma + alertes.
-- [ ] Backups + restore testé.
+- [x] Scripts backup + restore testé en local.
+- [ ] Backup offsite quotidien (secret GitHub `DATABASE_URL`).
 - [ ] Décision G1/G2 (Astro/Laravel) sur données réelles.
 - [ ] Cutover log1 + pilote 7 jours.
 - [ ] Bascule log2/log3 + fallback 30 jours.
@@ -990,7 +995,8 @@ et ne remplace pas v1.
 
 - [ ] Archivage v1 + export complet.
 - [ ] v2 seul en production sur les 3 logements.
-- [ ] Backups + restore testés.
+- [x] Scripts backups + restore testé en local.
+- [ ] Backup offsite quotidien activé (secret GitHub).
 - [ ] Premiers clients payants onboardés sur v2.
 
 ---

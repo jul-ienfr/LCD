@@ -21,6 +21,9 @@ installable, sans payer au démarrage.
 - **Sécurité** : le token Netlify utilisé pour ce bootstrap doit être
   révoqué/rotaté ; le mot de passe admin a été changé via
   `/hote/securite` et doit rester privé.
+- **Sauvegardes** : `npm run db:backup` + `npm run db:restore-test` ;
+  workflow quotidien `.github/workflows/v2-backup.yml` à activer avec le
+  secret `DATABASE_URL` (voir `v2/BACKUPS.md`).
 
 La suite du document décrit la procédure cible (Neon/Supabase ou Netlify
 Database) et reste valable pour une installation neuve.

@@ -1,0 +1,43 @@
+name: v2-backup
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v2
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifier le secret
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::Le secret DATABASE_URL n'est pas configuré."
+            exit 1
+          fi
+
+      - name: Dump PostgreSQL
+        run: |
+          mkdir -p backups
+          docker run --rm \
+            -e DATABASE_URL \
+            -v "$PWD/backups:/backups" \
+            postgres:18-alpine \
+            sh -c 'pg_dump "$DATABASE_URL" --no-owner --no-privileges | gzip -9 > "/backups/lcd-$(date -u +%Y%m%d-%H%M%S).sql.gz"'
+          sha256sum backups/*.sql.gz > backups/SHA256SUMS
+
+      - name: Publier l'artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcd-backup-${{ github.run_id }}
+          path: |
+            v2/backups/*.sql.gz
+            v2/backups/SHA256SUMS
+          retention-days: 30

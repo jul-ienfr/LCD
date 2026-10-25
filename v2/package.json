@@ -20,7 +20,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:backup": "node scripts/backup.mjs",
+    "db:restore-test": "node scripts/restore-test.mjs"
   },
   "dependencies": {
     "@netlify/database": "^2.0.1",
