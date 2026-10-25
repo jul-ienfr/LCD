@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { moyenneAvis, type Avis } from "@/domain/avis";
 import { ErreurMetier } from "@/domain/erreurs";
 import { sejourValide } from "@/domain/planning";
 import {
@@ -7,6 +8,7 @@ import {
   referenceDirecte,
   type DevisDirect,
 } from "@/domain/reservation-directe";
+import { DrizzleAvisRepository } from "@/infrastructure/db/repositories/avis-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { DrizzleTarifRepository } from "@/infrastructure/db/repositories/tarif-repository";
@@ -55,6 +57,19 @@ export default async function PageReserver({
     await new DrizzleLogementRepository().listerParTenant(tenant.id)
   ).filter((logement) => logement.statut === "actif");
   const logement = logements.find((l) => l.id === params.logement);
+
+  const avisPublies = (
+    await new DrizzleAvisRepository().listerParTenant(tenant.id)
+  ).filter((avis) => avis.statut === "publie");
+  const avisParLogement = new Map<string, Avis[]>();
+  for (const avis of avisPublies) {
+    const liste = avisParLogement.get(avis.logementId) ?? [];
+    liste.push(avis);
+    avisParLogement.set(avis.logementId, liste);
+  }
+  const avisDuLogement = logement
+    ? (avisParLogement.get(logement.id) ?? [])
+    : [];
 
   const voyageurs = Math.min(
     20,
@@ -178,23 +193,37 @@ export default async function PageReserver({
             </p>
           ) : (
             <ul className="grid gap-4 sm:grid-cols-2">
-              {logements.map((l) => (
-                <li
-                  className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm"
-                  key={l.id}
-                >
-                  <h3 className="text-lg font-semibold">{l.nom}</h3>
-                  {l.adresse ? (
-                    <p className="mt-1 text-sm text-encre-douce">{l.adresse}</p>
-                  ) : null}
-                  <Link
-                    className="mt-4 inline-block rounded-full border border-bordure px-4 py-2 text-sm font-medium"
-                    href={`/reserver?tenant=${encodeURIComponent(slug)}&logement=${l.id}`}
+              {logements.map((l) => {
+                const avisLogement = avisParLogement.get(l.id) ?? [];
+                const moyenne = moyenneAvis(
+                  avisLogement.map((avis) => avis.note),
+                );
+                return (
+                  <li
+                    className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm"
+                    key={l.id}
                   >
-                    Voir les disponibilités
-                  </Link>
-                </li>
-              ))}
+                    <h3 className="text-lg font-semibold">{l.nom}</h3>
+                    {l.adresse ? (
+                      <p className="mt-1 text-sm text-encre-douce">
+                        {l.adresse}
+                      </p>
+                    ) : null}
+                    {moyenne !== null ? (
+                      <p className="mt-2 text-sm">
+                        <span className="text-accent">★</span> {moyenne}/5 ·{" "}
+                        {avisLogement.length} avis
+                      </p>
+                    ) : null}
+                    <Link
+                      className="mt-4 inline-block rounded-full border border-bordure px-4 py-2 text-sm font-medium"
+                      href={`/reserver?tenant=${encodeURIComponent(slug)}&logement=${l.id}`}
+                    >
+                      Voir les disponibilités
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
@@ -351,6 +380,42 @@ export default async function PageReserver({
             Un doute sur les dates ou le tarif ? Contactez directement l’hôte
             avant d’envoyer la demande.
           </p>
+
+          {avisDuLogement.length > 0 ? (
+            <section className="space-y-4" id="avis">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-lg font-semibold">Avis voyageurs</h2>
+                <p className="text-sm text-encre-douce">
+                  {moyenneAvis(avisDuLogement.map((avis) => avis.note))}/5 ·{" "}
+                  {avisDuLogement.length} avis
+                </p>
+              </div>
+              <ul className="space-y-3">
+                {avisDuLogement.slice(0, 5).map((avis) => (
+                  <li
+                    className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm"
+                    key={avis.id}
+                  >
+                    <p className="font-medium">{avis.nom}</p>
+                    <p className="text-sm">
+                      {"★".repeat(avis.note)}
+                      <span className="text-encre-faine">
+                        {"★".repeat(5 - avis.note)}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-xs text-encre-faine">
+                      {avis.createdAt.toISOString().slice(0, 10)}
+                    </p>
+                    {avis.commentaire ? (
+                      <p className="mt-2 whitespace-pre-line text-sm text-encre-douce">
+                        {avis.commentaire}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </>
       )}
 

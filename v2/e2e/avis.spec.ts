@@ -70,6 +70,20 @@ test("avis : dépôt voyageur sans JS, unicité et modération hôte", async ({
     voyageur.getByText("Vous avez déjà laissé un avis pour ce séjour."),
   ).toBeVisible();
   await expect(voyageur.getByText(commentaire)).toBeVisible();
+
+  await voyageur.goto("/reserver?tenant=lcd");
+  const carte = voyageur
+    .locator("li")
+    .filter({ hasText: nomLogement })
+    .first();
+  await expect(carte).toContainText("4/5 · 1 avis");
+  await carte.getByRole("link", { name: "Voir les disponibilités" }).click();
+  await expect(
+    voyageur.getByRole("heading", { name: "Avis voyageurs" }),
+  ).toBeVisible();
+  await expect(voyageur.getByText(nomVoyageur).first()).toBeVisible();
+  await expect(voyageur.getByText(commentaire)).toBeVisible();
+  const urlDetail = voyageur.url();
   await noJs.close();
 
   await page.goto("/hote/avis");
@@ -88,5 +102,21 @@ test("avis : dépôt voyageur sans JS, unicité et modération hôte", async ({
     .locator("li")
     .filter({ hasText: nomVoyageur })
     .first();
+  await expect(
+    ligneMasquee.getByRole("button", { name: "Publier" }),
+  ).toBeVisible();
   await expect(ligneMasquee).toContainText("Masqué");
+
+  await page.goto("/reserver?tenant=lcd");
+  const carteMasquee = page
+    .locator("li")
+    .filter({ hasText: nomLogement })
+    .first();
+  await expect(carteMasquee).not.toContainText("4/5 · 1 avis");
+
+  await page.goto(urlDetail);
+  await expect(
+    page.getByRole("heading", { name: "Avis voyageurs" }),
+  ).toHaveCount(0);
+  await expect(page.getByText(commentaire)).toHaveCount(0);
 });
