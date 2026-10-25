@@ -117,16 +117,15 @@ Copier régulièrement ce dossier hors du VPS (rsync, R2, autre serveur).
 Restauration de contrôle :
 
 ```bash
-set -a; . ./.env.prod; set +a
 docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
-  createdb -U "$POSTGRES_USER" lcd_restore_test
+  sh -c 'createdb -U "$POSTGRES_USER" lcd_restore_test'
 gunzip -c backups/lcd-AAAA.sql.gz | \
   docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
-  psql -U "$POSTGRES_USER" -d lcd_restore_test -v ON_ERROR_STOP=1
+  sh -c 'psql -U "$POSTGRES_USER" -d lcd_restore_test -v ON_ERROR_STOP=1'
 docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
-  psql -U "$POSTGRES_USER" -d lcd_restore_test -c "select count(*) from tenants;"
+  sh -c 'psql -U "$POSTGRES_USER" -d lcd_restore_test -c "select count(*) from tenants;"'
 docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
-  dropdb -U "$POSTGRES_USER" lcd_restore_test
+  sh -c 'dropdb -U "$POSTGRES_USER" lcd_restore_test'
 ```
 
 ## 8. Mise à jour

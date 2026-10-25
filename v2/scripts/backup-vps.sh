@@ -11,18 +11,13 @@ if [ ! -f .env.prod ]; then
   exit 1
 fi
 
-set -a
-# shellcheck disable=SC1091
-. ./.env.prod
-set +a
-
 mkdir -p backups
 horodatage="$(date -u +%Y%m%d-%H%M%S)"
 fichier="backups/lcd-${horodatage}.sql.gz"
 
 docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
-  pg_dump -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" \
-  --no-owner --no-privileges | gzip -9 > "${fichier}"
+  sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner --no-privileges' \
+  | gzip -9 > "${fichier}"
 
 sha256sum "${fichier}" > "${fichier}.sha256"
 
