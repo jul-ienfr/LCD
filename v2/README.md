@@ -110,6 +110,7 @@ juridique + mandats, 320 px.
 | `/hote/questionnaires` | satisfaction voyageur : moyennes par critère |
 | `/hote/phrases` | messages types : arrivée, départ, urgence, variables |
 | `/hote/formation` | parcours de formation : 4 modules, progression par membre |
+| `/hote/objets-trouves` | registre par logement : réclamation 15 €, envoi, don après 30 j |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |

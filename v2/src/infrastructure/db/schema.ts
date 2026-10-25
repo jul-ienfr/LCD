@@ -1051,6 +1051,46 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
+export const objetsTrouves = pgTable(
+  "objets_trouves",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    ref: text("ref").notNull(),
+    description: text("description").notNull(),
+    lieu: text("lieu").notNull(),
+    trouveLe: date("trouve_le").notNull(),
+    statut: text("statut").notNull().default("trouve"),
+    voyageurNom: text("voyageur_nom"),
+    contact: text("contact"),
+    fraisCentimes: integer("frais_centimes").notNull().default(0),
+    envoyeLe: date("envoye_le"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("objets_trouves_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("objets_trouves_tenant_logement_statut_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.statut,
+    ),
+  ],
+);
+
 export const formationsProgressions = pgTable(
   "formations_progressions",
   {
@@ -1329,6 +1369,8 @@ export type ProgressionFormationRow =
   typeof formationsProgressions.$inferSelect;
 export type NewProgressionFormationRow =
   typeof formationsProgressions.$inferInsert;
+export type ObjetTrouveRow = typeof objetsTrouves.$inferSelect;
+export type NewObjetTrouveRow = typeof objetsTrouves.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;
