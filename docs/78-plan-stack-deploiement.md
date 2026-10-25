@@ -874,7 +874,7 @@ et ne remplace pas v1.
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
 - tests Vitest : **176/176** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **16/16** (login + logement ; prix + planning + anti-chevauchement ;
+- Playwright : **17/17** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
   compta + CSV ; import ICS + blocages + idempotence + conflit ; webhook
@@ -882,9 +882,10 @@ et ne remplace pas v1.
   outbox ; missions staff → prestataire ; propriétaire rattaché + commission +
   relevé + isolation ; CRM prospect + pipeline + offre ; support ticket +
   réponse + résolution ; guide + extra commandé ; utilisateurs (création,
-  connexion, réinitialisation, désactivation) ; 320 px) ;
-- parcours 2FA vérifié manuellement : activation, déconnexion, login avec
-  code TOTP, désactivation ;
+  connexion, réinitialisation, désactivation) ; 2FA TOTP (activation,
+  connexion en deux étapes, désactivation) ; 320 px) ;
+- parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
+  login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
   cache-first assets, network-first pages, API/auth/staff jamais cachés ;
 - mesure JS `/voyageur` : **178,8 Ko gzip** — décision G1 : plancher Next
@@ -912,7 +913,6 @@ et ne remplace pas v1.
 
 **Reste à faire :**
 
-- test E2E 2FA avec un utilisateur de test isolé (le parcours manuel passe) ;
 - policies RLS avec un rôle applicatif non propriétaire ;
 - débloquer les crédits Netlify ou déployer sur le VPS préparé
   (`v2/DEPLOIEMENT-VPS.md`) puis appliquer `0026`-`0030` et déployer les

@@ -68,7 +68,7 @@ JavaScript** + idempotence + outbox + i18n FR/EN, missions staff → prestataire
 propriétaire rattaché + commission + relevé + isolation, CRM prospect +
 pipeline + offre, support ticket + réponse + résolution, guide + extra
 commandé, comptes utilisateurs (création, connexion, réinitialisation,
-désactivation), 320 px.
+désactivation), 2FA TOTP (activation, connexion, désactivation), 320 px.
 
 ## Pages
 
