@@ -8,7 +8,7 @@ import { nuitsSejour } from "@/domain/planning";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
-import { requireSession } from "@/lib/session";
+import { requireRole } from "@/lib/session";
 import { BoutonDeconnexion } from "@/components/bouton-deconnexion";
 
 // Route staff bloquante : session + DB avant rendu.
@@ -23,7 +23,7 @@ function nomLogement(
 
 export default async function PageHote() {
   await connection();
-  const session = await requireSession();
+  const session = await requireRole(["admin", "hote", "comptable"]);
 
   const logements = await new DrizzleLogementRepository().listerParTenant(
     session.user.tenantId ?? "",

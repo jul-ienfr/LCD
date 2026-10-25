@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@lcd.test";
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe-2026!";
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const PRESTA_EMAIL = process.env.SEED_PRESTA_EMAIL ?? "presta@lcd.test";
+const PRESTA_PASSWORD =
+  process.env.SEED_PRESTA_PASSWORD ?? "ChangeMe-2026!";
 
 test("inscription publique désactivée : seuls les admins créent des comptes", async ({
   request,
@@ -50,5 +53,38 @@ test("le tenant et le rôle ne sont pas modifiables par le client", async ({
   });
   expect(modificationRole.status()).toBe(400);
   expect(await modificationRole.text()).toMatch(/role is not allowed to be set/i);
+});
+
+test("prestataire : tableau de bord hôte refusé, sécurité personnelle accessible", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  await page.fill('input[type="email"]', PRESTA_EMAIL);
+  await page.fill('input[type="password"]', PRESTA_PASSWORD);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page).toHaveURL(/\/presta$/);
+
+  await page.goto("/hote");
+  await expect(page).toHaveURL(/\/login\?erreur=acces$/);
+
+  await page.goto("/hote/securite");
+  await expect(page.getByRole("heading", { name: "Sécurité" })).toBeVisible();
+  await expect(page.getByText("Authentification à deux facteurs")).toBeVisible();
+});
+
+test("prestataire : exports comptables refusés", async ({ request }) => {
+  const connexion = await request.post("/api/auth/sign-in/email", {
+    data: { email: PRESTA_EMAIL, password: PRESTA_PASSWORD },
+  });
+  expect(connexion.ok()).toBe(true);
+
+  for (const url of [
+    "/api/exports/reservations",
+    "/api/exports/factures",
+    "/api/exports/paiements",
+  ]) {
+    const reponse = await request.get(url);
+    expect(reponse.status(), url).toBe(403);
+  }
 });
 

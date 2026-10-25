@@ -54,7 +54,12 @@ export default async function PagePresta() {
             {session.user.email}
           </p>
         </div>
-        <BoutonDeconnexion />
+        <div className="flex flex-wrap items-center gap-3">
+          <Link className="text-sm underline" href="/hote/securite">
+            Sécurité / 2FA
+          </Link>
+          <BoutonDeconnexion />
+        </div>
       </header>
 
       {missions.length === 0 ? (

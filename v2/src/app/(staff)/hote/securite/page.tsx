@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { requireRole } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 import { Formulaire2FA } from "./formulaire-2fa";
 import { FormulaireMotDePasse } from "./formulaire-mot-de-passe";
 
@@ -12,8 +12,17 @@ export default async function PageSecurite({
   searchParams: Promise<{ motdepasse?: string }>;
 }) {
   await connection();
-  const session = await requireRole(["admin", "hote"]);
+  // Chaque compte gère sa propre sécurité, quel que soit son rôle.
+  const session = await requireSession();
   const params = await searchParams;
+  const retour =
+    session.user.role === "presta"
+      ? "/presta"
+      : session.user.role === "proprietaire"
+        ? "/proprio"
+        : session.user.role === "commercial"
+          ? "/commercial"
+          : "/hote";
 
   return (
     <main className="mx-auto max-w-2xl space-y-8 px-6 py-12">
@@ -54,8 +63,8 @@ export default async function PageSecurite({
         </div>
       </section>
 
-      <Link className="text-sm underline" href="/hote">
-        Retour au tableau de bord
+      <Link className="text-sm underline" href={retour}>
+        Retour à mon espace
       </Link>
     </main>
   );

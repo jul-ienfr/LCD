@@ -59,7 +59,12 @@ export default async function PageProprietaire({
             votre gestionnaire.
           </p>
         </header>
-        <BoutonDeconnexion />
+        <div className="flex flex-wrap items-center gap-3">
+          <Link className="text-sm underline" href="/hote/securite">
+            Sécurité / 2FA
+          </Link>
+          <BoutonDeconnexion />
+        </div>
       </main>
     );
   }
@@ -148,7 +153,12 @@ export default async function PageProprietaire({
             {session.user.name}
           </p>
         </div>
-        <BoutonDeconnexion />
+        <div className="flex flex-wrap items-center gap-3">
+          <Link className="text-sm underline" href="/hote/securite">
+            Sécurité / 2FA
+          </Link>
+          <BoutonDeconnexion />
+        </div>
       </header>
 
       <div className="flex flex-wrap items-center gap-3">

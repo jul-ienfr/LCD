@@ -48,7 +48,10 @@ export default async function PageCommercial() {
             {offres.length} offre{offres.length > 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link className="text-sm underline" href="/hote/securite">
+            Sécurité / 2FA
+          </Link>
           <BoutonDeconnexion />
           {session.user.role !== "commercial" ? (
             <Link className="text-sm underline" href="/hote">

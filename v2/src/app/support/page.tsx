@@ -34,7 +34,12 @@ export default async function PageSupport() {
             {session.user.email}
           </p>
         </div>
-        <BoutonDeconnexion />
+        <div className="flex flex-wrap items-center gap-3">
+          <Link className="text-sm underline" href="/hote/securite">
+            Sécurité / 2FA
+          </Link>
+          <BoutonDeconnexion />
+        </div>
       </header>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">

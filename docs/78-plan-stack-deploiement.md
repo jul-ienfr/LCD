@@ -816,8 +816,8 @@ et ne remplace pas v1.
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
 - **compta légère** : factures, lignes, TVA, taxe de séjour, totaux HT/TTC,
   cycle brouillon → émise → payée (ou annulée), impression/PDF navigateur,
-  exports CSV réservations/factures/paiements, cellules assainies contre les
-  formules Excel ;
+  exports CSV réservations/factures/paiements (admin/hote/comptable),
+  cellules assainies contre les formules Excel ;
 - **paiements manuels** : virement, espèces, chèque, CB, autre ; montants en
   centimes, idempotence par `ref`, refus du surpaiement, passage automatique
   en « payée » quand le solde est atteint, export CSV ;
@@ -876,7 +876,7 @@ et ne remplace pas v1.
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
 - tests Vitest : **179/179** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **19/19** (login + logement ; prix + planning + anti-chevauchement ;
+- Playwright : **21/21** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
   compta + CSV ; import ICS + blocages + idempotence + conflit ; webhook
@@ -886,7 +886,8 @@ et ne remplace pas v1.
   réponse + résolution ; guide + extra commandé ; utilisateurs (création,
   connexion, réinitialisation, désactivation) ; 2FA TOTP (activation,
   connexion en deux étapes, désactivation) ; inscription publique refusée ;
-  tenant/rôle non modifiables ; 320 px) ;
+  tenant/rôle non modifiables ; tableau de bord hôte refusé à un prestataire ;
+  exports comptables refusés à un prestataire ; 320 px) ;
 - parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
   login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,

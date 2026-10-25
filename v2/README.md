@@ -69,7 +69,8 @@ propriétaire rattaché + commission + relevé + isolation, CRM prospect +
 pipeline + offre, support ticket + réponse + résolution, guide + extra
 commandé, comptes utilisateurs (création, connexion, réinitialisation,
 désactivation), 2FA TOTP (activation, connexion, désactivation), inscription
-publique refusée, tenant/rôle non modifiables, 320 px.
+publique refusée, tenant/rôle non modifiables, prestataire refusé sur le
+tableau de bord hôte et les exports comptables, 320 px.
 
 ## Pages
 
@@ -354,6 +355,10 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - Vérification à la connexion : `/two-factor`.
 - Session cookie httpOnly ; le tenant et le rôle viennent de `session.user`.
 - `requireRole(["admin","hote"])` protège les pages staff.
+- Tableau de bord `/hote` réservé à `admin`, `hote`, `comptable` ; un
+  prestataire, propriétaire ou commercial y est redirigé.
+- `/hote/securite` est ouvert à tout compte connecté : chacun gère son propre
+  mot de passe et sa 2FA, quel que soit son rôle.
 - Changement de mot de passe sur `/hote/securite` (12 caractères minimum,
   révoque les autres sessions).
 - Gestion des comptes sur `/hote/utilisateurs` (admin) : création, rôles,
