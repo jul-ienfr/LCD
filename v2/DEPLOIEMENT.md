@@ -82,6 +82,7 @@ Netlify détecte Next.js et installe `@netlify/plugin-nextjs` au build.
 | `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | si stockage fichiers activé |
 | `SMTP_URL` / `EMAIL_FROM` | si emails activés |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | si paiement en ligne activé |
+| `CRON_SECRET` | si synchronisation OTA quotidienne activée |
 | `SENTRY_DSN` | si Sentry activé |
 
 **Ne pas** mettre `SEED_*` en production : le seed est une opération locale
@@ -123,6 +124,18 @@ Après le premier déploiement :
 6. Tester en mode test avec la carte `4242 4242 4242 4242`.
 
 Sans ces deux variables, le bouton est masqué et le webhook répond 503.
+
+## 4ter. Cron OTA (optionnel)
+
+1. Générer un secret aléatoire (`openssl rand -hex 32`).
+2. Netlify → Environment variables → `CRON_SECRET`.
+3. GitHub → Settings → Secrets and variables → Actions → `CRON_SECRET`.
+4. Le workflow `.github/workflows/v2-sync-ota.yml` appelle chaque jour à
+   03:00 UTC `POST /api/cron/sync-ota`.
+5. Tester manuellement : **Actions → v2-sync-ota → Run workflow**.
+
+L’endpoint renvoie `{ total, reussis, erreurs, details }` ; chaque flux
+conserve son dernier statut et son message dans `/hote/planning/import`.
 
 ## 5. Domaine personnalisé
 

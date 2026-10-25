@@ -104,6 +104,7 @@ commandé, 320 px.
 | `/api/exports/paiements` | export CSV des paiements |
 | `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
 | `/api/stripe/webhook` | webhook Stripe Checkout signé |
+| `/api/cron/sync-ota` | synchronisation cron des flux ICS (`CRON_SECRET`) |
 
 ## Partage client et email
 
@@ -186,6 +187,12 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
 ## Import OTA / ICS
 
 - page `/hote/planning/import` : coller un flux ICS ou déposer un fichier ;
+- flux HTTPS enregistrés par logement (libellé + URL), URL validée
+  (HTTPS public, localhost/IP privées refusés) ;
+- synchronisation à la demande depuis la page, ou quotidienne via
+  `POST /api/cron/sync-ota` protégé par `CRON_SECRET` ;
+- workflow GitHub Actions `.github/workflows/v2-sync-ota.yml` (03:00 UTC) :
+  secret `CRON_SECRET` à configurer dans le dépôt ;
 - parseur iCal pur : lignes pliées, dates `VALUE=DATE` ou date-time,
   `DURATION`, échappements, annulations ignorées ;
 - réservations importées en `confirmee`, source `import-ics` ;
@@ -194,13 +201,8 @@ ou « accepter le plancher Next » reste à prendre (voir docs/78 §12).
 - idempotence par UID OTA → `ref` stable `ics-…` ;
 - conflit avec une réservation ou un blocage existant : signalé, non importé ;
 - montant récupéré si `Total: 450` figure dans la description, sinon 0 ;
-- flux HTTPS enregistrés par logement (libellé + URL), URL validée
-  (HTTPS public, localhost/IP privées refusés), synchronisation à la demande,
-  dernier statut/message conservés ;
 - audit `planning.import_ics`, `flux_ics.enregistrer`, `flux_ics.sync`,
-  `flux_ics.supprimer` ;
-- l’import manuel et la sync à la demande sont disponibles ; la planification
-  cron quotidienne reste à brancher.
+  `flux_ics.supprimer`.
 
 ## Portail voyageur
 

@@ -5,7 +5,7 @@ import type {
   MarquerSyncFluxIcsData,
 } from "@/application/ports/flux-ics-repository";
 import type { FluxIcs } from "@/domain/flux-ics";
-import { withTenant } from "../client";
+import { db, withTenant } from "../client";
 import { fluxIcs } from "../schema";
 
 function versDomaine(row: typeof fluxIcs.$inferSelect): FluxIcs {
@@ -77,6 +77,18 @@ export class DrizzleFluxIcsRepository implements FluxIcsRepository {
         .orderBy(asc(fluxIcs.libelle));
       return rows.map(versDomaine);
     });
+  }
+
+  async listerActifsGlobal(): Promise<FluxIcs[]> {
+    // Tâche système (cron) : traverse tous les tenants. La connexion owner
+    // n'est pas soumise aux policies RLS ; les écritures restent scopées par
+    // `withTenant()` dans les repositories.
+    const rows = await db
+      .select()
+      .from(fluxIcs)
+      .where(eq(fluxIcs.actif, true))
+      .orderBy(asc(fluxIcs.tenantId), asc(fluxIcs.libelle));
+    return rows.map(versDomaine);
   }
 
   async trouverParId(tenantId: string, id: string): Promise<FluxIcs | null> {

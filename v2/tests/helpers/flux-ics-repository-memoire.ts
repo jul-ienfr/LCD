@@ -54,6 +54,10 @@ export class FluxIcsRepositoryMemoire implements FluxIcsRepository {
     return this.rows.filter((f) => f.tenantId === tenantId);
   }
 
+  async listerActifsGlobal(): Promise<FluxIcs[]> {
+    return this.rows.filter((f) => f.actif);
+  }
+
   async trouverParId(tenantId: string, id: string): Promise<FluxIcs | null> {
     return (
       this.rows.find((f) => f.tenantId === tenantId && f.id === id) ?? null

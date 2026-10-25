@@ -43,6 +43,9 @@ const schema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
+  // Tâches planifiées (cron OTA, backups déclenchés par HTTP).
+  CRON_SECRET: z.string().optional(),
+
   // Observabilité (facultatif).
   SENTRY_DSN: z.string().optional(),
 });

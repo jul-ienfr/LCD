@@ -17,6 +17,7 @@ export interface FluxIcsRepository {
   enregistrer(data: EnregistrerFluxIcsData): Promise<FluxIcs>;
   listerParLogement(tenantId: string, logementId: string): Promise<FluxIcs[]>;
   listerParTenant(tenantId: string): Promise<FluxIcs[]>;
+  listerActifsGlobal(): Promise<FluxIcs[]>;
   trouverParId(tenantId: string, id: string): Promise<FluxIcs | null>;
   marquerSync(
     tenantId: string,
