@@ -10,6 +10,7 @@ import { DrizzleIncidentRepository } from "@/infrastructure/db/repositories/inci
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { langueDepuisParam } from "@/lib/i18n";
 import { logErreur } from "@/lib/logger";
 import { verifierTokenVoyageur } from "@/lib/voyageur-token";
 
@@ -17,10 +18,11 @@ export async function declarerIncidentAction(formData: FormData) {
   const token = String(formData.get("token") ?? "");
   const ref = String(formData.get("ref") ?? "");
   const message = String(formData.get("message") ?? "");
+  const langue = langueDepuisParam(String(formData.get("langue") ?? "fr"));
 
   const payload = verifierTokenVoyageur(token);
   if (!payload) {
-    redirect("/voyageur?incident=erreur");
+    redirect(`/voyageur?incident=erreur&lang=${langue}`);
   }
 
   try {
@@ -42,11 +44,13 @@ export async function declarerIncidentAction(formData: FormData) {
       });
     }
     redirect(
-      `/voyageur?t=${encodeURIComponent(token)}&incident=erreur`,
+      `/voyageur?t=${encodeURIComponent(token)}&incident=erreur&lang=${langue}`,
     );
   }
 
-  redirect(`/voyageur?t=${encodeURIComponent(token)}&incident=ok`);
+  redirect(
+    `/voyageur?t=${encodeURIComponent(token)}&incident=ok&lang=${langue}`,
+  );
 }
 
 export async function commanderExtraAction(formData: FormData) {
@@ -54,10 +58,11 @@ export async function commanderExtraAction(formData: FormData) {
   const extraId = String(formData.get("extraId") ?? "");
   const quantite = Number(formData.get("quantite") ?? 1);
   const ref = String(formData.get("ref") ?? "");
+  const langue = langueDepuisParam(String(formData.get("langue") ?? "fr"));
 
   const payload = verifierTokenVoyageur(token);
   if (!payload) {
-    redirect("/voyageur?extras=erreur");
+    redirect(`/voyageur?extras=erreur&lang=${langue}`);
   }
 
   try {
@@ -90,8 +95,12 @@ export async function commanderExtraAction(formData: FormData) {
         reservationId: payload.reservationId,
       });
     }
-    redirect(`/voyageur?t=${encodeURIComponent(token)}&extras=erreur`);
+    redirect(
+      `/voyageur?t=${encodeURIComponent(token)}&extras=erreur&lang=${langue}`,
+    );
   }
 
-  redirect(`/voyageur?t=${encodeURIComponent(token)}&extras=ok`);
+  redirect(
+    `/voyageur?t=${encodeURIComponent(token)}&extras=ok&lang=${langue}`,
+  );
 }

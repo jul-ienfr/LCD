@@ -69,6 +69,26 @@ test("voyageur : lien signé, incident sans JS, idempotence et outbox", async ({
   await expect(noJsPage.getByText(message).first()).toBeVisible();
   await noJs.close();
 
+  // 1bis. Version anglaise sans JS + retour au français.
+  const noJsEn = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 320, height: 800 },
+  });
+  const pageEn = await noJsEn.newPage();
+  await pageEn.goto(`${href}&lang=en`);
+  await expect(
+    pageEn.getByRole("heading", { name: "Your stay" }),
+  ).toBeVisible();
+  await expect(pageEn.getByText("Accommodation guide")).toBeVisible();
+  await expect(
+    pageEn.getByRole("heading", { name: "Report an issue" }),
+  ).toBeVisible();
+  await pageEn.getByRole("link", { name: "FR" }).click();
+  await expect(
+    pageEn.getByRole("heading", { name: "Votre séjour" }),
+  ).toBeVisible();
+  await noJsEn.close();
+
   // 2. Même ref = idempotent côté API.
   const refApi = `inc-${suffix}`;
   const premier = await page.request.post("/api/voyageur/incident", {

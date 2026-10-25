@@ -62,7 +62,7 @@ paiements + facture publique + email (si Mailpit) + statuts + compta + exports
 CSV, health/readiness, PWA offline, import ICS + blocages + idempotence +
 conflit + flux HTTPS, Stripe (gating sans clés + tests unitaires), webhooks
 signés + outbox, cautions + retenues, voyageur signé + incident **sans
-JavaScript** + idempotence + outbox, missions staff → prestataire,
+JavaScript** + idempotence + outbox + i18n FR/EN, missions staff → prestataire,
 propriétaire rattaché + commission + relevé + isolation, CRM prospect +
 pipeline + offre, support ticket + réponse + résolution, guide + extra
 commandé, 320 px.
@@ -244,6 +244,9 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - payload : tenant, logement, réservation, expiration ;
 - lien valable au moins 60 jours, puis jusqu'à 30 jours après le départ ;
 - formulaire d'incident **sans JS** (Server Action) ;
+- **i18n voyageur** : `?lang=fr|en|it|es|de`, sélecteur sans JS, fallback
+  français, dictionnaires `src/lib/i18n.ts` ; les redirections conservent la
+  langue ;
 - API `POST /api/voyageur/incident` idempotente par `ref` ;
 - **outbox IndexedDB** : hors ligne, l'incident est mis en attente puis rejoué
   au retour du réseau ;

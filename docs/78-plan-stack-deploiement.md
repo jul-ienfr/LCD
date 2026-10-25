@@ -838,7 +838,8 @@ et ne remplace pas v1.
   (`/api/factures/[id]/pdf`) ; PDF/A-3 signé et validation par une plateforme
   de dématérialisation restent à faire ;
 - **portail voyageur réel** : lien signé HMAC par réservation, séjour réel,
-  incident idempotent, formulaire sans JS, outbox IndexedDB + rejeu online ;
+  incident idempotent, formulaire sans JS, outbox IndexedDB + rejeu online,
+  i18n FR/EN/IT/ES/DE sans JS (`?lang=`) ;
 - **portail prestataire + missions** : création staff, assignation, cycle
   planifiée → en cours → terminée/annulée, audit ;
 - **portail propriétaire** : rattachement logement ↔ propriétaire, relevé
@@ -868,7 +869,7 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **157/157** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **161/161** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **15/15** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
@@ -913,8 +914,7 @@ et ne remplace pas v1.
 - secret GitHub `DATABASE_URL` pour le backup offsite et `CRON_SECRET`
   pour les workflows OTA/webhooks ;
 - Factur-X PDF/A-3 signé + plateforme de dématérialisation ;
-- connecteurs HA/Moli spécifiques (webhooks génériques faits) ;
-- post-beta : i18n voyageur.
+- connecteurs HA/Moli spécifiques (webhooks génériques faits).
 
 ---
 
@@ -1004,6 +1004,7 @@ et ne remplace pas v1.
 - [x] Paramétrage TVA/taxe + calcul automatique + export Factur-X XML.
 - [x] Paiements manuels + solde automatique + export CSV paiements.
 - [x] Cautions / dépôts de garantie + retenue motivée.
+- [x] i18n voyageur FR/EN/IT/ES/DE sans JS.
 - [x] Stripe Checkout + webhook signé + paiement idempotent.
 - [ ] Clés Stripe test/live + endpoint webhook à configurer.
 - [x] Facture publique signée + envoi email SMTP.

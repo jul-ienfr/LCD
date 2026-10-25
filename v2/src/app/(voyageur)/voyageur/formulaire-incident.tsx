@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Langue, Traductions } from "@/lib/i18n";
 import {
   ajouterIncident,
   compterIncidents,
@@ -18,9 +19,13 @@ type Statut =
 export function FormulaireIncident({
   token,
   refInitial,
+  langue,
+  traductions,
 }: {
   token: string;
   refInitial: string;
+  langue: Langue;
+  traductions: Traductions;
 }) {
   const [message, setMessage] = useState("");
   const [statut, setStatut] = useState<Statut>("idle");
@@ -59,7 +64,7 @@ export function FormulaireIncident({
 
     const texte = message.trim();
     if (texte.length < 5) {
-      setErreur("Décrivez le problème en quelques mots (5 caractères min.).");
+      setErreur(traductions.decrivezProbleme);
       setStatut("error");
       return;
     }
@@ -100,7 +105,7 @@ export function FormulaireIncident({
         const data = (await response.json().catch(() => null)) as {
           erreur?: string;
         } | null;
-        setErreur(data?.erreur ?? "Signalement refusé.");
+        setErreur(data?.erreur ?? traductions.signalementRefuse);
         setStatut("error");
         return;
       }
@@ -116,17 +121,18 @@ export function FormulaireIncident({
   return (
     <form action={declarerIncidentAction} onSubmit={onSubmit} className="space-y-4">
       <input name="token" type="hidden" value={token} />
+      <input name="langue" type="hidden" value={langue} />
       <input name="ref" type="hidden" value={refInitial} />
 
       <label className="block space-y-1 text-sm font-medium" htmlFor="message">
-        Que s’est-il passé ?
+        {traductions.queSestIlPasse}
       </label>
       <textarea
         className="min-h-32 w-full rounded-xl border border-stone-300 p-3 text-base"
         id="message"
         name="message"
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Ex. la clé ne fonctionne plus…"
+        placeholder={traductions.placeholderIncident}
         required
         value={message}
       />
@@ -139,15 +145,16 @@ export function FormulaireIncident({
 
       {statut === "queued" ? (
         <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-          Hors ligne : signalement mis en attente. Il sera envoyé au retour du
-          réseau.
-          {enAttente > 0 ? ` (${enAttente} en attente)` : ""}
+          {traductions.horsLigne}
+          {enAttente > 0
+            ? ` ${traductions.enAttente.replace("{n}", String(enAttente))}`
+            : ""}
         </p>
       ) : null}
 
       {statut === "sent" ? (
         <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
-          Signalement envoyé. L’hôte en est informé.
+          {traductions.signalementEnvoye}
         </p>
       ) : null}
 
@@ -156,7 +163,7 @@ export function FormulaireIncident({
         disabled={statut === "sending"}
         type="submit"
       >
-        {statut === "sending" ? "Envoi…" : "Envoyer"}
+        {statut === "sending" ? traductions.envoi : traductions.envoyer}
       </button>
     </form>
   );
