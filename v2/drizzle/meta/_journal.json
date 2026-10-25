@@ -330,6 +330,13 @@
       "when": 1792961867223,
       "tag": "0046_previous_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1792963379184,
+      "tag": "0047_closed_ghost_rider",
+      "breakpoints": true
     }
   ]
 }

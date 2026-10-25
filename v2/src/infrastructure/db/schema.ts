@@ -1051,6 +1051,41 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
+export const annoncesConformite = pgTable(
+  "annonces_conformite",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    mentions: jsonb("mentions")
+      .$type<Record<string, boolean>>()
+      .notNull()
+      .default({}),
+    dpeClasse: text("dpe_classe"),
+    gesClasse: text("ges_classe"),
+    classement: text("classement"),
+    numeroEnregistrement: text("numero_enregistrement"),
+    numeroCerfa: text("numero_cerfa"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("annonces_conformite_tenant_logement_uq").on(
+      t.tenantId,
+      t.logementId,
+    ),
+  ],
+);
+
 export const preuvesTranquillite = pgTable(
   "preuves_tranquillite",
   {
@@ -1404,6 +1439,9 @@ export type NewObjetTrouveRow = typeof objetsTrouves.$inferInsert;
 export type PreuveTranquilliteRow = typeof preuvesTranquillite.$inferSelect;
 export type NewPreuveTranquilliteRow =
   typeof preuvesTranquillite.$inferInsert;
+export type AnnonceConformiteRow = typeof annoncesConformite.$inferSelect;
+export type NewAnnonceConformiteRow =
+  typeof annoncesConformite.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;
