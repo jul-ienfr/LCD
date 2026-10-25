@@ -45,6 +45,7 @@ export type CodeErreurMetier =
   | "RGPD_INVALIDE"
   | "SINISTRE_INVALIDE"
   | "DISPATCH_INVALIDE"
+  | "MESSAGE_INVALIDE"
   | "TARIF_MANQUANT";
 
 /**

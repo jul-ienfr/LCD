@@ -55,6 +55,8 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "dispatch.proposer": "Mission proposée à un prestataire",
   "dispatch.repondre": "Réponse du prestataire à une offre",
   "dispatch.retirer": "Offre de mission retirée",
+  "message.preparer": "Message voyageur préparé",
+  "message.envoyer": "Message voyageur envoyé",
   "tranquillite.preuve": "Preuve de tranquillité enregistrée",
   "tranquillite.supprimer": "Preuve de tranquillité supprimée",
   "tenant.export": "Export complet des données",

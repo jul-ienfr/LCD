@@ -358,6 +358,13 @@
       "when": 1792966660043,
       "tag": "0050_curvy_imperial_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1792968173378,
+      "tag": "0051_optimal_hellfire_club",
+      "breakpoints": true
     }
   ]
 }
