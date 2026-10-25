@@ -1,6 +1,7 @@
 import { and, asc, count, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
+import type { RoleUtilisateur } from "@/domain/utilisateur";
 import type {
   CreerUtilisateurData,
   UserRepository,
@@ -121,6 +122,20 @@ export class DrizzleUserRepository implements UserRepository {
         // Déconnexion immédiate de toutes les sessions ouvertes.
         await tx.delete(session).where(eq(session.userId, id));
       }
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async changerRole(
+    tenantId: string,
+    id: string,
+    role: RoleUtilisateur,
+  ): Promise<UtilisateurTenant | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(users)
+        .set({ role, updatedAt: new Date() })
+        .where(and(eq(users.tenantId, tenantId), eq(users.id, id)));
     });
     return this.trouverParId(tenantId, id);
   }

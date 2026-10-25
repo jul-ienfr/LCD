@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { ErreurMetier } from "@/domain/erreurs";
 import { ChangerActifUtilisateur } from "@/application/use-cases/changer-actif-utilisateur";
+import { ChangerRoleUtilisateur } from "@/application/use-cases/changer-role-utilisateur";
 import { CreerUtilisateur } from "@/application/use-cases/creer-utilisateur";
 import { ReinitialiserMotDePasse } from "@/application/use-cases/reinitialiser-mot-de-passe";
 import { withTenant } from "@/infrastructure/db/client";
@@ -112,6 +113,49 @@ export async function changerActifUtilisateurAction(
       return { ok: false, message: error.message };
     }
     logErreur("changerActifUtilisateurAction", error, { tenantId, id });
+    return { ok: false, message: ERREUR_INATTENDUE };
+  }
+}
+
+export async function changerRoleUtilisateurAction(
+  _etat: EtatUtilisateur,
+  formData: FormData,
+): Promise<EtatUtilisateur> {
+  const session = await requireRole(["admin"]);
+  const tenantId = tenantIdDeSession(session);
+  const id = String(formData.get("userId") ?? "");
+  const role = String(formData.get("role") ?? "");
+
+  try {
+    const utilisateur = await new ChangerRoleUtilisateur(
+      new DrizzleUserRepository(),
+    ).executer({
+      tenantId,
+      id,
+      role,
+      acteurId: session.user.id,
+    });
+
+    await withTenant(tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId,
+        qui: session.user.email,
+        action: "utilisateur.role",
+        cible: utilisateur.id,
+        payload: { role: utilisateur.role },
+      }),
+    );
+
+    revalidatePath("/hote/utilisateurs");
+    return {
+      ok: true,
+      message: `Rôle de ${utilisateur.email} changé en ${utilisateur.role}.`,
+    };
+  } catch (error) {
+    if (error instanceof ErreurMetier) {
+      return { ok: false, message: error.message };
+    }
+    logErreur("changerRoleUtilisateurAction", error, { tenantId, id });
     return { ok: false, message: ERREUR_INATTENDUE };
   }
 }

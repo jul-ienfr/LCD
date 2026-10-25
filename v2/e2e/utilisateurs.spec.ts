@@ -48,7 +48,10 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   await expect(page1).toHaveURL(/\/login\?erreur=acces$/);
 
   // Réinitialisation par l'admin.
-  await ligne.locator("summary").click();
+  await ligne
+    .locator("summary")
+    .filter({ hasText: "Réinitialiser le mot de passe" })
+    .click();
   await ligne.locator('input[name="password"]').fill(nouveauMotDePasse);
   await ligne
     .locator('input[name="confirmation"]')
@@ -107,4 +110,15 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
     ligne.getByText(`Compte de ${email} réactivé.`),
   ).toBeVisible();
   await expect(ligne.getByText("Actif", { exact: true })).toBeVisible();
+
+  // Changement de rôle.
+  await ligne
+    .locator("summary")
+    .filter({ hasText: "Changer le rôle" })
+    .click();
+  await ligne.locator('select[name="role"]').selectOption("comptable");
+  await ligne.getByRole("button", { name: "Changer le rôle" }).click();
+  await expect(
+    ligne.getByText(`Rôle de ${email} changé en comptable.`),
+  ).toBeVisible();
 });

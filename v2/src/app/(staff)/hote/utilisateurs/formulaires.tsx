@@ -1,8 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
+import { LIBELLES_ROLE, ROLES_UTILISATEUR } from "@/domain/utilisateur";
 import {
   changerActifUtilisateurAction,
+  changerRoleUtilisateurAction,
   reinitialiserMotDePasseAction,
   type EtatUtilisateur,
 } from "./actions";
@@ -101,6 +103,48 @@ export function FormulaireMotDePasse({ userId }: { userId: string }) {
         type="submit"
       >
         {enCours ? "Réinitialisation…" : "Réinitialiser le mot de passe"}
+      </button>
+      <MessageEtat etat={etat} />
+    </form>
+  );
+}
+
+export function FormulaireRole({
+  userId,
+  roleActuel,
+}: {
+  userId: string;
+  roleActuel: string;
+}) {
+  const [etat, action, enCours] = useActionState(
+    changerRoleUtilisateurAction,
+    etatInitial,
+  );
+
+  return (
+    <form action={action} className="space-y-3">
+      <input name="userId" type="hidden" value={userId} />
+      <label className="block space-y-1 text-xs font-medium text-stone-600">
+        <span>Rôle</span>
+        <select
+          className="w-full rounded-lg border border-stone-300 p-2 text-sm"
+          defaultValue={roleActuel}
+          name="role"
+          required
+        >
+          {ROLES_UTILISATEUR.map((role) => (
+            <option key={role} value={role}>
+              {LIBELLES_ROLE[role]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        className="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium disabled:opacity-50"
+        disabled={enCours}
+        type="submit"
+      >
+        {enCours ? "Mise à jour…" : "Changer le rôle"}
       </button>
       <MessageEtat etat={etat} />
     </form>

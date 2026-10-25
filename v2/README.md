@@ -70,9 +70,9 @@ propriétaire rattaché + commission + relevé + isolation, CRM prospect +
 pipeline + offre, support ticket + réponse + résolution, guide + extra
 commandé, comptes utilisateurs (création, connexion, réinitialisation,
 désactivation), 2FA TOTP (activation, connexion, désactivation), inscription
-publique refusée, tenant/rôle non modifiables, prestataire refusé sur le
-tableau de bord hôte et les exports comptables, journal d’audit, export ICS,
-320 px.
+publique refusée, tenant/rôle non modifiables, changement de rôle admin,
+prestataire refusé sur le tableau de bord hôte et les exports comptables,
+journal d’audit, export ICS, 320 px.
 
 ## Pages
 
@@ -354,12 +354,13 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - mot de passe provisoire de 12 à 128 caractères, jamais journalisé ;
 - réinitialisation du mot de passe par un admin : toutes les sessions de la
   personne sont fermées ;
+- changement de rôle avec garde-fou sur le dernier administrateur actif ;
 - désactivation : sessions supprimées immédiatement et connexion refusée
   (`databaseHooks.session.create.before` vérifie `users.actif`) ;
   `requireSession` refuse aussi tout compte `actif=false` ;
-- garde-fous : impossible de désactiver son propre compte ou le dernier
-  administrateur actif ;
-- audit `utilisateur.creer`, `utilisateur.activer`,
+- garde-fous : impossible de modifier son propre rôle, de désactiver son
+  propre compte ou de retirer le rôle du dernier administrateur actif ;
+- audit `utilisateur.creer`, `utilisateur.role`, `utilisateur.activer`,
   `utilisateur.desactiver`, `utilisateur.motdepasse` ;
 - email unique au niveau plateforme, normalisé en minuscules.
 

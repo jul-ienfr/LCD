@@ -856,10 +856,10 @@ et ne remplace pas v1.
 - **support / messagerie** : tickets, priorités, messages, statuts
   ouvert → en cours → résolu/fermé, isolation par créateur ou staff ;
 - **gestion des utilisateurs** : page `/hote/utilisateurs` réservée aux admins,
-  création email/password avec rôle, réinitialisation (sessions fermées),
-  désactivation immédiate (sessions supprimées + connexion refusée + contrôle
-  `actif` dans `requireSession`), garde-fous
-  dernier admin / propre compte, audit ; **inscription publique désactivée**,
+  création email/password avec rôle, changement de rôle, réinitialisation
+  (sessions fermées), désactivation immédiate (sessions supprimées + connexion
+  refusée + contrôle `actif` dans `requireSession`), garde-fous dernier admin /
+  propre compte / propre rôle, audit ; **inscription publique désactivée**,
   `tenantId` et `role` non modifiables par le client ;
 - **journal d’audit** : page `/hote/audit` admin, pagination 50, recherche
   action/auteur/cible/référence, libellés français, payload JSON replié ;
@@ -884,7 +884,7 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **192/192** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **197/197** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **21/21** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
@@ -893,11 +893,11 @@ et ne remplace pas v1.
   outbox ; missions staff → prestataire ; propriétaire rattaché + commission +
   relevé + isolation ; CRM prospect + pipeline + offre ; support ticket +
   réponse + résolution ; guide + extra commandé ; utilisateurs (création,
-  connexion, réinitialisation, désactivation) ; 2FA TOTP (activation,
-  connexion en deux étapes, désactivation) ; inscription publique refusée ;
-  tenant/rôle non modifiables ; tableau de bord hôte refusé à un prestataire ;
-  exports comptables refusés à un prestataire ; journal d’audit ; export ICS
-  signé ; 320 px) ;
+  connexion, réinitialisation, désactivation, changement de rôle) ; 2FA TOTP
+  (activation, connexion en deux étapes, désactivation) ; inscription publique
+  refusée ; tenant/rôle non modifiables ; tableau de bord hôte refusé à un
+  prestataire ; exports comptables refusés à un prestataire ; journal d’audit ;
+  export ICS signé ; 320 px) ;
 - parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
   login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,

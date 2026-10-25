@@ -31,6 +31,11 @@ export interface UserRepository {
     id: string,
     actif: boolean,
   ): Promise<UtilisateurTenant | null>;
+  changerRole(
+    tenantId: string,
+    id: string,
+    role: RoleUtilisateur,
+  ): Promise<UtilisateurTenant | null>;
   reinitialiserMotDePasse(
     tenantId: string,
     id: string,

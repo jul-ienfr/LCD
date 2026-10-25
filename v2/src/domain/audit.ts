@@ -33,6 +33,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "utilisateur.creer": "Utilisateur créé",
   "utilisateur.desactiver": "Utilisateur désactivé",
   "utilisateur.motdepasse": "Mot de passe réinitialisé",
+  "utilisateur.role": "Rôle modifié",
   "webhook.enregistrer": "Webhook enregistré",
   "webhook.supprimer": "Webhook supprimé",
 };

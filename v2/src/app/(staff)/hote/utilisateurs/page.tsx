@@ -7,6 +7,7 @@ import { FormulaireCreationUtilisateur } from "./formulaire-creation";
 import {
   FormulaireActivation,
   FormulaireMotDePasse,
+  FormulaireRole,
 } from "./formulaires";
 
 export const instant = false;
@@ -149,6 +150,17 @@ export default async function PageUtilisateurs() {
                             actif={utilisateur.actif}
                             userId={utilisateur.id}
                           />
+                          <details>
+                            <summary className="cursor-pointer text-xs underline">
+                              Changer le rôle
+                            </summary>
+                            <div className="mt-3">
+                              <FormulaireRole
+                                roleActuel={utilisateur.role}
+                                userId={utilisateur.id}
+                              />
+                            </div>
+                          </details>
                           <details>
                             <summary className="cursor-pointer text-xs underline">
                               Réinitialiser le mot de passe

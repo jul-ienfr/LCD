@@ -3,6 +3,7 @@ import type {
   UserRepository,
   UtilisateurTenant,
 } from "@/application/ports/user-repository";
+import type { RoleUtilisateur } from "@/domain/utilisateur";
 
 export class UserRepositoryMemoire implements UserRepository {
   readonly rows: UtilisateurTenant[] = [];
@@ -64,6 +65,17 @@ export class UserRepositoryMemoire implements UserRepository {
     const utilisateur = await this.trouverParId(tenantId, id);
     if (!utilisateur) return null;
     utilisateur.actif = actif;
+    return utilisateur;
+  }
+
+  async changerRole(
+    tenantId: string,
+    id: string,
+    role: RoleUtilisateur,
+  ): Promise<UtilisateurTenant | null> {
+    const utilisateur = await this.trouverParId(tenantId, id);
+    if (!utilisateur) return null;
+    utilisateur.role = role;
     return utilisateur;
   }
 
