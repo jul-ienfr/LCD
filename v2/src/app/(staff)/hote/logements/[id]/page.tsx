@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { creerTokenCalendrier } from "@/lib/calendrier-token";
+import { env } from "@/lib/env";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
+import { BoutonCopier } from "./bouton-copier";
 import { FormulaireGuide } from "./formulaire-guide";
 
 export const instant = false;
@@ -23,6 +26,12 @@ export default async function PageGuideLogement({
     id,
   );
   if (!logement) notFound();
+
+  const tokenCalendrier = creerTokenCalendrier({
+    tenantId,
+    logementId: logement.id,
+  });
+  const urlCalendrier = `${env.APP_URL.replace(/\/$/u, "")}/api/calendrier/${logement.id}?t=${encodeURIComponent(tokenCalendrier)}`;
 
   return (
     <main className="mx-auto max-w-2xl space-y-8 px-6 py-12">
@@ -45,6 +54,34 @@ export default async function PageGuideLogement({
 
       <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
         <FormulaireGuide logement={logement} />
+      </section>
+
+      <section
+        className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+        id="calendrier"
+      >
+        <h2 className="text-lg font-semibold">Abonnement calendrier</h2>
+        <p className="mt-1 text-sm text-stone-600">
+          Ajoutez cette URL dans Google Calendar, Apple Calendar ou Outlook
+          pour suivre les réservations et blocages de ce logement. Le flux ne
+          contient ni nom de client ni montant.
+        </p>
+        <code className="mt-4 block break-all rounded-xl bg-stone-100 p-3 text-xs">
+          {urlCalendrier}
+        </code>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <BoutonCopier valeur={urlCalendrier} />
+          <a
+            className="rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white"
+            href={urlCalendrier}
+          >
+            Télécharger l’ICS
+          </a>
+        </div>
+        <p className="mt-3 text-xs text-stone-500">
+          Lien signé, valable 10 ans. La rotation de{" "}
+          <code>BETTER_AUTH_SECRET</code> l’invalide.
+        </p>
       </section>
 
       <Link className="text-sm underline" href="/hote">

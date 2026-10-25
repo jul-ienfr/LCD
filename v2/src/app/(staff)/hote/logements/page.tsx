@@ -73,6 +73,12 @@ export default async function PageLogements() {
                   >
                     Guide
                   </Link>
+                  <Link
+                    className="text-sm underline"
+                    href={`/hote/logements/${logement.id}#calendrier`}
+                  >
+                    Calendrier
+                  </Link>
                   <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">
                     {logement.statut}
                   </span>

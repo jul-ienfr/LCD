@@ -71,7 +71,8 @@ pipeline + offre, support ticket + réponse + résolution, guide + extra
 commandé, comptes utilisateurs (création, connexion, réinitialisation,
 désactivation), 2FA TOTP (activation, connexion, désactivation), inscription
 publique refusée, tenant/rôle non modifiables, prestataire refusé sur le
-tableau de bord hôte et les exports comptables, journal d’audit, 320 px.
+tableau de bord hôte et les exports comptables, journal d’audit, export ICS,
+320 px.
 
 ## Pages
 
@@ -113,6 +114,7 @@ tableau de bord hôte et les exports comptables, journal d’audit, 320 px.
 | `/api/exports/reservations` | export CSV des réservations |
 | `/api/exports/factures` | export CSV des factures |
 | `/api/exports/paiements` | export CSV des paiements |
+| `/api/calendrier/[logementId]?t=<token>` | flux ICS signé du logement |
 | `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
 | `/api/factures/[id]/pdf` | PDF facture + XML Factur-X incorporé |
 | `/api/stripe/webhook` | webhook Stripe Checkout signé |
@@ -253,6 +255,18 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - montant récupéré si `Total: 450` figure dans la description, sinon 0 ;
 - audit `planning.import_ics`, `flux_ics.enregistrer`, `flux_ics.sync`,
   `flux_ics.supprimer`.
+
+## Export calendrier ICS
+
+- URL signée par logement, générée sur `/hote/logements/[id]` ;
+- `GET /api/calendrier/[logementId]?t=<token>` ;
+- événements toute la journée : réservations non annulées + blocages ;
+- ni nom de client ni montant dans le flux ;
+- token HMAC valable 10 ans, séparé des tokens facture/voyageur ;
+- rotation de `BETTER_AUTH_SECRET` = invalidation des abonnements ;
+- `text/calendar`, `Cache-Control: private, max-age=300`, `X-Robots-Tag`
+  noindex ;
+- adapté à Google Calendar, Apple Calendar et Outlook.
 
 ## Portail voyageur
 

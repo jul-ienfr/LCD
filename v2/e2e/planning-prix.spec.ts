@@ -60,4 +60,31 @@ test("prix + planning : création, anti-chevauchement", async ({ page }) => {
   await expect(
     page.getByText("Ce logement est déjà occupé sur cette période."),
   ).toBeVisible();
+
+  // 5. Export ICS signé du logement.
+  await page.goto("/hote/logements");
+  const ligneLogement = page.locator("li").filter({ hasText: nom });
+  await ligneLogement
+    .getByRole("link", { name: "Calendrier", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Abonnement calendrier" }),
+  ).toBeVisible();
+
+  const lienIcs = await page
+    .locator('a[href*="/api/calendrier/"]')
+    .getAttribute("href");
+  expect(lienIcs).toBeTruthy();
+  const ics = await page.request.get(lienIcs ?? "");
+  expect(ics.status()).toBe(200);
+  expect(ics.headers()["content-type"]).toContain("text/calendar");
+  const corps = await ics.text();
+  expect(corps).toContain("BEGIN:VCALENDAR");
+  expect(corps).toContain("DTSTART;VALUE=DATE:20261115");
+  expect(corps).toContain("DTEND;VALUE=DATE:20261118");
+  expect(corps).toContain(`SUMMARY:Réservation ${ref}`);
+  expect(corps).not.toContain("Client E2E");
+
+  const invalide = await page.request.get(`${lienIcs}x`);
+  expect(invalide.status()).toBe(401);
 });

@@ -865,6 +865,9 @@ et ne remplace pas v1.
   action/auteur/cible/référence, libellés français, payload JSON replié ;
 - **guide/check-in + extras voyageur** : WiFi, consignes, règles, urgence,
   catalogue d’extras, commande idempotente, suivi staff ;
+- **export calendrier ICS** : URL signée par logement, réservations non
+  annulées + blocages, événements toute la journée, aucune donnée client,
+  abonnement Google/Apple/Outlook, token 10 ans séparé des autres liens ;
 - **import OTA/ICS** : parseur iCal pur, réservations confirmées, blocages
   « Not available » sans impact CA, idempotence par UID, détection de
   conflits, page `/hote/planning/import`, flux HTTPS enregistrés par logement
@@ -881,7 +884,7 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **184/184** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **192/192** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **21/21** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
@@ -893,7 +896,8 @@ et ne remplace pas v1.
   connexion, réinitialisation, désactivation) ; 2FA TOTP (activation,
   connexion en deux étapes, désactivation) ; inscription publique refusée ;
   tenant/rôle non modifiables ; tableau de bord hôte refusé à un prestataire ;
-  exports comptables refusés à un prestataire ; journal d’audit ; 320 px) ;
+  exports comptables refusés à un prestataire ; journal d’audit ; export ICS
+  signé ; 320 px) ;
 - parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
   login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -1033,6 +1037,7 @@ et ne remplace pas v1.
 - [x] Facture publique signée + envoi email SMTP.
 - [x] Import ICS OTA + blocages calendrier + conflits.
 - [x] Flux ICS HTTPS par logement + synchronisation à la demande.
+- [x] Export ICS signé par logement (réservations + blocages).
 - [x] Planification cron des flux OTA (GitHub Actions + `CRON_SECRET`).
 - [ ] Emails transactionnels de production (Brevo/OVH : clés + domaine).
 - [x] Webhooks signés HA/Moli + outbox + cron.
