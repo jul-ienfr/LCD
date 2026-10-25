@@ -67,7 +67,8 @@ signés + outbox, cautions + retenues, voyageur signé + incident **sans
 JavaScript** + idempotence + outbox + i18n FR/EN, missions staff → prestataire,
 propriétaire rattaché + commission + relevé + isolation, CRM prospect +
 pipeline + offre, support ticket + réponse + résolution, guide + extra
-commandé, 320 px.
+commandé, comptes utilisateurs (création, connexion, réinitialisation,
+désactivation), 320 px.
 
 ## Pages
 
@@ -92,6 +93,7 @@ commandé, 320 px.
 | `/hote/proprietaires` | rattachement propriétaire ↔ logement + commission |
 | `/hote/integrations` | webhooks HA/Moli + livraisons |
 | `/hote/securite` | 2FA |
+| `/hote/utilisateurs` | comptes de l’équipe (admin) |
 | `/presta` | missions du prestataire + statuts |
 | `/proprio` | relevé propriétaire (lecture seule) |
 | `/commercial` | pipeline prospects |
@@ -314,6 +316,22 @@ après les premiers clients ou si le LCP mobile se dégrade.
   (artefact privé 30 jours) ; secret `DATABASE_URL` à configurer ;
 - procédure, variables et drill mensuel : `v2/BACKUPS.md`.
 
+## Gestion des utilisateurs
+
+- page `/hote/utilisateurs`, réservée au rôle **admin** ;
+- création directe d’un compte email/password avec rôle :
+  `admin`, `hote`, `comptable`, `presta`, `proprietaire`, `commercial` ;
+- mot de passe provisoire de 12 à 128 caractères, jamais journalisé ;
+- réinitialisation du mot de passe par un admin : toutes les sessions de la
+  personne sont fermées ;
+- désactivation : sessions supprimées immédiatement et connexion refusée
+  (`databaseHooks.session.create.before` vérifie `users.actif`) ;
+- garde-fous : impossible de désactiver son propre compte ou le dernier
+  administrateur actif ;
+- audit `utilisateur.creer`, `utilisateur.activer`,
+  `utilisateur.desactiver`, `utilisateur.motdepasse` ;
+- email unique au niveau plateforme, normalisé en minuscules.
+
 ## Auth
 
 - **Better Auth 1.7.12**, email/password, TOTP actif.
@@ -324,6 +342,9 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - `requireRole(["admin","hote"])` protège les pages staff.
 - Changement de mot de passe sur `/hote/securite` (12 caractères minimum,
   révoque les autres sessions).
+- Gestion des comptes sur `/hote/utilisateurs` (admin) : création, rôles,
+  réinitialisation, désactivation ; un compte désactivé ne peut plus ouvrir
+  de session.
 - La connexion fait une **navigation complète** après sign-in (cookie de
   session appliqué par le serveur) ; le service worker ignore les requêtes
   RSC de Next.js.

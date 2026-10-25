@@ -853,6 +853,10 @@ et ne remplace pas v1.
   offre → gagné/perdu, offres brouillon → envoyée → acceptée/refusée, audit ;
 - **support / messagerie** : tickets, priorités, messages, statuts
   ouvert → en cours → résolu/fermé, isolation par créateur ou staff ;
+- **gestion des utilisateurs** : page `/hote/utilisateurs` réservée aux admins,
+  création email/password avec rôle, réinitialisation (sessions fermées),
+  désactivation immédiate (sessions supprimées + connexion refusée), garde-fous
+  dernier admin / propre compte, audit ;
 - **guide/check-in + extras voyageur** : WiFi, consignes, règles, urgence,
   catalogue d’extras, commande idempotente, suivi staff ;
 - **import OTA/ICS** : parseur iCal pur, réservations confirmées, blocages
@@ -869,15 +873,16 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **161/161** (domaine + cas d'usage avec dépôts mémoire) ;
-- Playwright : **15/15** (login + logement ; prix + planning + anti-chevauchement ;
+- tests Vitest : **176/176** (domaine + cas d'usage avec dépôts mémoire) ;
+- Playwright : **16/16** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
   compta + CSV ; import ICS + blocages + idempotence + conflit ; webhook
   intégration ; cautions ; voyageur signé + incident sans JS + idempotence +
   outbox ; missions staff → prestataire ; propriétaire rattaché + commission +
   relevé + isolation ; CRM prospect + pipeline + offre ; support ticket +
-  réponse + résolution ; guide + extra commandé ; 320 px) ;
+  réponse + résolution ; guide + extra commandé ; utilisateurs (création,
+  connexion, réinitialisation, désactivation) ; 320 px) ;
 - parcours 2FA vérifié manuellement : activation, déconnexion, login avec
   code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -1009,6 +1014,7 @@ et ne remplace pas v1.
 - [x] Paiements manuels + solde automatique + export CSV paiements.
 - [x] Cautions / dépôts de garantie + retenue motivée.
 - [x] i18n voyageur FR/EN/IT/ES/DE sans JS.
+- [x] Gestion des utilisateurs : rôles, réinitialisation, désactivation, audit.
 - [x] Stripe Checkout + webhook signé + paiement idempotent.
 - [ ] Clés Stripe test/live + endpoint webhook à configurer.
 - [x] Facture publique signée + envoi email SMTP.
@@ -1020,7 +1026,7 @@ et ne remplace pas v1.
 - [ ] Connecteurs HA/Moli spécifiques (API propriétaires).
 - [x] PDF facture avec XML Factur-X incorporé.
 - [ ] Factur-X PDF/A-3 signé + plateforme de dématérialisation.
-- [ ] Portail voyageur complet.
+- [x] Portail voyageur : séjour, guide, extras, incidents, i18n.
 - [x] Health/readiness + logs structurés.
 - [x] Sentry (code + endpoint client) et Uptime Kuma (compose + guide).
 - [ ] `SENTRY_DSN` + monitors/alertes configurés.

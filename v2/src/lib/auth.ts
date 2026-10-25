@@ -1,7 +1,9 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { twoFactor } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import { db } from "@/infrastructure/db/client";
 import {
   account,
@@ -58,6 +60,27 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        // Un compte désactivé ne peut plus ouvrir de session, même avec un
+        // mot de passe valide. Les sessions existantes sont supprimées par
+        // l'action de désactivation.
+        before: async (session) => {
+          const [utilisateur] = await db
+            .select({ actif: schema.users.actif })
+            .from(schema.users)
+            .where(eq(schema.users.id, session.userId))
+            .limit(1);
+          if (!utilisateur || !utilisateur.actif) {
+            throw new APIError("FORBIDDEN", {
+              message: "Compte désactivé. Contactez un administrateur.",
+            });
+          }
+        },
+      },
+    },
   },
   // Freine le brute-force sans bloquer les batteries E2E qui se connectent
   // plusieurs fois de suite depuis la même IP.

@@ -23,7 +23,8 @@ export type CodeErreurMetier =
   | "IMPORT_ICS_INVALIDE"
   | "FLUX_ICS_INVALIDE"
   | "WEBHOOK_INVALIDE"
-  | "CAUTION_INVALIDE";
+  | "CAUTION_INVALIDE"
+  | "UTILISATEUR_INVALIDE";
 
 /**
  * Erreur métier : porte un code stable, indépendant du framework HTTP.
