@@ -8,11 +8,8 @@ import { LIBELLES_MODE_PAIEMENT } from "@/domain/paiement";
 import type { Facture } from "@/domain/facture";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paiement-repository";
+import { celluleCsv } from "@/lib/csv";
 import { getSession, tenantIdDeSession } from "@/lib/session";
-
-function cellule(valeur: unknown): string {
-  return `"${String(valeur ?? "").replace(/"/g, '""')}"`;
-}
 
 function euros(centimes: number): string {
   return (centimes / 100).toFixed(2).replace(".", ",");
@@ -78,7 +75,7 @@ export async function GET(request: Request) {
     }),
   ];
 
-  const csv = `\uFEFF${lignes.map((l) => l.map(cellule).join(";")).join("\r\n")}`;
+  const csv = `\uFEFF${lignes.map((l) => l.map(celluleCsv).join(";")).join("\r\n")}`;
   return new Response(csv, {
     headers: {
       "content-type": "text/csv; charset=utf-8",

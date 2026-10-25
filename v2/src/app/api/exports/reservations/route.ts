@@ -7,11 +7,8 @@ import {
 } from "@/domain/calendrier";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
+import { celluleCsv } from "@/lib/csv";
 import { getSession, tenantIdDeSession } from "@/lib/session";
-
-function cellule(valeur: unknown): string {
-  return `"${String(valeur ?? "").replace(/"/g, '""')}"`;
-}
 
 function euros(centimes: number): string {
   return (centimes / 100).toFixed(2).replace(".", ",");
@@ -79,7 +76,7 @@ export async function GET(request: Request) {
     }),
   ];
 
-  const csv = `\uFEFF${lignes.map((l) => l.map(cellule).join(";")).join("\r\n")}`;
+  const csv = `\uFEFF${lignes.map((l) => l.map(celluleCsv).join(";")).join("\r\n")}`;
   return new Response(csv, {
     headers: {
       "content-type": "text/csv; charset=utf-8",

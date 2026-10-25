@@ -160,6 +160,9 @@ désactivation), 2FA TOTP (activation, connexion, désactivation), 320 px.
 - solde atteint : la facture passe automatiquement en `payee` ;
 - une facture en brouillon ou annulée ne peut pas être encaissée ;
 - compta : total encaissé du mois, liste des paiements, export CSV ;
+- exports CSV : guillemets échappés et préfixe `'` sur les valeurs commençant
+  par `=`, `+`, `-`, `@`, tabulation ou retour chariot (injection de formules
+  Excel) ;
 - audit `paiement.creer`.
 
 ## Fiscalité et Factur-X

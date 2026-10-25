@@ -816,7 +816,8 @@ et ne remplace pas v1.
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
 - **compta légère** : factures, lignes, TVA, taxe de séjour, totaux HT/TTC,
   cycle brouillon → émise → payée (ou annulée), impression/PDF navigateur,
-  exports CSV réservations/factures ;
+  exports CSV réservations/factures/paiements, cellules assainies contre les
+  formules Excel ;
 - **paiements manuels** : virement, espèces, chèque, CB, autre ; montants en
   centimes, idempotence par `ref`, refus du surpaiement, passage automatique
   en « payée » quand le solde est atteint, export CSV ;
@@ -873,7 +874,7 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **176/176** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **179/179** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **17/17** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
