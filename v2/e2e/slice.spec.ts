@@ -25,6 +25,12 @@ test("login staff + création d'un logement + audit visible dans la liste", asyn
     page.getByText(`Logement « ${code} » créé.`),
   ).toBeVisible();
   await expect(page.getByText(code).first()).toBeVisible();
+
+  // Le journal d'audit retrouve l'action par sa référence.
+  await page.goto(`/hote/audit?q=${encodeURIComponent(code)}`);
+  await expect(page.getByText("Logement créé")).toBeVisible();
+  await expect(page.getByText(code).first()).toBeVisible();
+  await expect(page.getByText("logement.creer")).toBeVisible();
 });
 
 test("voyageur sans JS, 320 px", async ({ browser }) => {

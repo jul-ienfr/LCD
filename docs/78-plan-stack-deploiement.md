@@ -803,7 +803,8 @@ et ne remplace pas v1.
   sans JS), `/hote`, `/hote/logements`, `/hote/planning`,
   `/hote/planning/import`, `/hote/prix`,
   `/hote/compta`, `/hote/compta/parametres`, `/hote/factures`,
-  `/hote/factures/[id]`, `/hote/securite`,
+  `/hote/factures/[id]`, `/hote/securite`, `/hote/utilisateurs`,
+  `/hote/audit`,
   `/hote/logements/[id]` (guide), `/hote/extras`,
   `/voyageur?t=<token>`, `/hote/missions`, `/hote/proprietaires`,
   `/presta`, `/proprio`, `/commercial`, `/commercial/prospects/[id]`,
@@ -860,6 +861,8 @@ et ne remplace pas v1.
   `actif` dans `requireSession`), garde-fous
   dernier admin / propre compte, audit ; **inscription publique désactivée**,
   `tenantId` et `role` non modifiables par le client ;
+- **journal d’audit** : page `/hote/audit` admin, pagination 50, recherche
+  action/auteur/cible/référence, libellés français, payload JSON replié ;
 - **guide/check-in + extras voyageur** : WiFi, consignes, règles, urgence,
   catalogue d’extras, commande idempotente, suivi staff ;
 - **import OTA/ICS** : parseur iCal pur, réservations confirmées, blocages
@@ -876,7 +879,7 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **179/179** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **181/181** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **21/21** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
@@ -888,7 +891,7 @@ et ne remplace pas v1.
   connexion, réinitialisation, désactivation) ; 2FA TOTP (activation,
   connexion en deux étapes, désactivation) ; inscription publique refusée ;
   tenant/rôle non modifiables ; tableau de bord hôte refusé à un prestataire ;
-  exports comptables refusés à un prestataire ; 320 px) ;
+  exports comptables refusés à un prestataire ; journal d’audit ; 320 px) ;
 - parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
   login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -1034,6 +1037,7 @@ et ne remplace pas v1.
 - [ ] Factur-X PDF/A-3 signé + plateforme de dématérialisation.
 - [x] Portail voyageur : séjour, guide, extras, incidents, i18n.
 - [x] Health/readiness + logs structurés.
+- [x] Journal d’audit consultable (admin, recherche, pagination).
 - [x] Sentry (code + endpoint client) et Uptime Kuma (compose + guide).
 - [ ] `SENTRY_DSN` + monitors/alertes configurés.
 - [x] Scripts backup + restore testé en local.

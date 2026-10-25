@@ -70,7 +70,7 @@ pipeline + offre, support ticket + réponse + résolution, guide + extra
 commandé, comptes utilisateurs (création, connexion, réinitialisation,
 désactivation), 2FA TOTP (activation, connexion, désactivation), inscription
 publique refusée, tenant/rôle non modifiables, prestataire refusé sur le
-tableau de bord hôte et les exports comptables, 320 px.
+tableau de bord hôte et les exports comptables, journal d’audit, 320 px.
 
 ## Pages
 
@@ -96,6 +96,7 @@ tableau de bord hôte et les exports comptables, 320 px.
 | `/hote/integrations` | webhooks HA/Moli + livraisons |
 | `/hote/securite` | 2FA |
 | `/hote/utilisateurs` | comptes de l’équipe (admin) |
+| `/hote/audit` | journal d’audit consultable (admin) |
 | `/presta` | missions du prestataire + statuts |
 | `/proprio` | relevé propriétaire (lecture seule) |
 | `/commercial` | pipeline prospects |
@@ -343,6 +344,15 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - audit `utilisateur.creer`, `utilisateur.activer`,
   `utilisateur.desactiver`, `utilisateur.motdepasse` ;
 - email unique au niveau plateforme, normalisé en minuscules.
+
+## Journal d’audit
+
+- page `/hote/audit`, réservée aux admins ;
+- 50 actions par page, les plus récentes d’abord ;
+- recherche sur l’action, l’auteur, la cible ou la référence ;
+- libellés français des actions connues, code brut conservé pour les autres ;
+- payload JSON replié, jamais interprété comme du HTML ;
+- lecture via RLS tenant, aucune écriture depuis la page.
 
 ## Auth
 
