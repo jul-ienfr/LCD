@@ -1051,6 +1051,39 @@ export const parametresSite = pgTable("parametres_site", {
     .$onUpdate(() => new Date()),
 });
 
+export const formationsProgressions = pgTable(
+  "formations_progressions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    moduleCode: text("module_code").notNull(),
+    etapesFaites: jsonb("etapes_faites")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("formations_progressions_tenant_user_module_uq").on(
+      t.tenantId,
+      t.userId,
+      t.moduleCode,
+    ),
+    index("formations_progressions_tenant_user_idx").on(t.tenantId, t.userId),
+  ],
+);
+
 export const phrases = pgTable(
   "phrases",
   {
@@ -1292,6 +1325,10 @@ export type QuestionnaireRow = typeof questionnaires.$inferSelect;
 export type NewQuestionnaireRow = typeof questionnaires.$inferInsert;
 export type PhraseRow = typeof phrases.$inferSelect;
 export type NewPhraseRow = typeof phrases.$inferInsert;
+export type ProgressionFormationRow =
+  typeof formationsProgressions.$inferSelect;
+export type NewProgressionFormationRow =
+  typeof formationsProgressions.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;
