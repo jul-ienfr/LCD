@@ -812,6 +812,7 @@ et ne remplace pas v1.
   `/api/auth/[...all]`, `/api/health`, `/api/ready`,
   `/api/exports/reservations`, `/api/exports/factures`,
   `/api/exports/paiements`, `/api/factures/[id]/factur-x`,
+  `/api/exports/tenant`,
   `/api/factures/[id]/pdf`, `/api/stripe/webhook`, `/api/cron/sync-ota`,
   `/api/cron/webhooks`, `/api/voyageur/incident` ;
 - tableau de bord : logements, réservations du mois, CA, arrivées/départs 7 j ;
@@ -819,6 +820,9 @@ et ne remplace pas v1.
   cycle brouillon → émise → payée (ou annulée), impression/PDF navigateur,
   exports CSV réservations/factures/paiements (admin/hote/comptable),
   cellules assainies contre les formules Excel ;
+- **export complet du tenant** : JSON admin, toutes les tables métier, sans
+  hash de mot de passe, session, secret webhook ni URL de flux OTA, audit
+  `tenant.export` ;
 - **paiements manuels** : virement, espèces, chèque, CB, autre ; montants en
   centimes, idempotence par `ref`, refus du surpaiement, passage automatique
   en « payée » quand le solde est atteint, export CSV ;
@@ -896,8 +900,8 @@ et ne remplace pas v1.
   connexion, réinitialisation, désactivation, changement de rôle) ; 2FA TOTP
   (activation, connexion en deux étapes, désactivation) ; inscription publique
   refusée ; tenant/rôle non modifiables ; tableau de bord hôte refusé à un
-  prestataire ; exports comptables refusés à un prestataire ; journal d’audit ;
-  export ICS signé ; 320 px) ;
+  prestataire ; exports comptables et export JSON complet refusés à un
+  prestataire ; journal d'audit ; export ICS signé ; 320 px) ;
 - parcours 2FA vérifié manuellement et en E2E : activation, déconnexion,
   login avec code TOTP, désactivation ;
 - **PWA** : manifest, service worker versionné, offline, icônes locales,
@@ -1047,6 +1051,7 @@ et ne remplace pas v1.
 - [x] Portail voyageur : séjour, guide, extras, incidents, i18n.
 - [x] Health/readiness + logs structurés.
 - [x] Journal d’audit consultable (admin, recherche, pagination).
+- [x] Export JSON complet du tenant, sans secrets.
 - [x] Sentry (code + endpoint client) et Uptime Kuma (compose + guide).
 - [ ] `SENTRY_DSN` + monitors/alertes configurés.
 - [x] Scripts backup + restore testé en local.

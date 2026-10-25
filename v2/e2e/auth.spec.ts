@@ -53,6 +53,25 @@ test("le tenant et le rôle ne sont pas modifiables par le client", async ({
   });
   expect(modificationRole.status()).toBe(400);
   expect(await modificationRole.text()).toMatch(/role is not allowed to be set/i);
+
+  const exportComplet = await request.get("/api/exports/tenant");
+  expect(exportComplet.status()).toBe(200);
+  expect(exportComplet.headers()["content-type"]).toContain("application/json");
+  const corpsExport = await exportComplet.json();
+  expect(corpsExport.tenant).toBeTruthy();
+  expect(Array.isArray(corpsExport.logements)).toBe(true);
+  expect(Array.isArray(corpsExport.reservations)).toBe(true);
+  expect(Array.isArray(corpsExport.utilisateurs)).toBe(true);
+  if (corpsExport.utilisateurs.length > 0) {
+    expect(corpsExport.utilisateurs[0]).not.toHaveProperty("password");
+  }
+  for (const webhook of corpsExport.webhooks) {
+    expect(webhook).not.toHaveProperty("secret");
+    expect(webhook).not.toHaveProperty("url");
+  }
+  for (const flux of corpsExport.fluxIcs) {
+    expect(flux).not.toHaveProperty("url");
+  }
 });
 
 test("prestataire : tableau de bord hôte refusé, sécurité personnelle accessible", async ({
@@ -85,6 +104,7 @@ test("prestataire : exports comptables refusés", async ({ request }) => {
     "/api/exports/reservations",
     "/api/exports/factures",
     "/api/exports/paiements",
+    "/api/exports/tenant",
   ]) {
     const reponse = await request.get(url);
     expect(reponse.status(), url).toBe(403);

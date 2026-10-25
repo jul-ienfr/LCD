@@ -72,7 +72,7 @@ commandé, comptes utilisateurs (création, connexion, réinitialisation,
 désactivation), 2FA TOTP (activation, connexion, désactivation), inscription
 publique refusée, tenant/rôle non modifiables, changement de rôle admin,
 prestataire refusé sur le tableau de bord hôte et les exports comptables,
-journal d’audit, export ICS, 320 px.
+journal d’audit, export ICS, export JSON complet sans secrets, 320 px.
 
 ## Pages
 
@@ -114,6 +114,7 @@ journal d’audit, export ICS, 320 px.
 | `/api/exports/reservations` | export CSV des réservations |
 | `/api/exports/factures` | export CSV des factures |
 | `/api/exports/paiements` | export CSV des paiements |
+| `/api/exports/tenant` | export JSON complet du tenant (admin) |
 | `/api/calendrier/[logementId]?t=<token>` | flux ICS signé du logement |
 | `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
 | `/api/factures/[id]/pdf` | PDF facture + XML Factur-X incorporé |
@@ -382,6 +383,20 @@ après les premiers clients ou si le LCP mobile se dégrade.
   `Permissions-Policy` posés par Netlify et Caddy.
 - `X-Robots-Tag: noindex, nofollow, noarchive` sur les routes privées et les
   liens signés.
+
+## Export complet du tenant
+
+- `GET /api/exports/tenant`, réservé au rôle **admin** ;
+- JSON versionné (`version: 1`) : tenant, utilisateurs (sans credentials),
+  logements, tarifs, réservations, blocages, cautions, factures et lignes,
+  paiements, paramètres fiscaux, missions, prospects, offres, tickets et
+  messages, extras et commandes, incidents, rattachements propriétaires,
+  flux ICS (sans URL), webhooks (sans URL ni secret), journal d’audit ;
+- jamais de hash de mot de passe, de session, de secret webhook ni d’URL de
+  flux OTA ;
+- `Content-Disposition` daté, `Cache-Control: no-store` ;
+- audit `tenant.export` avec les compteurs ;
+- téléchargement depuis `/hote/audit`.
 
 ## Auth
 

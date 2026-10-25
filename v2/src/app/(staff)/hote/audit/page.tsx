@@ -81,9 +81,17 @@ export default async function PageAudit({
             {total > 1 ? "s" : ""} pour votre organisation.
           </p>
         </div>
-        <Link className="text-sm underline" href="/hote">
-          Retour au tableau de bord
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium"
+            href="/api/exports/tenant"
+          >
+            Exporter les données JSON
+          </a>
+          <Link className="text-sm underline" href="/hote">
+            Retour au tableau de bord
+          </Link>
+        </div>
       </header>
 
       <form
