@@ -12,4 +12,5 @@ test("health live + readiness DB", async ({ request }) => {
   const readyBody = await ready.json();
   expect(readyBody.ok).toBe(true);
   expect(readyBody.db).toBe("up");
+  expect(readyBody.schema).toBe("ok");
 });

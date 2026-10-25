@@ -108,7 +108,7 @@ tableau de bord hôte et les exports comptables, journal d’audit, 320 px.
 | `/voyageur?t=<token>` | séjour réel + incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
-| `/api/ready` | readiness (ping DB) |
+| `/api/ready` | readiness (ping DB + tables/colonnes minimales) |
 | `/api/voyageur/incident` | API incident signée + idempotente |
 | `/api/exports/reservations` | export CSV des réservations |
 | `/api/exports/factures` | export CSV des factures |
@@ -312,7 +312,10 @@ après les premiers clients ou si le LCP mobile se dégrade.
 ## Observabilité
 
 - `/api/health` : liveness, ne dépend pas de la DB.
-- `/api/ready` : readiness, ping PostgreSQL, 503 si la DB est down.
+- `/api/ready` : readiness, ping PostgreSQL + vérification des tables/colonnes
+  minimales (`cautions`, `webhooks`, `webhook_deliveries`,
+  `logement_proprietaires.commission_bp`) ; 503 avec la liste `manquants` si
+  les migrations ne sont pas appliquées.
 - logs JSON via `src/lib/logger.ts` (ts, niveau, message, contexte).
 - **Sentry sans SDK** : `SENTRY_DSN` → erreurs serveur et erreurs client
   (`POST /api/telemetry`), secrets masqués, timeout 3 s, no-op sans DSN.

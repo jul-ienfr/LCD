@@ -871,7 +871,9 @@ et ne remplace pas v1.
   et synchronisation à la demande (URL validée, anti-SSRF) ou quotidienne via
   `POST /api/cron/sync-ota` protégé par `CRON_SECRET` ;
 - tranche verticale : **login → 2FA → logement → prix → planning → audit** ;
-- **health/readiness** : `/api/health` liveness, `/api/ready` ping DB ;
+- **health/readiness** : `/api/health` liveness, `/api/ready` ping DB +
+  vérification des dernières tables/colonnes (503 `schema: pending` avec la
+  liste `manquants` si `0026`-`0030` ne sont pas appliquées) ;
 - **backups** : `npm run db:backup` (dump gzip + SHA-256, rétention 14 j),
   `npm run db:restore-test` (restauration dans une base jetable + comptes),
   workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
@@ -879,7 +881,7 @@ et ne remplace pas v1.
 - **observabilité** : Sentry sans SDK (`SENTRY_DSN`, erreurs serveur + client
   via `/api/telemetry`, secrets masqués), Uptime Kuma
   (`compose.monitoring.yml`) et guide `v2/MONITORING.md` ;
-- tests Vitest : **181/181** (domaine + cas d'usage avec dépôts mémoire) ;
+- tests Vitest : **184/184** (domaine + cas d'usage avec dépôts mémoire) ;
 - Playwright : **21/21** (login + logement ; prix + planning + anti-chevauchement ;
   PWA offline + API jamais cachée ; health/ready ; facture + fiscalité auto +
   Factur-X XML + PDF + paiements + facture publique + email (si Mailpit) +
@@ -916,7 +918,8 @@ et ne remplace pas v1.
   secret `DATABASE_URL` ;
 - **migrations distantes** : production actuellement marquée jusqu'à `0025`
   (26 tables) ; `0026`-`0030` (commission, webhooks, cautions) sont prêtes et
-  seront appliquées au prochain déploiement ;
+  seront appliquées au prochain déploiement ; `/api/ready` renverra
+  `503 schema: pending` tant qu'elles manquent ;
 - CI `v2-ci` (lint, typecheck, tests, db:check, build) ;
 - `Dockerfile` standalone, `netlify.toml`, `compose.dev.yml`
   (Postgres 18 + S3Mock + Mailpit).
