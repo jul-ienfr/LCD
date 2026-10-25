@@ -129,6 +129,7 @@ export function FormulaireRole({
         <select
           className="w-full rounded-lg border border-stone-300 p-2 text-sm"
           defaultValue={roleActuel}
+          key={roleActuel}
           name="role"
           required
         >
