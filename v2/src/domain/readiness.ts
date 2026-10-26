@@ -5,13 +5,18 @@ export interface EtatSchema {
   commissionBp: boolean;
   tenantNature: boolean;
   mandatMode: boolean;
+  migrations?: number;
 }
 
 /**
  * Liste les migrations minimales manquantes pour servir l'application.
- * Le schéma attendu correspond aux migrations 0026 à 0030.
+ * Le compteur du journal Drizzle détecte aussi les migrations récentes non
+ * appliquées, sans maintenir une liste de tables à chaque brique.
  */
-export function manquantsSchema(etat: EtatSchema | undefined): string[] {
+export function manquantsSchema(
+  etat: EtatSchema | undefined,
+  migrationsAttendues = 0,
+): string[] {
   const manquants: string[] = [];
   if (!etat?.cautions) manquants.push("cautions");
   if (!etat?.webhooks) manquants.push("webhooks");
@@ -21,5 +26,11 @@ export function manquantsSchema(etat: EtatSchema | undefined): string[] {
   }
   if (!etat?.tenantNature) manquants.push("tenants.nature");
   if (!etat?.mandatMode) manquants.push("logement_proprietaires.mode");
+  if (
+    migrationsAttendues > 0 &&
+    (etat?.migrations ?? 0) < migrationsAttendues
+  ) {
+    manquants.push(`migrations.${migrationsAttendues}`);
+  }
   return manquants;
 }

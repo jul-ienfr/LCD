@@ -14,7 +14,9 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   `RLS VALIDÉE : isolation tenant effective`.
 - [ ] `/api/health` → `200`, `/api/ready` → `200`, `db: up`, `schema: ok`.
 - [ ] `/api/ready` bien **503 `schema: pending`** si une migration manque
-  (test à faire sur une base de staging vide ou incomplète).
+  (test à faire sur une base de staging vide ou incomplète) ; le compteur
+  `migrations` est comparé au journal Drizzle.
+- [ ] `/api/ready` → `200` avec toutes les migrations appliquées.
 
 ## 1. Auth, rôles et sécurité
 
@@ -199,7 +201,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **424/424**.
+- Vitest : **425/425**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

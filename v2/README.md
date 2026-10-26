@@ -142,7 +142,7 @@ juridique + mandats, 320 px.
 | `/voyageur?t=<token>` | séjour, guide, extras, préférences séjour, mémoire, avis, questionnaire, incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
-| `/api/ready` | readiness (ping DB + tables/colonnes minimales) |
+| `/api/ready` | readiness (ping DB + tables/colonnes minimales + migrations à jour) |
 | `/api/voyageur/incident` | API incident signée + idempotente |
 | `/api/exports/reservations` | export CSV des réservations |
 | `/api/exports/audit` | export CSV du journal filtré (période, famille, recherche) |
@@ -390,8 +390,9 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - `/api/ready` : readiness, ping PostgreSQL + vérification des tables/colonnes
   minimales (`cautions`, `webhooks`, `webhook_deliveries`,
   `logement_proprietaires.commission_bp`, `tenants.nature`,
-  `logement_proprietaires.mode`) ; 503 avec la liste `manquants` si
-  les migrations ne sont pas appliquées.
+  `logement_proprietaires.mode`) et du nombre de migrations appliquées
+  comparé au journal Drizzle ; 503 avec la liste `manquants` si les migrations
+  ne sont pas appliquées.
 - logs JSON via `src/lib/logger.ts` (ts, niveau, message, contexte).
 - **Sentry sans SDK** : `SENTRY_DSN` → erreurs serveur et erreurs client
   (`POST /api/telemetry`), secrets masqués, timeout 3 s, no-op sans DSN.

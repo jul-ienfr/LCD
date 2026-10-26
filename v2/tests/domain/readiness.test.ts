@@ -31,4 +31,13 @@ describe("readiness schéma", () => {
       "logement_proprietaires.commission_bp",
     ]);
   });
+
+  it("signale les migrations non appliquées", () => {
+    expect(manquantsSchema({ ...complet, migrations: 54 }, 55)).toEqual([
+      "migrations.55",
+    ]);
+    expect(manquantsSchema({ ...complet, migrations: 55 }, 55)).toEqual([]);
+    expect(manquantsSchema(complet, 55)).toEqual(["migrations.55"]);
+    expect(manquantsSchema({ ...complet, migrations: 55 }, 0)).toEqual([]);
+  });
 });

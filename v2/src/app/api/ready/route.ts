@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import journal from "../../../../drizzle/meta/_journal.json";
 import {
   manquantsSchema,
   type EtatSchema,
@@ -36,10 +37,14 @@ export async function GET() {
           where table_schema = 'public'
             and table_name = 'logement_proprietaires'
             and column_name = 'mode'
-        ) as "mandatMode"
+        ) as "mandatMode",
+        (
+          select count(*)::int
+          from drizzle.__drizzle_migrations
+        ) as "migrations"
     `;
 
-    const manquants = manquantsSchema(etat);
+    const manquants = manquantsSchema(etat, journal.entries.length);
 
     if (manquants.length > 0) {
       return Response.json(
