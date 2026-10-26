@@ -8,6 +8,7 @@ import {
 } from "@/application/use-cases/message-voyageur";
 import { ErreurMetier } from "@/domain/erreurs";
 import { creerEmailSmtp } from "@/infrastructure/adapters/email-smtp";
+import { creerSmsBrevo, smsConfigured } from "@/infrastructure/adapters/sms-brevo";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMessagesVoyageurRepository } from "@/infrastructure/db/repositories/messages-voyageur-repository";
@@ -28,6 +29,7 @@ export async function preparerMessageAction(formData: FormData) {
   const logementId = String(formData.get("logementId") ?? "");
 
   try {
+    const canal = String(formData.get("canal") ?? "");
     const message = await new PreparerMessageVoyageur(
       new DrizzleMessagesVoyageurRepository(),
       new DrizzleLogementRepository(),
@@ -37,8 +39,11 @@ export async function preparerMessageAction(formData: FormData) {
       ref:
         String(formData.get("ref") ?? "").trim() ||
         `MSG-${crypto.randomUUID()}`,
-      canal: String(formData.get("canal") ?? ""),
-      destinataire: String(formData.get("destinataire") ?? ""),
+      canal,
+      destinataire:
+        canal === "sms"
+          ? String(formData.get("telephone") ?? "")
+          : String(formData.get("destinataire") ?? ""),
       type: String(formData.get("type") ?? ""),
       contenu: String(formData.get("contenu") ?? ""),
     });
@@ -79,6 +84,7 @@ export async function envoyerMessageAction(formData: FormData) {
     const message = await new EnvoyerMessageVoyageur(
       new DrizzleMessagesVoyageurRepository(),
       env.EMAIL_ENABLED ? creerEmailSmtp() : null,
+      smsConfigured() ? creerSmsBrevo() : null,
     ).executer(tenantId, id);
 
     await withTenant(tenantId, (tx) =>

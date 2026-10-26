@@ -6,6 +6,7 @@ import {
   validerMessage,
 } from "@/domain/message-voyageur";
 import type { EmailSender } from "../ports/email";
+import type { SmsSender } from "../ports/sms";
 import type { MessagesVoyageurRepository } from "../ports/messages-voyageur-repository";
 import type { LogementRepository } from "../ports/logement-repository";
 
@@ -59,6 +60,7 @@ export class EnvoyerMessageVoyageur {
   constructor(
     private readonly messages: MessagesVoyageurRepository,
     private readonly email: EmailSender | null = null,
+    private readonly sms: SmsSender | null = null,
   ) {}
 
   async executer(tenantId: string, id: string) {
@@ -77,6 +79,18 @@ export class EnvoyerMessageVoyageur {
       await this.email.envoyer({
         to: message.destinataire,
         subject: sujetMessage(message.type),
+        text: message.contenu,
+      });
+    }
+    if (message.canal === "sms" && this.sms) {
+      if (!message.destinataire) {
+        throw new ErreurMetier(
+          "MESSAGE_INVALIDE",
+          "Renseignez le numéro de téléphone du voyageur avant l’envoi.",
+        );
+      }
+      await this.sms.envoyer({
+        to: message.destinataire,
         text: message.contenu,
       });
     }

@@ -112,6 +112,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   réassignation, réponse prestataire.
 - [ ] Messages voyageurs : refus des codes d’accès, brouillon, envoi e-mail
   réel (Mailpit) ou marquage manuel, unicité et journalisation.
+  Canal SMS : numéro normalisé et envoi Brevo si `SMS_ENABLED=true`.
   Validé en local le 2026-10-26 : message reçu par Mailpit avec l’adresse
   saisie, statut `envoye` après succès SMTP.
 - [ ] Préférences séjour : bornes 0–30 jours, heure HH:MM, mise à jour
@@ -213,7 +214,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **440/440**.
+- Vitest : **446/446**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

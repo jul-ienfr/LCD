@@ -437,11 +437,15 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - préparation par logement, canaux e-mail/SMS, types J-1, arrivée, départ et
   autre ;
 - adresse e-mail du voyageur facultative mais **requise pour un envoi réel** ;
-  format contrôlé, 254 caractères maximum ;
+  format contrôlé, 254 caractères maximum ; téléphone requis pour le canal SMS ;
 - refus de tout code d’accès (PIN) dans le contenu ;
 - `EMAIL_ENABLED=true` : l’e-mail part par SMTP **avant** le passage en
   `envoye` ; une erreur SMTP laisse le brouillon intact ;
-- `EMAIL_ENABLED=false` : bouton « Marquer envoyé » pour un envoi hors outil ;
+- `SMS_ENABLED=true` + `BREVO_API_KEY` : le SMS part par **Brevo
+  transactionnel** avant le statut `envoye` ; le numéro est normalisé
+  (espaces, points, tirets retirés) ;
+- `EMAIL_ENABLED=false` ou SMS non configuré : bouton « Marquer envoyé » pour
+  un envoi hors outil ;
 - objet `Votre séjour — <type>`, audit `message.preparer` / `message.envoyer` ;
 - enregistrement idempotent par `ref`.
 
@@ -646,7 +650,7 @@ Guide pas à pas : [`DEPLOIEMENT.md`](./DEPLOIEMENT.md).
 - Build Netlify validé : `NETLIFY=true npm run build`.
 - Variables standard : `DATABASE_URL`, `MIGRATION_DATABASE_URL`,
   `APP_ROLE_NAME`, `APP_ROLE_PASSWORD`, `BOX_RUNTIME_CONFIG`, `S3_*`,
-  `SMTP_URL`,
+  `SMTP_URL`, `SMS_ENABLED`, `BREVO_API_KEY`, `BREVO_SMS_SENDER`,
   `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `BETTER_AUTH_TRUSTED_ORIGINS`,
   `STRIPE_*`, `SENTRY_DSN`.
 

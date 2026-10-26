@@ -41,6 +41,14 @@ const schema = z.object({
   EMAIL_FROM: z.string().default("LCD <no-reply@lcd.test>"),
   SMTP_URL: z.string().default("smtp://127.0.0.1:1025"),
 
+  // SMS transactionnels (Brevo), désactivés par défaut.
+  SMS_ENABLED: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true" || v === "1"),
+  BREVO_API_KEY: z.string().optional(),
+  BREVO_SMS_SENDER: z.string().default("LCD"),
+
   // Paiement (facultatif au démarrage).
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),

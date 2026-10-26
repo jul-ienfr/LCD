@@ -3,7 +3,9 @@ import {
   contientCodeSensible,
   emailValide,
   envoyerMessage,
+  normaliserDestinataire,
   sujetMessage,
+  telephoneValide,
   validerMessage,
 } from "@/domain/message-voyageur";
 import { ErreurMetier } from "@/domain/erreurs";
@@ -84,6 +86,34 @@ describe("domaine messages voyageurs", () => {
       }),
     ).toThrow(/e-mail/);
     expect(sujetMessage("depart")).toBe("Votre séjour — Départ");
+  });
+
+  it("valide et normalise un numéro pour le canal SMS", () => {
+    expect(telephoneValide("06 12 34 56 78")).toBe(true);
+    expect(telephoneValide("+33 6 12 34 56 78")).toBe(true);
+    expect(telephoneValide("+33612345678")).toBe(true);
+    expect(telephoneValide("123")).toBe(false);
+    expect(telephoneValide("06 12 34 56 78 90 12 34")).toBe(false);
+    expect(normaliserDestinataire("sms", "06 12 34 56 78")).toBe(
+      "0612345678",
+    );
+    expect(normaliserDestinataire("email", " camille@example.com ")).toBe(
+      "camille@example.com",
+    );
+    expect(
+      validerMessage({
+        canal: "sms",
+        type: "j1",
+        contenu: "Votre séjour approche, à demain !",
+        destinataire: "06.12.34.56.78",
+      }).destinataire,
+    ).toBe("0612345678");
+    expect(() =>
+      normaliserDestinataire("sms", "pas-un-numero"),
+    ).toThrow(/téléphone/);
+    expect(() =>
+      normaliserDestinataire("email", "06 12 34 56 78"),
+    ).toThrow(/e-mail/);
   });
 
   it("n’envoie qu’un brouillon", () => {

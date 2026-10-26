@@ -9,6 +9,7 @@ import {
 } from "@/application/use-cases/message-voyageur";
 import type { MessageVoyageur } from "@/domain/message-voyageur";
 import type { EmailMessage, EmailSender } from "@/application/ports/email";
+import type { SmsMessage, SmsSender } from "@/application/ports/sms";
 import { LogementRepositoryMemoire } from "../helpers/logement-repository-memoire";
 
 class MemoireMessages implements MessagesVoyageurRepository {
@@ -173,6 +174,52 @@ describe("cas d'usage messages voyageurs", () => {
       message:
         "Renseignez l’adresse e-mail du voyageur avant l’envoi.",
     });
+    expect(messages.items[0]?.statut).toBe("brouillon");
+  });
+
+  it("envoie un SMS via le fournisseur avant de marquer envoyé", async () => {
+    const { logement, preparerCas, messages } = await preparer();
+    const envois: SmsMessage[] = [];
+    const sms: SmsSender = {
+      async envoyer(message) {
+        envois.push(message);
+      },
+    };
+    const message = await preparerCas.executer({
+      ...base,
+      canal: "sms",
+      logementId: logement.id,
+      destinataire: "06 12 34 56 78",
+    });
+    const envoye = await new EnvoyerMessageVoyageur(
+      messages,
+      null,
+      sms,
+    ).executer("t1", message.id);
+    expect(envois).toHaveLength(1);
+    expect(envois[0]?.to).toBe("0612345678");
+    expect(envois[0]?.text).toContain("le logement sera");
+    expect(envoye.statut).toBe("envoye");
+  });
+
+  it("refuse un SMS sans numéro et garde le brouillon", async () => {
+    const { logement, preparerCas, messages } = await preparer();
+    const sms: SmsSender = {
+      async envoyer() {
+        throw new Error("ne doit pas être appelé");
+      },
+    };
+    const message = await preparerCas.executer({
+      ...base,
+      canal: "sms",
+      logementId: logement.id,
+    });
+    await expect(
+      new EnvoyerMessageVoyageur(messages, null, sms).executer(
+        "t1",
+        message.id,
+      ),
+    ).rejects.toMatchObject({ code: "MESSAGE_INVALIDE" });
     expect(messages.items[0]?.statut).toBe("brouillon");
   });
 });

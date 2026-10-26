@@ -55,6 +55,39 @@ export function emailValide(email: string): boolean {
   );
 }
 
+export function telephoneValide(telephone: string): boolean {
+  const chiffres = telephone.replace(/[\s.\-()]/g, "");
+  return /^\+?\d{6,15}$/.test(chiffres);
+}
+
+export function normaliserTelephone(telephone: string): string {
+  return telephone.replace(/[\s.\-()]/g, "");
+}
+
+export function normaliserDestinataire(
+  canal: CanalMessage,
+  valeur: string,
+): string | null {
+  const brut = valeur.trim();
+  if (!brut) return null;
+  if (canal === "sms") {
+    if (!telephoneValide(brut)) {
+      throw new ErreurMetier(
+        "MESSAGE_INVALIDE",
+        "Le numéro de téléphone du voyageur est invalide.",
+      );
+    }
+    return normaliserTelephone(brut);
+  }
+  if (!emailValide(brut)) {
+    throw new ErreurMetier(
+      "MESSAGE_INVALIDE",
+      "L’adresse e-mail du voyageur est invalide.",
+    );
+  }
+  return brut;
+}
+
 export function sujetMessage(type: TypeMessageVoyageur): string {
   return `Votre séjour — ${LIBELLES_TYPE_MESSAGE[type]}`;
 }
@@ -117,18 +150,15 @@ export function validerMessage(input: {
       "Ne jamais inclure de code d’accès (PIN) dans un message voyageur.",
     );
   }
-  const destinataire = (input.destinataire ?? "").trim();
-  if (destinataire && !emailValide(destinataire)) {
-    throw new ErreurMetier(
-      "MESSAGE_INVALIDE",
-      "L’adresse e-mail du voyageur est invalide.",
-    );
-  }
+  const destinataire = normaliserDestinataire(
+    input.canal,
+    input.destinataire ?? "",
+  );
   return {
     canal: input.canal,
     type: input.type,
     contenu,
-    destinataire: destinataire || null,
+    destinataire,
   };
 }
 

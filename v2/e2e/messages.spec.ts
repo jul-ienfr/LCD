@@ -59,7 +59,7 @@ test("messages voyageurs : PIN refusé, préparation et envoi", async ({
   await expect(message).toContainText(destinataire);
 
   await message.getByRole("button", { name: "Envoyer par e-mail" }).click();
-  await expect(page.getByText("Message envoyé par e-mail.")).toBeVisible();
+  await expect(page.getByText("Message envoyé.")).toBeVisible();
   await expect(message.getByText("Envoyé", { exact: true })).toBeVisible();
   await expect(carteBrouillons).toContainText("0");
 
@@ -73,4 +73,19 @@ test("messages voyageurs : PIN refusé, préparation et envoi", async ({
     m.To?.some((to) => to.Address === destinataire),
   );
   expect(recu).toBe(true);
+
+  await page.selectOption('select[name="canal"]', "sms");
+  await page.selectOption('select[name="type"]', "depart");
+  await page.fill('input[name="telephone"]', "+33 6 12 34 56 78");
+  await page.fill(
+    'textarea[name="contenu"]',
+    "Bonjour, pensez à rendre les clés avant 11 h. Bon retour !",
+  );
+  await page.getByRole("button", { name: "Préparer le message" }).click();
+  await expect(page.getByText("Message préparé.")).toBeVisible();
+  const sms = page.locator("li").filter({ hasText: "Départ · SMS" });
+  await expect(sms).toContainText("+33612345678");
+  await sms.getByRole("button", { name: "Marquer envoyé" }).click();
+  await expect(page.getByText("Message envoyé.")).toBeVisible();
+  await expect(sms.getByText("Envoyé", { exact: true })).toBeVisible();
 });

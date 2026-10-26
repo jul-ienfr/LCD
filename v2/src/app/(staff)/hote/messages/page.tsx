@@ -10,6 +10,7 @@ import {
 } from "@/domain/message-voyageur";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMessagesVoyageurRepository } from "@/infrastructure/db/repositories/messages-voyageur-repository";
+import { smsConfigured } from "@/infrastructure/adapters/sms-brevo";
 import { env } from "@/lib/env";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { envoyerMessageAction, preparerMessageAction } from "./actions";
@@ -77,10 +78,9 @@ export default async function PageMessages({
     params.ok === "prepare"
       ? "Message préparé."
       : params.ok === "envoi"
-        ? env.EMAIL_ENABLED
-          ? "Message envoyé par e-mail."
-          : "Message marqué envoyé."
+        ? "Message envoyé."
         : null;
+  const smsDisponible = smsConfigured();
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
@@ -204,11 +204,27 @@ export default async function PageMessages({
               maxLength={DESTINATAIRE_MAX}
               name="destinataire"
               placeholder="camille@example.com"
-              type="email"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
             />
             <span className="block text-xs text-encre-faine">
               Requis pour un envoi réel par e-mail ; laissez vide pour un envoi
               manuel.
+            </span>
+          </label>
+          <label className="block space-y-1 text-sm font-medium">
+            <span>Téléphone du voyageur</span>
+            <input
+              className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
+              inputMode="tel"
+              maxLength={20}
+              name="telephone"
+              placeholder="06 12 34 56 78"
+              type="tel"
+            />
+            <span className="block text-xs text-encre-faine">
+              Utilisé uniquement pour le canal SMS.
             </span>
           </label>
           <label className="block space-y-1 text-sm font-medium">
@@ -281,9 +297,13 @@ export default async function PageMessages({
                         className="rounded-full border border-bordure px-3 py-1 text-xs font-medium"
                         type="submit"
                       >
-                        {env.EMAIL_ENABLED && message.canal === "email"
-                          ? "Envoyer par e-mail"
-                          : "Marquer envoyé"}
+                        {message.canal === "sms"
+                          ? smsDisponible
+                            ? "Envoyer par SMS"
+                            : "Marquer envoyé"
+                          : env.EMAIL_ENABLED
+                            ? "Envoyer par e-mail"
+                            : "Marquer envoyé"}
                       </button>
                     </form>
                   ) : null}

@@ -101,7 +101,20 @@ function CarteBrouillon({
             className="block rounded-xl border border-bordure bg-surface p-2 text-sm"
             name="destinataire"
             placeholder="camille@example.com"
-            type="email"
+            type="text"
+            inputMode="email"
+            autoComplete="email"
+          />
+        </label>
+        <label className="space-y-1 text-sm">
+          <span>Téléphone (SMS)</span>
+          <input
+            className="block rounded-xl border border-bordure bg-surface p-2 text-sm"
+            inputMode="tel"
+            maxLength={20}
+            name="telephone"
+            placeholder="06 12 34 56 78"
+            type="tel"
           />
         </label>
         <button
