@@ -142,6 +142,12 @@ export default async function PageCompta({
         </Link>
         <Link
           className="rounded-full border border-bordure px-4 py-2 text-sm"
+          href={`/api/exports/factur-x?mois=${mois}`}
+        >
+          Export Factur-X (ZIP)
+        </Link>
+        <Link
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href="/hote/compta/parametres"
         >
           Paramètres fiscaux

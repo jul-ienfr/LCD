@@ -150,6 +150,7 @@ juridique + mandats, 320 px.
 | `/api/exports/reservations` | export CSV des réservations |
 | `/api/exports/audit` | export CSV du journal filtré (période, famille, recherche) |
 | `/api/exports/factures` | export CSV des factures |
+| `/api/exports/factur-x?mois=AAAA-MM` | ZIP des XML Factur-X des factures émises/payées du mois |
 | `/api/exports/paiements` | export CSV des paiements |
 | `/api/exports/tenant` | export JSON complet du tenant (admin) |
 | `/api/calendrier/[logementId]?t=<token>` | flux ICS signé du logement |
@@ -268,6 +269,9 @@ légales continuent de lire le nom du tenant en base.
 - numérotation `PREFIXE-AAAA-0001`, préfixe validé (2-8 caractères A-Z/0-9) ;
 - export `GET /api/factures/[id]/factur-x` : XML CII EN 16931, réservé aux
   rôles `admin`, `hote`, `comptable`, `Cache-Control: private, no-store` ;
+- export `GET /api/exports/factur-x?mois=AAAA-MM` : ZIP (méthode store, noms
+  UTF-8) des XML des factures `emise`/`payee` du mois, pour dépôt PDP/Chorus ;
+  en-tête `X-Factures`, 404 si aucune facture émise ;
 - export `GET /api/factures/[id]/pdf` : PDF facture (lignes, totaux, paiements)
   avec le XML Factur-X en pièce jointe ; accessible avec session staff ou
   token public `?t=…` ;

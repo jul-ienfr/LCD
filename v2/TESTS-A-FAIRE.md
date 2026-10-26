@@ -221,6 +221,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - [ ] Mentions légales, RGPD, politique de confidentialité, DPA.
 - [ ] Factur-X validé par une plateforme de dématérialisation (PDF/A-3 signé
   non implémenté).
+- [ ] ZIP mensuel `/api/exports/factur-x` déposé sur une PDP/Chorus de test :
+  factures acceptées, doublons et mois vide refusés proprement.
 - [ ] Vérification SIREN/TVA de l’entité émettrice.
 - [ ] Numérotation de factures continue et sans trou.
 - [ ] Export complet du tenant testé sur la production (admin).

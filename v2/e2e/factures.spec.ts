@@ -241,6 +241,21 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   );
   expect(csvReservations.status()).toBe(200);
   expect(csvReservations.headers()["content-type"]).toContain("text/csv");
+
+  const zipFacturX = await page.request.get(
+    "/api/exports/factur-x?mois=2026-11",
+  );
+  expect(zipFacturX.status()).toBe(200);
+  expect(zipFacturX.headers()["content-type"]).toContain("application/zip");
+  expect(
+    Number(zipFacturX.headers()["x-factures"] ?? 0),
+  ).toBeGreaterThanOrEqual(2);
+  const zipBytes = await zipFacturX.body();
+  expect(zipBytes.subarray(0, 2).toString()).toBe("PK");
+  const zipTexte = zipBytes.toString("utf8");
+  expect(zipTexte).toContain(`${numeroAuto}.xml`);
+  expect(zipTexte).toContain(numeroAuto);
+  expect(zipTexte).toContain(numeroManuel);
 });
 
 test("relances groupées : facture échue relancée une seule fois par jour", async ({
