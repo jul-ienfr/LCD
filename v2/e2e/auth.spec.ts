@@ -61,6 +61,8 @@ test("le tenant et le rôle ne sont pas modifiables par le client", async ({
   expect(corpsExport.tenant).toBeTruthy();
   expect(Array.isArray(corpsExport.logements)).toBe(true);
   expect(Array.isArray(corpsExport.reservations)).toBe(true);
+  expect(Array.isArray(corpsExport.messagesVoyageur)).toBe(true);
+  expect(Array.isArray(corpsExport.assistantConsommations)).toBe(true);
   expect(Array.isArray(corpsExport.utilisateurs)).toBe(true);
   if (corpsExport.utilisateurs.length > 0) {
     expect(corpsExport.utilisateurs[0]).not.toHaveProperty("password");

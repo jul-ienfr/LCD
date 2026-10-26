@@ -470,7 +470,8 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - JSON versionné (`version: 1`) : tenant, utilisateurs (sans credentials),
   logements, tarifs, réservations, blocages, cautions, factures et lignes,
   paiements, paramètres fiscaux, missions, prospects, offres, tickets et
-  messages, extras et commandes, incidents, rattachements propriétaires,
+  messages, extras et commandes, incidents, messages voyageurs (avec
+  destinataire), consommations assistant, rattachements propriétaires,
   flux ICS (sans URL), webhooks (sans URL ni secret), journal d’audit ;
 - jamais de hash de mot de passe, de session, de secret webhook ni d’URL de
   flux OTA ;

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { connection } from "next/server";
 import {
+  assistantConsommations,
   auditLogs,
   blocages,
   cautions,
@@ -12,6 +13,7 @@ import {
   incidents,
   logementProprietaires,
   logements,
+  messagesVoyageur,
   missions,
   offres,
   paiements,
@@ -141,6 +143,14 @@ export async function GET() {
         .select()
         .from(auditLogs)
         .where(eq(auditLogs.tenantId, tenantId));
+      const listeMessagesVoyageurs = await tx
+        .select()
+        .from(messagesVoyageur)
+        .where(eq(messagesVoyageur.tenantId, tenantId));
+      const listeConsommationsAssistant = await tx
+        .select()
+        .from(assistantConsommations)
+        .where(eq(assistantConsommations.tenantId, tenantId));
 
       // Les URLs et secrets d'intégration ne sortent jamais dans un export.
       const listeFlux = await tx
@@ -193,6 +203,8 @@ export async function GET() {
         extras: listeExtras,
         commandesExtras: listeCommandes,
         incidents: listeIncidents,
+        messagesVoyageur: listeMessagesVoyageurs,
+        assistantConsommations: listeConsommationsAssistant,
         logementProprietaires: listeAssignations,
         fluxIcs: listeFlux,
         webhooks: listeWebhooks,
