@@ -567,6 +567,11 @@ jour borné au dernier jour du mois). Table `fiches_police` sous RLS.
 - `/secrets` : états des variables (configuré / absent / défaut local /
   alerte), jamais les valeurs ; rotation documentée ;
 - `/journal` : 200 dernières actions tous espaces, filtres espace/action ;
+- `/supervision/voir-comme` : aperçu des rôles `admin`, `hôte` ou `comptable`
+  via un cookie HMAC de 2 h lié au compte, bandeau permanent et **lecture
+  seule**. Toute mutation est refusée par `src/proxy.ts` et par les server
+  actions (`requireRole`), jamais par un élargissement de droits. Démarrage et
+  arrêt sont audités (`apercu.demarrer`, `apercu.arreter`) avec l’e-mail réel ;
 - ces pages utilisent la connexion **owner** (`MIGRATION_DATABASE_URL`), jamais
   `lcd_app`. Sans cette variable, elles affichent un avertissement au lieu de
   contourner RLS ;

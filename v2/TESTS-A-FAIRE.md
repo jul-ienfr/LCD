@@ -209,6 +209,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
   ordinaire et l’absence de valeur de secret dans le HTML.
 - [ ] Retirer `MIGRATION_DATABASE_URL` : les quatre pages affichent un
   avertissement, sans repli sur la connexion RLS.
+- [ ] « Voir comme » : bandeau, écritures refusées (formulaire et appel direct),
+  arrêt, audit `apercu.demarrer/arreter`, cookie expiré après 2 h.
 
 ## 7. Performance et compatibilité
 

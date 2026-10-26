@@ -9,6 +9,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
 import { estSuperAdmin, requireRole } from "@/lib/session";
+import { lireApercu } from "@/lib/apercu";
 import { BoutonDeconnexion } from "@/components/bouton-deconnexion";
 
 // Route staff bloquante : session + DB avant rendu.
@@ -24,6 +25,8 @@ function nomLogement(
 export default async function PageHote() {
   await connection();
   const session = await requireRole(["admin", "hote", "comptable"]);
+  const apercu = await lireApercu(session);
+  const roleEffectif = apercu?.role ?? session.user.role ?? "";
 
   const logements = await new DrizzleLogementRepository().listerParTenant(
     session.user.tenantId ?? "",
@@ -65,7 +68,7 @@ export default async function PageHote() {
             Bonjour {session.user.name}
           </h1>
           <p className="text-encre-douce">
-            Rôle : <span className="font-medium">{session.user.role}</span> ·
+            Rôle : <span className="font-medium">{roleEffectif}</span> ·
             Tenant : <span className="font-mono text-xs">{session.user.tenantId}</span>
           </p>
         </div>
@@ -114,7 +117,7 @@ export default async function PageHote() {
           >
             Recherche globale
           </Link>
-          {estSuperAdmin(session) ? (
+          {estSuperAdmin(session) && !apercu ? (
             <Link
               className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
               href="/supervision"
@@ -278,7 +281,7 @@ export default async function PageHote() {
           >
             Propriétaires
           </Link>
-          {session.user.role === "admin" ? (
+          {roleEffectif === "admin" ? (
             <Link
               className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
               href="/hote/utilisateurs"
@@ -286,7 +289,7 @@ export default async function PageHote() {
               Utilisateurs
             </Link>
           ) : null}
-          {session.user.role === "admin" ? (
+          {roleEffectif === "admin" ? (
             <Link
               className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
               href="/hote/entite"
@@ -294,7 +297,7 @@ export default async function PageHote() {
               Entité juridique
             </Link>
           ) : null}
-          {session.user.role === "admin" ? (
+          {roleEffectif === "admin" ? (
             <Link
               className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
               href="/hote/acces"
@@ -302,7 +305,7 @@ export default async function PageHote() {
               Accès
             </Link>
           ) : null}
-          {session.user.role === "admin" ? (
+          {roleEffectif === "admin" ? (
             <Link
               className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
               href="/hote/audit"
@@ -310,7 +313,7 @@ export default async function PageHote() {
               Audit
             </Link>
           ) : null}
-          {session.user.role === "admin" ? (
+          {roleEffectif === "admin" ? (
             <Link
               className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
               href="/hote/design"

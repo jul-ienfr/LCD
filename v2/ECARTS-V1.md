@@ -26,7 +26,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | Rate-limit login | Partiel | `rateLimit` Better Auth activé ; CAPTCHA absent. |
 | 2FA obligatoire staff | Fait (opt-in) | `AUTH_2FA_REQUIRED=true` ; CAPTCHA login absent. |
 | 8 rôles V1 (super_admin, opérateur…) | Partiel | 7 rôles dont `super_admin` ; `operateur` reste legacy (comptes existants), pas de sélection UI. |
-| « Voir comme » + bandeau + audit `qui_reel` | Absent | Reporté : ne pas accorder les droits réels via un cookie d’impersonation ; conception lecture seule à valider. |
+| « Voir comme » + bandeau + audit `qui_reel` | Fait | Cookie HMAC 2 h lié au compte, rôles admin/hôte/comptable, bandeau, écritures refusées (proxy + server actions), audit `apercu.demarrer/arreter`. |
 | Double validation 4 yeux | Absent | Reversements/débits > seuils. |
 | Isolation RLS + `withTenant()` | Fait | Test RLS dédié. |
 
@@ -121,9 +121,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 ## Prochaines priorités proposées
 
 1. 2FA obligatoire pour admin/comptable + CAPTCHA login.
-2. « Voir comme » lecture seule + bandeau + audit `qui_reel` (ne pas
-   réutiliser le cookie de session pour élargir les droits).
-3. Machine d’état de publication d’annonce + archivage doux.
-4. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
-5. Bandeau cookies et médiation conso.
-6. Mode léger L1 (recherche globale `ref` faite).
+2. Machine d’état de publication d’annonce + archivage doux.
+3. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
+4. Bandeau cookies et médiation conso.
+5. Mode léger L1 (recherche globale `ref` faite).

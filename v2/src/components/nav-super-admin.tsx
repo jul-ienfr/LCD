@@ -5,6 +5,7 @@ const LIENS = [
   { href: "/systeme", label: "Système" },
   { href: "/secrets", label: "Secrets" },
   { href: "/journal", label: "Journal global" },
+  { href: "/supervision/voir-comme", label: "Voir comme" },
 ] as const;
 
 export function NavSuperAdmin({ actif }: { actif: string }) {

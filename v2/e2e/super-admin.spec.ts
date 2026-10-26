@@ -66,4 +66,33 @@ test("super-admin : accès refusé aux admins puis pages plateforme", async ({
   ).toBeVisible();
   await expect(page.getByText(/entrée\(s\) affichée\(s\)/)).toBeVisible();
   await expect(page.getByText("utilisateur.creer").first()).toBeVisible();
+
+  await page.goto("/supervision/voir-comme");
+  await page.selectOption('select[name="role"]', "comptable");
+  await page.getByRole("button", { name: "Démarrer l’aperçu lecture seule" }).click();
+  await expect(page).toHaveURL(/\/hote$/);
+  await expect(
+    page.getByText("Aperçu lecture seule", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Supervision plateforme" }),
+  ).toHaveCount(0);
+
+  const ecriture = await page.request.post("/hote/logements", {
+    form: { code: `apercu-interdit-${suffix}`, nom: "Aperçu interdit" },
+  });
+  expect(ecriture.url()).toContain("/preview/lecture-seule");
+  expect(await ecriture.text()).toContain("Écriture bloquée");
+
+  await page.goto("/supervision/voir-comme");
+  await expect(page.getByText("Aperçu en cours")).toBeVisible();
+  await page.getByRole("button", { name: "Quitter l’aperçu" }).first().click();
+  await expect(page).toHaveURL(/\/supervision$/);
+  await expect(
+    page.getByText("Aperçu lecture seule", { exact: true }),
+  ).toHaveCount(0);
+
+  await page.goto("/journal?action=apercu");
+  await expect(page.getByText("apercu.demarrer").first()).toBeVisible();
+  await expect(page.getByText("apercu.arreter").first()).toBeVisible();
 });

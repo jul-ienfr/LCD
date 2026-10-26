@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { deuxFacteursRequis } from "@/domain/securite";
 import { emailDansAllowlistSuperAdmin } from "@/domain/utilisateur";
+import { lireApercu } from "@/lib/apercu";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 
@@ -29,13 +30,20 @@ export function estSuperAdmin(session: {
 
 export async function requireRole(roles: readonly string[]) {
   const session = await requireSession();
-  const role = session.user.role ?? "";
+  const apercu = await lireApercu(session);
+  const role = apercu?.role ?? session.user.role ?? "";
+  // Ceinture et bretelles : même si le proxy était contourné, aucune server
+  // action ne s'exécute pendant un aperçu (le cookie ne doit jamais élargir
+  // les droits, seulement les réduire).
+  if (apercu && (await headers()).get("next-action")) {
+    redirect("/preview/lecture-seule");
+  }
   if (role !== "super_admin" && !roles.includes(role)) {
     redirect("/login?erreur=acces");
   }
   if (
     deuxFacteursRequis(
-      role,
+      session.user.role ?? "",
       Boolean(session.user.twoFactorEnabled),
       env.AUTH_2FA_REQUIRED,
     )
