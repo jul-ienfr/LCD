@@ -12,7 +12,9 @@ import {
   verification,
 } from "@/infrastructure/db/auth-schema";
 import * as schema from "@/infrastructure/db/schema";
+import { creerEmailSmtp } from "@/infrastructure/adapters/email-smtp";
 import { env } from "@/lib/env";
+import { logErreur } from "@/lib/logger";
 
 export const auth = betterAuth({
   appName: "LCD Parc",
@@ -43,6 +45,34 @@ export const auth = betterAuth({
     // Les comptes sont créés par un admin depuis /hote/utilisateurs.
     // L'endpoint public Better Auth /sign-up/email reste fermé.
     disableSignUp: true,
+    minPasswordLength: 12,
+    resetPasswordTokenExpiresIn: 60 * 60,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url }) => {
+      try {
+        const lien = url.replaceAll("&", "&amp;");
+        await creerEmailSmtp().envoyer({
+          to: user.email,
+          subject: "Réinitialisez votre mot de passe LCD",
+          text: [
+            `Bonjour ${user.name},`,
+            "",
+            "Pour choisir un nouveau mot de passe LCD, ouvrez ce lien (valable 1 heure) :",
+            url,
+            "",
+            "Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.",
+          ].join("\n"),
+          html: [
+            `<p>Bonjour ${user.name.replace(/[<>&"]/g, "")},</p>`,
+            "<p>Pour choisir un nouveau mot de passe LCD, ouvrez ce lien (valable 1 heure) :</p>",
+            `<p><a href="${lien}">Réinitialiser mon mot de passe</a></p>`,
+            "<p>Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.</p>",
+          ].join(""),
+        });
+      } catch (error) {
+        logErreur("auth.resetPasswordEmail", error, { userId: user.id });
+      }
+    },
   },
   user: {
     modelName: "users",
@@ -105,6 +135,8 @@ export const auth = betterAuth({
     customRules: {
       "/sign-in/email": { window: 60, max: 100 },
       "/two-factor/*": { window: 60, max: 100 },
+      "/request-password-reset": { window: 60, max: 5 },
+      "/reset-password": { window: 60, max: 10 },
     },
   },
   plugins: [twoFactor(), nextCookies()],

@@ -510,6 +510,12 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - `tenantId` et `role` sont en `input: false` : `/api/auth/update-user` les
   refuse (`FIELD_NOT_ALLOWED`), isolation multi-tenant préservée.
 - Routes : `/login`, `/two-factor`, `/hote/securite`, `/api/auth/[...all]`.
+- **Mot de passe oublié** : `/mot-de-passe-oublie` envoie un lien signé
+  (1 heure, usage unique) via SMTP ; `/reinitialiser-mot-de-passe` enregistre
+  le nouveau mot de passe (12 caractères minimum), ferme toutes les sessions
+  et ne contourne pas la 2FA (elle reste demandée à la connexion suivante).
+  Réponse générique pour ne pas révéler l’existence d’un compte ; demande
+  limitée à 5 tentatives/minute par IP.
 - Enrôlement TOTP : `/hote/securite` (QR code + codes de secours).
 - Vérification à la connexion : `/two-factor`.
 - Session cookie httpOnly ; le tenant et le rôle viennent de `session.user`.

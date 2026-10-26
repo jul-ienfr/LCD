@@ -103,6 +103,12 @@ export default function PageLogin() {
           />
         </label>
 
+        <p className="text-right text-sm">
+          <Link className="underline" href="/mot-de-passe-oublie">
+            Mot de passe oublié ?
+          </Link>
+        </p>
+
         {erreur ? (
           <p className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
             {erreur}
