@@ -154,6 +154,7 @@ juridique + mandats, 320 px.
 | `/api/factures/[id]/pdf` | PDF facture + XML Factur-X incorporé |
 | `/api/stripe/webhook` | webhook Stripe Checkout signé |
 | `/api/cron/sync-ota` | synchronisation cron des flux ICS (`CRON_SECRET`) |
+| `/api/cron/relances` | relances quotidiennes des factures échues (`CRON_SECRET`, `RELANCE_AUTO_ENABLED=true`) |
 | `/api/cron/webhooks` | livraison cron des webhooks (`CRON_SECRET`) |
 | `/api/cron/memoire` | purge des préférences voyageur expirées (`CRON_SECRET`) |
 
@@ -170,11 +171,17 @@ juridique + mandats, 320 px.
   dont l’échéance est dépassée et dont le solde reste dû, avec un seul email par
   facture et par jour (table `relances_factures`, contrainte unique
   tenant/facture/jour, RLS), audit `facture.relances` ;
+- relance automatique quotidienne : `POST /api/cron/relances` protégé par
+  `CRON_SECRET`, activée seulement avec `RELANCE_AUTO_ENABLED=true`, aux
+  échéances J+1, J+7, J+15 et J+30, un audit `facture.relances.auto` par tenant
+  ayant envoyé ou échoué ; workflow `.github/workflows/v2-relances.yml` à
+  07:15 UTC ;
 - **PDF de la facture joint** à l’email (même document que `/api/factures/[id]/pdf`,
   Factur-X inclus) et lien signé dans le corps ;
 - adapter SMTP (`nodemailer`) : Mailpit en dev (`smtp://127.0.0.1:1025`),
   Brevo/OVH/Scaleway en production via `SMTP_URL` + `EMAIL_FROM` ;
-- audit `facture.email` / `facture.relance` / `facture.relances` ;
+- audit `facture.email` / `facture.relance` / `facture.relances` /
+  `facture.relances.auto` ;
 - la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
 
 ## Paiements en ligne Stripe

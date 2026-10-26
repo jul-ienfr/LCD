@@ -66,14 +66,19 @@ async function contexte() {
     return facture;
   }
 
-  const lancer = () =>
+  const lancer = (echeancesAutorisees?: string[]) =>
     new RelancerFacturesEchues(
       factures,
       paiements,
       relances,
       tenants,
       email,
-    ).executer({ tenantId, jour, baseUrl: "https://lcd.test" });
+    ).executer({
+      tenantId,
+      jour,
+      baseUrl: "https://lcd.test",
+      echeancesAutorisees,
+    });
 
   return { factures, paiements, email, ajouter, lancer };
 }
@@ -116,6 +121,17 @@ describe("RelancerFacturesEchues", () => {
     const second = await lancer();
     expect(second.envoyees).toBe(0);
     expect(second.dejaRelancees).toBe(1);
+  });
+
+  it("limite le cron aux échéances aux dates prévues", async () => {
+    const { ajouter, email, lancer } = await contexte();
+    await ajouter({ echeance: "2026-11-30", email: "j1@example.com" });
+    await ajouter({ echeance: "2026-11-29", email: "j2@example.com" });
+
+    const resultat = await lancer(["2026-11-30"]);
+
+    expect(resultat.envoyees).toBe(1);
+    expect(email.messages[0]?.to).toBe("j1@example.com");
   });
 
   it("compte les factures sans email valide sans les réserver", async () => {

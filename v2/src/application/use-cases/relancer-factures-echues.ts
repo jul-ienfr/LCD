@@ -10,6 +10,8 @@ export interface RelancerFacturesEchuesInput {
   tenantId: string;
   jour: string; // AAAA-MM-JJ, fuseau Europe/Paris
   baseUrl: string;
+  // Pour le cron : ne relancer que les échéances à ces dates précises.
+  echeancesAutorisees?: string[];
 }
 
 export interface ResultatRelancesFactures {
@@ -52,6 +54,14 @@ export class RelancerFacturesEchues {
     );
 
     for (const facture of factures) {
+      if (
+        input.echeancesAutorisees &&
+        (!facture.echeance ||
+          !input.echeancesAutorisees.includes(facture.echeance))
+      ) {
+        continue;
+      }
+
       const paiements = await this.paiements.listerParFacture(
         input.tenantId,
         facture.id,

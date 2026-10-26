@@ -10,6 +10,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "facture.email": "Facture envoyée",
   "facture.relance": "Relance de facture envoyée",
   "facture.relances": "Relances de factures échues",
+  "facture.relances.auto": "Relances automatiques de factures échues",
   "facture.statut": "Statut de facture modifié",
   "fiscalite.parametres": "Paramètres fiscaux modifiés",
   "flux_ics.enregistrer": "Flux ICS enregistré",

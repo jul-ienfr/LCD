@@ -45,6 +45,14 @@ export class DrizzleTenantRepository implements TenantRepository {
     return row ? versDomaine(row) : null;
   }
 
+  async listerIdsActifs(): Promise<string[]> {
+    const rows = await db
+      .select({ id: tenants.id })
+      .from(tenants)
+      .where(eq(tenants.statut, "actif"));
+    return rows.map((row) => row.id);
+  }
+
   async mettreAJourEntite(
     tenantId: string,
     data: EntiteData,

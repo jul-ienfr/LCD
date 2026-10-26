@@ -19,6 +19,12 @@ export class TenantRepositoryMemoire implements TenantRepository {
     return this.rows.find((t) => t.slug === slug) ?? null;
   }
 
+  async listerIdsActifs(): Promise<string[]> {
+    return this.rows
+      .filter((tenant) => tenant.statut === "actif")
+      .map((tenant) => tenant.id);
+  }
+
   async mettreAJourEntite(
     tenantId: string,
     data: EntiteData,

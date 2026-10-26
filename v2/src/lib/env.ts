@@ -61,6 +61,11 @@ const schema = z.object({
 
   // Tâches planifiées (cron OTA, backups déclenchés par HTTP).
   CRON_SECRET: z.string().optional(),
+  // Relances automatiques quotidiennes : désactivées par défaut.
+  RELANCE_AUTO_ENABLED: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true" || v === "1"),
 
   // Rétention du journal d'audit (purge manuelle, jamais automatique).
   AUDIT_RETENTION_JOURS: z.coerce
