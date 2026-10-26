@@ -3,6 +3,7 @@ import {
   refBrouillon,
   tonValide,
   typeMessageDepuisIntention,
+  verifierBrouillon,
   type IntentionAssistant,
   type TonAssistant,
 } from "@/domain/assistant";
@@ -45,6 +46,10 @@ export class EnregistrerBrouillonAssistant {
         "ASSISTANT_INVALIDE",
         "Le brouillon est vide : rien à enregistrer.",
       );
+    }
+    const alertes = verifierBrouillon(texte);
+    if (alertes.length > 0) {
+      throw new ErreurMetier("ASSISTANT_INVALIDE", alertes[0]!);
     }
 
     return this.preparer.executer({

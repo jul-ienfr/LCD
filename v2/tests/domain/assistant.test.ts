@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  compterMots,
   construireInvite,
   refBrouillon,
   routerModele,
   typeMessageDepuisIntention,
+  verifierBrouillon,
 } from "@/domain/assistant";
 import { ErreurMetier } from "@/domain/erreurs";
 
@@ -91,6 +93,24 @@ describe("domaine assistant", () => {
     expect(refBrouillon({ ...signature, canal: "sms" })).not.toBe(reference);
     expect(refBrouillon({ ...signature, texte: "Bonjour." })).not.toBe(
       reference,
+    );
+  });
+
+  it("contrôle la longueur et les promesses du brouillon", () => {
+    expect(compterMots("  Bonjour   Camille.  ")).toBe(2);
+    expect(compterMots("   ")).toBe(0);
+    expect(verifierBrouillon("Bonjour Camille, à bientôt.")).toEqual([]);
+    expect(verifierBrouillon("   ")).toEqual(["Le brouillon est vide."]);
+    expect(verifierBrouillon("mot ".repeat(81))).toEqual([
+      "Le brouillon dépasse 80 mots (81).",
+    ]);
+    expect(verifierBrouillon("Le code d’accès est 4821.")).toContain(
+      "Le brouillon contient un code d’accès (PIN).",
+    );
+    expect(
+      verifierBrouillon("Séjour garanti, remboursement assuré."),
+    ).toContain(
+      "Le brouillon contient une promesse commerciale (garantie, remboursement).",
     );
   });
 });

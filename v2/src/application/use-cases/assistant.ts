@@ -3,6 +3,7 @@ import {
   intentionValide,
   routerModele,
   tonValide,
+  verifierBrouillon,
   type IntentionAssistant,
   type Routage,
   type TonAssistant,
@@ -26,6 +27,7 @@ export interface BrouillonAssistant {
   coutEstimeCentimes: number;
   routage: Routage;
   invite: string;
+  alertes: string[];
 }
 
 export class RedigerBrouillon {
@@ -79,6 +81,7 @@ export class RedigerBrouillon {
       coutEstimeCentimes: brouillon.coutEstimeCentimes,
       routage,
       invite,
+      alertes: verifierBrouillon(brouillon.texte),
     };
   }
 }

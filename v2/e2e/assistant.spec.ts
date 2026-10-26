@@ -49,6 +49,7 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
   await expect(carteBrouillon).toContainText(
     "14 h, lit bébé installé.",
   );
+  await expect(carteBrouillon).toContainText(/\d+ \/ 80 mots/);
   await page.getByText("Prompt envoyé au modèle").click();
   await expect(page.getByText(/80 mots maximum/)).toBeVisible();
 

@@ -41,6 +41,7 @@ export const LIBELLES_TON: Record<TonAssistant, string> = {
 
 export const DETAILS_ASSISTANT_MAX = 400;
 export const VOYAGEUR_ASSISTANT_MAX = 80;
+export const MOTS_BROUILLON_MAX = 80;
 
 export const MODELES: Record<NiveauModele, string> = {
   local: "local-léger",
@@ -155,6 +156,40 @@ export function typeMessageDepuisIntention(
   if (intention === "arrivee") return "arrivee";
   if (intention === "depart") return "depart";
   return "autre";
+}
+
+export function compterMots(texte: string): number {
+  const propre = texte.trim();
+  return propre ? propre.split(/\s+/).length : 0;
+}
+
+/**
+ * Garde-fou de sortie : un modèle externe peut ignorer le prompt. On refuse
+ * les brouillons vides, trop longs, porteurs d’un code d’accès ou d’une
+ * promesse commerciale non tenue.
+ */
+export function verifierBrouillon(texte: string): string[] {
+  const alertes: string[] = [];
+  const propre = texte.trim();
+  if (!propre) {
+    alertes.push("Le brouillon est vide.");
+    return alertes;
+  }
+  const mots = compterMots(propre);
+  if (mots > MOTS_BROUILLON_MAX) {
+    alertes.push(
+      `Le brouillon dépasse ${MOTS_BROUILLON_MAX} mots (${mots}).`,
+    );
+  }
+  if (contientCodeSensible(propre)) {
+    alertes.push("Le brouillon contient un code d’accès (PIN).");
+  }
+  if (/\b(garanti(?:e|s)?|rembours(?:é|ée|és|ées|ement))\b/i.test(propre)) {
+    alertes.push(
+      "Le brouillon contient une promesse commerciale (garantie, remboursement).",
+    );
+  }
+  return alertes;
 }
 
 function empreinte(texte: string): string {

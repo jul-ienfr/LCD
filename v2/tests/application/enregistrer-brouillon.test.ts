@@ -15,8 +15,7 @@ async function preparer() {
     nom: "Loft Bastille",
   });
   const messages = new MessagesVoyageurRepositoryMemoire();
-  const preparer = new PreparerMessageVoyageur(messages, logements);
-  return {
+  const preparer = new PreparerMessageVoyageur(messages, logements);  return {
     logement,
     messages,
     cas: new EnregistrerBrouillonAssistant(preparer),
@@ -79,7 +78,21 @@ describe("cas d'usage enregistrement d’un brouillon assistant", () => {
         logementId: logement.id,
         texte: "Bonjour, le code d’accès est 4821, à bientôt.",
       }),
-    ).rejects.toMatchObject({ code: "MESSAGE_INVALIDE" });
+    ).rejects.toMatchObject({ code: "ASSISTANT_INVALIDE" });
+    await expect(
+      cas.executer({
+        ...base,
+        logementId: logement.id,
+        texte: "mot ".repeat(90),
+      }),
+    ).rejects.toMatchObject({ code: "ASSISTANT_INVALIDE" });
+    await expect(
+      cas.executer({
+        ...base,
+        logementId: logement.id,
+        texte: "Séjour garanti, remboursement assuré.",
+      }),
+    ).rejects.toMatchObject({ code: "ASSISTANT_INVALIDE" });
     expect(messages.items).toHaveLength(0);
   });
 });

@@ -110,8 +110,9 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Ménage : évaluation réservée aux rotations faites, bornes score 1–5,
   coût et durée, moyennes et alerte qualité sous 3,5.
 - [ ] Assistant : routage selon intention/ton, prompt borné, refus des codes
-  d’accès, comparaison neutre/chaleureux/concis, brouillon déterministe local,
-  enregistrement idempotent en message brouillon puis envoi depuis l’outbox.
+  d’accès, comparaison neutre/chaleureux/concis, garde-fous de sortie
+  (80 mots, PIN, promesses), brouillon déterministe local, enregistrement
+  idempotent en message brouillon puis envoi depuis l’outbox.
 - [ ] Audit : bornes 90 jours par défaut, filtres 7/30/90 j et famille,
   recherche, export CSV filtré limité à 5 000 lignes.
 - [ ] Mission : création staff, exécution prestataire, statuts.
@@ -194,7 +195,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **416/416**.
+- Vitest : **418/418**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

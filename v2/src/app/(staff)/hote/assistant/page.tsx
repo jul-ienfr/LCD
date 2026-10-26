@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import {
+  compterMots,
   INTENTIONS_ASSISTANT,
   LIBELLES_INTENTION,
   LIBELLES_TON,
+  MOTS_BROUILLON_MAX,
   TONS_ASSISTANT,
   tonValide,
   type TonAssistant,
@@ -51,9 +53,20 @@ function CarteBrouillon({
           {comparaison ? `Variante — ${LIBELLES_TON[ton]}` : "Brouillon"}
         </h2>
         <span className="rounded-full bg-surface px-3 py-1 text-xs font-medium">
-          {brouillon.modele} · {coutLibelle(brouillon.coutEstimeCentimes)}
+          {brouillon.modele} · {coutLibelle(brouillon.coutEstimeCentimes)} ·{" "}
+          {compterMots(brouillon.texte)} / {MOTS_BROUILLON_MAX} mots
         </span>
       </div>
+      {brouillon.alertes.length > 0 ? (
+        <ul
+          className="rounded-xl border border-alerte bg-alerte-douce p-3 text-sm text-alerte"
+          role="alert"
+        >
+          {brouillon.alertes.map((alerte) => (
+            <li key={alerte}>{alerte}</li>
+          ))}
+        </ul>
+      ) : null}
       <p className="whitespace-pre-line text-sm text-encre">
         {brouillon.texte}
       </p>
@@ -79,7 +92,8 @@ function CarteBrouillon({
           </select>
         </label>
         <button
-          className="rounded-full bg-encre px-4 py-2 text-sm font-semibold text-fond"
+          className="rounded-full bg-encre px-4 py-2 text-sm font-semibold text-fond disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={brouillon.alertes.length > 0}
           type="submit"
         >
           Enregistrer dans les messages
