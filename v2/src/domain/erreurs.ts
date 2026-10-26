@@ -48,6 +48,7 @@ export type CodeErreurMetier =
   | "MESSAGE_INVALIDE"
   | "PREFERENCES_INVALIDES"
   | "ACCES_INVALIDE"
+  | "ASSISTANT_INVALIDE"
   | "TARIF_MANQUANT";
 
 /**

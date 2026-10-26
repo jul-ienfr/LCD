@@ -109,6 +109,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   effective (session supprimée et utilisateur déconnecté).
 - [ ] Ménage : évaluation réservée aux rotations faites, bornes score 1–5,
   coût et durée, moyennes et alerte qualité sous 3,5.
+- [ ] Assistant : routage selon intention/ton, prompt borné, refus des codes
+  d’accès, brouillon déterministe local.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -189,8 +191,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **406/406**.
-- Playwright : **43/43** sur `next build` + `next start`, y compris une passe
+- Vitest : **410/410**.
+- Playwright : **44/44** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/
