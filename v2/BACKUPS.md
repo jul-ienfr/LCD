@@ -85,6 +85,9 @@ cd /opt/lcd/v2
 
 Le script utilise `docker compose exec postgres pg_dump`, écrit dans
 `backups/` avec checksum SHA-256 et applique une rétention de 14 jours.
+Ce script **n’applique pas** le chiffrement AES-256-GCM : garder les fichiers
+hors site dans un stockage chiffré, ou utiliser `npm run db:backup` avec
+`BACKUP_ENCRYPTION_KEY`.
 Cron quotidien :
 
 ```cron
@@ -96,11 +99,21 @@ hors site.
 
 ## Sauvegarde quotidienne gratuite (GitHub Actions)
 
-Le workflow `.github/workflows/v2-backup.yml` tourne tous les jours à 02:00 UTC
-et publie un artefact privé de 30 jours.
+Le workflow `.github/workflows/v2-backup.yml` tourne tous les jours à 02:00 UTC,
+exécute le même `npm run db:backup` que le local (checksum, manifeste,
+rétention) et publie un artefact privé de 30 jours.
 
 1. GitHub → Settings → Secrets and variables → Actions → **New repository
    secret** ;
-2. nom : `DATABASE_URL` ; valeur : la chaîne owner de production ;
-3. lancer une fois **Actions → v2-backup → Run workflow** pour valider ;
-4. télécharger l'artefact et faire un `db:restore-test` dessus.
+2. nom : `MIGRATION_DATABASE_URL` (ou `DATABASE_URL`) ; valeur : la chaîne
+   owner de production ;
+3. recommandé : nom : `BACKUP_ENCRYPTION_KEY` ; valeur : la clé base64 de
+   32 octets — l’artefact est alors `.sql.gz.enc` et exige cette clé pour être
+   restauré ;
+4. lancer une fois **Actions → v2-backup → Run workflow** pour valider ;
+5. télécharger l'artefact, puis `BACKUP_FILE=... npm run db:restore-test`
+   (avec `BACKUP_ENCRYPTION_KEY` si chiffré).
+
+> Le chiffrement n’est pas appliqué aux scripts `backup-vps.sh` et au cron VPS
+> historique : pour le VPS, copier le dossier chiffré hors site ou migrer vers
+> `npm run db:backup` avec la clé.
