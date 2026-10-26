@@ -21,6 +21,7 @@ export async function enregistrerBrouillonAction(formData: FormData) {
   const intention = String(formData.get("intention") ?? "");
   const ton = String(formData.get("ton") ?? "");
   const canal = String(formData.get("canal") ?? "");
+  const destinataire = String(formData.get("destinataire") ?? "");
   const voyageur = String(formData.get("voyageur") ?? "");
   const details = String(formData.get("details") ?? "");
   const texte = String(formData.get("texte") ?? "");
@@ -52,6 +53,7 @@ export async function enregistrerBrouillonAction(formData: FormData) {
       intention,
       ton,
       canal,
+      destinataire,
       voyageur,
       details,
       texte,

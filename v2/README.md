@@ -118,7 +118,7 @@ juridique + mandats, 320 px.
 | `/hote/dispatch` | offres de mission aux prestataires, acceptation/refus, réassignation |
 | `/hote/acces` | registre des sessions nominatives, révocation (admin, jamais soi-même) |
 | `/hote/assistant` | routage local/standard/premium, LLM OpenAI-compatible optionnel avec repli local, comparaison des 3 tons, garde-fous de sortie, quotas 20/h et 100/mois, budget 10 €/mois, brouillon et enregistrement en message |
-| `/hote/messages` | messages voyageurs J-1/arrivée/départ, garde-fou anti-PIN, envoi |
+| `/hote/messages` | messages voyageurs J-1/arrivée/départ, garde-fou anti-PIN, envoi e-mail réel ou marquage manuel |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |
 | `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |
@@ -429,6 +429,19 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - audit `utilisateur.creer`, `utilisateur.role`, `utilisateur.activer`,
   `utilisateur.desactiver`, `utilisateur.motdepasse` ;
 - email unique au niveau plateforme, normalisé en minuscules.
+
+## Messages voyageurs
+
+- préparation par logement, canaux e-mail/SMS, types J-1, arrivée, départ et
+  autre ;
+- adresse e-mail du voyageur facultative mais **requise pour un envoi réel** ;
+  format contrôlé, 254 caractères maximum ;
+- refus de tout code d’accès (PIN) dans le contenu ;
+- `EMAIL_ENABLED=true` : l’e-mail part par SMTP **avant** le passage en
+  `envoye` ; une erreur SMTP laisse le brouillon intact ;
+- `EMAIL_ENABLED=false` : bouton « Marquer envoyé » pour un envoi hors outil ;
+- objet `Votre séjour — <type>`, audit `message.preparer` / `message.envoyer` ;
+- enregistrement idempotent par `ref`.
 
 ## Journal d’audit
 

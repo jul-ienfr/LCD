@@ -10,6 +10,7 @@ export interface CreerMessageData {
   reservationId: string | null;
   ref: string;
   canal: CanalMessage;
+  destinataire?: string | null;
   type: TypeMessageVoyageur;
   contenu: string;
 }

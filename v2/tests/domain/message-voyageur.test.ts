@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   contientCodeSensible,
+  emailValide,
   envoyerMessage,
+  sujetMessage,
   validerMessage,
 } from "@/domain/message-voyageur";
 import { ErreurMetier } from "@/domain/erreurs";
@@ -30,6 +32,7 @@ describe("domaine messages voyageurs", () => {
       canal: "sms",
       type: "j1",
       contenu: "Votre séjour approche, à demain !",
+      destinataire: null,
     });
     expect(() =>
       validerMessage({
@@ -55,6 +58,32 @@ describe("domaine messages voyageurs", () => {
         contenu: "Votre code d’accès est 4821, bonne arrivée.",
       }),
     ).toThrow(/PIN/);
+  });
+
+  it("valide l’adresse e-mail du voyageur", () => {
+    expect(emailValide("camille@example.com")).toBe(true);
+    expect(emailValide("camille+sejour@example.co")).toBe(true);
+    expect(emailValide("camille.example.com")).toBe(false);
+    expect(emailValide("camille@example")).toBe(false);
+    expect(emailValide("camille @example.com")).toBe(false);
+
+    expect(
+      validerMessage({
+        canal: "email",
+        type: "arrivee",
+        contenu: "Votre séjour approche, à demain !",
+        destinataire: "  camille@example.com ",
+      }).destinataire,
+    ).toBe("camille@example.com");
+    expect(() =>
+      validerMessage({
+        canal: "email",
+        type: "arrivee",
+        contenu: "Votre séjour approche, à demain !",
+        destinataire: "pas-un-email",
+      }),
+    ).toThrow(/e-mail/);
+    expect(sujetMessage("depart")).toBe("Votre séjour — Départ");
   });
 
   it("n’envoie qu’un brouillon", () => {

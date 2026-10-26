@@ -24,6 +24,7 @@ export interface EnregistrerBrouillonInput {
   ton: string;
   canal: string;
   voyageur?: string;
+  destinataire?: string;
   details?: string;
   texte: string;
 }
@@ -100,6 +101,7 @@ export class EnregistrerBrouillonAssistant {
       logementId: input.logementId,
       ref,
       canal: input.canal,
+      destinataire: input.destinataire ?? "",
       type: typeMessageDepuisIntention(intention),
       contenu: texte,
     });

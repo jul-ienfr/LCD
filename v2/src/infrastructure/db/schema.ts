@@ -608,6 +608,7 @@ export const messagesVoyageur = pgTable(
     }),
     ref: text("ref").notNull(),
     canal: text("canal").notNull().default("email"),
+    destinataire: text("destinataire"),
     type: text("type").notNull().default("j1"),
     contenu: text("contenu").notNull(),
     statut: text("statut").notNull().default("brouillon"),

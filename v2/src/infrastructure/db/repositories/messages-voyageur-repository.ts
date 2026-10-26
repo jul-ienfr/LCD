@@ -22,6 +22,7 @@ function versDomaine(
     reservationId: row.reservationId,
     ref: row.ref,
     canal: row.canal as CanalMessage,
+    destinataire: row.destinataire,
     type: row.type as TypeMessageVoyageur,
     contenu: row.contenu,
     statut: row.statut as StatutMessageVoyageur,
@@ -43,6 +44,7 @@ export class DrizzleMessagesVoyageurRepository
           reservationId: data.reservationId,
           ref: data.ref,
           canal: data.canal,
+          destinataire: data.destinataire ?? null,
           type: data.type,
           contenu: data.contenu,
         })

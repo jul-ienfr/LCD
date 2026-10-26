@@ -1,0 +1,1 @@
+ALTER TABLE "messages_voyageur" ADD COLUMN "destinataire" text;

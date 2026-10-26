@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0055` appliquées.
+- [ ] Migrations `0026` → `0056` appliquées.
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
   Déjà validé en local le 2026-10-26 (owner `lcd`, rôle `lcd_app`) ; les 45
@@ -110,8 +110,10 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   indemnisation, clôture et montants attendus.
 - [ ] Dispatch : une offre active par mission, retrait, acceptation avec
   réassignation, réponse prestataire.
-- [ ] Messages voyageurs : refus des codes d’accès, brouillon, envoi unique
-  et journalisation.
+- [ ] Messages voyageurs : refus des codes d’accès, brouillon, envoi e-mail
+  réel (Mailpit) ou marquage manuel, unicité et journalisation.
+  Validé en local le 2026-10-26 : message reçu par Mailpit avec l’adresse
+  saisie, statut `envoye` après succès SMTP.
 - [ ] Préférences séjour : bornes 0–30 jours, heure HH:MM, mise à jour
   idempotente par réservation, formulaire sans JS.
 - [ ] Accès : registre nominatif, session courante non révocable, révocation
@@ -123,7 +125,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   (80 mots, PIN, promesses), quotas 20/heure et 100/mois, budget 10 €/mois,
   brouillon déterministe local, adapter LLM OpenAI-compatible optionnel avec
   repli local, enregistrement idempotent en message brouillon puis envoi
-  depuis l’outbox.
+  e-mail ou marquage manuel.
 - [ ] LLM distant (si `LLM_API_URL`/`LLM_API_KEY`) : génération réelle,
   modèle premium sur avis chaleureux, repli local si erreur HTTP ou timeout.
 - [ ] Audit : bornes 90 jours par défaut, filtres 7/30/90 j et famille,
@@ -210,7 +212,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **432/432**.
+- Vitest : **435/435**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

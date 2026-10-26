@@ -13,6 +13,7 @@ export class MessagesVoyageurRepositoryMemoire
     const message: MessageVoyageur = {
       id: crypto.randomUUID(),
       ...data,
+      destinataire: data.destinataire ?? null,
       statut: "brouillon",
       envoyeAt: null,
       createdAt: new Date(),

@@ -1,5 +1,11 @@
 import { ErreurMetier } from "@/domain/erreurs";
-import { envoyerMessage, refMessageValide, validerMessage } from "@/domain/message-voyageur";
+import {
+  envoyerMessage,
+  refMessageValide,
+  sujetMessage,
+  validerMessage,
+} from "@/domain/message-voyageur";
+import type { EmailSender } from "../ports/email";
 import type { MessagesVoyageurRepository } from "../ports/messages-voyageur-repository";
 import type { LogementRepository } from "../ports/logement-repository";
 
@@ -9,6 +15,7 @@ export interface PreparerMessageInput {
   reservationId?: string | null;
   ref: string;
   canal: string;
+  destinataire?: string;
   type: string;
   contenu: string;
 }
@@ -49,7 +56,10 @@ export class PreparerMessageVoyageur {
 }
 
 export class EnvoyerMessageVoyageur {
-  constructor(private readonly messages: MessagesVoyageurRepository) {}
+  constructor(
+    private readonly messages: MessagesVoyageurRepository,
+    private readonly email: EmailSender | null = null,
+  ) {}
 
   async executer(tenantId: string, id: string) {
     const message = await this.messages.trouverParId(tenantId, id);
@@ -57,6 +67,19 @@ export class EnvoyerMessageVoyageur {
       throw new ErreurMetier("MESSAGE_INVALIDE", "Le message est introuvable.");
     }
     envoyerMessage(message.statut);
+    if (message.canal === "email" && this.email) {
+      if (!message.destinataire) {
+        throw new ErreurMetier(
+          "MESSAGE_INVALIDE",
+          "Renseignez l’adresse e-mail du voyageur avant l’envoi.",
+        );
+      }
+      await this.email.envoyer({
+        to: message.destinataire,
+        subject: sujetMessage(message.type),
+        text: message.contenu,
+      });
+    }
     return this.messages.marquerEnvoye(tenantId, id);
   }
 }

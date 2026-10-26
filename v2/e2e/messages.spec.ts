@@ -9,6 +9,7 @@ test("messages voyageurs : PIN refusé, préparation et envoi", async ({
   const suffix = Date.now();
   const code = `msg-e2e-${suffix}`;
   const nomLogement = `Logement Message E2E ${suffix}`;
+  const destinataire = `voyageur-${suffix}@example.test`;
 
   await page.goto("/login");
   await page.fill('input[type="email"]', ADMIN_EMAIL);
@@ -41,6 +42,7 @@ test("messages voyageurs : PIN refusé, préparation et envoi", async ({
     'textarea[name="contenu"]',
     "Bonjour, votre séjour approche. Le logement sera prêt à partir de 15 h.",
   );
+  await page.fill('input[name="destinataire"]', destinataire);
   await page.getByRole("button", { name: "Préparer le message" }).click();
   await expect(page.getByText("Message préparé.")).toBeVisible();
 
@@ -54,9 +56,21 @@ test("messages voyageurs : PIN refusé, préparation et envoi", async ({
     .first();
   await expect(message.getByText("Brouillon", { exact: true })).toBeVisible();
   await expect(message).toContainText("J-1 · E-mail");
+  await expect(message).toContainText(destinataire);
 
-  await message.getByRole("button", { name: "Marquer envoyé" }).click();
-  await expect(page.getByText("Message marqué envoyé.")).toBeVisible();
+  await message.getByRole("button", { name: "Envoyer par e-mail" }).click();
+  await expect(page.getByText("Message envoyé par e-mail.")).toBeVisible();
   await expect(message.getByText("Envoyé", { exact: true })).toBeVisible();
   await expect(carteBrouillons).toContainText("0");
+
+  const mailpit = await page.request.get(
+    "http://127.0.0.1:8025/api/v1/messages?limit=100",
+  );
+  const corps = (await mailpit.json()) as {
+    messages?: { To?: { Address?: string }[] }[];
+  };
+  const recu = corps.messages?.some((m) =>
+    m.To?.some((to) => to.Address === destinataire),
+  );
+  expect(recu).toBe(true);
 });

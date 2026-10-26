@@ -8,6 +8,7 @@ import {
   PreparerMessageVoyageur,
 } from "@/application/use-cases/message-voyageur";
 import type { MessageVoyageur } from "@/domain/message-voyageur";
+import type { EmailMessage, EmailSender } from "@/application/ports/email";
 import { LogementRepositoryMemoire } from "../helpers/logement-repository-memoire";
 
 class MemoireMessages implements MessagesVoyageurRepository {
@@ -17,6 +18,7 @@ class MemoireMessages implements MessagesVoyageurRepository {
     const message: MessageVoyageur = {
       id: crypto.randomUUID(),
       ...data,
+      destinataire: data.destinataire ?? null,
       statut: "brouillon",
       envoyeAt: null,
       createdAt: new Date(),
@@ -127,5 +129,50 @@ describe("cas d'usage messages voyageurs", () => {
     await expect(envoyerCas.executer("t1", "inconnu")).rejects.toMatchObject({
       code: "MESSAGE_INVALIDE",
     });
+  });
+
+  it("envoie réellement l’e-mail avant de marquer envoyé", async () => {
+    const { logement, preparerCas, messages } = await preparer();
+    const envois: EmailMessage[] = [];
+    const email: EmailSender = {
+      async envoyer(message) {
+        envois.push(message);
+      },
+    };
+    const message = await preparerCas.executer({
+      ...base,
+      logementId: logement.id,
+      destinataire: "camille@example.com",
+    });
+    const envoye = await new EnvoyerMessageVoyageur(messages, email).executer(
+      "t1",
+      message.id,
+    );
+    expect(envois).toHaveLength(1);
+    expect(envois[0]?.to).toBe("camille@example.com");
+    expect(envois[0]?.subject).toBe("Votre séjour — J-1");
+    expect(envois[0]?.text).toContain("le logement sera");
+    expect(envoye.statut).toBe("envoye");
+  });
+
+  it("refuse l’envoi e-mail sans destinataire et garde le brouillon", async () => {
+    const { logement, preparerCas, messages } = await preparer();
+    const email: EmailSender = {
+      async envoyer() {
+        throw new Error("ne doit pas être appelé");
+      },
+    };
+    const message = await preparerCas.executer({
+      ...base,
+      logementId: logement.id,
+    });
+    await expect(
+      new EnvoyerMessageVoyageur(messages, email).executer("t1", message.id),
+    ).rejects.toMatchObject({
+      code: "MESSAGE_INVALIDE",
+      message:
+        "Renseignez l’adresse e-mail du voyageur avant l’envoi.",
+    });
+    expect(messages.items[0]?.statut).toBe("brouillon");
   });
 });

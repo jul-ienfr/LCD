@@ -95,6 +95,15 @@ function CarteBrouillon({
             <option value="sms">SMS</option>
           </select>
         </label>
+        <label className="space-y-1 text-sm">
+          <span>E-mail du voyageur</span>
+          <input
+            className="block rounded-xl border border-bordure bg-surface p-2 text-sm"
+            name="destinataire"
+            placeholder="camille@example.com"
+            type="email"
+          />
+        </label>
         <button
           className="rounded-full bg-encre px-4 py-2 text-sm font-semibold text-fond disabled:cursor-not-allowed disabled:opacity-50"
           disabled={brouillon.alertes.length > 0}

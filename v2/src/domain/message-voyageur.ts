@@ -27,6 +27,7 @@ export const LIBELLES_TYPE_MESSAGE: Record<TypeMessageVoyageur, string> = {
 
 export const CONTENU_MESSAGE_MIN = 10;
 export const CONTENU_MESSAGE_MAX = 1200;
+export const DESTINATAIRE_MAX = 254;
 
 export interface MessageVoyageur {
   id: string;
@@ -35,6 +36,7 @@ export interface MessageVoyageur {
   reservationId: string | null;
   ref: string;
   canal: CanalMessage;
+  destinataire: string | null;
   type: TypeMessageVoyageur;
   contenu: string;
   statut: StatutMessageVoyageur;
@@ -44,6 +46,17 @@ export interface MessageVoyageur {
 
 export function refMessageValide(ref: string): boolean {
   return /^[A-Za-z0-9-]{4,64}$/.test(ref);
+}
+
+export function emailValide(email: string): boolean {
+  return (
+    email.length <= DESTINATAIRE_MAX &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  );
+}
+
+export function sujetMessage(type: TypeMessageVoyageur): string {
+  return `Votre séjour — ${LIBELLES_TYPE_MESSAGE[type]}`;
 }
 
 export function canalValide(canal: string): canal is CanalMessage {
@@ -72,10 +85,12 @@ export function validerMessage(input: {
   canal: string;
   type: string;
   contenu: string;
+  destinataire?: string;
 }): {
   canal: CanalMessage;
   type: TypeMessageVoyageur;
   contenu: string;
+  destinataire: string | null;
 } {
   if (!canalValide(input.canal)) {
     throw new ErreurMetier("MESSAGE_INVALIDE", "Le canal est invalide.");
@@ -102,7 +117,19 @@ export function validerMessage(input: {
       "Ne jamais inclure de code d’accès (PIN) dans un message voyageur.",
     );
   }
-  return { canal: input.canal, type: input.type, contenu };
+  const destinataire = (input.destinataire ?? "").trim();
+  if (destinataire && !emailValide(destinataire)) {
+    throw new ErreurMetier(
+      "MESSAGE_INVALIDE",
+      "L’adresse e-mail du voyageur est invalide.",
+    );
+  }
+  return {
+    canal: input.canal,
+    type: input.type,
+    contenu,
+    destinataire: destinataire || null,
+  };
 }
 
 export function envoyerMessage(statut: StatutMessageVoyageur): {

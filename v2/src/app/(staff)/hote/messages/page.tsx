@@ -3,12 +3,14 @@ import { connection } from "next/server";
 import {
   CANAUX_MESSAGE,
   CONTENU_MESSAGE_MAX,
+  DESTINATAIRE_MAX,
   LIBELLES_CANAL,
   LIBELLES_TYPE_MESSAGE,
   TYPES_MESSAGE_VOYAGEUR,
 } from "@/domain/message-voyageur";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMessagesVoyageurRepository } from "@/infrastructure/db/repositories/messages-voyageur-repository";
+import { env } from "@/lib/env";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { envoyerMessageAction, preparerMessageAction } from "./actions";
 
@@ -75,7 +77,9 @@ export default async function PageMessages({
     params.ok === "prepare"
       ? "Message préparé."
       : params.ok === "envoi"
-        ? "Message marqué envoyé."
+        ? env.EMAIL_ENABLED
+          ? "Message envoyé par e-mail."
+          : "Message marqué envoyé."
         : null;
 
   return (
@@ -194,6 +198,20 @@ export default async function PageMessages({
             </div>
           </div>
           <label className="block space-y-1 text-sm font-medium">
+            <span>E-mail du voyageur</span>
+            <input
+              className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
+              maxLength={DESTINATAIRE_MAX}
+              name="destinataire"
+              placeholder="camille@example.com"
+              type="email"
+            />
+            <span className="block text-xs text-encre-faine">
+              Requis pour un envoi réel par e-mail ; laissez vide pour un envoi
+              manuel.
+            </span>
+          </label>
+          <label className="block space-y-1 text-sm font-medium">
             <span>Contenu</span>
             <textarea
               className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
@@ -232,6 +250,9 @@ export default async function PageMessages({
                   <p className="text-sm font-medium">
                     {LIBELLES_TYPE_MESSAGE[message.type]} ·{" "}
                     {LIBELLES_CANAL[message.canal]}
+                    {message.destinataire
+                      ? ` · ${message.destinataire}`
+                      : ""}
                   </p>
                   <span
                     className={`rounded-full px-2 py-1 text-xs font-semibold ${CLASSES_STATUT[message.statut]}`}
@@ -260,7 +281,9 @@ export default async function PageMessages({
                         className="rounded-full border border-bordure px-3 py-1 text-xs font-medium"
                         type="submit"
                       >
-                        Marquer envoyé
+                        {env.EMAIL_ENABLED && message.canal === "email"
+                          ? "Envoyer par e-mail"
+                          : "Marquer envoyé"}
                       </button>
                     </form>
                   ) : null}

@@ -7,11 +7,13 @@ import {
   PreparerMessageVoyageur,
 } from "@/application/use-cases/message-voyageur";
 import { ErreurMetier } from "@/domain/erreurs";
+import { creerEmailSmtp } from "@/infrastructure/adapters/email-smtp";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMessagesVoyageurRepository } from "@/infrastructure/db/repositories/messages-voyageur-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { env } from "@/lib/env";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 
 function retour(logementId: string, suffixe: string): never {
@@ -36,6 +38,7 @@ export async function preparerMessageAction(formData: FormData) {
         String(formData.get("ref") ?? "").trim() ||
         `MSG-${crypto.randomUUID()}`,
       canal: String(formData.get("canal") ?? ""),
+      destinataire: String(formData.get("destinataire") ?? ""),
       type: String(formData.get("type") ?? ""),
       contenu: String(formData.get("contenu") ?? ""),
     });
@@ -75,6 +78,7 @@ export async function envoyerMessageAction(formData: FormData) {
   try {
     const message = await new EnvoyerMessageVoyageur(
       new DrizzleMessagesVoyageurRepository(),
+      env.EMAIL_ENABLED ? creerEmailSmtp() : null,
     ).executer(tenantId, id);
 
     await withTenant(tenantId, (tx) =>

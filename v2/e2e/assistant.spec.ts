@@ -57,6 +57,9 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
   await page.getByText("Prompt envoyé au modèle").click();
   await expect(page.getByText(/80 mots maximum/)).toBeVisible();
 
+  await carteBrouillon
+    .locator('input[name="destinataire"]')
+    .fill(`camille-${Date.now()}@example.test`);
   await page
     .getByRole("button", { name: "Enregistrer dans les messages" })
     .click();
@@ -66,8 +69,10 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
     .locator("li")
     .filter({ hasText: "Bonjour Camille, votre séjour" });
   await expect(ligneMessage).toBeVisible();
-  await ligneMessage.getByRole("button", { name: "Marquer envoyé" }).click();
-  await expect(page.getByText("Message marqué envoyé.")).toBeVisible();
+  await ligneMessage
+    .getByRole("button", { name: "Envoyer par e-mail" })
+    .click();
+  await expect(page.getByText("Message envoyé par e-mail.")).toBeVisible();
   await expect(ligneMessage.getByText("Envoyé", { exact: true })).toBeVisible();
 
   await page.goto(`/hote/assistant?logement=${logementId}`);
