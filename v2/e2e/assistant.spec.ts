@@ -40,10 +40,10 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
     page.getByRole("heading", { name: "Brouillon", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("standard", { exact: true }).first(),
+    page.getByText(/standard ·/).first(),
   ).toBeVisible();
   const carteBrouillon = page
-    .locator("div.bg-accent-douce")
+    .locator("article.bg-accent-douce")
     .filter({ hasText: "Bonjour Camille," });
   await expect(carteBrouillon).toBeVisible();
   await expect(carteBrouillon).toContainText(
@@ -79,4 +79,28 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
   await expect(
     page.getByRole("heading", { name: "Brouillon", exact: true }),
   ).toHaveCount(0);
+
+  await page.goto(
+    `/hote/assistant?logement=${logementId}&intention=arrivee&voyageur=Camille&details=Arriv%C3%A9e%20d%C3%A8s%2014%20h.&comparer=1`,
+  );
+  await expect(
+    page.getByRole("heading", { name: "Variante — Neutre" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Variante — Chaleureux" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Variante — Concis" }),
+  ).toBeVisible();
+
+  const carteConcis = page
+    .locator("article")
+    .filter({ hasText: "Variante — Concis" });
+  await carteConcis
+    .getByRole("button", { name: "Enregistrer dans les messages" })
+    .click();
+  await expect(page.getByText("Message préparé.")).toBeVisible();
+  await expect(
+    page.locator("li").getByText(/Bonjour Camille,.*À bientôt\./),
+  ).toBeVisible();
 });

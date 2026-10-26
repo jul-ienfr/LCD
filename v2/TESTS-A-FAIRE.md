@@ -110,8 +110,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Ménage : évaluation réservée aux rotations faites, bornes score 1–5,
   coût et durée, moyennes et alerte qualité sous 3,5.
 - [ ] Assistant : routage selon intention/ton, prompt borné, refus des codes
-  d’accès, brouillon déterministe local, enregistrement idempotent en message
-  brouillon puis envoi depuis l’outbox.
+  d’accès, comparaison neutre/chaleureux/concis, brouillon déterministe local,
+  enregistrement idempotent en message brouillon puis envoi depuis l’outbox.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
