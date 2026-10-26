@@ -50,6 +50,7 @@ export type CodeErreurMetier =
   | "ACCES_INVALIDE"
   | "ASSISTANT_INVALIDE"
   | "ASSISTANT_QUOTA"
+  | "AUDIT_INVALIDE"
   | "TARIF_MANQUANT";
 
 /**

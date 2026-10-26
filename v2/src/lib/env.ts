@@ -54,6 +54,14 @@ const schema = z.object({
   // Tâches planifiées (cron OTA, backups déclenchés par HTTP).
   CRON_SECRET: z.string().optional(),
 
+  // Rétention du journal d'audit (purge manuelle, jamais automatique).
+  AUDIT_RETENTION_JOURS: z.coerce
+    .number()
+    .int()
+    .min(365)
+    .max(36_500)
+    .default(1825),
+
   // Connecteurs runtime box (Home Assistant / Moli / générique).
   BOX_RUNTIME_CONFIG: z.string().optional(),
 

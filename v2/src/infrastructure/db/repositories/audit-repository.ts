@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, ilike, like, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, like, lt, or } from "drizzle-orm";
 import type {
   AuditCriteres,
   AuditEntry,
@@ -39,6 +39,9 @@ function conditions(tenantId: string, criteres: AuditCriteres = {}) {
   if (criteres.depuis) {
     base.push(gte(auditLogs.createdAt, criteres.depuis));
   }
+  if (criteres.avant) {
+    base.push(lt(auditLogs.createdAt, criteres.avant));
+  }
   if (criteres.prefixe) {
     base.push(like(auditLogs.action, `${criteres.prefixe}.%`));
   }
@@ -75,6 +78,21 @@ export class DrizzleAuditRepository implements AuditRepository {
         .from(auditLogs)
         .where(conditions(tenantId, criteres));
       return Number(row?.nombre ?? 0);
+    });
+  }
+
+  async supprimerAvant(tenantId: string, date: Date): Promise<number> {
+    return withTenant(tenantId, async (tx) => {
+      const supprimes = await tx
+        .delete(auditLogs)
+        .where(
+          and(
+            eq(auditLogs.tenantId, tenantId),
+            lt(auditLogs.createdAt, date),
+          ),
+        )
+        .returning({ id: auditLogs.id });
+      return supprimes.length;
     });
   }
 }

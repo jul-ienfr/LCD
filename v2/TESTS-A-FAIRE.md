@@ -129,7 +129,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] LLM distant (si `LLM_API_URL`/`LLM_API_KEY`) : génération réelle,
   modèle premium sur avis chaleureux, repli local si erreur HTTP ou timeout.
 - [ ] Audit : bornes 90 jours par défaut, filtres 7/30/90 j et famille,
-  recherche, export CSV filtré limité à 5 000 lignes.
+  recherche, export CSV filtré limité à 5 000 lignes, rétention affichée et
+  purge manuelle protégée par confirmation.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -212,7 +213,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **435/435**.
+- Vitest : **439/439**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

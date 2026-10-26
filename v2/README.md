@@ -445,6 +445,11 @@ après les premiers clients ou si le LCP mobile se dégrade.
 
 ## Journal d’audit
 
+- rétention **1825 jours** par défaut (`AUDIT_RETENTION_JOURS`, minimum 365) ;
+- purge **manuelle uniquement**, réservée à l’admin, après saisie de
+  `PURGER` ; la purge elle-même est journalisée (`audit.purger`) ;
+- aucune tâche automatique ne supprime le journal.
+
 - page `/hote/audit`, réservée aux admins ;
 - 50 actions par page, les plus récentes d’abord ;
 - recherche sur l’action, l’auteur, la cible ou la référence ;

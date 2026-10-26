@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import {
+  CONFIRMATION_PURGE_AUDIT,
+  dateLimiteRetention,
   depuisJours,
   familleAuditValide,
   JOURS_AUDIT,
@@ -11,7 +13,9 @@ import {
   libelleActionAudit,
 } from "@/domain/audit";
 import { DrizzleAuditRepository } from "@/infrastructure/db/repositories/audit-repository";
+import { env } from "@/lib/env";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
+import { purgerAuditAction } from "./actions";
 
 export const instant = false;
 
@@ -50,6 +54,9 @@ export default async function PageAudit({
     q?: string;
     jours?: string;
     famille?: string;
+    ok?: string;
+    n?: string;
+    erreur?: string;
   }>;
 }) {
   await connection();
@@ -86,6 +93,11 @@ export default async function PageAudit({
     depuis,
     prefixe: famille ?? undefined,
   });
+
+  const limiteRetention = dateLimiteRetention(env.AUDIT_RETENTION_JOURS);
+  const anciennes = await repo.compter(tenantId, { avant: limiteRetention });
+  const purgeOk = params.ok === "purge";
+  const nombrePurges = Number.parseInt(params.n ?? "0", 10);
 
   function lien(numero: number): string {
     const query = new URLSearchParams();
@@ -129,6 +141,19 @@ export default async function PageAudit({
           </Link>
         </div>
       </header>
+
+      {purgeOk ? (
+        <p className="rounded-2xl border border-accent bg-accent-douce p-4 text-sm text-accent">
+          {Number.isFinite(nombrePurges) && nombrePurges > 0
+            ? `${nombrePurges} entrée${nombrePurges > 1 ? "s" : ""} de plus de ${env.AUDIT_RETENTION_JOURS} jours supprimée${nombrePurges > 1 ? "s" : ""}.`
+            : "Aucune entrée à purger."}
+        </p>
+      ) : null}
+      {params.erreur ? (
+        <p className="rounded-2xl border border-danger bg-danger-douce p-4 text-sm text-danger">
+          {params.erreur.slice(0, 300)}
+        </p>
+      ) : null}
 
       <form
         action="/hote/audit"
@@ -262,6 +287,41 @@ export default async function PageAudit({
           ) : null}
         </nav>
       ) : null}
+
+      <section className="space-y-3 rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">Rétention</h2>
+          <p className="text-sm text-encre-douce">
+            Conservation {env.AUDIT_RETENTION_JOURS} jours.{" "}
+            {anciennes > 0
+              ? `${anciennes} entrée${anciennes > 1 ? "s" : ""} dépasse${anciennes > 1 ? "nt" : ""} cette durée.`
+              : "Aucune entrée au-delà de cette durée."}
+          </p>
+        </div>
+        {anciennes > 0 ? (
+          <form action={purgerAuditAction} className="flex flex-wrap items-end gap-3">
+            <label className="space-y-1 text-sm font-medium">
+              <span>
+                Saisissez « {CONFIRMATION_PURGE_AUDIT} » pour supprimer
+                définitivement ces entrées
+              </span>
+              <input
+                autoComplete="off"
+                className="rounded-xl border border-bordure p-3 text-base"
+                name="confirmation"
+                placeholder={CONFIRMATION_PURGE_AUDIT}
+                required
+              />
+            </label>
+            <button
+              className="rounded-full border border-danger px-4 py-2 text-sm font-medium text-danger"
+              type="submit"
+            >
+              Purger définitivement
+            </button>
+          </form>
+        ) : null}
+      </section>
 
       <Link className="text-sm underline" href="/hote">
         Tableau de bord

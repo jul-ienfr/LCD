@@ -20,10 +20,12 @@ export interface AuditFiltre {
 export interface AuditCriteres {
   recherche?: string;
   depuis?: Date;
+  avant?: Date;
   prefixe?: string;
 }
 
 export interface AuditRepository {
   lister(tenantId: string, filtre: AuditFiltre): Promise<AuditEntry[]>;
   compter(tenantId: string, criteres?: AuditCriteres): Promise<number>;
+  supprimerAvant(tenantId: string, date: Date): Promise<number>;
 }

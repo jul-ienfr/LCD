@@ -64,6 +64,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "tranquillite.preuve": "Preuve de tranquillité enregistrée",
   "tranquillite.supprimer": "Preuve de tranquillité supprimée",
   "tenant.export": "Export complet des données",
+  "audit.purger": "Journal d’audit purgé",
   "utilisateur.activer": "Utilisateur réactivé",
   "utilisateur.creer": "Utilisateur créé",
   "utilisateur.desactiver": "Utilisateur désactivé",
@@ -128,4 +129,27 @@ export function familleAuditValide(
   valeur: string,
 ): valeur is FamilleAudit {
   return (FAMILLES_AUDIT as readonly string[]).includes(valeur);
+}
+
+export const RETENTION_AUDIT_MIN_JOURS = 365;
+export const RETENTION_AUDIT_DEFAUT_JOURS = 1825;
+export const CONFIRMATION_PURGE_AUDIT = "PURGER";
+
+export function joursRetentionValide(jours: number): boolean {
+  return (
+    Number.isInteger(jours) &&
+    jours >= RETENTION_AUDIT_MIN_JOURS &&
+    jours <= 36_500
+  );
+}
+
+export function dateLimiteRetention(
+  jours: number,
+  maintenant = new Date(),
+): Date {
+  return new Date(maintenant.getTime() - jours * 24 * 60 * 60 * 1000);
+}
+
+export function confirmationPurgeValide(valeur: string): boolean {
+  return valeur.trim() === CONFIRMATION_PURGE_AUDIT;
 }

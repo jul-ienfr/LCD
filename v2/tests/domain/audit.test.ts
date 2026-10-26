@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  confirmationPurgeValide,
+  dateLimiteRetention,
   depuisJours,
   familleAuditValide,
   JOURS_AUDIT,
   joursAuditValide,
+  joursRetentionValide,
   libelleActionAudit,
 } from "@/domain/audit";
 
@@ -41,5 +44,22 @@ describe("journal d’audit", () => {
     expect(familleAuditValide("assistant")).toBe(true);
     expect(familleAuditValide("inconnue")).toBe(false);
     expect(familleAuditValide("")).toBe(false);
+  });
+
+  it("encadre la rétention et la confirmation de purge", () => {
+    expect(joursRetentionValide(365)).toBe(true);
+    expect(joursRetentionValide(1825)).toBe(true);
+    expect(joursRetentionValide(364)).toBe(false);
+    expect(joursRetentionValide(365.5)).toBe(false);
+    expect(joursRetentionValide(36_501)).toBe(false);
+    expect(confirmationPurgeValide("PURGER")).toBe(true);
+    expect(confirmationPurgeValide("  PURGER ")).toBe(true);
+    expect(confirmationPurgeValide("purger")).toBe(false);
+    expect(confirmationPurgeValide("")).toBe(false);
+
+    const maintenant = new Date("2026-10-25T12:00:00.000Z");
+    expect(dateLimiteRetention(365, maintenant).toISOString()).toBe(
+      "2025-10-25T12:00:00.000Z",
+    );
   });
 });

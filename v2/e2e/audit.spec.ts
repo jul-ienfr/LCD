@@ -12,6 +12,10 @@ test("audit : période, famille et export CSV filtré", async ({ page }) => {
 
   await page.goto("/hote/audit");
   await expect(page.getByText(/sur les 90 derniers jours/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Rétention" }),
+  ).toBeVisible();
+  await expect(page.getByText(/Conservation 1825 jours/)).toBeVisible();
 
   await page.selectOption('select[name="jours"]', "7");
   await page.selectOption('select[name="famille"]', "utilisateur");
