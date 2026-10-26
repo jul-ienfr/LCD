@@ -26,6 +26,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 
 - [ ] Connexion admin, déconnexion, reconnexion.
 - [ ] Enrôlement TOTP, déconnexion, reconnexion avec code TOTP.
+- [ ] `AUTH_2FA_REQUIRED=true` : un admin sans TOTP est renvoyé sur
+  `/hote/securite` ; après activation, l’accès au reste de l’espace revient.
 - [ ] Code TOTP invalide refusé ; trop de tentatives verrouillées.
 - [ ] `/api/auth/sign-up/email` refusé (`400`) sur la production.
 - [ ] `tenantId` et `role` refusés par `/api/auth/update-user`

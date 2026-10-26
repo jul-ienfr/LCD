@@ -1,7 +1,9 @@
 import "server-only";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { deuxFacteursRequis } from "@/domain/securite";
 import { auth } from "@/lib/auth";
+import { env } from "@/lib/env";
 
 export async function getSession() {
   return auth.api.getSession({ headers: await headers() });
@@ -19,6 +21,15 @@ export async function requireRole(roles: readonly string[]) {
   const session = await requireSession();
   const role = session.user.role ?? "";
   if (!roles.includes(role)) redirect("/login?erreur=acces");
+  if (
+    deuxFacteursRequis(
+      role,
+      Boolean(session.user.twoFactorEnabled),
+      env.AUTH_2FA_REQUIRED,
+    )
+  ) {
+    redirect("/hote/securite?deuxfacteurs=requis");
+  }
   return session;
 }
 

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { deuxFacteursRequis } from "@/domain/securite";
 import { DrizzleSessionsRepository } from "@/infrastructure/db/repositories/sessions-repository";
+import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
 import { Formulaire2FA } from "./formulaire-2fa";
 import { FormulaireMotDePasse } from "./formulaire-mot-de-passe";
@@ -45,6 +47,11 @@ export default async function PageSecurite({
     await depotSessions.compterSessionsActives(session.user.id),
   );
   const autresSessions = Math.max(0, totalSessions - 1);
+  const exigenceDeuxFacteurs = deuxFacteursRequis(
+    session.user.role ?? "",
+    Boolean(session.user.twoFactorEnabled),
+    env.AUTH_2FA_REQUIRED,
+  );
   const retour =
     session.user.role === "presta"
       ? "/presta"
@@ -65,6 +72,17 @@ export default async function PageSecurite({
           Compte : <span className="font-medium">{session.user.email}</span>
         </p>
       </header>
+
+      {exigenceDeuxFacteurs ? (
+        <p
+          className="rounded-xl border border-danger bg-danger-douce p-4 text-sm text-danger"
+          role="alert"
+        >
+          Votre rôle exige la double authentification. Activez-la ci-dessous
+          pour accéder au reste de l’espace ; sans elle, les pages protégées
+          vous renvoient ici.
+        </p>
+      ) : null}
 
       <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">

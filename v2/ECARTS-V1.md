@@ -24,7 +24,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | Login + 2FA TOTP staff | Fait | Better Auth + plugin 2FA. |
 | Sessions listables / révocation | Fait | `/hote/securite` + fermeture des autres sessions. |
 | Rate-limit login | Partiel | `rateLimit` Better Auth activé ; CAPTCHA absent. |
-| 2FA obligatoire (admin/comptable) | Absent | Aujourd’hui facultative. |
+| 2FA obligatoire staff | Fait (opt-in) | `AUTH_2FA_REQUIRED=true` ; CAPTCHA login absent. |
 | 8 rôles V1 (super_admin, opérateur…) | Partiel | 6 rôles ; pas de `super_admin` ni d’`operateur` distinct. |
 | « Voir comme » + bandeau + audit `qui_reel` | Absent | Non porté. |
 | Double validation 4 yeux | Absent | Reversements/débits > seuils. |

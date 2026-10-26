@@ -21,6 +21,13 @@ const schema = z.object({
     .default("dev-only-change-me-please-32chars-min"),
   BETTER_AUTH_URL: z.string().default("http://localhost:3000"),
   BETTER_AUTH_TRUSTED_ORIGINS: z.string().optional(),
+  // Obligation de TOTP pour les rôles staff (admin, hôte, comptable,
+  // opérateur). Désactivée par défaut pour ne pas bloquer le local ; à mettre
+  // à true en production.
+  AUTH_2FA_REQUIRED: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true" || v === "1"),
 
   // Stockage S3-compatible : R2, MinIO, OVH, Scaleway.
   S3_ENDPOINT: z.string().default("http://127.0.0.1:9000"),

@@ -551,6 +551,10 @@ code. La cible < 50 Ko reste l'objectif d'une surface voyageur séparée en v2.1
 - Vérification à la connexion : `/two-factor`.
 - Session cookie httpOnly ; le tenant et le rôle viennent de `session.user`.
 - `requireRole(["admin","hote"])` protège les pages staff.
+- `AUTH_2FA_REQUIRED=true` rend la 2FA **obligatoire** pour `admin`, `hote`,
+  `comptable` et `operateur` : toute page `requireRole` redirige vers
+  `/hote/securite` tant que le TOTP n’est pas actif. Désactivé par défaut en
+  local ; à activer en production (`.env.prod.example`).
 - Tableau de bord `/hote` réservé à `admin`, `hote`, `comptable` ; un
   prestataire, propriétaire ou commercial y est redirigé.
 - `/hote/securite` est ouvert à tout compte connecté : chacun gère son propre
