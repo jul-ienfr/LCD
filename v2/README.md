@@ -126,7 +126,7 @@ juridique + mandats, 320 px.
 | `/hote/proprietaires` | mandats propriétaire ↔ logement + commission |
 | `/hote/entite` | entité juridique de facturation (admin) |
 | `/hote/integrations` | webhooks HA/Moli + livraisons |
-| `/hote/securite` | 2FA |
+| `/hote/securite` | 2FA, mot de passe, sessions actives |
 | `/hote/utilisateurs` | comptes de l’équipe (admin) |
 | `/hote/audit` | journal d’audit (admin) : période 7/30/90 j, famille, recherche, CSV |
 | `/presta` | missions du prestataire + statuts |
@@ -540,6 +540,10 @@ après les premiers clients ou si le LCP mobile se dégrade.
   mot de passe et sa 2FA, quel que soit son rôle.
 - Changement de mot de passe sur `/hote/securite` (12 caractères minimum,
   révoque les autres sessions).
+- **Sessions actives** sur `/hote/securite` : jusqu’à 10 sessions affichées
+  (navigateur déduit du user-agent, IP, date d’ouverture, expiration), session
+  courante marquée et non révocable, bouton « Fermer les autres sessions »
+  (audit `utilisateur.sessions`).
 - Gestion des comptes sur `/hote/utilisateurs` (admin) : création, rôles,
   réinitialisation, désactivation ; un compte désactivé ne peut plus ouvrir
   de session.

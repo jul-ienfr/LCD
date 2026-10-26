@@ -73,6 +73,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "utilisateur.desactiver": "Utilisateur désactivé",
   "utilisateur.motdepasse": "Mot de passe réinitialisé",
   "utilisateur.2fa": "Double authentification réinitialisée",
+  "utilisateur.sessions": "Autres sessions fermées",
   "utilisateur.role": "Rôle modifié",
   "webhook.enregistrer": "Webhook enregistré",
   "webhook.supprimer": "Webhook supprimé",

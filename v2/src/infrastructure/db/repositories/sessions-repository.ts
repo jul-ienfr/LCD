@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gt } from "drizzle-orm";
+import { and, count, desc, eq, gt, ne, sql } from "drizzle-orm";
 import type { SessionsRepository } from "@/application/ports/sessions-repository";
 import type { RoleUtilisateur } from "@/domain/utilisateur";
 import { db } from "../client";
@@ -83,6 +83,42 @@ export class DrizzleSessionsRepository implements SessionsRepository {
     const resultat: Record<string, number> = {};
     for (const row of rows) resultat[row.userId] = Number(row.total);
     return resultat;
+  }
+
+  async listerActivesParUtilisateur(
+    userId: string,
+    limite: number,
+    idCourante: string,
+  ) {
+    const rows = await db
+      .select(colonnes)
+      .from(session)
+      .innerJoin(users, eq(session.userId, users.id))
+      .where(
+        and(eq(session.userId, userId), gt(session.expiresAt, new Date())),
+      )
+      // La session courante reste toujours en tête, quelle que soit son ancienneté.
+      .orderBy(desc(sql`${session.id} = ${idCourante}`), desc(session.createdAt))
+      .limit(limite);
+    return rows.map(versSession);
+  }
+
+  async compterSessionsActives(userId: string) {
+    const [row] = await db
+      .select({ total: count() })
+      .from(session)
+      .where(
+        and(eq(session.userId, userId), gt(session.expiresAt, new Date())),
+      );
+    return Number(row?.total ?? 0);
+  }
+
+  async supprimerAutresSessions(userId: string, idCourante: string) {
+    const supprimees = await db
+      .delete(session)
+      .where(and(eq(session.userId, userId), ne(session.id, idCourante)))
+      .returning({ id: session.id });
+    return supprimees.length;
   }
 
   async supprimer(tenantId: string, id: string) {

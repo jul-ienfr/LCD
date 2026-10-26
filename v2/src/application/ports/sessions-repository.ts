@@ -20,5 +20,15 @@ export interface SessionsRepository {
   compterActivesParUtilisateur(
     tenantId: string,
   ): Promise<Record<string, number>>;
+  listerActivesParUtilisateur(
+    userId: string,
+    limite: number,
+    idCourante: string,
+  ): Promise<SessionAvecUtilisateur[]>;
+  compterSessionsActives(userId: string): Promise<number>;
+  supprimerAutresSessions(
+    userId: string,
+    idCourante: string,
+  ): Promise<number>;
   supprimer(tenantId: string, id: string): Promise<void>;
 }

@@ -32,6 +32,9 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   (`FIELD_NOT_ALLOWED`).
 - [ ] Création d’un compte par admin, connexion du compte.
 - [ ] Réinitialisation du mot de passe : sessions fermées.
+- [ ] Sessions actives : deux navigateurs connectés, la session courante est
+  marquée, « Fermer les autres sessions » ferme la seconde et laisse la
+  première ouverte (audit `utilisateur.sessions`).
 - [ ] Désactivation : session fermée, connexion refusée.
 - [ ] Changement de rôle : accès recalculé sans reconnexion.
 - [ ] Dernier admin : désactivation et retrait de rôle refusés.

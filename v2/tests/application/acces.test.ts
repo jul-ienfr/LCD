@@ -4,6 +4,7 @@ import type {
   SessionsRepository,
 } from "@/application/ports/sessions-repository";
 import { RevoquerSession } from "@/application/use-cases/revoquer-session";
+import { FermerAutresSessions } from "@/application/use-cases/fermer-autres-sessions";
 
 class MemoireSessions implements SessionsRepository {
   items: SessionAvecUtilisateur[] = [];
@@ -20,6 +21,32 @@ class MemoireSessions implements SessionsRepository {
   }
   async compterActivesParUtilisateur() {
     return {};
+  }
+  async listerActivesParUtilisateur(
+    userId: string,
+    limite: number,
+    idCourante: string,
+  ) {
+    return this.items
+      .filter((s) => s.userId === userId && s.expiresAt > new Date())
+      .sort((a, b) => {
+        if (a.id === idCourante) return -1;
+        if (b.id === idCourante) return 1;
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      })
+      .slice(0, limite);
+  }
+  async compterSessionsActives(userId: string) {
+    return this.items.filter(
+      (s) => s.userId === userId && s.expiresAt > new Date(),
+    ).length;
+  }
+  async supprimerAutresSessions(userId: string, idCourante: string) {
+    const avant = this.items.length;
+    this.items = this.items.filter(
+      (s) => !(s.userId === userId && s.id !== idCourante),
+    );
+    return avant - this.items.length;
   }
   async supprimer(tenantId: string, id: string) {
     const index = this.items.findIndex(
@@ -78,5 +105,37 @@ describe("cas d'usage révocation de session", () => {
       code: "ACCES_INVALIDE",
     });
     expect(sessions.items).toHaveLength(1);
+  });
+});
+
+describe("cas d'usage fermeture des autres sessions", () => {
+  it("ferme les autres sessions du compte, garde la courante et les tiers", async () => {
+    const sessions = new MemoireSessions();
+    sessions.items.push(
+      session("s1", "u-1"),
+      session("s2", "u-1"),
+      session("s3", "u-1"),
+      session("s4", "u-2"),
+    );
+    const cas = new FermerAutresSessions(sessions);
+    const fermees = await cas.executer("u-1", "s2");
+    expect(fermees).toBe(2);
+    expect(sessions.items.map((s) => s.id).sort()).toEqual(["s2", "s4"]);
+  });
+
+  it("ne supprime rien sans autre session", async () => {
+    const sessions = new MemoireSessions();
+    sessions.items.push(session("s1", "u-1"));
+    const cas = new FermerAutresSessions(sessions);
+    expect(await cas.executer("u-1", "s1")).toBe(0);
+    expect(sessions.items).toHaveLength(1);
+  });
+
+  it("refuse un identifiant de session courant vide", async () => {
+    const sessions = new MemoireSessions();
+    sessions.items.push(session("s1", "u-1"), session("s2", "u-1"));
+    const cas = new FermerAutresSessions(sessions);
+    expect(await cas.executer("u-1", "")).toBe(0);
+    expect(sessions.items).toHaveLength(2);
   });
 });
