@@ -4,6 +4,7 @@ import { deuxFacteursRequis } from "@/domain/securite";
 describe("exigence de double facteur", () => {
   it("s’applique aux rôles staff quand l’obligation est active", () => {
     expect(deuxFacteursRequis("admin", false, true)).toBe(true);
+    expect(deuxFacteursRequis("super_admin", false, true)).toBe(true);
     expect(deuxFacteursRequis("hote", false, true)).toBe(true);
     expect(deuxFacteursRequis("comptable", false, true)).toBe(true);
     expect(deuxFacteursRequis("operateur", false, true)).toBe(true);

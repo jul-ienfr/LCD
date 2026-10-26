@@ -204,6 +204,11 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - [ ] Rotation `BETTER_AUTH_SECRET` testée : liens voyageur/facture/calendrier
   invalidés, sessions invalides.
 - [ ] Rotation du token Netlify et du mot de passe admin.
+- [ ] Super-admin réel : `/supervision`, `/systeme`, `/secrets`, `/journal`
+  avec `MIGRATION_DATABASE_URL` ; vérifier l’accès refusé pour un admin
+  ordinaire et l’absence de valeur de secret dans le HTML.
+- [ ] Retirer `MIGRATION_DATABASE_URL` : les quatre pages affichent un
+  avertissement, sans repli sur la connexion RLS.
 
 ## 7. Performance et compatibilité
 

@@ -91,6 +91,11 @@ export default async function PageUtilisateurs({
           Chaque compte est rattaché à votre organisation. Le rôle détermine les
           pages accessibles.
         </p>
+        <p className="mt-2 rounded-xl border border-alerte bg-alerte-douce p-3 text-xs text-alerte">
+          <strong>super_admin</strong> ouvre la supervision cross-tenant, le
+          journal global et l’état des secrets : à réserver à l’exploitant de la
+          plateforme, pas à un hôte.
+        </p>
         <div className="mt-5">
           <FormulaireCreationUtilisateur />
         </div>

@@ -25,8 +25,8 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | Sessions listables / révocation | Fait | `/hote/securite` + fermeture des autres sessions. |
 | Rate-limit login | Partiel | `rateLimit` Better Auth activé ; CAPTCHA absent. |
 | 2FA obligatoire staff | Fait (opt-in) | `AUTH_2FA_REQUIRED=true` ; CAPTCHA login absent. |
-| 8 rôles V1 (super_admin, opérateur…) | Partiel | 6 rôles ; pas de `super_admin` ni d’`operateur` distinct. |
-| « Voir comme » + bandeau + audit `qui_reel` | Absent | Non porté. |
+| 8 rôles V1 (super_admin, opérateur…) | Partiel | 7 rôles dont `super_admin` ; `operateur` reste legacy (comptes existants), pas de sélection UI. |
+| « Voir comme » + bandeau + audit `qui_reel` | Absent | Reporté : ne pas accorder les droits réels via un cookie d’impersonation ; conception lecture seule à valider. |
 | Double validation 4 yeux | Absent | Reversements/débits > seuils. |
 | Isolation RLS + `withTenant()` | Fait | Test RLS dédié. |
 
@@ -34,9 +34,9 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 
 | Écran V1 | V2 | Note |
 |---|---|---|
-| `/supervision` (santé, box, métriques) | Absent | `/api/health` et `/api/ready` existent. |
-| `/systeme` (santé gateway, hébergement, design) | Partiel | Design sur `/hote/design` ; pas de page système. |
-| `/secrets` (métadonnées + rotation) | Absent | Secrets webhooks gérés sur `/hote/integrations`. |
+| `/supervision` (santé, box, métriques) | Fait | Agrégats cross-tenant lecture seule, owner requis. |
+| `/systeme` (santé gateway, hébergement, design) | Fait | Versions, migrations, RLS, runtime ; design sur `/hote/design`. |
+| `/secrets` (métadonnées + rotation) | Fait | États sans valeurs, alertes, procédure de rotation. |
 | `/journal` 90 j + recherche par `ref` | Fait | `/hote/audit` + export CSV + `/hote/recherche` multi-refs. |
 | `/metrics` Prometheus | Absent | `/api/telemetry` seulement. |
 
@@ -121,8 +121,8 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 ## Prochaines priorités proposées
 
 1. 2FA obligatoire pour admin/comptable + CAPTCHA login.
-2. `super_admin` + pages `/supervision`, `/systeme`, `/secrets`, `/journal`
-   (lecture cross-tenant encadrée) et « voir comme » audité.
+2. « Voir comme » lecture seule + bandeau + audit `qui_reel` (ne pas
+   réutiliser le cookie de session pour élargir les droits).
 3. Machine d’état de publication d’annonce + archivage doux.
 4. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
 5. Bandeau cookies et médiation conso.

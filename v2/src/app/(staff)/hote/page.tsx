@@ -8,7 +8,7 @@ import { nuitsSejour } from "@/domain/planning";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
-import { requireRole } from "@/lib/session";
+import { estSuperAdmin, requireRole } from "@/lib/session";
 import { BoutonDeconnexion } from "@/components/bouton-deconnexion";
 
 // Route staff bloquante : session + DB avant rendu.
@@ -114,6 +114,14 @@ export default async function PageHote() {
           >
             Recherche globale
           </Link>
+          {estSuperAdmin(session) ? (
+            <Link
+              className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
+              href="/supervision"
+            >
+              Supervision plateforme
+            </Link>
+          ) : null}
           <Link
             className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
             href="/hote/planning"

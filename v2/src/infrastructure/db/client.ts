@@ -6,23 +6,43 @@ import * as schema from "./schema";
 
 const globalForDb = globalThis as unknown as {
   sql?: ReturnType<typeof postgres>;
+  sqlAdmin?: ReturnType<typeof postgres>;
 };
+
+const options = (url: string) => ({
+  max: 5,
+  idle_timeout: 20,
+  connect_timeout: 10,
+  prepare: false,
+  ssl: url.includes("sslmode=require") ? ("require" as const) : false,
+});
 
 // prepare: false = compatible PgBouncer / Neon pooler.
 export const sql =
   globalForDb.sql ??
-  postgres(env.DATABASE_URL, {
-    max: 10,
-    idle_timeout: 20,
-    connect_timeout: 10,
-    prepare: false,
-    ssl: env.DATABASE_URL.includes("sslmode=require") ? "require" : false,
-  });
+  postgres(env.DATABASE_URL, { ...options(env.DATABASE_URL), max: 10 });
 
 if (env.NODE_ENV !== "production") globalForDb.sql = sql;
 
 export const db = drizzle(sql, { schema });
 export type Db = typeof db;
+
+/**
+ * Connexion owner réservée aux pages super-admin (agrégats cross-tenant,
+ * catalogue système). Absente en hébergement sans `MIGRATION_DATABASE_URL` :
+ * les pages se dégradent alors proprement, elles ne basculent jamais sur la
+ * connexion applicative filtrée par RLS.
+ */
+export const sqlAdmin = env.MIGRATION_DATABASE_URL
+  ? (globalForDb.sqlAdmin ??
+    postgres(env.MIGRATION_DATABASE_URL, options(env.MIGRATION_DATABASE_URL)))
+  : null;
+
+if (env.NODE_ENV !== "production" && sqlAdmin) {
+  globalForDb.sqlAdmin = sqlAdmin;
+}
+
+export const dbAdmin = sqlAdmin ? drizzle(sqlAdmin, { schema }) : null;
 
 /**
  * Exécute une opération dans une transaction avec `app.tenant_id` positionné.

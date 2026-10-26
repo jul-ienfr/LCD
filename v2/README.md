@@ -557,6 +557,25 @@ jour borné au dernier jour du mois). Table `fiches_police` sous RLS.
   lecture RLS tenant — jamais de vue transverse ;
 - chaque résultat pointe vers sa page staff de référence.
 
+## Supervision plateforme (super-admin)
+
+- rôle `super_admin` (ou e-mail dans `SUPER_ADMIN_EMAILS`, séparés par des
+  virgules) : accès cross-tenant **lecture seule** ;
+- `/supervision` : espaces, logements, réservations, comptes actifs, audits 24 h ;
+- `/systeme` : PostgreSQL, migrations appliquées vs journal Drizzle, tables et
+  couverture RLS, runtime ;
+- `/secrets` : états des variables (configuré / absent / défaut local /
+  alerte), jamais les valeurs ; rotation documentée ;
+- `/journal` : 200 dernières actions tous espaces, filtres espace/action ;
+- ces pages utilisent la connexion **owner** (`MIGRATION_DATABASE_URL`), jamais
+  `lcd_app`. Sans cette variable, elles affichent un avertissement au lieu de
+  contourner RLS ;
+- `super_admin` ouvre aussi toutes les pages staff (`requireRole`) ; la 2FA y
+  est obligatoire comme pour les autres rôles staff ;
+- l’attribution du rôle reste réservée aux admins dans l’UI, avec un
+  avertissement : en production, préférer l’allowlist d’exploitation et
+  réserver le rôle aux opérateurs de la plateforme.
+
 ## En-têtes de sécurité
 
 - **CSP partielle** : `base-uri 'self'`, `form-action 'self'`,

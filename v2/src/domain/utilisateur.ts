@@ -1,4 +1,5 @@
 export const ROLES_UTILISATEUR = [
+  "super_admin",
   "admin",
   "hote",
   "comptable",
@@ -10,6 +11,7 @@ export const ROLES_UTILISATEUR = [
 export type RoleUtilisateur = (typeof ROLES_UTILISATEUR)[number];
 
 export const LIBELLES_ROLE: Record<RoleUtilisateur, string> = {
+  super_admin: "Super-administrateur",
   admin: "Administrateur",
   hote: "Hôte",
   comptable: "Comptable",
@@ -43,4 +45,21 @@ export function motDePasseValide(motDePasse: string): boolean {
 export function nomUtilisateurValide(nom: string): boolean {
   const valeur = nom.trim();
   return valeur.length >= 2 && valeur.length <= 120;
+}
+
+/**
+ * Allowlist d'exploitation : un e-mail listé obtient les pouvoirs
+ * super-admin sans modification en base. Comparaison insensible à la casse.
+ */
+export function emailDansAllowlistSuperAdmin(
+  email: string | null | undefined,
+  listeCsv: string,
+): boolean {
+  const cible = (email ?? "").trim().toLowerCase();
+  if (!cible) return false;
+  return listeCsv
+    .split(",")
+    .map((entree) => entree.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(cible);
 }

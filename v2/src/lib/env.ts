@@ -28,6 +28,9 @@ const schema = z.object({
     .string()
     .default("false")
     .transform((v) => v === "true" || v === "1"),
+  // Emails (séparés par des virgules) traités comme super-admin sans
+  // modification en base. Réservé à l'exploitation ; jamais exposé au client.
+  SUPER_ADMIN_EMAILS: z.string().default(""),
 
   // Stockage S3-compatible : R2, MinIO, OVH, Scaleway.
   S3_ENDPOINT: z.string().default("http://127.0.0.1:9000"),

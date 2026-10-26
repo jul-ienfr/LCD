@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   LIBELLES_ROLE,
   ROLES_UTILISATEUR,
+  emailDansAllowlistSuperAdmin,
   emailUtilisateurValide,
   libelleRole,
   motDePasseValide,
@@ -10,14 +11,29 @@ import {
 } from "@/domain/utilisateur";
 
 describe("domaine utilisateur", () => {
-  it("accepte les six rôles connus", () => {
-    expect(ROLES_UTILISATEUR).toHaveLength(6);
+  it("accepte les sept rôles connus", () => {
+    expect(ROLES_UTILISATEUR).toHaveLength(7);
     for (const role of ROLES_UTILISATEUR) {
       expect(roleUtilisateurValide(role)).toBe(true);
       expect(libelleRole(role)).toBe(LIBELLES_ROLE[role]);
     }
+    expect(roleUtilisateurValide("super_admin")).toBe(true);
     expect(roleUtilisateurValide("operateur")).toBe(false);
     expect(roleUtilisateurValide("")).toBe(false);
+  });
+
+  it("reconnaît l'allowlist super-admin sans tenir compte de la casse", () => {
+    expect(
+      emailDansAllowlistSuperAdmin(
+        "Owner@LCD.test",
+        "autre@lcd.test, owner@lcd.test ",
+      ),
+    ).toBe(true);
+    expect(emailDansAllowlistSuperAdmin("owner@lcd.test", "")).toBe(false);
+    expect(emailDansAllowlistSuperAdmin(null, "owner@lcd.test")).toBe(false);
+    expect(
+      emailDansAllowlistSuperAdmin("owner@lcd.test.evil", "owner@lcd.test"),
+    ).toBe(false);
   });
 
   it("retombe sur le code brut pour un rôle inconnu", () => {

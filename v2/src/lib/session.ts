@@ -2,6 +2,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { deuxFacteursRequis } from "@/domain/securite";
+import { emailDansAllowlistSuperAdmin } from "@/domain/utilisateur";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 
@@ -17,13 +18,39 @@ export async function requireSession() {
   return session;
 }
 
+export function estSuperAdmin(session: {
+  user: { role?: string | null; email?: string | null };
+}): boolean {
+  return (
+    session.user.role === "super_admin" ||
+    emailDansAllowlistSuperAdmin(session.user.email, env.SUPER_ADMIN_EMAILS)
+  );
+}
+
 export async function requireRole(roles: readonly string[]) {
   const session = await requireSession();
   const role = session.user.role ?? "";
-  if (!roles.includes(role)) redirect("/login?erreur=acces");
+  if (role !== "super_admin" && !roles.includes(role)) {
+    redirect("/login?erreur=acces");
+  }
   if (
     deuxFacteursRequis(
       role,
+      Boolean(session.user.twoFactorEnabled),
+      env.AUTH_2FA_REQUIRED,
+    )
+  ) {
+    redirect("/hote/securite?deuxfacteurs=requis");
+  }
+  return session;
+}
+
+export async function requireSuperAdmin() {
+  const session = await requireSession();
+  if (!estSuperAdmin(session)) redirect("/login?erreur=acces");
+  if (
+    deuxFacteursRequis(
+      "super_admin",
       Boolean(session.user.twoFactorEnabled),
       env.AUTH_2FA_REQUIRED,
     )

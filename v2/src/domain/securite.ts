@@ -1,4 +1,5 @@
 const ROLES_DEUX_FACTEURS = new Set([
+  "super_admin",
   "admin",
   "hote",
   "comptable",
