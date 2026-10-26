@@ -527,6 +527,9 @@ Aucun import de Next, Drizzle, Stripe, Brevo ou S3 dans `domain/`.
 - `npm run db:migrate` applique en local/staging/prod via
   `MIGRATION_DATABASE_URL` (owner), sinon `DATABASE_URL`.
 - `npm run db:check` détecte une dérive schéma/migrations.
+- `0055` accorde au rôle applicatif la lecture du journal Drizzle
+  (`drizzle.__drizzle_migrations`) : `/api/ready` compare le nombre de
+  migrations appliquées sans privilège owner.
 - Changements destructifs : expand/contract en deux releases.
 - Avant prod : backup + dump + test de restauration.
 

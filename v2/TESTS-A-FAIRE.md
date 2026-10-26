@@ -9,9 +9,11 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0054` appliquées.
+- [ ] Migrations `0026` → `0055` appliquées.
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
+  Déjà validé en local le 2026-10-26 (owner `lcd`, rôle `lcd_app`) ; les 45
+  tests Playwright passent avec `DATABASE_URL` sur le rôle applicatif.
 - [ ] `/api/health` → `200`, `/api/ready` → `200`, `db: up`, `schema: ok`.
 - [ ] `/api/ready` bien **503 `schema: pending`** si une migration manque
   (test à faire sur une base de staging vide ou incomplète) ; le compteur
