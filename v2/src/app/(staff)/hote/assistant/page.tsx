@@ -12,6 +12,7 @@ import { GenerateurBrouillonLocal } from "@/infrastructure/adapters/generateur-b
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
+import { enregistrerBrouillonAction } from "./actions";
 
 export const instant = false;
 
@@ -24,6 +25,7 @@ export default async function PageAssistant({
     ton?: string;
     voyageur?: string;
     details?: string;
+    erreur?: string;
   }>;
 }) {
   await connection();
@@ -38,7 +40,7 @@ export default async function PageAssistant({
     logements.find((l) => l.id === params.logement) ?? logements[0];
 
   let brouillon: BrouillonAssistant | null = null;
-  let erreur: string | null = null;
+  let erreur: string | null = params.erreur ?? null;
   if (logement && params.intention && params.ton) {
     try {
       brouillon = await new RedigerBrouillon(
@@ -214,6 +216,50 @@ export default async function PageAssistant({
                 <p className="mt-2 whitespace-pre-line text-sm text-encre">
                   {brouillon.texte}
                 </p>
+                <form
+                  action={enregistrerBrouillonAction}
+                  className="mt-4 flex flex-wrap items-end gap-3 border-t border-accent/30 pt-4"
+                >
+                  <input
+                    type="hidden"
+                    name="logementId"
+                    value={logement.id}
+                  />
+                  <input
+                    type="hidden"
+                    name="intention"
+                    value={params.intention ?? "arrivee"}
+                  />
+                  <input type="hidden" name="ton" value={params.ton ?? "neutre"} />
+                  <input
+                    type="hidden"
+                    name="voyageur"
+                    value={params.voyageur ?? ""}
+                  />
+                  <input
+                    type="hidden"
+                    name="details"
+                    value={params.details ?? ""}
+                  />
+                  <input type="hidden" name="texte" value={brouillon.texte} />
+                  <label className="space-y-1 text-sm font-medium">
+                    <span>Canal</span>
+                    <select
+                      className="rounded-xl border border-bordure bg-surface p-3 text-sm"
+                      defaultValue="email"
+                      name="canal"
+                    >
+                      <option value="email">E-mail</option>
+                      <option value="sms">SMS</option>
+                    </select>
+                  </label>
+                  <button
+                    className="rounded-full bg-encre px-5 py-3 text-sm font-semibold text-fond"
+                    type="submit"
+                  >
+                    Enregistrer dans les messages
+                  </button>
+                </form>
               </div>
 
               <details className="rounded-2xl border border-bordure bg-surface p-6 text-sm">

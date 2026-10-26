@@ -1,4 +1,5 @@
 import { contientCodeSensible } from "./message-voyageur";
+import type { TypeMessageVoyageur } from "./message-voyageur";
 import { ErreurMetier } from "./erreurs";
 
 export type IntentionAssistant =
@@ -146,4 +147,46 @@ export function construireInvite(input: {
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+export function typeMessageDepuisIntention(
+  intention: IntentionAssistant,
+): TypeMessageVoyageur {
+  if (intention === "arrivee") return "arrivee";
+  if (intention === "depart") return "depart";
+  return "autre";
+}
+
+function empreinte(texte: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < texte.length; index += 1) {
+    hash ^= texte.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
+}
+
+/**
+ * Référence stable : ré-enregistrer un brouillon identique renvoie le message
+ * existant au lieu de créer un doublon dans l’outbox.
+ */
+export function refBrouillon(input: {
+  logementId: string;
+  intention: IntentionAssistant;
+  ton: TonAssistant;
+  canal: string;
+  voyageur: string;
+  details: string;
+  texte: string;
+}): string {
+  const signature = [
+    input.logementId,
+    input.intention,
+    input.ton,
+    input.canal,
+    input.voyageur.trim(),
+    input.details.trim(),
+    input.texte.trim(),
+  ].join("|");
+  return `assist-${input.intention}-${empreinte(signature)}`;
 }

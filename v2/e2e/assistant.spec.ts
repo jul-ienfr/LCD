@@ -24,6 +24,9 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
 
   await page.goto("/hote/assistant");
   await page.getByRole("link", { name: nomLogement, exact: true }).click();
+  await expect(page).toHaveURL(/logement=/);
+  const logementId = new URL(page.url()).searchParams.get("logement");
+  expect(logementId).toBeTruthy();
   await page.selectOption('select[name="intention"]', "arrivee");
   await page.selectOption('select[name="ton"]', "chaleureux");
   await page.fill('input[name="voyageur"]', "Camille");
@@ -36,7 +39,9 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
   await expect(
     page.getByRole("heading", { name: "Brouillon", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("standard", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("standard", { exact: true }).first(),
+  ).toBeVisible();
   const carteBrouillon = page
     .locator("div.bg-accent-douce")
     .filter({ hasText: "Bonjour Camille," });
@@ -47,6 +52,20 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
   await page.getByText("Prompt envoyé au modèle").click();
   await expect(page.getByText(/80 mots maximum/)).toBeVisible();
 
+  await page
+    .getByRole("button", { name: "Enregistrer dans les messages" })
+    .click();
+  await expect(page).toHaveURL(/\/hote\/messages/);
+  await expect(page.getByText("Message préparé.")).toBeVisible();
+  const ligneMessage = page
+    .locator("li")
+    .filter({ hasText: "Bonjour Camille, votre séjour" });
+  await expect(ligneMessage).toBeVisible();
+  await ligneMessage.getByRole("button", { name: "Marquer envoyé" }).click();
+  await expect(page.getByText("Message marqué envoyé.")).toBeVisible();
+  await expect(ligneMessage.getByText("Envoyé", { exact: true })).toBeVisible();
+
+  await page.goto(`/hote/assistant?logement=${logementId}`);
   await page.fill(
     'textarea[name="details"]',
     "Le code d’accès est 4821, merci.",

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   construireInvite,
+  refBrouillon,
   routerModele,
+  typeMessageDepuisIntention,
 } from "@/domain/assistant";
 import { ErreurMetier } from "@/domain/erreurs";
 
@@ -65,5 +67,30 @@ describe("domaine assistant", () => {
         details: "a".repeat(401),
       }),
     ).toThrow(ErreurMetier);
+  });
+
+  it("mappe les intentions et produit une référence stable", () => {
+    expect(typeMessageDepuisIntention("arrivee")).toBe("arrivee");
+    expect(typeMessageDepuisIntention("depart")).toBe("depart");
+    expect(typeMessageDepuisIntention("retard")).toBe("autre");
+    expect(typeMessageDepuisIntention("menage")).toBe("autre");
+    expect(typeMessageDepuisIntention("avis")).toBe("autre");
+
+    const signature = {
+      logementId: "l1",
+      intention: "arrivee" as const,
+      ton: "neutre" as const,
+      canal: "email",
+      voyageur: "Camille",
+      details: "",
+      texte: "Bonjour Camille.",
+    };
+    const reference = refBrouillon(signature);
+    expect(reference).toMatch(/^assist-arrivee-[0-9a-f]{8}$/);
+    expect(refBrouillon(signature)).toBe(reference);
+    expect(refBrouillon({ ...signature, canal: "sms" })).not.toBe(reference);
+    expect(refBrouillon({ ...signature, texte: "Bonjour." })).not.toBe(
+      reference,
+    );
   });
 });
