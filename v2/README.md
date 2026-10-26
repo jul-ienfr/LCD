@@ -442,8 +442,10 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - **CSP partielle** : `base-uri 'self'`, `form-action 'self'`,
   `frame-ancestors 'none'`, `object-src 'none'` ; une CSP à nonce est reportée
   après la beta.
-- HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` et
-  `Permissions-Policy` posés par Netlify et Caddy.
+- L’application pose elle-même `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`
+  et `Permissions-Policy` (caméra, micro, géolocalisation, paiement coupés).
+- HSTS est posé par le reverse proxy (Caddy) et Netlify, pas par Next.
 - `X-Robots-Tag: noindex, nofollow, noarchive` sur les routes privées et les
   liens signés.
 

@@ -38,6 +38,9 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Aucun secret dans l’export JSON complet (webhooks, URLs ICS,
   credentials).
 - [ ] Rate limit de connexion vérifié (trop de tentatives → refus temporaire).
+- [ ] En-têtes HTTP en production : CSP, `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, HSTS au
+  proxy.
 - [ ] 2FA réellement exigée après activation, sur un autre navigateur.
 
 ## 2. Gestion locative

@@ -15,7 +15,12 @@ test("health live + readiness DB", async ({ request }) => {
   expect(readyBody.schema).toBe("ok");
 
   const accueil = await request.get("/");
-  expect(accueil.headers()["content-security-policy"]).toContain(
+  const entetes = accueil.headers();
+  expect(entetes["content-security-policy"]).toContain(
     "frame-ancestors 'none'",
   );
+  expect(entetes["x-content-type-options"]).toBe("nosniff");
+  expect(entetes["x-frame-options"]).toBe("DENY");
+  expect(entetes["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(entetes["permissions-policy"]).toContain("geolocation=()");
 });
