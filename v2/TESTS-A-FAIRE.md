@@ -223,6 +223,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
   non implémenté).
 - [ ] ZIP mensuel `/api/exports/factur-x` déposé sur une PDP/Chorus de test :
   factures acceptées, doublons et mois vide refusés proprement.
+- [ ] Rapprochement sur un relevé bancaire réel anonymisé : formats
+  débit/crédit séparés, virements internes, orphelines >7 j, alerte 2 %.
 - [ ] Vérification SIREN/TVA de l’entité émettrice.
 - [ ] Numérotation de factures continue et sans trou.
 - [ ] Export complet du tenant testé sur la production (admin).

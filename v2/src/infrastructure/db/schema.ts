@@ -1744,6 +1744,66 @@ export const fichesPolice = pgTable(
   ],
 );
 
+export const importsBanque = pgTable(
+  "imports_banque",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    nomFichier: text("nom_fichier").notNull(),
+    periodeDebut: text("periode_debut").notNull(),
+    periodeFin: text("periode_fin").notNull(),
+    totalCreditsCentimes: integer("total_credits_centimes").notNull(),
+    totalDebitsCentimes: integer("total_debits_centimes").notNull(),
+    attendusCentimes: integer("attendus_centimes").notNull(),
+    ecartBp: integer("ecart_bp").notNull(),
+    lignesTotal: integer("lignes_total").notNull(),
+    lignesRapprochees: integer("lignes_rapprochees").notNull(),
+    lignesOrphelines: integer("lignes_orphelines").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("imports_banque_tenant_ref_uq").on(table.tenantId, table.ref),
+    index("imports_banque_tenant_date_idx").on(
+      table.tenantId,
+      table.createdAt,
+    ),
+  ],
+);
+
+export const lignesBanque = pgTable(
+  "lignes_banque",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    importId: uuid("import_id")
+      .notNull()
+      .references(() => importsBanque.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    dateOperation: text("date_operation").notNull(),
+    libelle: text("libelle").notNull(),
+    montantCentimes: integer("montant_centimes").notNull(),
+    paiementId: uuid("paiement_id").references(() => paiements.id, {
+      onDelete: "set null",
+    }),
+    statut: text("statut").notNull().default("orpheline"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("lignes_banque_tenant_ref_uq").on(table.tenantId, table.ref),
+    index("lignes_banque_import_idx").on(table.importId),
+    index("lignes_banque_tenant_statut_idx").on(table.tenantId, table.statut),
+  ],
+);
+
 export type MissionRow = typeof missions.$inferSelect;
 export type NewMissionRow = typeof missions.$inferInsert;
 export type IncidentRow = typeof incidents.$inferSelect;
@@ -1758,3 +1818,7 @@ export type CautionRow = typeof cautions.$inferSelect;
 export type NewCautionRow = typeof cautions.$inferInsert;
 export type FichePoliceRow = typeof fichesPolice.$inferSelect;
 export type NewFichePoliceRow = typeof fichesPolice.$inferInsert;
+export type ImportBanqueRow = typeof importsBanque.$inferSelect;
+export type NewImportBanqueRow = typeof importsBanque.$inferInsert;
+export type LigneBanqueRow = typeof lignesBanque.$inferSelect;
+export type NewLigneBanqueRow = typeof lignesBanque.$inferInsert;

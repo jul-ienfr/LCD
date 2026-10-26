@@ -148,6 +148,12 @@ export default async function PageCompta({
         </Link>
         <Link
           className="rounded-full border border-bordure px-4 py-2 text-sm"
+          href="/hote/compta/rapprochement"
+        >
+          Rapprochement bancaire
+        </Link>
+        <Link
+          className="rounded-full border border-bordure px-4 py-2 text-sm"
           href="/hote/compta/parametres"
         >
           Paramètres fiscaux

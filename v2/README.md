@@ -151,6 +151,7 @@ juridique + mandats, 320 px.
 | `/api/exports/audit` | export CSV du journal filtré (période, famille, recherche) |
 | `/api/exports/factures` | export CSV des factures |
 | `/api/exports/factur-x?mois=AAAA-MM` | ZIP des XML Factur-X des factures émises/payées du mois |
+| `/api/exports/modele-rapprochement` | modèle CSV pour l’import bancaire |
 | `/api/exports/paiements` | export CSV des paiements |
 | `/api/exports/tenant` | export JSON complet du tenant (admin) |
 | `/api/calendrier/[logementId]?t=<token>` | flux ICS signé du logement |
@@ -277,6 +278,20 @@ légales continuent de lire le nom du tenant en base.
   token public `?t=…` ;
 - **préparation** : le PDF n'est pas encore PDF/A-3 signé ; la validation par
   une plateforme de dématérialisation reste à faire.
+
+## Rapprochement bancaire
+
+`/hote/compta/rapprochement` (admin/hôte/comptable) importe un CSV bancaire
+(`date;libelle;montant;reference` ou colonnes `debit`/`credit`, 2 Mo,
+2 000 lignes). Les crédits sont appariés aux paiements non espèces du tenant :
+même montant, ±3 jours, référence contenue dans le libellé en priorité, un
+paiement consommé une seule fois. L’écart entre crédits et paiements attendus
+déclenche une alerte au-delà de 2 % ; les crédits orphelins de plus de 7 jours
+sont signalés. L’import est idempotent par `ref`, audité
+(`rapprochement.importer`) et stocké dans `imports_banque`/`lignes_banque`
+(RLS). Limite assumée : les virements internes et charges non liées à un
+paiement restent visibles comme orphelins/débits, sans comptabilisation
+automatique.
 
 ## Intégrations HA/Moli
 

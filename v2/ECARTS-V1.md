@@ -83,7 +83,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | Caution : hold, débit sur justificatifs, restitution | Fait | `/hote/cautions`. |
 | Relevé propriétaire (brut, charges, net) | Fait | `/proprio` ; PDF à vérifier. |
 | Exports compta (CSV, Chorus/PDP) | Partiel | CSV + ZIP Factur-X mensuel (`/api/exports/factur-x`) ; format PDP/Chorus natif non testé. |
-| Rapprochement >2 % | Absent | Pas de file de rapprochement. |
+| Rapprochement >2 % | Fait | Import CSV, appariement ±3 j, orphelines >7 j, alerte 2 %, RLS. |
 | Simulateur micro/réel | À vérifier | Paramètres fiscaux présents. |
 | Taxe de séjour | Fait | Paramètres + factures. |
 | Chargeback / dossier pré-rempli | Absent | — |
@@ -126,5 +126,4 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 3. Machine d’état de publication d’annonce + archivage doux.
 4. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
 5. Bandeau cookies et médiation conso.
-6. Rapprochement bancaire >2 % (export Factur-X en lot fait).
-7. Mode léger L1 et recherche globale par `ref`.
+6. Mode léger L1 et recherche globale par `ref`.
