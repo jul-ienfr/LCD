@@ -15,9 +15,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 2. **JS islands** : aucun composant client obligatoire sur le voyageur ;
    les îlots sont chargés à la demande.
 3. **Budget JS** : cible voyageur < 50 Ko gzip, staff < 200 Ko. Exception
-   acceptée pour la beta : le plancher Next `/voyageur` est à 178,8 Ko gzip
-   (décision G1 du 2026-10-25), avec no-JS comme filet et une cible Astro/HTML
-   en v2.1. Mesurer avant d'ajouter une dépendance.
+   acceptée pour la beta : le plancher Next `/voyageur` est à 180,3 Ko gzip
+   (mesure du 2026-10-26 ; décision G1 du 2026-10-25), avec no-JS comme filet
+   et une cible Astro/HTML en v2.1. Mesurer avant d'ajouter une dépendance.
 4. **Domaine pur** : `src/domain/` n'importe ni Next, ni Drizzle, ni Stripe,
    ni Brevo, ni S3.
 5. **Ports/adapters** : toute dépendance externe passe par

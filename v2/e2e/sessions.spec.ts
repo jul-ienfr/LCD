@@ -26,6 +26,11 @@ test("sécurité : sessions actives et fermeture des autres", async ({
 
   await pageA.goto("/hote/securite");
   await expect(pageA.getByText("Session actuelle")).toBeVisible();
+  const premiereSession = pageA
+    .locator("section", { hasText: "Sessions actives" })
+    .locator("li")
+    .first();
+  await expect(premiereSession).toContainText("Session actuelle");
   await expect(
     pageA.getByRole("button", { name: "Fermer les autres sessions" }),
   ).toBeEnabled();

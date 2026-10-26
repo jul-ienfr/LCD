@@ -288,12 +288,12 @@ npm run dev        # ou npm start
 npm run measure:js
 ```
 
-**Mesure du 2026-10-24 : 178,8 Ko gzip sur `/voyageur` (8 chunks).**
-C'est au-dessus du budget voyageur de 50 Ko. **Décision G1 (2026-10-25)** :
-Next est conservé pour la beta ; le HTML fonctionne sans JS, la PWA/offline est
-intégrée, et un découpage Astro ajouterait une deuxième base de code. La cible
-< 50 Ko reste l'objectif d'une surface voyageur séparée en v2.1, à réévaluer
-après les premiers clients ou si le LCP mobile se dégrade.
+**Mesure du 2026-10-26 : 180,3 Ko gzip sur `/voyageur` (178,8 Ko le
+2026-10-24).** C'est au-dessus du budget voyageur de 50 Ko. **Décision G1
+(2026-10-25)** : Next est conservé pour la beta ; le HTML fonctionne sans JS, la
+PWA/offline est intégrée, et un découpage Astro ajouterait une deuxième base de
+code. La cible < 50 Ko reste l'objectif d'une surface voyageur séparée en v2.1,
+à réévaluer après les premiers clients ou si le LCP mobile se dégrade.
 
 ## Import OTA / ICS
 
