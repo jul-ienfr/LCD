@@ -116,6 +116,7 @@ juridique + mandats, 320 px.
 | `/hote/rgpd` | registre des 7 traitements, DPO, durées de conservation |
 | `/hote/sinistres` | dossiers sinistres : déclaration, expertise, indemnisation, clôture |
 | `/hote/dispatch` | offres de mission aux prestataires, acceptation/refus, réassignation |
+| `/hote/acces` | registre des sessions nominatives, révocation (admin, jamais soi-même) |
 | `/hote/messages` | messages voyageurs J-1/arrivée/départ, garde-fou anti-PIN, envoi |
 | `/hote/tourisme` | lieux touristiques par logement |
 | `/hote/factures` | liste + création de factures |

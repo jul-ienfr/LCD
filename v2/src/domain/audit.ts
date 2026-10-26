@@ -58,6 +58,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "message.preparer": "Message voyageur préparé",
   "message.envoyer": "Message voyageur envoyé",
   "preferences.enregistrer": "Préférences de séjour enregistrées",
+  "acces.revoquer": "Session révoquée",
   "tranquillite.preuve": "Preuve de tranquillité enregistrée",
   "tranquillite.supprimer": "Preuve de tranquillité supprimée",
   "tenant.export": "Export complet des données",

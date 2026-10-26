@@ -105,6 +105,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   et journalisation.
 - [ ] Préférences séjour : bornes 0–30 jours, heure HH:MM, mise à jour
   idempotente par réservation, formulaire sans JS.
+- [ ] Accès : registre nominatif, session courante non révocable, révocation
+  effective (session supprimée et utilisateur déconnecté).
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -185,8 +187,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **397/397**.
-- Playwright : **42/42** sur `next build` + `next start`, y compris une passe
+- Vitest : **403/403**.
+- Playwright : **43/43** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/

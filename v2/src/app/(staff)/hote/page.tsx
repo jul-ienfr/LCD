@@ -265,6 +265,14 @@ export default async function PageHote() {
           {session.user.role === "admin" ? (
             <Link
               className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
+              href="/hote/acces"
+            >
+              Accès
+            </Link>
+          ) : null}
+          {session.user.role === "admin" ? (
+            <Link
+              className="rounded-full border border-bordure px-5 py-3 text-sm font-medium"
               href="/hote/audit"
             >
               Audit
