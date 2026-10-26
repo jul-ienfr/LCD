@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import {
   importerIcsAction,
@@ -27,6 +28,14 @@ export function FormulaireImportIcs({
     etatInitial,
   );
   const [logementId, setLogementId] = useState(logementDefaut);
+  const router = useRouter();
+
+  function choisirLogement(id: string) {
+    setLogementId(id);
+    router.replace(`/hote/planning/import?logement=${encodeURIComponent(id)}`, {
+      scroll: false,
+    });
+  }
 
   return (
     <div className="space-y-5">
@@ -40,7 +49,7 @@ export function FormulaireImportIcs({
           <select
             className="w-full rounded-xl border border-bordure p-3 text-base"
             name="logementId"
-            onChange={(event) => setLogementId(event.target.value)}
+            onChange={(event) => choisirLogement(event.target.value)}
             required
             value={logementId}
           >
