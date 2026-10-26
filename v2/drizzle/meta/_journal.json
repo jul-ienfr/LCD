@@ -421,6 +421,13 @@
       "when": 1793043803107,
       "tag": "0059_logement_publication",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1793046560519,
+      "tag": "0060_greedy_sunset_bain",
+      "breakpoints": true
     }
   ]
 }

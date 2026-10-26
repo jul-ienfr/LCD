@@ -71,7 +71,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | RC presta expirée → dispatch bloqué | À vérifier | Champ RC dans les utilisateurs ? |
 | EDL photos + comparatif + coût | Fait | `/hote/etats-des-lieux`. |
 | Questionnaire, extras, incidents, objets trouvés | Fait | Pages dédiées. |
-| Fiche de police 1/personne + purge 6 mois | Absent | Non trouvée dans v2. |
+| Fiche de police 1/personne + purge 6 mois | Fait | `/voyageur/police` (HMAC), `/hote/police`, cron `purge-police`, RLS. |
 | Check-out guidé 1-tap | Partiel | Questionnaire de départ. |
 | Quota preuves 5 Go + éviction | Absent | Pas de stockage photo externe. |
 

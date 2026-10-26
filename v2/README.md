@@ -160,6 +160,7 @@ juridique + mandats, 320 px.
 | `/api/cron/relances` | relances quotidiennes des factures échues (`CRON_SECRET`, `RELANCE_AUTO_ENABLED=true`) |
 | `/api/cron/webhooks` | livraison cron des webhooks (`CRON_SECRET`) |
 | `/api/cron/memoire` | purge des préférences voyageur expirées (`CRON_SECRET`) |
+| `/api/cron/purge-police` | purge des fiches de police après 6 mois (`CRON_SECRET`) |
 
 ## Onboarding et vérification copropriété
 
@@ -392,6 +393,17 @@ code. La cible < 50 Ko reste l'objectif d'une surface voyageur séparée en v2.1
 - staff : création d’extras, suivi et statuts des commandes
   (demandée → confirmée/refusée → livrée) ;
 - audit `logement.guide`, `extra.creer`, `commande_extra.*`.
+
+## Fiche de police
+
+`/voyageur/police?t=<lien signé>` dépose une fiche par personne hébergée
+(nom, prénoms, naissance, nationalité, domicile, mobile) ; aucune pièce
+d’identité n’est demandée ni stockée. L’action revérifie le HMAC avant toute
+écriture, borne le nombre de fiches au nombre de voyageurs du séjour, journalise
+`fiche_police.enregistrer` et reste idempotente par `ref`. `/hote/police`
+(admin/hôte) liste les fiches du tenant avec leur date de purge. Le cron
+`POST /api/cron/purge-police` supprime les fiches arrivées à échéance (6 mois,
+jour borné au dernier jour du mois). Table `fiches_police` sous RLS.
 
 ## Support
 

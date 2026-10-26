@@ -1704,6 +1704,46 @@ export type LogementProprietaireRow =
   typeof logementProprietaires.$inferSelect;
 export type NewLogementProprietaireRow =
   typeof logementProprietaires.$inferInsert;
+export const fichesPolice = pgTable(
+  "fiches_police",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    nom: text("nom").notNull(),
+    prenoms: text("prenoms").notNull(),
+    nationalite: text("nationalite").notNull(),
+    dateNaissance: text("date_naissance").notNull(),
+    lieuNaissance: text("lieu_naissance").notNull(),
+    domicile: text("domicile").notNull(),
+    telephone: text("telephone").notNull(),
+    email: text("email"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    purgeAt: timestamp("purge_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("fiches_police_tenant_ref_uq").on(
+      table.tenantId,
+      table.ref,
+    ),
+    index("fiches_police_tenant_reservation_idx").on(
+      table.tenantId,
+      table.reservationId,
+    ),
+    index("fiches_police_purge_idx").on(table.purgeAt),
+  ],
+);
+
 export type MissionRow = typeof missions.$inferSelect;
 export type NewMissionRow = typeof missions.$inferInsert;
 export type IncidentRow = typeof incidents.$inferSelect;
@@ -1716,3 +1756,5 @@ export type PaiementRow = typeof paiements.$inferSelect;
 export type NewPaiementRow = typeof paiements.$inferInsert;
 export type CautionRow = typeof cautions.$inferSelect;
 export type NewCautionRow = typeof cautions.$inferInsert;
+export type FichePoliceRow = typeof fichesPolice.$inferSelect;
+export type NewFichePoliceRow = typeof fichesPolice.$inferInsert;

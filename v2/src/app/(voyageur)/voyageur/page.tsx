@@ -11,6 +11,7 @@ import {
 import { DrizzleAvisRepository } from "@/infrastructure/db/repositories/avis-repository";
 import { DrizzleCommandeExtraRepository } from "@/infrastructure/db/repositories/commande-extra-repository";
 import { DrizzleExtraRepository } from "@/infrastructure/db/repositories/extra-repository";
+import { DrizzleFichesPoliceRepository } from "@/infrastructure/db/repositories/fiches-police-repository";
 import { DrizzleIncidentRepository } from "@/infrastructure/db/repositories/incident-repository";
 import { DrizzleLieuxTourismeRepository } from "@/infrastructure/db/repositories/lieux-tourisme-repository";
 import { DrizzleMemoireRepository } from "@/infrastructure/db/repositories/memoire-repository";
@@ -199,6 +200,11 @@ export default async function PageVoyageur({
       payload.tenantId,
       reservation.id,
     );
+  const fichesPolice =
+    await new DrizzleFichesPoliceRepository().listerParReservation(
+      payload.tenantId,
+      reservation.id,
+    );
 
   const nuits = nuitsSejour(reservation.debut, reservation.fin);
   const refInitial = crypto.randomUUID();
@@ -261,6 +267,23 @@ export default async function PageVoyageur({
             {d.auNomDe} {reservation.clientNom}.
           </p>
         ) : null}
+      </section>
+
+      <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
+        <h2 className="text-lg font-semibold">Fiche de police</h2>
+        <p className="mt-2 text-sm text-encre-douce">
+          Obligatoire avant l’arrivée : une fiche par personne hébergée.{" "}
+          {fichesPolice.length}/{reservation.voyageurs} reçue(s). Données
+          conservées 6 mois, aucune pièce d’identité demandée.
+        </p>
+        <Link
+          className="mt-3 inline-block rounded-full border border-bordure px-4 py-2 text-sm font-medium"
+          href={`/voyageur/police?t=${encodeURIComponent(params.t)}&lang=${langue}`}
+        >
+          {fichesPolice.length >= reservation.voyageurs
+            ? "Voir les fiches déposées"
+            : "Remplir une fiche"}
+        </Link>
       </section>
 
       <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">

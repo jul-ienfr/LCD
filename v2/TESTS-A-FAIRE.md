@@ -179,6 +179,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - [ ] Cron `/api/cron/sync-ota` avec `CRON_SECRET` ; flux réel.
 - [ ] Cron `/api/cron/memoire` avec `CRON_SECRET` ; sans secret → `401/503`,
   purge réelle des entrées expirées.
+- [ ] Cron `/api/cron/purge-police` : créer une fiche avec `purge_at` passée
+  (SQL), lancer le cron, vérifier la suppression et le compteur `supprimees`.
 - [ ] GitHub Actions `v2-sync-ota` et `v2-webhooks` avec secrets configurés.
 - [ ] Test d’échec : URL webhook morte, retry/backoff, statut `failed`.
 - [ ] Connecteurs HA/Moli spécifiques : adaptateur HTTP générique/HA testé ;
