@@ -112,8 +112,11 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Assistant : routage selon intention/ton, prompt borné, refus des codes
   d’accès, comparaison neutre/chaleureux/concis, garde-fous de sortie
   (80 mots, PIN, promesses), quota 100 brouillons et budget 10 €/mois,
-  brouillon déterministe local, enregistrement idempotent en message brouillon
-  puis envoi depuis l’outbox.
+  brouillon déterministe local, adapter LLM OpenAI-compatible optionnel avec
+  repli local, enregistrement idempotent en message brouillon puis envoi
+  depuis l’outbox.
+- [ ] LLM distant (si `LLM_API_URL`/`LLM_API_KEY`) : génération réelle,
+  modèle premium sur avis chaleureux, repli local si erreur HTTP ou timeout.
 - [ ] Audit : bornes 90 jours par défaut, filtres 7/30/90 j et famille,
   recherche, export CSV filtré limité à 5 000 lignes.
 - [ ] Mission : création staff, exécution prestataire, statuts.
@@ -196,7 +199,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **420/420**.
+- Vitest : **424/424**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

@@ -15,5 +15,8 @@ export interface LlmReponse {
  * Aucune clé ni SDK fournisseur ne doit sortir de l'infrastructure.
  */
 export interface LlmProvider {
-  completer(messages: LlmMessage[], options?: { maxTokens?: number }): Promise<LlmReponse>;
+  completer(
+    messages: LlmMessage[],
+    options?: { maxTokens?: number; modele?: string },
+  ): Promise<LlmReponse>;
 }

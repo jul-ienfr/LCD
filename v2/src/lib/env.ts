@@ -45,6 +45,12 @@ const schema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
+  // Assistant LLM (facultatif) : endpoint OpenAI-compatible.
+  LLM_API_URL: z.string().url().optional(),
+  LLM_API_KEY: z.string().optional(),
+  LLM_MODEL: z.string().default("gpt-4o-mini"),
+  LLM_MODEL_PREMIUM: z.string().optional(),
+
   // Tâches planifiées (cron OTA, backups déclenchés par HTTP).
   CRON_SECRET: z.string().optional(),
 

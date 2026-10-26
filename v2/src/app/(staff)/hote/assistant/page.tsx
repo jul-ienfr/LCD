@@ -18,7 +18,7 @@ import {
   RedigerBrouillon,
   type BrouillonAssistant,
 } from "@/application/use-cases/assistant";
-import { GenerateurBrouillonLocal } from "@/infrastructure/adapters/generateur-brouillon-local";
+import { creerGenerateurBrouillon } from "@/infrastructure/adapters/generateur-brouillon";
 import { DrizzleConsommationsAssistantRepository } from "@/infrastructure/db/repositories/consommations-assistant-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { formaterEuros } from "@/lib/format";
@@ -155,7 +155,7 @@ export default async function PageAssistant({
     try {
       for (const ton of tons) {
         const brouillon = await new RedigerBrouillon(
-          new GenerateurBrouillonLocal(),
+          creerGenerateurBrouillon(),
           new DrizzleLogementRepository(),
         ).executer({
           tenantId,
