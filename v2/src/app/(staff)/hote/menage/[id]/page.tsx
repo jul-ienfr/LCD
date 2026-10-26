@@ -9,7 +9,7 @@ import {
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMenagesRepository } from "@/infrastructure/db/repositories/menages-repository";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
-import { enregistrerMenageAction } from "../actions";
+import { enregistrerMenageAction, evaluerMenageAction } from "../actions";
 
 export const instant = false;
 
@@ -18,7 +18,7 @@ export default async function PageMenageDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ ok?: string; erreur?: string }>;
+  searchParams: Promise<{ ok?: string; evalue?: string; erreur?: string }>;
 }) {
   await connection();
   const session = await requireRole(["admin", "hote"]);
@@ -60,6 +60,14 @@ export default async function PageMenageDetail({
           role="status"
         >
           Ménage enregistré.
+        </p>
+      ) : null}
+      {query.evalue ? (
+        <p
+          className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+          role="status"
+        >
+          Évaluation enregistrée.
         </p>
       ) : null}
       {query.erreur ? (
@@ -137,6 +145,68 @@ export default async function PageMenageDetail({
           Enregistrer le ménage
         </button>
       </form>
+
+      {menage.statut === "fait" ? (
+        <section className="space-y-3 rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
+          <div>
+            <h2 className="text-lg font-semibold">Évaluation de la rotation</h2>
+            <p className="text-sm text-encre-douce">
+              Score qualité, coût réel et durée — réservés au suivi interne.
+            </p>
+          </div>
+          <form action={evaluerMenageAction} className="space-y-3">
+            <input type="hidden" name="id" value={menage.id} />
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="block space-y-1 text-sm font-medium">
+                <span>Score (1-5)</span>
+                <select
+                  className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
+                  defaultValue={menage.score ?? ""}
+                  name="score"
+                >
+                  <option value="">Non renseigné</option>
+                  {[1, 2, 3, 4, 5].map((score) => (
+                    <option key={score} value={score}>
+                      {score} / 5
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block space-y-1 text-sm font-medium">
+                <span>Coût (€)</span>
+                <input
+                  className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
+                  defaultValue={
+                    menage.coutCentimes === null
+                      ? ""
+                      : (menage.coutCentimes / 100).toFixed(2)
+                  }
+                  inputMode="decimal"
+                  name="coutEuros"
+                  placeholder="45,00"
+                />
+              </label>
+              <label className="block space-y-1 text-sm font-medium">
+                <span>Durée (min)</span>
+                <input
+                  className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
+                  defaultValue={menage.dureeMinutes ?? ""}
+                  inputMode="numeric"
+                  name="dureeMinutes"
+                  placeholder="90"
+                  type="number"
+                />
+              </label>
+            </div>
+            <button
+              className="rounded-full border border-accent px-5 py-3 text-sm font-semibold text-accent"
+              type="submit"
+            >
+              Enregistrer l’évaluation
+            </button>
+          </form>
+        </section>
+      ) : null}
 
       <nav className="flex flex-wrap gap-4 text-sm">
         <Link

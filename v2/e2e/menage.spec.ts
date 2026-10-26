@@ -61,6 +61,17 @@ test("ménage : planification, checklist et réassort au départ", async ({
     page.getByText(new RegExp(`Fait.*${nombre} / ${nombre}`)),
   ).toBeVisible();
 
+  await page.selectOption('select[name="score"]', "4");
+  await page.fill('input[name="coutEuros"]', "45");
+  await page.fill('input[name="dureeMinutes"]', "90");
+  await page.getByRole("button", { name: "Enregistrer l’évaluation" }).click();
+  await expect(page.getByText("Évaluation enregistrée.")).toBeVisible();
+
+  await page.goto(`/hote/menage?logement=${logementId}`);
+  await expect(page.getByText("4.0 / 5")).toBeVisible();
+  await expect(page.getByText(/45,00/).first()).toBeVisible();
+  await expect(page.getByText("90 min").first()).toBeVisible();
+
   await page.goto(`/hote/stocks?logement=${logementId}`);
   const ligne = page.locator("tbody tr").filter({ hasText: codeConso });
   await expect(ligne).toContainText("9 unité");

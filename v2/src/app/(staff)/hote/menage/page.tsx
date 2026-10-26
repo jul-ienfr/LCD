@@ -4,12 +4,14 @@ import { aujourdHuiIso } from "@/application/use-cases/inventaire";
 import {
   avancementMenage,
   LIBELLES_STATUT_MENAGE,
+  statistiquesMenage,
   type Menage,
 } from "@/domain/menage";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMenagesRepository } from "@/infrastructure/db/repositories/menages-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
+import { formaterEuros } from "@/lib/format";
 import { planifierMenageAction } from "./actions";
 
 export const instant = false;
@@ -65,6 +67,7 @@ export default async function PageMenage({
     .sort((a, b) => a.fin.localeCompare(b.fin))
     .slice(0, 8);
   const sejourChoisi = sejours.find((r) => r.id === params.reservation);
+  const statistiques = statistiquesMenage(menages);
 
   return (
     <main className="mx-auto max-w-6xl space-y-8 px-6 py-12">
@@ -111,6 +114,38 @@ export default async function PageMenage({
             : params.erreur}
         </p>
       ) : null}
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Score qualité moyen</p>
+          <p className="mt-1 text-3xl font-semibold">
+            {statistiques.scoreMoyen === null
+              ? "—"
+              : `${statistiques.scoreMoyen.toFixed(1)} / 5`}
+          </p>
+          {statistiques.alerteQualite ? (
+            <p className="mt-2 inline-block rounded-full bg-danger-douce px-2 py-1 text-xs font-semibold text-danger">
+              Alerte : sous 3,5 / 5
+            </p>
+          ) : null}
+        </div>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Coût moyen de rotation</p>
+          <p className="mt-1 text-3xl font-semibold">
+            {statistiques.coutMoyenCentimes === null
+              ? "—"
+              : formaterEuros(statistiques.coutMoyenCentimes)}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
+          <p className="text-sm text-encre-faine">Durée moyenne</p>
+          <p className="mt-1 text-3xl font-semibold">
+            {statistiques.dureeMoyenneMinutes === null
+              ? "—"
+              : `${Math.round(statistiques.dureeMoyenneMinutes)} min`}
+          </p>
+        </div>
+      </section>
 
       <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">
@@ -184,6 +219,9 @@ export default async function PageMenage({
                   <th className="p-3">Avancement</th>
                   <th className="p-3">Statut</th>
                   <th className="p-3">Notes</th>
+                  <th className="p-3">Qualité</th>
+                  <th className="p-3">Coût</th>
+                  <th className="p-3">Durée</th>
                   <th className="p-3">Actions</th>
                 </tr>
               </thead>
@@ -201,6 +239,19 @@ export default async function PageMenage({
                         {LIBELLES_STATUT_MENAGE[menage.statut]}
                       </td>
                       <td className="p-3">{menage.notes || "—"}</td>
+                      <td className="p-3">
+                        {menage.score === null ? "—" : `${menage.score} / 5`}
+                      </td>
+                      <td className="p-3">
+                        {menage.coutCentimes === null
+                          ? "—"
+                          : formaterEuros(menage.coutCentimes)}
+                      </td>
+                      <td className="p-3">
+                        {menage.dureeMinutes === null
+                          ? "—"
+                          : `${menage.dureeMinutes} min`}
+                      </td>
                       <td className="p-3">
                         <Link
                           className="underline"

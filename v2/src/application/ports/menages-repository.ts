@@ -21,6 +21,12 @@ export interface MettreAJourMenageData {
   taches: TacheMenage[];
 }
 
+export interface EvaluerMenageData {
+  score: number | null;
+  coutCentimes: number | null;
+  dureeMinutes: number | null;
+}
+
 export interface MenagesRepository {
   creer(data: CreerMenageData): Promise<Menage>;
   trouverParRef(tenantId: string, ref: string): Promise<Menage | null>;
@@ -30,5 +36,10 @@ export interface MenagesRepository {
     tenantId: string,
     id: string,
     data: MettreAJourMenageData,
+  ): Promise<Menage>;
+  evaluer(
+    tenantId: string,
+    id: string,
+    data: EvaluerMenageData,
   ): Promise<Menage>;
 }

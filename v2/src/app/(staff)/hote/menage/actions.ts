@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { EnregistrerMenage, PlanifierMenage } from "@/application/use-cases/menage";
+import { EnregistrerMenage, EvaluerMenage, PlanifierMenage } from "@/application/use-cases/menage";
 import { ErreurMetier } from "@/domain/erreurs";
+import { centimesDepuisSaisie } from "@/lib/format";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleConsommablesRepository } from "@/infrastructure/db/repositories/consommables-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
@@ -114,4 +115,57 @@ export async function enregistrerMenageAction(formData: FormData) {
   revalidatePath("/hote/menage");
   revalidatePath(`/hote/menage/${id}`);
   redirect(`/hote/menage/${encodeURIComponent(id)}?ok=1`);
+}
+
+export async function evaluerMenageAction(formData: FormData) {
+  const session = await requireRole(["admin", "hote"]);
+  const tenantId = tenantIdDeSession(session);
+  const id = String(formData.get("id") ?? "");
+
+  const scoreTexte = String(formData.get("score") ?? "").trim();
+  const coutTexte = String(formData.get("coutEuros") ?? "").trim();
+  const dureeTexte = String(formData.get("dureeMinutes") ?? "").trim();
+  const coutCentimes = coutTexte ? centimesDepuisSaisie(coutTexte) : null;
+
+  try {
+    if (coutTexte && coutCentimes === null) {
+      throw new ErreurMetier("MENAGE_INVALIDE", "Le coût est invalide.");
+    }
+    const menage = await new EvaluerMenage(
+      new DrizzleMenagesRepository(),
+    ).executer({
+      tenantId,
+      id,
+      score: scoreTexte ? Number(scoreTexte) : null,
+      coutCentimes,
+      dureeMinutes: dureeTexte ? Number(dureeTexte) : null,
+    });
+
+    await withTenant(tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId,
+        qui: session.user.id,
+        action: "menage.evaluer",
+        cible: menage.id,
+        ref: menage.ref,
+        payload: {
+          score: menage.score,
+          coutCentimes: menage.coutCentimes,
+          dureeMinutes: menage.dureeMinutes,
+        },
+      }),
+    );
+  } catch (error) {
+    if (error instanceof ErreurMetier) {
+      redirect(
+        `/hote/menage/${encodeURIComponent(id)}?erreur=${encodeURIComponent(error.message)}`,
+      );
+    }
+    logErreur("evaluerMenageAction", error, { tenantId, cible: id });
+    redirect(`/hote/menage/${encodeURIComponent(id)}?erreur=inattendu`);
+  }
+
+  revalidatePath("/hote/menage");
+  revalidatePath(`/hote/menage/${id}`);
+  redirect(`/hote/menage/${encodeURIComponent(id)}?evalue=1`);
 }

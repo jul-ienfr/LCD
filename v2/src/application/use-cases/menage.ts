@@ -2,6 +2,7 @@ import {
   refMenageValide,
   statutMenageValide,
   validerMenage,
+  validerEvaluationMenage,
   type Menage,
 } from "@/domain/menage";
 import { ErreurMetier } from "@/domain/erreurs";
@@ -124,5 +125,36 @@ export class EnregistrerMenage {
     }
 
     return misAJour;
+  }
+}
+
+export interface EvaluerMenageInput {
+  tenantId: string;
+  id: string;
+  score: number | null;
+  coutCentimes: number | null;
+  dureeMinutes: number | null;
+}
+
+export class EvaluerMenage {
+  constructor(private readonly menages: MenagesRepository) {}
+
+  async executer(input: EvaluerMenageInput): Promise<Menage> {
+    const menage = await this.menages.trouverParId(input.tenantId, input.id);
+    if (!menage) {
+      throw new ErreurMetier("MENAGE_INVALIDE", "Ménage introuvable.");
+    }
+    if (menage.statut !== "fait") {
+      throw new ErreurMetier(
+        "MENAGE_INVALIDE",
+        "Un ménage doit être marqué fait avant d’être évalué.",
+      );
+    }
+    const valeurs = validerEvaluationMenage({
+      score: input.score,
+      coutCentimes: input.coutCentimes,
+      dureeMinutes: input.dureeMinutes,
+    });
+    return this.menages.evaluer(input.tenantId, input.id, valeurs);
   }
 }

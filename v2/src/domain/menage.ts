@@ -37,10 +37,19 @@ export interface Menage {
   date: string;
   statut: StatutMenage;
   notes: string;
+  score: number | null;
+  coutCentimes: number | null;
+  dureeMinutes: number | null;
   taches: TacheMenage[];
   createdAt: Date;
   updatedAt: Date;
 }
+
+export const SCORE_MENAGE_MIN = 1;
+export const SCORE_MENAGE_MAX = 5;
+export const SCORE_ALERTE = 3.5;
+export const COUT_MENAGE_MAX_CENTIMES = 100_000;
+export const DUREE_MENAGE_MAX_MINUTES = 600;
 
 export function refMenageValide(ref: string): boolean {
   return /^[A-Za-z0-9-]{4,64}$/.test(ref);
@@ -105,5 +114,92 @@ export function avancementMenage(taches: readonly TacheMenage[]): {
     faites,
     total,
     pourcentage: total === 0 ? 0 : Math.round((faites / total) * 100),
+  };
+}
+
+export function validerEvaluationMenage(input: {
+  score: number | null;
+  coutCentimes: number | null;
+  dureeMinutes: number | null;
+}): {
+  score: number | null;
+  coutCentimes: number | null;
+  dureeMinutes: number | null;
+} {
+  if (input.score !== null) {
+    if (
+      !Number.isInteger(input.score) ||
+      input.score < SCORE_MENAGE_MIN ||
+      input.score > SCORE_MENAGE_MAX
+    ) {
+      throw new ErreurMetier(
+        "MENAGE_INVALIDE",
+        `Le score doit être compris entre ${SCORE_MENAGE_MIN} et ${SCORE_MENAGE_MAX}.`,
+      );
+    }
+  }
+  if (input.coutCentimes !== null) {
+    if (
+      !Number.isInteger(input.coutCentimes) ||
+      input.coutCentimes < 0 ||
+      input.coutCentimes > COUT_MENAGE_MAX_CENTIMES
+    ) {
+      throw new ErreurMetier(
+        "MENAGE_INVALIDE",
+        "Le coût de rotation est invalide.",
+      );
+    }
+  }
+  if (input.dureeMinutes !== null) {
+    if (
+      !Number.isInteger(input.dureeMinutes) ||
+      input.dureeMinutes <= 0 ||
+      input.dureeMinutes > DUREE_MENAGE_MAX_MINUTES
+    ) {
+      throw new ErreurMetier(
+        "MENAGE_INVALIDE",
+        `La durée doit être comprise entre 1 et ${DUREE_MENAGE_MAX_MINUTES} minutes.`,
+      );
+    }
+  }
+  if (
+    input.score === null &&
+    input.coutCentimes === null &&
+    input.dureeMinutes === null
+  ) {
+    throw new ErreurMetier(
+      "MENAGE_INVALIDE",
+      "Renseignez au moins un indicateur (score, coût ou durée).",
+    );
+  }
+  return input;
+}
+
+function moyenne(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
+export function statistiquesMenage(menages: readonly Menage[]): {
+  scoreMoyen: number | null;
+  coutMoyenCentimes: number | null;
+  dureeMoyenneMinutes: number | null;
+  alerteQualite: boolean;
+} {
+  const scores = menages
+    .map((m) => m.score)
+    .filter((v): v is number => v !== null);
+  const couts = menages
+    .map((m) => m.coutCentimes)
+    .filter((v): v is number => v !== null);
+  const durees = menages
+    .map((m) => m.dureeMinutes)
+    .filter((v): v is number => v !== null);
+  const scoreMoyen = moyenne(scores);
+  return {
+    scoreMoyen,
+    coutMoyenCentimes: moyenne(couts),
+    dureeMoyenneMinutes: moyenne(durees),
+    alerteQualite: scoreMoyen !== null && scoreMoyen < SCORE_ALERTE,
   };
 }

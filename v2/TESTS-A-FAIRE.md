@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0052` appliquées.
+- [ ] Migrations `0026` → `0053` appliquées.
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
 - [ ] `/api/health` → `200`, `/api/ready` → `200`, `db: up`, `schema: ok`.
@@ -107,6 +107,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   idempotente par réservation, formulaire sans JS.
 - [ ] Accès : registre nominatif, session courante non révocable, révocation
   effective (session supprimée et utilisateur déconnecté).
+- [ ] Ménage : évaluation réservée aux rotations faites, bornes score 1–5,
+  coût et durée, moyennes et alerte qualité sous 3,5.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -187,7 +189,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **403/403**.
+- Vitest : **406/406**.
 - Playwright : **43/43** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

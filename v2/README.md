@@ -106,7 +106,7 @@ juridique + mandats, 320 px.
 | `/hote/inventaire` | inventaire durable : QR, usages, états, alertes |
 | `/hote/etats-des-lieux` | constats d’entrée/sortie : manquants, dégradés, coût |
 | `/hote/entretien` | carnet d’entretien : interventions, prestataires, coûts |
-| `/hote/menage` | ménages : checklists, avancement, réassort au départ |
+| `/hote/menage` | ménages : checklists, avancement, réassort, score et coût de rotation |
 | `/hote/questionnaires` | satisfaction voyageur : moyennes par critère |
 | `/hote/phrases` | messages types : arrivée, départ, urgence, variables |
 | `/hote/formation` | parcours de formation : 4 modules, progression par membre |

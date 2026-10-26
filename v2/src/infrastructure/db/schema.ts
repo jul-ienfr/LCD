@@ -1430,6 +1430,9 @@ export const menages = pgTable(
     date: date("date").notNull(),
     statut: text("statut").notNull().default("planifie"),
     notes: text("notes").notNull().default(""),
+    score: integer("score"),
+    coutCentimes: integer("cout_centimes"),
+    dureeMinutes: integer("duree_minutes"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

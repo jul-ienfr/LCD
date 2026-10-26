@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type {
   CreerMenageData,
+  EvaluerMenageData,
   MenagesRepository,
   MettreAJourMenageData,
 } from "@/application/ports/menages-repository";
@@ -21,6 +22,9 @@ function versDomaine(
     date: row.date,
     statut: row.statut as StatutMenage,
     notes: row.notes,
+    score: row.score,
+    coutCentimes: row.coutCentimes,
+    dureeMinutes: row.dureeMinutes,
     taches,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -163,6 +167,27 @@ export class DrizzleMenagesRepository implements MenagesRepository {
     });
     const misAJour = await this.trouverParId(tenantId, id);
     if (!misAJour) throw new Error("Ménage introuvable après mise à jour.");
+    return misAJour;
+  }
+
+  async evaluer(
+    tenantId: string,
+    id: string,
+    data: EvaluerMenageData,
+  ): Promise<Menage> {
+    await withTenant(tenantId, (tx) =>
+      tx
+        .update(menages)
+        .set({
+          score: data.score,
+          coutCentimes: data.coutCentimes,
+          dureeMinutes: data.dureeMinutes,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(menages.tenantId, tenantId), eq(menages.id, id))),
+    );
+    const misAJour = await this.trouverParId(tenantId, id);
+    if (!misAJour) throw new Error("Ménage introuvable après évaluation.");
     return misAJour;
   }
 

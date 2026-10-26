@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type {
   CreerMenageData,
+  EvaluerMenageData,
   MenagesRepository,
   MettreAJourMenageData,
 } from "@/application/ports/menages-repository";
 import type { ConsommablesRepository } from "@/application/ports/consommables-repository";
-import { EnregistrerMenage, PlanifierMenage } from "@/application/use-cases/menage";
+import {
+  EnregistrerMenage,
+  EvaluerMenage,
+  PlanifierMenage,
+} from "@/application/use-cases/menage";
 import type { Menage } from "@/domain/menage";
 import type {
   Consommable,
@@ -23,6 +28,9 @@ class MemoireMenages implements MenagesRepository {
     const menage: Menage = {
       id: crypto.randomUUID(),
       ...data,
+      score: null,
+      coutCentimes: null,
+      dureeMinutes: null,
       createdAt: maintenant,
       updatedAt: maintenant,
     };
@@ -48,6 +56,16 @@ class MemoireMenages implements MenagesRepository {
     tenantId: string,
     id: string,
     data: MettreAJourMenageData,
+  ): Promise<Menage> {
+    const menage = await this.trouverParId(tenantId, id);
+    if (!menage) throw new Error("introuvable");
+    Object.assign(menage, data, { updatedAt: new Date() });
+    return menage;
+  }
+  async evaluer(
+    tenantId: string,
+    id: string,
+    data: EvaluerMenageData,
   ): Promise<Menage> {
     const menage = await this.trouverParId(tenantId, id);
     if (!menage) throw new Error("introuvable");
@@ -142,6 +160,7 @@ async function preparer() {
   });
   const planifier = new PlanifierMenage(menages, reservations, logements);
   const enregistrer = new EnregistrerMenage(menages, consommables);
+  const evaluer = new EvaluerMenage(menages);
   return {
     logement,
     sejour,
@@ -150,6 +169,7 @@ async function preparer() {
     consommables,
     planifier,
     enregistrer,
+    evaluer,
   };
 }
 
@@ -262,6 +282,54 @@ describe("cas d'usage ménage", () => {
         statut: "planifie",
         taches: [],
         qui: "menage@lcd.test",
+      }),
+    ).rejects.toMatchObject({ code: "MENAGE_INVALIDE" });
+  });
+
+  it("évalue une rotation terminée et refuse un ménage planifié", async () => {
+    const { logement, planifier, enregistrer, evaluer } = await preparer();
+    const menage = await planifier.executer({
+      ...base,
+      logementId: logement.id,
+    });
+
+    await expect(
+      evaluer.executer({
+        tenantId: "t1",
+        id: menage.id,
+        score: 4,
+        coutCentimes: 4500,
+        dureeMinutes: 90,
+      }),
+    ).rejects.toMatchObject({ code: "MENAGE_INVALIDE" });
+
+    await enregistrer.executer({
+      tenantId: "t1",
+      id: menage.id,
+      statut: "fait",
+      notes: "",
+      taches: menage.taches.map((t) => ({ libelle: t.libelle, fait: true })),
+      qui: "menage@lcd.test",
+    });
+
+    const evalue = await evaluer.executer({
+      tenantId: "t1",
+      id: menage.id,
+      score: 4,
+      coutCentimes: 4500,
+      dureeMinutes: 90,
+    });
+    expect(evalue.score).toBe(4);
+    expect(evalue.coutCentimes).toBe(4500);
+    expect(evalue.dureeMinutes).toBe(90);
+
+    await expect(
+      evaluer.executer({
+        tenantId: "t1",
+        id: menage.id,
+        score: null,
+        coutCentimes: null,
+        dureeMinutes: null,
       }),
     ).rejects.toMatchObject({ code: "MENAGE_INVALIDE" });
   });
