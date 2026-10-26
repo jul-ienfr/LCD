@@ -52,6 +52,7 @@ function logement(): Logement {
     tenantId: "t1",
     code: "log1",
     nom: "Logement 1",
+    coproVerifiee: true,
     statut: "actif",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -149,6 +150,12 @@ class LogementsMemoire implements LogementRepository {
     return id === "l1" ? logement() : null;
   }
   async mettreAJourGuide() {
+    return null;
+  }
+  async definirCopro() {
+    return null;
+  }
+  async changerStatut() {
     return null;
   }
 }

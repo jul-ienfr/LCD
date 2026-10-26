@@ -88,11 +88,14 @@ juridique + mandats, 320 px.
 | Route | Rôle |
 |---|---|
 | `/` | accueil public |
+| `/aide` | centre d’aide : rôles, espaces, limites |
+| `/legales` | mentions légales, mandat, RGPD (lecture du registre) |
 | `/login` | connexion staff |
 | `/two-factor` | vérification TOTP |
 | `/hote` | tableau de bord (logements, CA, arrivées/départs) |
 | `/hote/logements` | logements (création + liste) |
 | `/hote/logements/[id]` | guide, WiFi, check-in, règles |
+| `/hote/onboarding` | mise en ligne : éditeur, annonce, copro, prix, go-live |
 | `/hote/extras` | catalogue extras + commandes |
 | `/hote/prix` | prix par jour et par logement |
 | `/hote/planning` | réservations + calendrier + anti-chevauchement |
@@ -112,7 +115,7 @@ juridique + mandats, 320 px.
 | `/hote/formation` | parcours de formation : 4 modules, progression par membre |
 | `/hote/objets-trouves` | registre par logement : réclamation 15 €, envoi, don après 30 j |
 | `/hote/tranquillite` | carnet de bruit (seuils 55/35 dB), attestations, lettre au syndic |
-| `/hote/annonce` | conformité de l’annonce : 9 mentions, DPE/GES, classement |
+| `/hote/annonce` | conformité de l’annonce : 9 mentions, DPE/GES, classement, vérification copro |
 | `/hote/rgpd` | registre des 7 traitements, DPO, durées de conservation |
 | `/hote/sinistres` | dossiers sinistres : déclaration, expertise, indemnisation, clôture |
 | `/hote/dispatch` | offres de mission aux prestataires, acceptation/refus, réassignation |
@@ -157,6 +160,20 @@ juridique + mandats, 320 px.
 | `/api/cron/relances` | relances quotidiennes des factures échues (`CRON_SECRET`, `RELANCE_AUTO_ENABLED=true`) |
 | `/api/cron/webhooks` | livraison cron des webhooks (`CRON_SECRET`) |
 | `/api/cron/memoire` | purge des préférences voyageur expirées (`CRON_SECRET`) |
+
+## Onboarding et vérification copropriété
+
+`/hote/onboarding` calcule l’état réel d’un logement avant sa mise en ligne :
+identité de l’éditeur (SIREN, adresse), logement au registre, conformité de
+l’annonce (mentions, DPE/GES, numéro d’enregistrement), vérification
+copropriété, prix du mois, flux ICS et go-live.
+
+La vérification copropriété est un **gate métier**, pas une case décorative :
+`logements.copro_verifiee` (défaut `false`) conditionne la présence du logement
+sur `/reserver`. Elle s’enregistre depuis `/hote/annonce#copro` ou
+`/hote/onboarding`, est auditée (`logement.copro`) et peut être retirée pour
+remasquer le logement. Les logements existants ont été repris à `true` par la
+migration `0058` ; les nouveaux restent bloqués jusqu’à vérification.
 
 ## Partage client et email
 

@@ -16,6 +16,8 @@ export interface Logement {
   regles?: string;
   urgenceTel?: string;
   guideTexte?: string;
+  coproVerifiee: boolean;
+  coproVerifieeLe?: Date;
   statut: StatutLogement;
   createdAt: Date;
   updatedAt: Date;
@@ -31,4 +33,15 @@ export function codeLogementValide(code: string): boolean {
 
 export function nomLogementValide(nom: string): boolean {
   return nom.trim().length >= 2 && nom.trim().length <= 120;
+}
+
+/**
+ * Un logement n'est proposé aux voyageurs que s'il est actif et si le
+ * règlement de copropriété / l'accord du syndic a été vérifié. Tant que la
+ * vérification n'est pas faite, la mise en ligne est bloquée (REQ-L-001).
+ */
+export function logementPubliable(
+  logement: Pick<Logement, "statut" | "coproVerifiee">,
+): boolean {
+  return logement.statut === "actif" && logement.coproVerifiee;
 }

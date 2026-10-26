@@ -1,4 +1,4 @@
-import type { Logement } from "@/domain/logement";
+import type { Logement, StatutLogement } from "@/domain/logement";
 import type { TenantId } from "@/domain/tenant";
 
 export interface CreerLogementData {
@@ -31,5 +31,15 @@ export interface LogementRepository {
     tenantId: TenantId,
     id: string,
     data: GuideLogementData,
+  ): Promise<Logement | null>;
+  definirCopro(
+    tenantId: TenantId,
+    id: string,
+    verifiee: boolean,
+  ): Promise<Logement | null>;
+  changerStatut(
+    tenantId: TenantId,
+    id: string,
+    statut: StatutLogement,
   ): Promise<Logement | null>;
 }

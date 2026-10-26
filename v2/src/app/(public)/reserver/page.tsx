@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { moyenneAvis, type Avis } from "@/domain/avis";
 import { ErreurMetier } from "@/domain/erreurs";
+import { logementPubliable } from "@/domain/logement";
 import { sejourValide } from "@/domain/planning";
 import {
   devisDirect,
@@ -55,7 +56,7 @@ export default async function PageReserver({
 
   const logements = (
     await new DrizzleLogementRepository().listerParTenant(tenant.id)
-  ).filter((logement) => logement.statut === "actif");
+  ).filter(logementPubliable);
   const logement = logements.find((l) => l.id === params.logement);
 
   const avisPublies = (

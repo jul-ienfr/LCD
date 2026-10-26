@@ -53,6 +53,9 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 ## 2. Gestion locative
 
 - [ ] Création/modification logement, guide, WiFi, règles.
+- [ ] Onboarding : nouveau logement « Non publiable » et absent de
+  `/reserver` ; cocher la vérification copro le rend visible ; la décocher le
+  remasque (audit `logement.copro`).
 - [ ] Entité juridique : nature, régime, TVA, SIREN, adresse, mentions ;
   SIREN invalide refusé.
 - [ ] Facture HTML/PDF/Factur-X : nom, adresse, SIREN et mentions de l’entité.

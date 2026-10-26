@@ -10,15 +10,21 @@ import {
 } from "@/domain/annonce";
 import { DrizzleAnnoncesConformiteRepository } from "@/infrastructure/db/repositories/annonces-conformite-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { logementPubliable } from "@/domain/logement";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
-import { enregistrerAnnonceAction } from "./actions";
+import { enregistrerAnnonceAction, verifierCoproAction } from "./actions";
 
 export const instant = false;
 
 export default async function PageAnnonce({
   searchParams,
 }: {
-  searchParams: Promise<{ logement?: string; ok?: string; erreur?: string }>;
+  searchParams: Promise<{
+    logement?: string;
+    ok?: string;
+    copro?: string;
+    erreur?: string;
+  }>;
 }) {
   await connection();
   const session = await requireRole(["admin", "hote"]);
@@ -58,6 +64,8 @@ export default async function PageAnnonce({
       </main>
     );
   }
+
+  const publiable = logementPubliable(logement);
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
@@ -115,6 +123,80 @@ export default async function PageAnnonce({
         </p>
       ) : null}
 
+      {params.copro ? (
+        <p
+          className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+          role="status"
+        >
+          Vérification copropriété enregistrée.
+        </p>
+      ) : null}
+
+      <section
+        className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm"
+        id="copro"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Vérification copropriété</h2>
+            <p className="mt-1 max-w-2xl text-sm text-encre-douce">
+              Règlement de copropriété lu, PV d’assemblée et accord du syndic
+              vérifiés. Tant que cette vérification n’est pas faite, le
+              logement reste masqué sur la page de réservation publique.
+            </p>
+          </div>
+          {logement.coproVerifiee ? (
+            <span className="rounded-full bg-accent-douce px-3 py-1 text-xs font-semibold text-accent">
+              Vérifiée
+            </span>
+          ) : (
+            <span className="rounded-full bg-alerte-douce px-3 py-1 text-xs font-semibold text-alerte">
+              À vérifier
+            </span>
+          )}
+        </div>
+
+        <p className="mt-3 text-sm text-encre-douce">
+          {publiable
+            ? "Ce logement est actif et vérifié : il peut être proposé aux voyageurs."
+            : "Ce logement n’est pas publiable tant que la vérification copropriété n’est pas enregistrée."}
+          {logement.coproVerifieeLe
+            ? ` Dernière vérification le ${logement.coproVerifieeLe.toLocaleDateString("fr-FR")}.`
+            : null}
+        </p>
+
+        <form
+          key={logement.id}
+          action={verifierCoproAction}
+          className="mt-4 flex flex-wrap items-center gap-4"
+        >
+          <input type="hidden" name="logementId" value={logement.id} />
+          <label className="flex items-start gap-3 rounded-xl border border-bordure p-3 text-sm">
+            <input
+              className="mt-1"
+              defaultChecked={logement.coproVerifiee}
+              name="coproVerifiee"
+              type="checkbox"
+            />
+            <span>
+              <span className="font-medium">
+                Règlement, PV et accord du syndic vérifiés
+              </span>
+              <span className="mt-0.5 block text-encre-douce">
+                Décochez pour remasquer le logement et bloquer les nouvelles
+                demandes.
+              </span>
+            </span>
+          </label>
+          <button
+            className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-fond"
+            type="submit"
+          >
+            Enregistrer la vérification
+          </button>
+        </form>
+      </section>
+
       <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -164,6 +246,7 @@ export default async function PageAnnonce({
       </section>
 
       <form
+        key={logement.id}
         action={enregistrerAnnonceAction}
         className="space-y-6 rounded-2xl border border-bordure bg-surface p-6 shadow-sm"
       >

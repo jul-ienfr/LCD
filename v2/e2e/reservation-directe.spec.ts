@@ -23,6 +23,17 @@ test("réservation directe : tarifs, devis, demande et espace séjour", async ({
   await page.getByRole("button", { name: "Créer le logement" }).click();
   await expect(page.getByText(`Logement « ${code} » créé.`)).toBeVisible();
 
+  await page.goto("/hote/onboarding");
+  await page.getByRole("link", { name: nom, exact: true }).click();
+  await expect(page).toHaveURL(/\/hote\/onboarding\?logement=/);
+  await page
+    .getByRole("checkbox", { name: /Règlement, PV et accord du syndic/ })
+    .check();
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(
+    page.getByText("Vérification copropriété enregistrée."),
+  ).toBeVisible();
+
   await page.goto("/hote/prix?mois=2027-02");
   await page.selectOption('select[name="logement"]', { label: nom });
   await page.getByRole("button", { name: "Afficher" }).click();

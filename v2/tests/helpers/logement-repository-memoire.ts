@@ -15,6 +15,7 @@ export class LogementRepositoryMemoire implements LogementRepository {
       code: data.code,
       nom: data.nom,
       adresse: data.adresse,
+      coproVerifiee: false,
       statut: "actif",
       createdAt: maintenant,
       updatedAt: maintenant,
@@ -73,6 +74,31 @@ export class LogementRepositoryMemoire implements LogementRepository {
       guideTexte: data.guideTexte ?? undefined,
       updatedAt: new Date(),
     });
+    return logement;
+  }
+
+  async definirCopro(
+    tenantId: string,
+    id: string,
+    verifiee: boolean,
+  ): Promise<Logement | null> {
+    const logement = await this.trouverParId(tenantId, id);
+    if (!logement) return null;
+    logement.coproVerifiee = verifiee;
+    logement.coproVerifieeLe = verifiee ? new Date() : undefined;
+    logement.updatedAt = new Date();
+    return logement;
+  }
+
+  async changerStatut(
+    tenantId: string,
+    id: string,
+    statut: Logement["statut"],
+  ): Promise<Logement | null> {
+    const logement = await this.trouverParId(tenantId, id);
+    if (!logement) return null;
+    logement.statut = statut;
+    logement.updatedAt = new Date();
     return logement;
   }
 }

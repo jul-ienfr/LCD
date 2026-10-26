@@ -26,6 +26,17 @@ test("avis : dépôt voyageur sans JS, unicité et modération hôte", async ({
   await page.getByRole("button", { name: "Créer le logement" }).click();
   await expect(page.getByText(`Logement « ${code} » créé.`)).toBeVisible();
 
+  await page.goto("/hote/onboarding");
+  await page.getByRole("link", { name: nomLogement, exact: true }).click();
+  await expect(page).toHaveURL(/\/hote\/onboarding\?logement=/);
+  await page
+    .getByRole("checkbox", { name: /Règlement, PV et accord du syndic/ })
+    .check();
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(
+    page.getByText("Vérification copropriété enregistrée."),
+  ).toBeVisible();
+
   await page.goto("/hote/planning?mois=2026-12");
   await page.selectOption('select[name="logement"]', { label: nomLogement });
   await page.getByRole("button", { name: "Afficher" }).click();

@@ -74,3 +74,49 @@ export async function enregistrerAnnonceAction(formData: FormData) {
   revalidatePath("/hote/annonce");
   redirect(`/hote/annonce?logement=${encodeURIComponent(logementId)}&ok=1`);
 }
+
+export async function verifierCoproAction(formData: FormData) {
+  const session = await requireRole(["admin", "hote"]);
+  const tenantId = tenantIdDeSession(session);
+  const logementId = String(formData.get("logementId") ?? "");
+  const verifiee = formData.get("coproVerifiee") === "on";
+  const retourBrut = String(formData.get("retour") ?? "");
+  const retour =
+    retourBrut.startsWith("/hote/") && !retourBrut.startsWith("//")
+      ? retourBrut
+      : "/hote/annonce";
+
+  try {
+    const logement = await new DrizzleLogementRepository().definirCopro(
+      tenantId,
+      logementId,
+      verifiee,
+    );
+    if (!logement) {
+      redirect(`${retour}?logement=${encodeURIComponent(logementId)}&erreur=logement-introuvable`);
+    }
+
+    await withTenant(tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId,
+        qui: session.user.id,
+        action: "logement.copro",
+        cible: logementId,
+        payload: { verifiee },
+      }),
+    );
+  } catch (error) {
+    logErreur("verifierCoproAction", error, { tenantId, logementId });
+    redirect(
+      `${retour}?logement=${encodeURIComponent(logementId)}&erreur=inattendu`,
+    );
+  }
+
+  revalidatePath("/hote/annonce");
+  revalidatePath("/hote/logements");
+  revalidatePath("/hote/onboarding");
+  revalidatePath("/reserver");
+  redirect(
+    `${retour}?logement=${encodeURIComponent(logementId)}&copro=ok`,
+  );
+}

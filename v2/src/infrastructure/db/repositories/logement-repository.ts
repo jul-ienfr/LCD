@@ -21,6 +21,8 @@ function versDomaine(row: typeof logements.$inferSelect): Logement {
     regles: row.regles ?? undefined,
     urgenceTel: row.urgenceTel ?? undefined,
     guideTexte: row.guideTexte ?? undefined,
+    coproVerifiee: row.coproVerifiee,
+    coproVerifieeLe: row.coproVerifieeLe ?? undefined,
     statut: row.statut as Logement["statut"],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -111,6 +113,38 @@ export class DrizzleLogementRepository implements LogementRepository {
           guideTexte: data.guideTexte,
           updatedAt: new Date(),
         })
+        .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async definirCopro(
+    tenantId: string,
+    id: string,
+    verifiee: boolean,
+  ): Promise<Logement | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(logements)
+        .set({
+          coproVerifiee: verifiee,
+          coproVerifieeLe: verifiee ? new Date() : null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async changerStatut(
+    tenantId: string,
+    id: string,
+    statut: Logement["statut"],
+  ): Promise<Logement | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(logements)
+        .set({ statut, updatedAt: new Date() })
         .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
     });
     return this.trouverParId(tenantId, id);
