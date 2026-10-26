@@ -16,9 +16,25 @@ jobs:
     defaults:
       run:
         working-directory: v2
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: lcd
+          POSTGRES_PASSWORD: lcd
+          POSTGRES_DB: lcd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lcd -d lcd"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+      MIGRATION_DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+      APP_ROLE_PASSWORD: ci-app-role-password-24-chars
       BETTER_AUTH_SECRET: ci-only-change-me-please-32chars-min
       BETTER_AUTH_URL: http://localhost:3000
     steps:
@@ -33,4 +49,6 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run db:check
+      - run: npm run db:role-app
+      - run: npm run db:test-migrations
       - run: npm run build

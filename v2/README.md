@@ -577,7 +577,8 @@ Aucun import de Next, Drizzle, Stripe, Brevo ou S3 dans `domain/`.
 - `npm run db:test-migrations` crée une base locale jetable, applique **toutes**
   les migrations depuis zéro, vérifie le nombre de migrations, les tables, les
   policies RLS, l’absence de données et les droits du rôle applicatif, puis
-  supprime la base. Prérequis : `npm run db:role-app`.
+  supprime la base. Prérequis : `npm run db:role-app`. Le workflow
+  `.github/workflows/v2-ci.yml` exécute ce test sur un PostgreSQL 18 de service.
 - `0055` accorde au rôle applicatif la lecture du journal Drizzle
   (`drizzle.__drizzle_migrations`) : `/api/ready` compare le nombre de
   migrations appliquées sans privilège owner.
