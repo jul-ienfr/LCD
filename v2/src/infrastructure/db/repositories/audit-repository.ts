@@ -1,5 +1,6 @@
-import { and, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, like, or } from "drizzle-orm";
 import type {
+  AuditCriteres,
   AuditEntry,
   AuditFiltre,
   AuditRepository,
@@ -22,9 +23,9 @@ function versDomaine(
   };
 }
 
-function conditions(tenantId: string, recherche?: string) {
+function conditions(tenantId: string, criteres: AuditCriteres = {}) {
   const base = [eq(auditLogs.tenantId, tenantId)];
-  const terme = recherche?.trim();
+  const terme = criteres.recherche?.trim();
   if (terme) {
     const motif = `%${terme}%`;
     const rechercheSql = or(
@@ -34,6 +35,12 @@ function conditions(tenantId: string, recherche?: string) {
       ilike(auditLogs.ref, motif),
     );
     if (rechercheSql) base.push(rechercheSql);
+  }
+  if (criteres.depuis) {
+    base.push(gte(auditLogs.createdAt, criteres.depuis));
+  }
+  if (criteres.prefixe) {
+    base.push(like(auditLogs.action, `${criteres.prefixe}.%`));
   }
   return and(...base);
 }
@@ -50,7 +57,7 @@ export class DrizzleAuditRepository implements AuditRepository {
       const rows = await tx
         .select()
         .from(auditLogs)
-        .where(conditions(tenantId, filtre.recherche))
+        .where(conditions(tenantId, filtre))
         .orderBy(desc(auditLogs.createdAt))
         .limit(limite)
         .offset(decalage);
@@ -58,12 +65,15 @@ export class DrizzleAuditRepository implements AuditRepository {
     });
   }
 
-  async compter(tenantId: string, recherche?: string): Promise<number> {
+  async compter(
+    tenantId: string,
+    criteres?: AuditCriteres,
+  ): Promise<number> {
     return withTenant(tenantId, async (tx) => {
       const [row] = await tx
         .select({ nombre: count() })
         .from(auditLogs)
-        .where(conditions(tenantId, recherche));
+        .where(conditions(tenantId, criteres));
       return Number(row?.nombre ?? 0);
     });
   }

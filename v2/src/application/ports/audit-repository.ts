@@ -13,9 +13,17 @@ export interface AuditFiltre {
   limite: number;
   decalage: number;
   recherche?: string;
+  depuis?: Date;
+  prefixe?: string;
+}
+
+export interface AuditCriteres {
+  recherche?: string;
+  depuis?: Date;
+  prefixe?: string;
 }
 
 export interface AuditRepository {
   lister(tenantId: string, filtre: AuditFiltre): Promise<AuditEntry[]>;
-  compter(tenantId: string, recherche?: string): Promise<number>;
+  compter(tenantId: string, criteres?: AuditCriteres): Promise<number>;
 }

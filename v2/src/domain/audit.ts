@@ -76,3 +76,56 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
 export function libelleActionAudit(action: string): string {
   return LIBELLES_ACTION_AUDIT[action] ?? action;
 }
+
+export const JOURS_AUDIT: readonly number[] = [7, 30, 90];
+export const JOURS_AUDIT_DEFAUT = 90;
+
+export function joursAuditValide(jours: number): boolean {
+  return (JOURS_AUDIT as readonly number[]).includes(jours);
+}
+
+export function depuisJours(jours: number, maintenant = new Date()): Date {
+  return new Date(maintenant.getTime() - jours * 24 * 60 * 60 * 1000);
+}
+
+export const FAMILLES_AUDIT = [
+  "utilisateur",
+  "reservation",
+  "paiement",
+  "facture",
+  "caution",
+  "mission",
+  "ticket",
+  "menage",
+  "message",
+  "dispatch",
+  "assistant",
+  "stock",
+  "logement",
+  "avis",
+] as const;
+
+export type FamilleAudit = (typeof FAMILLES_AUDIT)[number];
+
+export const LIBELLES_FAMILLE_AUDIT: Record<FamilleAudit, string> = {
+  utilisateur: "Utilisateurs",
+  reservation: "Réservations",
+  paiement: "Paiements",
+  facture: "Factures",
+  caution: "Cautions",
+  mission: "Missions",
+  ticket: "Support",
+  menage: "Ménage",
+  message: "Messages",
+  dispatch: "Dispatch",
+  assistant: "Assistant",
+  stock: "Stocks",
+  logement: "Logements",
+  avis: "Avis",
+};
+
+export function familleAuditValide(
+  valeur: string,
+): valeur is FamilleAudit {
+  return (FAMILLES_AUDIT as readonly string[]).includes(valeur);
+}

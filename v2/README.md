@@ -128,7 +128,7 @@ juridique + mandats, 320 px.
 | `/hote/integrations` | webhooks HA/Moli + livraisons |
 | `/hote/securite` | 2FA |
 | `/hote/utilisateurs` | comptes de l’équipe (admin) |
-| `/hote/audit` | journal d’audit consultable (admin) |
+| `/hote/audit` | journal d’audit (admin) : période 7/30/90 j, famille, recherche, CSV |
 | `/presta` | missions du prestataire + statuts |
 | `/proprio` | relevé propriétaire (lecture seule) |
 | `/commercial` | pipeline prospects |
@@ -145,6 +145,7 @@ juridique + mandats, 320 px.
 | `/api/ready` | readiness (ping DB + tables/colonnes minimales) |
 | `/api/voyageur/incident` | API incident signée + idempotente |
 | `/api/exports/reservations` | export CSV des réservations |
+| `/api/exports/audit` | export CSV du journal filtré (période, famille, recherche) |
 | `/api/exports/factures` | export CSV des factures |
 | `/api/exports/paiements` | export CSV des paiements |
 | `/api/exports/tenant` | export JSON complet du tenant (admin) |

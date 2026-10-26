@@ -112,6 +112,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Assistant : routage selon intention/ton, prompt borné, refus des codes
   d’accès, comparaison neutre/chaleureux/concis, brouillon déterministe local,
   enregistrement idempotent en message brouillon puis envoi depuis l’outbox.
+- [ ] Audit : bornes 90 jours par défaut, filtres 7/30/90 j et famille,
+  recherche, export CSV filtré limité à 5 000 lignes.
 - [ ] Mission : création staff, exécution prestataire, statuts.
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
@@ -192,8 +194,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **414/414**.
-- Playwright : **44/44** sur `next build` + `next start`, y compris une passe
+- Vitest : **416/416**.
+- Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/

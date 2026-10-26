@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { libelleActionAudit } from "@/domain/audit";
+import {
+  depuisJours,
+  familleAuditValide,
+  JOURS_AUDIT,
+  JOURS_AUDIT_DEFAUT,
+  joursAuditValide,
+  LIBELLES_FAMILLE_AUDIT,
+  FAMILLES_AUDIT,
+  libelleActionAudit,
+} from "@/domain/audit";
 import { DrizzleAuditRepository } from "@/infrastructure/db/repositories/audit-repository";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 
@@ -36,7 +45,12 @@ function couleurAction(action: string): string {
 export default async function PageAudit({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    q?: string;
+    jours?: string;
+    famille?: string;
+  }>;
 }) {
   await connection();
 
@@ -45,26 +59,46 @@ export default async function PageAudit({
   const params = await searchParams;
 
   const recherche = (params.q ?? "").trim().slice(0, 100);
+  const joursDemandes = Number.parseInt(params.jours ?? "", 10);
+  const jours = joursAuditValide(joursDemandes)
+    ? joursDemandes
+    : JOURS_AUDIT_DEFAUT;
+  const famille = params.famille && familleAuditValide(params.famille)
+    ? params.famille
+    : null;
+  const depuis = depuisJours(jours);
   const pageDemandee = Number.parseInt(params.page ?? "1", 10);
   const page =
     Number.isFinite(pageDemandee) && pageDemandee > 0 ? pageDemandee : 1;
 
   const repo = new DrizzleAuditRepository();
-  const total = await repo.compter(tenantId, recherche || undefined);
+  const total = await repo.compter(tenantId, {
+    recherche: recherche || undefined,
+    depuis,
+    prefixe: famille ?? undefined,
+  });
   const pages = Math.max(1, Math.ceil(total / LIMITE));
   const pageCourante = Math.min(page, pages);
   const entrees = await repo.lister(tenantId, {
     limite: LIMITE,
     decalage: (pageCourante - 1) * LIMITE,
     recherche: recherche || undefined,
+    depuis,
+    prefixe: famille ?? undefined,
   });
 
   function lien(numero: number): string {
     const query = new URLSearchParams();
     if (recherche) query.set("q", recherche);
+    if (famille) query.set("famille", famille);
+    query.set("jours", String(jours));
     query.set("page", String(numero));
     return `/hote/audit?${query.toString()}`;
   }
+
+  const queryExport = new URLSearchParams({ jours: String(jours) });
+  if (recherche) queryExport.set("q", recherche);
+  if (famille) queryExport.set("famille", famille);
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
@@ -77,16 +111,18 @@ export default async function PageAudit({
             Journal d’audit
           </h1>
           <p className="text-encre-douce">
-            {total} action{total > 1 ? "s" : ""} enregistrée
-            {total > 1 ? "s" : ""} pour votre organisation.
+            {total} action{total > 1 ? "s" : ""} sur les {jours} derniers jours
+            {famille
+              ? ` · ${LIBELLES_FAMILLE_AUDIT[famille]}`
+              : ""}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <a
             className="rounded-full border border-bordure px-4 py-2 text-sm font-medium"
-            href="/api/exports/tenant"
+            href={`/api/exports/audit?${queryExport.toString()}`}
           >
-            Exporter les données JSON
+            Exporter le journal CSV
           </a>
           <Link className="text-sm underline" href="/hote">
             Retour au tableau de bord
@@ -109,22 +145,51 @@ export default async function PageAudit({
             type="search"
           />
         </label>
+        <label className="space-y-1 text-sm font-medium">
+          <span>Période</span>
+          <select
+            className="rounded-xl border border-bordure p-3 text-sm"
+            defaultValue={String(jours)}
+            name="jours"
+          >
+            {JOURS_AUDIT.map((option) => (
+              <option key={option} value={option}>
+                {option} jours
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="space-y-1 text-sm font-medium">
+          <span>Famille</span>
+          <select
+            className="rounded-xl border border-bordure p-3 text-sm"
+            defaultValue={famille ?? ""}
+            name="famille"
+          >
+            <option value="">Toutes</option>
+            {FAMILLES_AUDIT.map((option) => (
+              <option key={option} value={option}>
+                {LIBELLES_FAMILLE_AUDIT[option]}
+              </option>
+            ))}
+          </select>
+        </label>
         <button
           className="rounded-full bg-encre px-5 py-3 text-sm font-medium text-fond"
           type="submit"
         >
           Filtrer
         </button>
-        {recherche ? (
+        {recherche || famille || jours !== JOURS_AUDIT_DEFAUT ? (
           <Link className="text-sm underline" href="/hote/audit">
-            Effacer
+            Effacer les filtres
           </Link>
         ) : null}
       </form>
 
       {entrees.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
-          Aucune action pour cette recherche.
+          Aucune action sur cette période.
         </p>
       ) : (
         <ul className="divide-y divide-bordure rounded-2xl border border-bordure bg-surface">
