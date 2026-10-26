@@ -567,6 +567,32 @@ export const missions = pgTable(
   ],
 );
 
+export const preferencesSejour = pgTable(
+  "preferences_sejour",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    menageFrequenceJ: integer("menage_frequence_j").notNull().default(0),
+    lingeInclus: boolean("linge_inclus").notNull().default(true),
+    heureArrivee: text("heure_arrivee"),
+    consignes: text("consignes").notNull().default(""),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("preferences_sejour_tenant_reservation_uq").on(
+      t.tenantId,
+      t.reservationId,
+    ),
+  ],
+);
+
 export const messagesVoyageur = pgTable(
   "messages_voyageur",
   {
@@ -1578,6 +1604,8 @@ export type DispatchRow = typeof dispatches.$inferSelect;
 export type NewDispatchRow = typeof dispatches.$inferInsert;
 export type MessageVoyageurRow = typeof messagesVoyageur.$inferSelect;
 export type NewMessageVoyageurRow = typeof messagesVoyageur.$inferInsert;
+export type PreferenceSejourRow = typeof preferencesSejour.$inferSelect;
+export type NewPreferenceSejourRow = typeof preferencesSejour.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
 export type NewEtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferInsert;
 export type LieuTourismeRow = typeof lieuxTourisme.$inferSelect;

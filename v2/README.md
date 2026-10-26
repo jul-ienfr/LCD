@@ -137,7 +137,7 @@ juridique + mandats, 320 px.
 | `/contrat/[token]` | contrat de séjour signé (même lien voyageur), imprimable |
 | `/questionnaire/[token]` | questionnaire de séjour signé, une réponse par séjour |
 | `/reserver` | réservation directe (catalogue, devis, demande) |
-| `/voyageur?t=<token>` | séjour, guide, extras, mémoire, avis, questionnaire, incident (sans JS) |
+| `/voyageur?t=<token>` | séjour, guide, extras, préférences séjour, mémoire, avis, questionnaire, incident (sans JS) |
 | `/offline` | fallback PWA hors ligne |
 | `/api/health` | liveness (sans DB) |
 | `/api/ready` | readiness (ping DB + tables/colonnes minimales) |

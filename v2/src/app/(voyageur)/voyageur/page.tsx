@@ -14,6 +14,7 @@ import { DrizzleExtraRepository } from "@/infrastructure/db/repositories/extra-r
 import { DrizzleIncidentRepository } from "@/infrastructure/db/repositories/incident-repository";
 import { DrizzleLieuxTourismeRepository } from "@/infrastructure/db/repositories/lieux-tourisme-repository";
 import { DrizzleMemoireRepository } from "@/infrastructure/db/repositories/memoire-repository";
+import { DrizzlePreferencesSejourRepository } from "@/infrastructure/db/repositories/preferences-sejour-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { formaterEuros } from "@/lib/format";
@@ -25,7 +26,7 @@ import {
   type Traductions,
 } from "@/lib/i18n";
 import { verifierTokenVoyageur } from "@/lib/voyageur-token";
-import { avisVoyageurAction, commanderExtraAction, memoireVoyageurAction } from "./actions";
+import { avisVoyageurAction, commanderExtraAction, memoireVoyageurAction, preferencesSejourAction } from "./actions";
 import { FormulaireIncident } from "./formulaire-incident";
 
 export const instant = false;
@@ -134,6 +135,7 @@ export default async function PageVoyageur({
     cat?: string;
     memoire?: string;
     avis?: string;
+    preferences?: string;
   }>;
 }) {
   await connection();
@@ -187,6 +189,11 @@ export default async function PageVoyageur({
   const memoire = await new LireMemoireVoyageur(
     new DrizzleMemoireRepository(),
   ).executer(payload.tenantId, reservation.clientEmail);
+  const preferencesSejour =
+    await new DrizzlePreferencesSejourRepository().trouverParReservation(
+      payload.tenantId,
+      reservation.id,
+    );
   const avisExistant =
     await new DrizzleAvisRepository().trouverParReservation(
       payload.tenantId,
@@ -398,6 +405,73 @@ export default async function PageVoyageur({
           )}
         </section>
       ) : null}
+
+      <section
+        className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm"
+        id="preferences"
+      >
+        <h2 className="text-lg font-semibold">{d.preferencesSejour}</h2>
+        <p className="mt-2 text-sm text-encre-douce">{d.preferencesTexte}</p>
+        {params.preferences === "ok" ? (
+          <p className="mt-3 rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
+            {d.preferencesOk}
+          </p>
+        ) : null}
+        {params.preferences === "erreur" ? (
+          <p className="mt-3 rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger">
+            {d.preferencesErreur}
+          </p>
+        ) : null}
+        <form action={preferencesSejourAction} className="mt-4 space-y-3">
+          <input name="token" type="hidden" value={params.t} />
+          <input name="langue" type="hidden" value={langue} />
+          <label className="block space-y-1 text-sm font-medium">
+            <span>{d.menageFrequence}</span>
+            <input
+              className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
+              defaultValue={preferencesSejour?.menageFrequenceJ ?? 0}
+              max={30}
+              min={0}
+              name="menageFrequenceJ"
+              type="number"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <input
+              className="h-4 w-4"
+              defaultChecked={preferencesSejour?.lingeInclus ?? true}
+              name="lingeInclus"
+              type="checkbox"
+            />
+            <span>{d.lingeInclus}</span>
+          </label>
+          <label className="block space-y-1 text-sm font-medium">
+            <span>{d.heureArrivee}</span>
+            <input
+              className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
+              defaultValue={preferencesSejour?.heureArrivee ?? ""}
+              name="heureArrivee"
+              type="time"
+            />
+          </label>
+          <label className="block space-y-1 text-sm font-medium">
+            <span>{d.consignesSejour}</span>
+            <textarea
+              className="w-full rounded-xl border border-bordure bg-surface p-3 text-sm"
+              defaultValue={preferencesSejour?.consignes ?? ""}
+              maxLength={500}
+              name="consignes"
+              rows={3}
+            />
+          </label>
+          <button
+            className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-fond"
+            type="submit"
+          >
+            {d.preferencesEnregistrer}
+          </button>
+        </form>
+      </section>
 
       {reservation.clientEmail ? (
         <section

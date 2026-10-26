@@ -45,6 +45,15 @@ export interface Traductions {
   memoireErreur: string;
   memoireNom: string;
   memoireChamp: string;
+  preferencesSejour: string;
+  preferencesTexte: string;
+  menageFrequence: string;
+  lingeInclus: string;
+  heureArrivee: string;
+  consignesSejour: string;
+  preferencesEnregistrer: string;
+  preferencesOk: string;
+  preferencesErreur: string;
   avis: string;
   avisTexte: string;
   avisNote: string;
@@ -131,6 +140,16 @@ const FR: Traductions = {
   memoireErreur: "Impossible d’enregistrer vos préférences.",
   memoireNom: "Nom",
   memoireChamp: "Préférences (lit bébé, allergie, étage…)",
+  preferencesSejour: "Préférences de séjour",
+  preferencesTexte:
+    "Fréquence de ménage, linge et heure d’arrivée — visibles par votre hôte.",
+  menageFrequence: "Ménage tous les X jours (0 = aucun)",
+  lingeInclus: "Linge de maison fourni",
+  heureArrivee: "Heure d’arrivée prévue",
+  consignesSejour: "Consignes pour l’hôte",
+  preferencesEnregistrer: "Enregistrer mes préférences",
+  preferencesOk: "Préférences enregistrées.",
+  preferencesErreur: "Vos préférences n’ont pas pu être enregistrées.",
   avis: "Votre avis",
   avisTexte:
     "Votre retour aide l’hôte à améliorer le séjour. Il est publié après validation.",
@@ -223,6 +242,16 @@ const EN: Traductions = {
   memoireErreur: "Your preferences could not be saved.",
   memoireNom: "Name",
   memoireChamp: "Preferences (cot, allergy, floor…)",
+  preferencesSejour: "Stay preferences",
+  preferencesTexte:
+    "Cleaning frequency, linen and arrival time — visible to your host.",
+  menageFrequence: "Cleaning every X days (0 = none)",
+  lingeInclus: "Household linen provided",
+  heureArrivee: "Expected arrival time",
+  consignesSejour: "Notes for the host",
+  preferencesEnregistrer: "Save my preferences",
+  preferencesOk: "Preferences saved.",
+  preferencesErreur: "Your preferences could not be saved.",
   avis: "Your review",
   avisTexte:
     "Your feedback helps the host improve the stay. It is published after moderation.",
@@ -314,6 +343,16 @@ const IT: Traductions = {
   memoireErreur: "Impossibile salvare le preferenze.",
   memoireNom: "Nome",
   memoireChamp: "Preferenze (lettino, allergia, piano…)",
+  preferencesSejour: "Preferenze di soggiorno",
+  preferencesTexte:
+    "Frequenza pulizia, biancheria e orario di arrivo — visibili al tuo host.",
+  menageFrequence: "Pulizia ogni X giorni (0 = nessuna)",
+  lingeInclus: "Biancheria fornita",
+  heureArrivee: "Orario di arrivo previsto",
+  consignesSejour: "Note per l’host",
+  preferencesEnregistrer: "Salva le mie preferenze",
+  preferencesOk: "Preferenze salvate.",
+  preferencesErreur: "Impossibile salvare le preferenze.",
   avis: "La tua recensione",
   avisTexte:
     "Il tuo parere aiuta l’host a migliorare il soggiorno. Sarà pubblicato dopo la moderazione.",
@@ -406,6 +445,16 @@ const ES: Traductions = {
   memoireErreur: "No se pudieron guardar las preferencias.",
   memoireNom: "Nombre",
   memoireChamp: "Preferencias (cuna, alergia, planta…)",
+  preferencesSejour: "Preferencias de estancia",
+  preferencesTexte:
+    "Frecuencia de limpieza, ropa y hora de llegada — visibles para tu anfitrión.",
+  menageFrequence: "Limpieza cada X días (0 = ninguna)",
+  lingeInclus: "Ropa de casa incluida",
+  heureArrivee: "Hora de llegada prevista",
+  consignesSejour: "Indicaciones para el anfitrión",
+  preferencesEnregistrer: "Guardar mis preferencias",
+  preferencesOk: "Preferencias guardadas.",
+  preferencesErreur: "No se pudieron guardar tus preferencias.",
   avis: "Tu opinión",
   avisTexte:
     "Tu opinión ayuda al anfitrión a mejorar la estancia. Se publica tras la moderación.",
@@ -497,6 +546,16 @@ const DE: Traductions = {
   memoireErreur: "Vorlieben konnten nicht gespeichert werden.",
   memoireNom: "Name",
   memoireChamp: "Vorlieben (Babybett, Allergie, Etage…)",
+  preferencesSejour: "Aufenthaltsvorlieben",
+  preferencesTexte:
+    "Reinigungsrhythmus, Wäsche und Ankunftszeit — für deinen Gastgeber sichtbar.",
+  menageFrequence: "Reinigung alle X Tage (0 = keine)",
+  lingeInclus: "Hauswäsche inklusive",
+  heureArrivee: "Geplante Ankunftszeit",
+  consignesSejour: "Hinweise für den Gastgeber",
+  preferencesEnregistrer: "Meine Vorlieben speichern",
+  preferencesOk: "Vorlieben gespeichert.",
+  preferencesErreur: "Deine Vorlieben konnten nicht gespeichert werden.",
   avis: "Ihre Bewertung",
   avisTexte:
     "Ihr Feedback hilft dem Gastgeber, den Aufenthalt zu verbessern. Es wird nach Prüfung veröffentlicht.",

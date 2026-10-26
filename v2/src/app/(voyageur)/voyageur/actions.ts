@@ -6,11 +6,13 @@ import { CommanderExtra } from "@/application/use-cases/commander-extra";
 import { DeposerAvis } from "@/application/use-cases/avis";
 import { DeclarerIncident } from "@/application/use-cases/declarer-incident";
 import { MemoriserVoyageur, OublierVoyageur } from "@/application/use-cases/memoire";
+import { EnregistrerPreferencesSejour } from "@/application/use-cases/preference-sejour";
 import { DrizzleCommandeExtraRepository } from "@/infrastructure/db/repositories/commande-extra-repository";
 import { DrizzleAvisRepository } from "@/infrastructure/db/repositories/avis-repository";
 import { DrizzleExtraRepository } from "@/infrastructure/db/repositories/extra-repository";
 import { DrizzleIncidentRepository } from "@/infrastructure/db/repositories/incident-repository";
 import { DrizzleMemoireRepository } from "@/infrastructure/db/repositories/memoire-repository";
+import { DrizzlePreferencesSejourRepository } from "@/infrastructure/db/repositories/preferences-sejour-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { withTenant } from "@/infrastructure/db/client";
 import { auditLogs } from "@/infrastructure/db/schema";
@@ -230,5 +232,61 @@ export async function avisVoyageurAction(formData: FormData) {
 
   redirect(
     `/voyageur?t=${encodeURIComponent(token)}&avis=ok&lang=${langue}`,
+  );
+}
+
+export async function preferencesSejourAction(formData: FormData) {
+  const token = String(formData.get("token") ?? "");
+  const langue = langueDepuisParam(String(formData.get("langue") ?? "fr"));
+  const menageFrequenceJ = Number(formData.get("menageFrequenceJ") ?? 0);
+  const lingeInclus = formData.get("lingeInclus") === "on";
+  const heureArrivee = String(formData.get("heureArrivee") ?? "");
+  const consignes = String(formData.get("consignes") ?? "");
+
+  const payload = verifierTokenVoyageur(token);
+  if (!payload) {
+    redirect(`/voyageur?preferences=erreur&lang=${langue}`);
+  }
+
+  try {
+    const preferences = await new EnregistrerPreferencesSejour(
+      new DrizzlePreferencesSejourRepository(),
+      new DrizzleReservationRepository(),
+    ).executer({
+      tenantId: payload.tenantId,
+      reservationId: payload.reservationId,
+      menageFrequenceJ,
+      lingeInclus,
+      heureArrivee,
+      consignes,
+    });
+
+    await withTenant(payload.tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId: payload.tenantId,
+        qui: "voyageur",
+        action: "preferences.enregistrer",
+        cible: preferences.id,
+        ref: preferences.reservationId,
+        payload: {
+          menageFrequenceJ: preferences.menageFrequenceJ,
+          lingeInclus: preferences.lingeInclus,
+        },
+      }),
+    );
+  } catch (error) {
+    if (!(error instanceof ErreurMetier)) {
+      logErreur("preferencesSejourAction", error, {
+        tenantId: payload.tenantId,
+        reservationId: payload.reservationId,
+      });
+    }
+    redirect(
+      `/voyageur?t=${encodeURIComponent(token)}&preferences=erreur&lang=${langue}`,
+    );
+  }
+
+  redirect(
+    `/voyageur?t=${encodeURIComponent(token)}&preferences=ok&lang=${langue}`,
   );
 }
