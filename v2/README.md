@@ -396,6 +396,9 @@ après les premiers clients ou si le LCP mobile se dégrade.
   comparé au journal Drizzle ; si le journal est absent, le compteur vaut zéro
   et les migrations sont listées manquantes. 503 avec la liste `manquants` si
   les migrations ne sont pas appliquées.
+- `/api/ready` vérifie aussi le **rôle RLS** : 503 `rls: unsafe` si la
+  connexion est superuser, `BYPASSRLS` ou propriétaire des tables ; 200 avec
+  `rls: ok` et `role` pour le rôle applicatif non-propriétaire.
 - logs JSON via `src/lib/logger.ts` (ts, niveau, message, contexte).
 - **Sentry sans SDK** : `SENTRY_DSN` → erreurs serveur et erreurs client
   (`POST /api/telemetry`), secrets masqués, timeout 3 s, no-op sans DSN.

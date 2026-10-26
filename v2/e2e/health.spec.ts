@@ -13,6 +13,7 @@ test("health live + readiness DB", async ({ request }) => {
   expect(readyBody.ok).toBe(true);
   expect(readyBody.db).toBe("up");
   expect(readyBody.schema).toBe("ok");
+  expect(readyBody.rls).toBe("ok");
 
   const accueil = await request.get("/");
   const entetes = accueil.headers();

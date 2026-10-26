@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { manquantsSchema } from "@/domain/readiness";
+import { manquantsSchema, rlsEffective } from "@/domain/readiness";
 
 const complet = {
   cautions: "cautions",
@@ -45,5 +45,19 @@ describe("readiness schéma", () => {
     expect(
       manquantsSchema({ ...complet, migrationsTable: null, migrations: 0 }, 55),
     ).toEqual(["migrations.55"]);
+  });
+
+  it("exige un rôle applicatif sans bypass ni propriété des tables", () => {
+    expect(rlsEffective({ utilisateur: "lcd_app" })).toBe(true);
+    expect(
+      rlsEffective({ utilisateur: "lcd", proprietaireTables: true }),
+    ).toBe(false);
+    expect(
+      rlsEffective({ utilisateur: "lcd_app", superutilisateur: true }),
+    ).toBe(false);
+    expect(rlsEffective({ utilisateur: "lcd_app", bypassRls: true })).toBe(
+      false,
+    );
+    expect(rlsEffective(undefined)).toBe(false);
   });
 });

@@ -2,6 +2,8 @@ import { connection } from "next/server";
 import journal from "../../../../drizzle/meta/_journal.json";
 import {
   manquantsSchema,
+  rlsEffective,
+  type EtatRole,
   type EtatSchema,
 } from "@/domain/readiness";
 import { sql } from "@/infrastructure/db/client";
@@ -71,6 +73,46 @@ export async function GET() {
       );
     }
 
+    const [role] = await sql<EtatRole[]>`
+      select
+        current_user as "utilisateur",
+        coalesce(
+          (select rolsuper from pg_roles where rolname = current_user),
+          false
+        ) as "superutilisateur",
+        coalesce(
+          (select rolbypassrls from pg_roles where rolname = current_user),
+          false
+        ) as "bypassRls",
+        exists (
+          select 1
+          from pg_class c
+          join pg_namespace n on n.oid = c.relnamespace
+          where n.nspname = 'public'
+            and c.relkind = 'r'
+            and c.relowner = (
+              select oid from pg_roles where rolname = current_user
+            )
+        ) as "proprietaireTables"
+    `;
+
+    if (!rlsEffective(role)) {
+      return Response.json(
+        {
+          ok: false,
+          service: "lcd-v2",
+          version: APP_VERSION,
+          db: "up",
+          schema: "ok",
+          rls: "unsafe",
+          role: role?.utilisateur ?? null,
+          dureeMs: Date.now() - debut,
+          date: new Date().toISOString(),
+        },
+        { status: 503 },
+      );
+    }
+
     return Response.json(
       {
         ok: true,
@@ -78,6 +120,8 @@ export async function GET() {
         version: APP_VERSION,
         db: "up",
         schema: "ok",
+        rls: "ok",
+        role: role?.utilisateur ?? null,
         dureeMs: Date.now() - debut,
         date: new Date().toISOString(),
       },

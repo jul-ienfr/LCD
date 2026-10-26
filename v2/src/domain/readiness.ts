@@ -9,6 +9,26 @@ export interface EtatSchema {
   migrationsTable?: string | null;
 }
 
+export interface EtatRole {
+  utilisateur?: string;
+  superutilisateur?: boolean;
+  bypassRls?: boolean;
+  proprietaireTables?: boolean;
+}
+
+/**
+ * Le RLS n'est réellement appliqué que si la connexion n'est ni superuser,
+ * ni BYPASSRLS, ni propriétaire des tables (un owner contourne les policies).
+ */
+export function rlsEffective(etat: EtatRole | undefined): boolean {
+  return Boolean(
+    etat?.utilisateur &&
+      !etat.superutilisateur &&
+      !etat.bypassRls &&
+      !etat.proprietaireTables,
+  );
+}
+
 /**
  * Liste les migrations minimales manquantes pour servir l'application.
  * Le compteur du journal Drizzle détecte aussi les migrations récentes non
