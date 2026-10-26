@@ -109,4 +109,17 @@ test("propriétaire : rattachement, relevé et isolation", async ({
   await expect(pageProprio.getByText(nomB)).toHaveCount(0);
 
   await contexteProprio.close();
+
+  // Nettoyage : ne pas laisser une identité légale fictive dans le registre.
+  await page.goto("/hote/entite");
+  await page.fill('input[name="siren"]', "");
+  await page.selectOption('select[name="nature"]', "nom_propre");
+  await page.selectOption('select[name="regime"]', "micro_bic_non_classe");
+  await page.selectOption('select[name="tva"]', "non");
+  await page.fill('textarea[name="adresse"]', "");
+  await page.fill('textarea[name="mentionsLegales"]', "");
+  await page.getByRole("button", { name: /Enregistrer l/ }).click();
+  await expect(
+    page.getByText("Entité juridique mise à jour."),
+  ).toBeVisible();
 });

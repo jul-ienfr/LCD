@@ -36,8 +36,16 @@ export default function PagePublique() {
         </a>
       </nav>
 
-      <footer className="text-sm text-encre-faine">
-        Squelette v2 — architecture HTML-first, JS islands, PostgreSQL.
+      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-bordure pt-4 text-sm text-encre-faine">
+        <p>Architecture HTML-first, JS islands, PostgreSQL.</p>
+        <nav className="flex flex-wrap gap-4" aria-label="Informations">
+          <a className="underline" href="/aide">
+            Aide
+          </a>
+          <a className="underline" href="/legales">
+            Mentions légales
+          </a>
+        </nav>
       </footer>
     </main>
   );
