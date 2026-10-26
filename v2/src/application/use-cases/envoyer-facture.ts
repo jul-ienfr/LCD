@@ -12,6 +12,7 @@ export interface EnvoyerFactureInput {
   baseUrl: string;
   email?: string | null;
   pieceJointe?: EmailAttachment | null;
+  type?: "envoi" | "relance";
 }
 
 export interface ResultatEnvoiFacture {
@@ -52,6 +53,14 @@ export class EnvoyerFacture {
       );
     }
 
+    const relance = input.type === "relance";
+    if (relance && facture.statut !== "emise") {
+      throw new ErreurMetier(
+        "FACTURE_INVALIDE",
+        "Une relance ne concerne qu'une facture émise et non soldée.",
+      );
+    }
+
     const destinataire = (input.email ?? facture.clientEmail ?? "").trim();
     if (!destinataire || !emailValide(destinataire)) {
       throw new ErreurMetier(
@@ -68,24 +77,40 @@ export class EnvoyerFacture {
     });
     const lien = `${input.baseUrl.replace(/\/$/, "")}/facture/${encodeURIComponent(token)}`;
 
-    const lignes = [
-      `Bonjour${facture.clientNom ? ` ${facture.clientNom}` : ""},`,
-      "",
-      `Votre facture ${facture.numero} d'un montant de ${formaterEuros(facture.montantTtcCentimes)} est disponible en ligne :`,
-      lien,
-      "",
-      `Date d'émission : ${facture.dateEmission}`,
-      facture.echeance ? `Échéance : ${facture.echeance}` : null,
-      `Statut : ${LIBELLES_STATUT[facture.statut]}`,
-      "",
-      `Ce lien est valable 90 jours. Pour toute question, répondez à cet email.`,
-      "",
-      nomTenant,
-    ].filter((ligne) => ligne !== null);
+    const lignes = relance
+      ? [
+          `Bonjour${facture.clientNom ? ` ${facture.clientNom}` : ""},`,
+          "",
+          `Sauf erreur de notre part, la facture ${facture.numero} d'un montant de ${formaterEuros(facture.montantTtcCentimes)} n'a pas encore été réglée.`,
+          "Vous pouvez la consulter et régler en ligne :",
+          lien,
+          "",
+          facture.echeance ? `Échéance : ${facture.echeance}` : null,
+          "",
+          "Merci de votre attention. Pour toute question, répondez à cet email.",
+          "",
+          nomTenant,
+        ].filter((ligne) => ligne !== null)
+      : [
+          `Bonjour${facture.clientNom ? ` ${facture.clientNom}` : ""},`,
+          "",
+          `Votre facture ${facture.numero} d'un montant de ${formaterEuros(facture.montantTtcCentimes)} est disponible en ligne :`,
+          lien,
+          "",
+          `Date d'émission : ${facture.dateEmission}`,
+          facture.echeance ? `Échéance : ${facture.echeance}` : null,
+          `Statut : ${LIBELLES_STATUT[facture.statut]}`,
+          "",
+          `Ce lien est valable 90 jours. Pour toute question, répondez à cet email.`,
+          "",
+          nomTenant,
+        ].filter((ligne) => ligne !== null);
 
     await this.email.envoyer({
       to: destinataire,
-      subject: `Facture ${facture.numero} — ${nomTenant}`,
+      subject: relance
+        ? `Relance facture ${facture.numero} — ${nomTenant}`
+        : `Facture ${facture.numero} — ${nomTenant}`,
       text: lignes.join("\n"),
       attachments: input.pieceJointe ? [input.pieceJointe] : undefined,
     });

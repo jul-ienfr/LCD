@@ -343,6 +343,7 @@ export default async function PageFacture({
                 <FormulaireEnvoiFacture
                   emailDefaut={facture.clientEmail ?? ""}
                   factureId={facture.id}
+                  relancePossible={facture.statut === "emise" && reste > 0}
                 />
               </div>
             </div>

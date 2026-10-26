@@ -24,6 +24,7 @@ export async function envoyerFactureAction(
 
   const factureId = String(formData.get("factureId") ?? "");
   const email = String(formData.get("email") ?? "");
+  const relance = formData.get("type") === "relance";
 
   if (!factureId) {
     return { ok: false, message: "Facture introuvable." };
@@ -45,6 +46,7 @@ export async function envoyerFactureAction(
       factureId,
       baseUrl: env.APP_URL,
       email,
+      type: relance ? "relance" : "envoi",
       pieceJointe: {
         filename: `${document.facture.numero}.pdf`,
         content: document.pdf,
@@ -56,7 +58,7 @@ export async function envoyerFactureAction(
       tx.insert(auditLogs).values({
         tenantId,
         qui: session.user.email,
-        action: "facture.email",
+        action: relance ? "facture.relance" : "facture.email",
         cible: factureId,
         ref: resultat.destinataire,
         payload: {},
@@ -66,7 +68,9 @@ export async function envoyerFactureAction(
     revalidatePath(`/hote/factures/${factureId}`);
     return {
       ok: true,
-      message: `Facture envoyée à ${resultat.destinataire}.`,
+      message: relance
+        ? `Relance envoyée à ${resultat.destinataire}.`
+        : `Facture envoyée à ${resultat.destinataire}.`,
     };
   } catch (error) {
     if (error instanceof ErreurMetier) {

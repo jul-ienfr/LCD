@@ -214,7 +214,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **453/453**.
+- Vitest : **455/455**.
 - Migrations depuis zéro : `npm run db:test-migrations` → 57 migrations,
   54 tables, 47 tables RLS, 47 policies, base vide, rôle `lcd_app` autorisé.
 - Playwright : **46/46** sur `next build` + `next start`, y compris une passe

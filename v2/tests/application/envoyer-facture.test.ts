@@ -123,6 +123,41 @@ describe("EnvoyerFacture", () => {
     expect(email.messages[0]?.to).toBe("autre@example.com");
   });
 
+  it("envoie une relance pour une facture émise", async () => {
+    const { factures, facture, tenants, email } = await contexte({
+      clientEmail: "client@example.com",
+    });
+
+    await new EnvoyerFacture(factures, tenants, email).executer({
+      tenantId,
+      factureId: facture.id,
+      baseUrl: "https://lcd.test",
+      type: "relance",
+    });
+
+    const message = email.messages[0];
+    expect(message?.subject).toContain("Relance facture FAC-2026-0200");
+    expect(message?.text).toContain("n'a pas encore été réglée");
+    expect(message?.text).toContain("https://lcd.test/facture/");
+  });
+
+  it("refuse une relance sur une facture soldée", async () => {
+    const { factures, facture, tenants, email } = await contexte({
+      clientEmail: "client@example.com",
+    });
+    await factures.changerStatut(tenantId, facture.id, "payee");
+
+    await expect(
+      new EnvoyerFacture(factures, tenants, email).executer({
+        tenantId,
+        factureId: facture.id,
+        baseUrl: "https://lcd.test",
+        type: "relance",
+      }),
+    ).rejects.toMatchObject({ code: "FACTURE_INVALIDE" });
+    expect(email.messages).toHaveLength(0);
+  });
+
   it("refuse une facture en brouillon", async () => {
     const { factures, facture, tenants, email } = await contexte({
       clientEmail: "client@example.com",

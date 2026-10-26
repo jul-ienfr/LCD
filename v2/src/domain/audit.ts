@@ -8,6 +8,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "entite.mettre_a_jour": "Entité juridique mise à jour",
   "facture.creer": "Facture créée",
   "facture.email": "Facture envoyée",
+  "facture.relance": "Relance de facture envoyée",
   "facture.statut": "Statut de facture modifié",
   "fiscalite.parametres": "Paramètres fiscaux modifiés",
   "flux_ics.enregistrer": "Flux ICS enregistré",

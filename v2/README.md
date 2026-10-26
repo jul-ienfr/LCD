@@ -163,11 +163,14 @@ juridique + mandats, 320 px.
 - page publique sans compte, sans JavaScript, responsive 320 px ;
 - le lien n'est généré que pour une facture `emise` ou `payee` ;
 - envoi email depuis la fiche facture, avec adresse pré-remplie si connue ;
+- **relance** d’une facture émise non soldée depuis la même fiche : objet
+  `Relance facture <numéro>`, rappel de l’échéance et lien de paiement, audit
+  `facture.relance` ; le bouton disparaît dès que la facture est soldée ;
 - **PDF de la facture joint** à l’email (même document que `/api/factures/[id]/pdf`,
   Factur-X inclus) et lien signé dans le corps ;
 - adapter SMTP (`nodemailer`) : Mailpit en dev (`smtp://127.0.0.1:1025`),
   Brevo/OVH/Scaleway en production via `SMTP_URL` + `EMAIL_FROM` ;
-- audit `facture.email` ;
+- audit `facture.email` / `facture.relance` ;
 - la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
 
 ## Paiements en ligne Stripe

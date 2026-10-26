@@ -14,6 +14,7 @@ async function connexion(page: import("@playwright/test").Page) {
 test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   page,
 }) => {
+  test.setTimeout(60_000);
   const suffix = Date.now();
   const code = `fac-e2e-${suffix}`;
   const nom = `Facturation E2E ${suffix}`;
@@ -182,6 +183,7 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   await page.goto("/hote/factures?mois=2026-11");
   await page.fill('input[name="numero"]', numeroManuel);
   await page.fill('input[name="clientNom"]', "Client Manuel E2E");
+  await page.fill('input[name="clientEmail"]', "relance@example.com");
   await page.fill('input[name="dateEmission"]', "2026-11-21");
   await page.fill('input[name="designation"]', "Séjour manuel");
   await page.fill('input[name="quantite"]', "1");
@@ -191,6 +193,24 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   await page.getByRole("button", { name: "Créer la facture" }).click();
   await expect(page.getByText(numeroManuel).first()).toBeVisible();
   await expect(page.getByText("105,00 €").first()).toBeVisible();
+
+  // 7b. Relance d'une facture émise non soldée.
+  await page.getByRole("button", { name: "Marquer émise" }).click();
+  await expect(page.getByText("emise").first()).toBeVisible();
+  await page.getByRole("button", { name: "Relancer par email" }).click();
+  await expect(
+    page.getByText("Relance envoyée à relance@example.com."),
+  ).toBeVisible({ timeout: 25_000 });
+  const messagesRelance = await fetch(
+    "http://127.0.0.1:8025/api/v1/messages?limit=50",
+  ).then((reponse) => reponse.json() as Promise<{
+    messages: { Subject: string }[];
+  }>);
+  expect(
+    messagesRelance.messages.some((message) =>
+      message.Subject.includes(`Relance facture ${numeroManuel}`),
+    ),
+  ).toBe(true);
 
   // 7. Compta et exports.
   await page.goto("/hote/compta?mois=2026-11");

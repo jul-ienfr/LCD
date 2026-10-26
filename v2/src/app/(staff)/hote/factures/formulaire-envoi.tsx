@@ -11,9 +11,11 @@ const etatInitial: EtatEnvoiFacture = { ok: false, message: "" };
 export function FormulaireEnvoiFacture({
   factureId,
   emailDefaut,
+  relancePossible = false,
 }: {
   factureId: string;
   emailDefaut: string;
+  relancePossible?: boolean;
 }) {
   const [etat, action, enCours] = useActionState(
     envoyerFactureAction,
@@ -47,13 +49,26 @@ export function FormulaireEnvoiFacture({
         </p>
       ) : null}
 
-      <button
-        className="rounded-full border border-bordure px-4 py-2 text-sm font-medium disabled:opacity-50"
-        type="submit"
-        disabled={enCours}
-      >
-        {enCours ? "Envoi…" : "Envoyer la facture"}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          className="rounded-full border border-bordure px-4 py-2 text-sm font-medium disabled:opacity-50"
+          type="submit"
+          disabled={enCours}
+        >
+          {enCours ? "Envoi…" : "Envoyer la facture"}
+        </button>
+        {relancePossible ? (
+          <button
+            className="rounded-full border border-alerte px-4 py-2 text-sm font-medium text-alerte disabled:opacity-50"
+            disabled={enCours}
+            name="type"
+            type="submit"
+            value="relance"
+          >
+            {enCours ? "Envoi…" : "Relancer par email"}
+          </button>
+        ) : null}
+      </div>
     </form>
   );
 }
