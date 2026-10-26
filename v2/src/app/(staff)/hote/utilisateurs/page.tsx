@@ -6,6 +6,7 @@ import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { FormulaireCreationUtilisateur } from "./formulaire-creation";
 import {
   FormulaireActivation,
+  FormulaireDeuxFacteurs,
   FormulaireMotDePasse,
   FormulaireRole,
 } from "./formulaires";
@@ -21,10 +22,15 @@ const COULEURS_ROLE: Record<string, string> = {
   commercial: "bg-rose-100 text-rose-900",
 };
 
-export default async function PageUtilisateurs() {
+export default async function PageUtilisateurs({
+  searchParams,
+}: {
+  searchParams: Promise<{ deuxfacteurs?: string }>;
+}) {
   await connection();
   const session = await requireRole(["admin"]);
   const tenantId = tenantIdDeSession(session);
+  const parametres = await searchParams;
 
   const utilisateurs = await new DrizzleUserRepository().listerParTenant(
     tenantId,
@@ -56,6 +62,13 @@ export default async function PageUtilisateurs() {
           Retour au tableau de bord
         </Link>
       </header>
+
+      {parametres.deuxfacteurs === "ok" ? (
+        <p className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent">
+          Double authentification réinitialisée. Les sessions du compte ont été
+          fermées.
+        </p>
+      ) : null}
 
       <section className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-bordure bg-surface p-5 shadow-sm">
@@ -132,6 +145,11 @@ export default async function PageUtilisateurs() {
                         >
                           {utilisateur.actif ? "Actif" : "Désactivé"}
                         </span>
+                        {utilisateur.deuxFacteurs ? (
+                          <span className="rounded-full bg-accent-douce px-3 py-1 font-medium text-accent">
+                            2FA active
+                          </span>
+                        ) : null}
                       </p>
                     </div>
 
@@ -169,6 +187,18 @@ export default async function PageUtilisateurs() {
                               <FormulaireMotDePasse userId={utilisateur.id} />
                             </div>
                           </details>
+                          {utilisateur.deuxFacteurs ? (
+                            <details>
+                              <summary className="cursor-pointer text-xs underline">
+                                Réinitialiser la 2FA
+                              </summary>
+                              <div className="mt-3">
+                                <FormulaireDeuxFacteurs
+                                  userId={utilisateur.id}
+                                />
+                              </div>
+                            </details>
+                          ) : null}
                         </>
                       )}
                     </div>

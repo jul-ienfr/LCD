@@ -1,7 +1,35 @@
+import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
+import { config } from "dotenv";
+import postgres from "postgres";
+
+config({ path: ".env.local", quiet: true });
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@lcd.test";
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe-2026!";
+
+async function ajouterFacteur(email: string) {
+  const url =
+    process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL;
+  if (!url) throw new Error("MIGRATION_DATABASE_URL requis pour ce test.");
+  const sql = postgres(url, {
+    max: 1,
+    prepare: false,
+    ssl: url.includes("sslmode=require") ? "require" : false,
+  });
+  try {
+    const [utilisateur] = await sql`
+      select id from users where email = ${email} limit 1
+    `;
+    if (!utilisateur) throw new Error(`Utilisateur ${email} introuvable.`);
+    await sql`
+      insert into two_factor (id, secret, backup_codes, user_id)
+      values (${randomUUID()}, ${"secret-e2e"}, ${"codes-e2e"}, ${utilisateur.id})
+    `;
+  } finally {
+    await sql.end({ timeout: 5 });
+  }
+}
 
 test("utilisateurs : création, connexion, réinitialisation et désactivation", async ({
   page,
@@ -72,6 +100,34 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
 
   const contexte2 = await browser.newContext();
   const page2 = await contexte2.newPage();
+  await page2.goto("/login");
+  await page2.fill('input[type="email"]', email);
+  await page2.fill('input[type="password"]', nouveauMotDePasse);
+  await page2.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page2).toHaveURL(/\/hote$/);
+
+  // 2FA active : badge, réinitialisation admin et révocation de session.
+  await ajouterFacteur(email);
+  await page.reload();
+  await expect(ligne.getByText("2FA active")).toBeVisible();
+  await ligne
+    .locator("summary")
+    .filter({ hasText: "Réinitialiser la 2FA" })
+    .click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await ligne
+    .getByRole("button", { name: "Réinitialiser la 2FA" })
+    .click();
+  await expect(
+    page.getByText(
+      "Double authentification réinitialisée. Les sessions du compte ont été fermées.",
+    ),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/deuxfacteurs=ok/);
+  await expect(ligne.getByText("2FA active")).toHaveCount(0);
+
+  await page2.goto("/hote");
+  await expect(page2).toHaveURL(/\/login$/);
   await page2.goto("/login");
   await page2.fill('input[type="email"]', email);
   await page2.fill('input[type="password"]', nouveauMotDePasse);

@@ -8,7 +8,12 @@ import type { RoleUtilisateur } from "@/domain/utilisateur";
 export class UserRepositoryMemoire implements UserRepository {
   readonly rows: UtilisateurTenant[] = [];
   readonly motsDePasse = new Map<string, string>();
+  readonly deuxFacteursActifs = new Set<string>();
   private sequence = 0;
+
+  activerDeuxFacteurs(id: string) {
+    this.deuxFacteursActifs.add(id);
+  }
 
   private suivant(): string {
     this.sequence += 1;
@@ -97,5 +102,20 @@ export class UserRepositoryMemoire implements UserRepository {
     return this.rows.filter(
       (u) => u.tenantId === tenantId && u.role === role && u.actif,
     ).length;
+  }
+
+  async aDeuxFacteurs(tenantId: string, id: string): Promise<boolean> {
+    const utilisateur = await this.trouverParId(tenantId, id);
+    return Boolean(utilisateur && this.deuxFacteursActifs.has(id));
+  }
+
+  async supprimerDeuxFacteurs(
+    tenantId: string,
+    id: string,
+  ): Promise<boolean> {
+    const utilisateur = await this.trouverParId(tenantId, id);
+    if (!utilisateur || !this.deuxFacteursActifs.has(id)) return false;
+    this.deuxFacteursActifs.delete(id);
+    return true;
   }
 }

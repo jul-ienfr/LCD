@@ -5,6 +5,7 @@ import { LIBELLES_ROLE, ROLES_UTILISATEUR } from "@/domain/utilisateur";
 import {
   changerActifUtilisateurAction,
   changerRoleUtilisateurAction,
+  reinitialiserDeuxFacteursAction,
   reinitialiserMotDePasseAction,
   type EtatUtilisateur,
 } from "./actions";
@@ -103,6 +104,40 @@ export function FormulaireMotDePasse({ userId }: { userId: string }) {
         type="submit"
       >
         {enCours ? "Réinitialisation…" : "Réinitialiser le mot de passe"}
+      </button>
+      <MessageEtat etat={etat} />
+    </form>
+  );
+}
+
+export function FormulaireDeuxFacteurs({ userId }: { userId: string }) {
+  const [etat, action, enCours] = useActionState(
+    reinitialiserDeuxFacteursAction,
+    etatInitial,
+  );
+
+  return (
+    <form action={action} className="space-y-2">
+      <input name="userId" type="hidden" value={userId} />
+      <p className="text-xs text-encre-douce">
+        Supprime le secret TOTP et les codes de secours. Le compte devra
+        réenrôler sa 2FA après reconnexion ; ses sessions sont fermées.
+      </p>
+      <button
+        className="rounded-full border border-danger px-4 py-2 text-xs font-medium text-danger disabled:opacity-50"
+        disabled={enCours}
+        onClick={(event) => {
+          if (
+            !window.confirm(
+              "Réinitialiser la double authentification de ce compte ?",
+            )
+          ) {
+            event.preventDefault();
+          }
+        }}
+        type="submit"
+      >
+        {enCours ? "Réinitialisation…" : "Réinitialiser la 2FA"}
       </button>
       <MessageEtat etat={etat} />
     </form>

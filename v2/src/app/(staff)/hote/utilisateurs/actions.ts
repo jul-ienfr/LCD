@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { ErreurMetier } from "@/domain/erreurs";
 import { ChangerActifUtilisateur } from "@/application/use-cases/changer-actif-utilisateur";
 import { ChangerRoleUtilisateur } from "@/application/use-cases/changer-role-utilisateur";
 import { CreerUtilisateur } from "@/application/use-cases/creer-utilisateur";
+import { ReinitialiserDeuxFacteurs } from "@/application/use-cases/reinitialiser-deux-facteurs";
 import { ReinitialiserMotDePasse } from "@/application/use-cases/reinitialiser-mot-de-passe";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
@@ -212,4 +214,39 @@ export async function reinitialiserMotDePasseAction(
     logErreur("reinitialiserMotDePasseAction", error, { tenantId, id });
     return { ok: false, message: ERREUR_INATTENDUE };
   }
+}
+
+export async function reinitialiserDeuxFacteursAction(
+  _etat: EtatUtilisateur,
+  formData: FormData,
+): Promise<EtatUtilisateur> {
+  const session = await requireRole(["admin"]);
+  const tenantId = tenantIdDeSession(session);
+  const id = String(formData.get("userId") ?? "");
+
+  try {
+    const utilisateur = await new ReinitialiserDeuxFacteurs(
+      new DrizzleUserRepository(),
+    ).executer({ tenantId, id, acteurId: session.user.id });
+
+    await withTenant(tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId,
+        qui: session.user.email,
+        action: "utilisateur.2fa",
+        cible: utilisateur.id,
+        payload: {},
+      }),
+    );
+
+    revalidatePath("/hote/utilisateurs");
+  } catch (error) {
+    if (error instanceof ErreurMetier) {
+      return { ok: false, message: error.message };
+    }
+    logErreur("reinitialiserDeuxFacteursAction", error, { tenantId, id });
+    return { ok: false, message: ERREUR_INATTENDUE };
+  }
+
+  redirect("/hote/utilisateurs?deuxfacteurs=ok");
 }

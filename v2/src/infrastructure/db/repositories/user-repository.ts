@@ -1,4 +1,4 @@
-import { and, asc, count, eq } from "drizzle-orm";
+import { and, asc, count, eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import type { RoleUtilisateur } from "@/domain/utilisateur";
@@ -8,7 +8,7 @@ import type {
   UtilisateurTenant,
 } from "@/application/ports/user-repository";
 import { withTenant, db } from "../client";
-import { account, session } from "../auth-schema";
+import { account, session, twoFactor } from "../auth-schema";
 import { users } from "../schema";
 
 function versDomaine(row: typeof users.$inferSelect): UtilisateurTenant {
@@ -50,7 +50,19 @@ export class DrizzleUserRepository implements UserRepository {
         .from(users)
         .where(eq(users.tenantId, tenantId))
         .orderBy(asc(users.name));
-      return rows.map(versDomaine);
+      const ids = rows.map((row) => row.id);
+      const facteurs =
+        ids.length === 0
+          ? []
+          : await tx
+              .select({ userId: twoFactor.userId })
+              .from(twoFactor)
+              .where(inArray(twoFactor.userId, ids));
+      const actifs = new Set(facteurs.map((facteur) => facteur.userId));
+      return rows.map((row) => ({
+        ...versDomaine(row),
+        deuxFacteurs: actifs.has(row.id),
+      }));
     });
   }
 
@@ -191,6 +203,47 @@ export class DrizzleUserRepository implements UserRepository {
           ),
         );
       return Number(row?.nombre ?? 0);
+    });
+  }
+
+  async aDeuxFacteurs(tenantId: string, id: string): Promise<boolean> {
+    return withTenant(tenantId, async (tx) => {
+      const [utilisateur] = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.tenantId, tenantId), eq(users.id, id)))
+        .limit(1);
+      if (!utilisateur) return false;
+      const [facteur] = await tx
+        .select({ id: twoFactor.id })
+        .from(twoFactor)
+        .where(eq(twoFactor.userId, id))
+        .limit(1);
+      return Boolean(facteur);
+    });
+  }
+
+  async supprimerDeuxFacteurs(
+    tenantId: string,
+    id: string,
+  ): Promise<boolean> {
+    return withTenant(tenantId, async (tx) => {
+      const [utilisateur] = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.tenantId, tenantId), eq(users.id, id)))
+        .limit(1);
+      if (!utilisateur) return false;
+
+      const supprimes = await tx
+        .delete(twoFactor)
+        .where(eq(twoFactor.userId, id))
+        .returning({ id: twoFactor.id });
+      if (supprimes.length === 0) return false;
+
+      // Une 2FA retirée par un admin invalide aussi les sessions ouvertes.
+      await tx.delete(session).where(eq(session.userId, id));
+      return true;
     });
   }
 }

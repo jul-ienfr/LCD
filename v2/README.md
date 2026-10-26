@@ -523,6 +523,9 @@ après les premiers clients ou si le LCP mobile se dégrade.
 - Gestion des comptes sur `/hote/utilisateurs` (admin) : création, rôles,
   réinitialisation, désactivation ; un compte désactivé ne peut plus ouvrir
   de session.
+- Un admin peut **réinitialiser la 2FA** d’un autre compte (badge « 2FA
+  active ») : le secret TOTP et les codes de secours sont supprimés, les
+  sessions de la cible fermées et l’action auditée (`utilisateur.2fa`).
 - La connexion fait une **navigation complète** après sign-in (cookie de
   session appliqué par le serveur) ; le service worker ignore les requêtes
   RSC de Next.js.
