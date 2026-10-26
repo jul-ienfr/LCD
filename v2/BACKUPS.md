@@ -3,6 +3,9 @@
 ## Principe
 
 - dump PostgreSQL **logique** (`pg_dump`), compressé gzip, checksum SHA-256 ;
+- **chiffrement optionnel AES-256-GCM** avec `BACKUP_ENCRYPTION_KEY`
+  (clé base64 de 32 octets) : fichier `.sql.gz.enc`, checksum calculé sur le
+  fichier chiffré, déchiffrement après vérification du checksum ;
 - manifeste JSON à côté de chaque dump : comptes attendus (tenants, users,
   logements, réservations, factures, paiements, blocages, tables, migrations) ;
 - aucune donnée n'est envoyée à un fournisseur tiers : le dump est produit par
@@ -20,15 +23,30 @@ npm run db:backup
 npm run db:restore-test
 ```
 
-`db:backup` écrit `backups/lcd-AAAAMMJJ-HHMMSS.sql.gz` + `.sha256` + `.json`.
+`db:backup` écrit `backups/lcd-AAAAMMJJ-HHMMSS.sql.gz` + `.sha256` + `.json`
+(ou `.sql.gz.enc` si `BACKUP_ENCRYPTION_KEY` est défini).
 `db:restore-test` vérifie le checksum **avant** de décompresser, restaure la
 sauvegarde dans une base jetable `lcd_restore_*`, compare les comptes au
 manifeste (dont le nombre de tables et de migrations), puis supprime la base de
-test.
+test. Une sauvegarde chiffrée exige la même clé pour être restaurée.
+
+```powershell
+# Générer une clé (à conserver hors du dépôt et à sauvegarder séparément)
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+$env:BACKUP_ENCRYPTION_KEY="<clé base64>"
+npm run db:backup
+npm run db:restore-test
+```
+
+> Sans la clé, une sauvegarde chiffrée est **irrécupérable**. Stocker la clé
+> dans un coffre séparé (gestionnaire de secrets, coffre physique), jamais avec
+> les sauvegardes.
 
 Validé en local le 2026-10-26 : 1 tenant, 196 users, 1 260 logements,
 722 réservations, 54 tables, 56 migrations ; un fichier altéré est refusé avec
 `Checksum invalide`.
+Validé le même jour en chiffré : 1 tenant, 244 users, 1 532 logements,
+850 réservations, 54 tables, 57 migrations, `RESTAURATION VALIDÉE`.
 
 Variables utiles :
 
@@ -40,6 +58,7 @@ Variables utiles :
 | `BACKUP_DIR` | `backups` | dossier de sortie |
 | `BACKUP_RETENTION_DAYS` | `14` | rétention locale |
 | `BACKUP_FILE` | dernière sauvegarde | fichier à restaurer |
+| `BACKUP_ENCRYPTION_KEY` | vide | clé base64 32 octets, chiffre les nouveaux dumps |
 
 ## Production
 

@@ -4,10 +4,15 @@ import {
   existsSync,
   readFileSync,
   readdirSync,
+  statSync,
 } from "node:fs";
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { config } from "dotenv";
+import {
+  dechiffrerBackup,
+  estBackupChiffre,
+} from "./backup-crypto.mjs";
 import { comparerComptes, normaliserComptes } from "./backup-manifest.mjs";
 
 config({ path: ".env.local", quiet: true });
@@ -18,6 +23,7 @@ const url =
   "postgres://lcd:lcd@127.0.0.1:5432/lcd";
 const container = process.env.PG_CONTAINER ?? "v2-postgres-1";
 const dossier = process.env.BACKUP_DIR ?? "backups";
+const cleChiffrement = process.env.BACKUP_ENCRYPTION_KEY?.trim() || null;
 
 function executer(commande, args, options = {}) {
   const resultat = spawnSync(commande, args, {
@@ -41,11 +47,19 @@ if (!existsSync(dossier)) {
 }
 
 const fichiers = readdirSync(dossier)
-  .filter((fichier) => fichier.endsWith(".sql.gz"))
-  .sort();
+  .filter(
+    (fichier) =>
+      fichier.endsWith(".sql.gz") || fichier.endsWith(".sql.gz.enc"),
+  )
+  .map((fichier) => ({
+    fichier,
+    modifie: statSync(join(dossier, fichier)).mtimeMs,
+  }))
+  .sort((a, b) => a.modifie - b.modifie)
+  .map((entree) => entree.fichier);
 const dernier = process.env.BACKUP_FILE ?? fichiers.at(-1);
 if (!dernier) {
-  throw new Error("Aucune sauvegarde .sql.gz trouvée.");
+  throw new Error("Aucune sauvegarde .sql.gz ou .sql.gz.enc trouvée.");
 }
 
 const chemin = dernier.includes("/") || dernier.includes("\\")
@@ -67,7 +81,13 @@ if (manifeste?.sha256 && manifeste.sha256 !== empreinte) {
     `Checksum invalide pour ${chemin} : le fichier a été modifié ou corrompu.`,
   );
 }
-const contenu = gunzipSync(archive);
+const contenu = estBackupChiffre(archive)
+  ? dechiffrerBackup(archive, cleChiffrement ?? "")
+  : archive;
+if (estBackupChiffre(archive)) {
+  console.log("Sauvegarde chiffrée : AES-256-GCM vérifié.");
+}
+const decompresse = gunzipSync(contenu);
 const scratch = `lcd_restore_${Date.now()}`;
 
 console.log(`Restauration de ${chemin} dans ${scratch}…`);
@@ -97,7 +117,7 @@ try {
       "ON_ERROR_STOP=1",
       "-q",
     ],
-    { input: contenu },
+    { input: decompresse },
   );
 
   const requete = `

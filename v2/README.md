@@ -406,9 +406,11 @@ après les premiers clients ou si le LCP mobile se dégrade.
 ## Sauvegardes
 
 - `npm run db:backup` : dump gzip + checksum SHA-256 + manifeste JSON des
-  comptes, rétention 14 jours ;
+  comptes, rétention 14 jours ; chiffrement **AES-256-GCM optionnel** via
+  `BACKUP_ENCRYPTION_KEY` (clé base64 32 octets, fichier `.sql.gz.enc`) ;
 - `npm run db:restore-test` : checksum vérifié avant décompression, restauration
   dans une base jetable, comparaison au manifeste (dont tables et migrations) ;
+  une archive chiffrée exige la même clé ;
 - workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
   (artefact privé 30 jours) ; secret `MIGRATION_DATABASE_URL` (owner) à
   configurer ;
