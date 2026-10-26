@@ -158,10 +158,23 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
     const messages = await fetch(
       "http://127.0.0.1:8025/api/v1/messages?limit=20",
     ).then((reponse) => reponse.json() as Promise<{
-      messages: { Subject: string }[];
+      messages: { ID: string; Subject: string }[];
     }>);
+    const message = messages.messages.find((m) =>
+      m.Subject.includes(numeroAuto),
+    );
+    expect(message).toBeTruthy();
+    const detail = await fetch(
+      `http://127.0.0.1:8025/api/v1/message/${message?.ID}`,
+    ).then((reponse) =>
+      reponse.json() as Promise<{
+        Attachments?: { FileName?: string }[];
+      }>,
+    );
     expect(
-      messages.messages.some((message) => message.Subject.includes(numeroAuto)),
+      detail.Attachments?.some((piece) =>
+        piece.FileName?.includes(numeroAuto),
+      ),
     ).toBe(true);
   }
 

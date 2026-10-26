@@ -38,6 +38,11 @@ export function creerEmailSmtp(): EmailSender {
         text: message.text,
         html: message.html,
         replyTo: message.replyTo,
+        attachments: message.attachments?.map((piece) => ({
+          filename: piece.filename,
+          content: Buffer.from(piece.content),
+          contentType: piece.contentType,
+        })),
       });
     },
   };

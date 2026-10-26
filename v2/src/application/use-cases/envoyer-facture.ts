@@ -2,7 +2,7 @@ import { ErreurMetier } from "@/domain/erreurs";
 import type { Facture } from "@/domain/facture";
 import { formaterEuros } from "@/lib/format";
 import { creerTokenFacture } from "@/lib/facture-token";
-import type { EmailSender } from "../ports/email";
+import type { EmailAttachment, EmailSender } from "../ports/email";
 import type { FactureRepository } from "../ports/facture-repository";
 import type { TenantRepository } from "../ports/tenant-repository";
 
@@ -11,6 +11,7 @@ export interface EnvoyerFactureInput {
   factureId: string;
   baseUrl: string;
   email?: string | null;
+  pieceJointe?: EmailAttachment | null;
 }
 
 export interface ResultatEnvoiFacture {
@@ -86,6 +87,7 @@ export class EnvoyerFacture {
       to: destinataire,
       subject: `Facture ${facture.numero} — ${nomTenant}`,
       text: lignes.join("\n"),
+      attachments: input.pieceJointe ? [input.pieceJointe] : undefined,
     });
 
     return { destinataire, lien };

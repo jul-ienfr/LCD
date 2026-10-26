@@ -163,6 +163,8 @@ juridique + mandats, 320 px.
 - page publique sans compte, sans JavaScript, responsive 320 px ;
 - le lien n'est généré que pour une facture `emise` ou `payee` ;
 - envoi email depuis la fiche facture, avec adresse pré-remplie si connue ;
+- **PDF de la facture joint** à l’email (même document que `/api/factures/[id]/pdf`,
+  Factur-X inclus) et lien signé dans le corps ;
 - adapter SMTP (`nodemailer`) : Mailpit en dev (`smtp://127.0.0.1:1025`),
   Brevo/OVH/Scaleway en production via `SMTP_URL` + `EMAIL_FROM` ;
 - audit `facture.email` ;

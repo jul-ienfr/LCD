@@ -79,6 +79,31 @@ describe("EnvoyerFacture", () => {
     expect(message?.subject).toContain("FAC-2026-0200");
     expect(message?.text).toContain(formaterEuros(40_500));
     expect(message?.text).toContain(resultat.lien);
+    expect(message?.attachments).toBeUndefined();
+  });
+
+  it("joint le PDF de la facture quand il est fourni", async () => {
+    const { factures, facture, tenants, email } = await contexte({
+      clientEmail: "client@example.com",
+    });
+    const contenu = new Uint8Array([37, 80, 68, 70]);
+
+    await new EnvoyerFacture(factures, tenants, email).executer({
+      tenantId,
+      factureId: facture.id,
+      baseUrl: "https://lcd.test",
+      pieceJointe: {
+        filename: "FAC-2026-0200.pdf",
+        content: contenu,
+        contentType: "application/pdf",
+      },
+    });
+
+    expect(email.messages[0]?.attachments).toHaveLength(1);
+    expect(email.messages[0]?.attachments?.[0]?.filename).toBe(
+      "FAC-2026-0200.pdf",
+    );
+    expect(email.messages[0]?.attachments?.[0]?.content).toBe(contenu);
   });
 
   it("accepte une adresse fournie au moment de l'envoi", async () => {
