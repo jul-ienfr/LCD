@@ -44,6 +44,7 @@ export const VOYAGEUR_ASSISTANT_MAX = 80;
 export const MOTS_BROUILLON_MAX = 80;
 export const QUOTA_ASSISTANT_MENSUEL = 100;
 export const BUDGET_ASSISTANT_MENSUEL_CENTIMES = 1_000;
+export const QUOTA_ASSISTANT_HEURE = 20;
 
 export const MODELES: Record<NiveauModele, string> = {
   local: "local-léger",
@@ -189,6 +190,19 @@ export function budgetAssistantAutorise(
     return {
       autorise: false,
       raison: `Budget mensuel de ${(BUDGET_ASSISTANT_MENSUEL_CENTIMES / 100).toFixed(2).replace(".", ",")} € atteint.`,
+    };
+  }
+  return { autorise: true, raison: "" };
+}
+
+export function quotaHoraireAutorise(nombreDerniereHeure: number): {
+  autorise: boolean;
+  raison: string;
+} {
+  if (nombreDerniereHeure >= QUOTA_ASSISTANT_HEURE) {
+    return {
+      autorise: false,
+      raison: `Trop d’enregistrements en une heure (${QUOTA_ASSISTANT_HEURE} max). Réessayez plus tard.`,
     };
   }
   return { autorise: true, raison: "" };

@@ -49,4 +49,19 @@ export class DrizzleConsommationsAssistantRepository
       };
     });
   }
+
+  async compterDepuis(tenantId: string, depuis: Date): Promise<number> {
+    return withTenant(tenantId, async (tx) => {
+      const [row] = await tx
+        .select({ nombre: count() })
+        .from(assistantConsommations)
+        .where(
+          and(
+            eq(assistantConsommations.tenantId, tenantId),
+            gte(assistantConsommations.createdAt, depuis),
+          ),
+        );
+      return Number(row?.nombre ?? 0);
+    });
+  }
 }

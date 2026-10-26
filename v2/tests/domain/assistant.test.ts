@@ -5,6 +5,7 @@ import {
   compterMots,
   construireInvite,
   debutMois,
+  quotaHoraireAutorise,
   QUOTA_ASSISTANT_MENSUEL,
   refBrouillon,
   routerModele,
@@ -141,5 +142,14 @@ describe("domaine assistant", () => {
     const maintenant = new Date("2026-10-25T12:00:00.000Z");
     expect(debutMois(maintenant).getDate()).toBe(1);
     expect(debutMois(maintenant).getMonth()).toBe(9);
+  });
+
+  it("limite les enregistrements par heure", () => {
+    expect(quotaHoraireAutorise(19)).toEqual({ autorise: true, raison: "" });
+    expect(quotaHoraireAutorise(20)).toEqual({
+      autorise: false,
+      raison:
+        "Trop d’enregistrements en une heure (20 max). Réessayez plus tard.",
+    });
   });
 });

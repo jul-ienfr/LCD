@@ -9,6 +9,7 @@ export class ConsommationsAssistantRepositoryMemoire
 {
   items: EnregistrerConsommationData[] = [];
   force: ConsommationMois | null = null;
+  recentes = 0;
 
   async enregistrer(data: EnregistrerConsommationData): Promise<void> {
     if (this.items.some((item) => item.messageId === data.messageId)) return;
@@ -24,5 +25,9 @@ export class ConsommationsAssistantRepositoryMemoire
         0,
       ),
     };
+  }
+
+  async compterDepuis(): Promise<number> {
+    return this.recentes;
   }
 }

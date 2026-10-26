@@ -19,4 +19,5 @@ export interface EnregistrerConsommationData {
 export interface ConsommationsAssistantRepository {
   enregistrer(data: EnregistrerConsommationData): Promise<void>;
   totalMois(tenantId: string, depuis: Date): Promise<ConsommationMois>;
+  compterDepuis(tenantId: string, depuis: Date): Promise<number>;
 }

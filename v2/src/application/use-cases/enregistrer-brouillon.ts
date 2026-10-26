@@ -2,6 +2,7 @@ import {
   budgetAssistantAutorise,
   debutMois,
   intentionValide,
+  quotaHoraireAutorise,
   refBrouillon,
   routerModele,
   tonValide,
@@ -74,6 +75,14 @@ export class EnregistrerBrouillonAssistant {
     if (existant) return existant;
 
     const routage = routerModele(intention, ton);
+    const recentes = await this.consommations.compterDepuis(
+      input.tenantId,
+      new Date(Date.now() - 60 * 60 * 1_000),
+    );
+    const horaire = quotaHoraireAutorise(recentes);
+    if (!horaire.autorise) {
+      throw new ErreurMetier("ASSISTANT_QUOTA", horaire.raison);
+    }
     const consomme = await this.consommations.totalMois(
       input.tenantId,
       debutMois(),

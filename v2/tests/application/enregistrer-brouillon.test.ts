@@ -73,6 +73,15 @@ describe("cas d'usage enregistrement d’un brouillon assistant", () => {
     expect(consommations.items).toHaveLength(2);
   });
 
+  it("rejette un enregistrement au-delà du quota horaire", async () => {
+    const { logement, messages, consommations, cas } = await preparer();
+    consommations.recentes = 20;
+    await expect(
+      cas.executer({ ...base, logementId: logement.id }),
+    ).rejects.toMatchObject({ code: "ASSISTANT_QUOTA" });
+    expect(messages.items).toHaveLength(0);
+  });
+
   it("rejette un enregistrement au-delà du quota mensuel", async () => {
     const { logement, messages, consommations, cas } = await preparer();
     consommations.force = { nombre: 100, coutCentimes: 0 };
