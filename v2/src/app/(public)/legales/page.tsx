@@ -122,6 +122,33 @@ export default async function PageLegales({
           reste soumise à la disponibilité réelle du logement et aux conditions
           du séjour.
         </p>
+        <p className="text-sm text-encre-douce">
+          Forfaits indicatifs par logement et par mois : <strong>Kit 149 €</strong>{" "}
+          (plancher), <strong>Pilotage 190 €</strong>,{" "}
+          <strong>Full service 290 €</strong>, hors extras facturés au réel. La
+          commission de conciergerie est déduite avant reversement au
+          propriétaire ; aucun cumul de commissions plateforme n’est appliqué.
+          Les relevés de l’espace propriétaire sont indicatifs : le
+          rapprochement comptable et sa validation restent du ressort de
+          l’expert-comptable.
+        </p>
+      </section>
+
+      <section className="space-y-3 rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
+        <h2 className="text-xl font-semibold">Médiation de la consommation</h2>
+        <p className="text-sm text-encre-douce">
+          En cas de litige non résolu par une réclamation écrite préalable,
+          le consommateur peut recourir gratuitement à un médiateur de la
+          consommation. Les coordonnées du médiateur désigné par l’éditeur
+          seront affichées dans cette section dès sa désignation ; à défaut,
+          le consommateur peut saisir le médiateur compétent pour le secteur
+          du tourisme ou, en dernier recours, les tribunaux compétents.
+        </p>
+        <p className="text-sm text-encre-douce">
+          Cette page ne constitue ni un mandat ni une acceptation des
+          conditions générales : les CGV complètes sont remises et signées
+          avec le contrat écrit.
+        </p>
       </section>
 
       <section className="space-y-3 rounded-2xl border border-bordure bg-surface p-6 shadow-sm">

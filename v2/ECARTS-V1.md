@@ -15,7 +15,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | `/aide` (rôles, écrans, limites) | Fait | `/aide`, sans JS. |
 | `/legales` (LCEN, mandat, RGPD, SIREN réel) | Fait | `/legales`, lit `tenants` ; « à compléter » si absent. |
 | Bandeau cookies (refus = zéro traceur) | Absent | Aucun traceur public aujourd’hui. |
-| Médiation conso + lien ODR sur factures/site | Absent | À ajouter aux mentions de facture. |
+| Médiation conso + lien ODR sur factures/site | Partiel | Section médiation sur `/legales` ; coordonnées du médiateur à désigner, mention facture absente. |
 
 ## Auth, rôles, sécurité
 
