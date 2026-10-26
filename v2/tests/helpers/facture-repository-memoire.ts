@@ -49,6 +49,19 @@ export class FactureRepositoryMemoire implements FactureRepository {
     );
   }
 
+  async listerAEcheance(
+    tenantId: string,
+    jour: string,
+  ): Promise<Facture[]> {
+    return this.rows.filter(
+      (f) =>
+        f.tenantId === tenantId &&
+        f.statut === "emise" &&
+        f.echeance !== null &&
+        f.echeance < jour,
+    );
+  }
+
   async trouver(tenantId: string, id: string): Promise<Facture | null> {
     return (
       this.rows.find((f) => f.tenantId === tenantId && f.id === id) ?? null

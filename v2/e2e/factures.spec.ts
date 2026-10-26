@@ -242,3 +242,53 @@ test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   expect(csvReservations.status()).toBe(200);
   expect(csvReservations.headers()["content-type"]).toContain("text/csv");
 });
+
+test("relances groupées : facture échue relancée une seule fois par jour", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  const suffix = Date.now();
+  const numero = `FAC-ECHUE-${suffix}`;
+  const email = `echeance-${suffix}@example.com`;
+
+  await connexion(page);
+  await page.goto("/hote/factures?mois=2026-09");
+  await page.fill('input[name="numero"]', numero);
+  await page.fill('input[name="clientNom"]', "Client Échu E2E");
+  await page.fill('input[name="clientEmail"]', email);
+  await page.fill('input[name="dateEmission"]', "2026-09-01");
+  await page.fill('input[name="echeance"]', "2026-09-30");
+  await page.fill('input[name="designation"]', "Séjour échu");
+  await page.fill('input[name="quantite"]', "1");
+  await page.fill('input[name="prixUnitaireEuros"]', "120");
+  await page.getByRole("button", { name: "Créer la facture" }).click();
+  await expect(page.getByText(numero).first()).toBeVisible();
+  await page.getByRole("button", { name: "Marquer émise" }).click();
+  await expect(page.getByText("emise").first()).toBeVisible();
+
+  await page.goto("/hote/factures");
+  await expect(
+    page.getByText(/facture.*échue.*restent? à relancer/),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Relancer les factures échues" })
+    .click();
+  await expect(
+    page.getByText(/1 relance\(s\) envoyée\(s\)/),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const messages = await fetch(
+    "http://127.0.0.1:8025/api/v1/messages?limit=100",
+  ).then((reponse) =>
+    reponse.json() as Promise<{
+      messages?: { Subject?: string; To?: { Address?: string }[] }[];
+    }>,
+  );
+  expect(
+    messages.messages?.some(
+      (message) =>
+        message.To?.some((to) => to.Address === email) &&
+        message.Subject?.includes(`Relance facture ${numero}`),
+    ),
+  ).toBe(true);
+});

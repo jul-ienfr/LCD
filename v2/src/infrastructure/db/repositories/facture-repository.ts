@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, lt, lte } from "drizzle-orm";
 import type {
   CreerFactureData,
   FactureRepository,
@@ -104,6 +104,50 @@ export class DrizzleFactureRepository implements FactureRepository {
           ),
         )
         .orderBy(desc(factures.dateEmission), desc(factures.createdAt));
+
+      if (rows.length === 0) return [];
+
+      const lignesRows = await tx
+        .select()
+        .from(factureLignes)
+        .where(
+          inArray(
+            factureLignes.factureId,
+            rows.map((row) => row.id),
+          ),
+        )
+        .orderBy(asc(factureLignes.ordre));
+
+      const parFacture = new Map<string, FactureLigne[]>();
+      for (const ligne of lignesRows) {
+        const liste = parFacture.get(ligne.factureId) ?? [];
+        liste.push(versLigne(ligne));
+        parFacture.set(ligne.factureId, liste);
+      }
+
+      return rows.map((row) =>
+        versDomaine(row, parFacture.get(row.id) ?? []),
+      );
+    });
+  }
+
+  async listerAEcheance(
+    tenantId: string,
+    jour: string,
+  ): Promise<Facture[]> {
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(factures)
+        .where(
+          and(
+            eq(factures.tenantId, tenantId),
+            eq(factures.statut, "emise"),
+            isNotNull(factures.echeance),
+            lt(factures.echeance, jour),
+          ),
+        )
+        .orderBy(asc(factures.echeance));
 
       if (rows.length === 0) return [];
 

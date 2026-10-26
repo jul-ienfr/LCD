@@ -25,6 +25,7 @@ export interface FactureRepository {
     debut: string,
     fin: string,
   ): Promise<Facture[]>;
+  listerAEcheance(tenantId: string, jour: string): Promise<Facture[]>;
   trouver(tenantId: string, id: string): Promise<Facture | null>;
   changerStatut(
     tenantId: string,

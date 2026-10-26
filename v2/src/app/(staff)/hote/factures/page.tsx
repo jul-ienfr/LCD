@@ -13,10 +13,13 @@ import { ObtenirParametresFiscaux } from "@/application/use-cases/parametres-fis
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
+import { DrizzleRelanceFactureRepository } from "@/infrastructure/db/repositories/relance-facture-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
+import { jourParis } from "@/lib/date-paris";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import { FormulaireFacture } from "./formulaire";
+import { FormulaireRelances } from "./relances";
 
 export const instant = false;
 
@@ -67,13 +70,27 @@ export default async function PageFactures({
     dernier,
   );
 
-  const aujourdHui = new Date().toISOString().slice(0, 10);
+  const aujourdHui = jourParis();
   const dateDefaut =
     mois === aujourdHui.slice(0, 7) ? aujourdHui : premier;
   const annee = Number(mois.slice(0, 4));
   const fiscal = await new ObtenirParametresFiscaux(
     new DrizzleParametresFiscauxRepository(),
   ).executer(tenantId);
+
+  const [facturesEchues, relanceesJour] = await Promise.all([
+    new DrizzleFactureRepository().listerAEcheance(tenantId, aujourdHui),
+    new DrizzleRelanceFactureRepository().listerFactureIds(
+      tenantId,
+      aujourdHui,
+    ),
+  ]);
+  const relancees = new Set(relanceesJour);
+  const aRelancer = facturesEchues.filter(
+    (facture) =>
+      !relancees.has(facture.id) &&
+      Boolean(facture.clientEmail?.trim()),
+  ).length;
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
@@ -133,6 +150,8 @@ export default async function PageFactures({
           Compta
         </Link>
       </div>
+
+      <FormulaireRelances nombre={aRelancer} />
 
       <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Créer une facture</h2>

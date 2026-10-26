@@ -804,6 +804,32 @@ export const factureLignes = pgTable(
   ],
 );
 
+export const relancesFactures = pgTable(
+  "relances_factures",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    factureId: uuid("facture_id")
+      .notNull()
+      .references(() => factures.id, { onDelete: "cascade" }),
+    jour: date("jour", { mode: "string" }).notNull(),
+    destinataire: text("destinataire").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("relances_factures_tenant_facture_jour_uq").on(
+      t.tenantId,
+      t.factureId,
+      t.jour,
+    ),
+    index("relances_factures_tenant_jour_idx").on(t.tenantId, t.jour),
+  ],
+);
+
 export const paiements = pgTable(
   "paiements",
   {

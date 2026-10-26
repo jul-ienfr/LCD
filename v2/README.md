@@ -166,11 +166,15 @@ juridique + mandats, 320 px.
 - **relance** d’une facture émise non soldée depuis la même fiche : objet
   `Relance facture <numéro>`, rappel de l’échéance et lien de paiement, audit
   `facture.relance` ; le bouton disparaît dès que la facture est soldée ;
+- **relances groupées** depuis `/hote/factures` : toutes les factures émises
+  dont l’échéance est dépassée et dont le solde reste dû, avec un seul email par
+  facture et par jour (table `relances_factures`, contrainte unique
+  tenant/facture/jour, RLS), audit `facture.relances` ;
 - **PDF de la facture joint** à l’email (même document que `/api/factures/[id]/pdf`,
   Factur-X inclus) et lien signé dans le corps ;
 - adapter SMTP (`nodemailer`) : Mailpit en dev (`smtp://127.0.0.1:1025`),
   Brevo/OVH/Scaleway en production via `SMTP_URL` + `EMAIL_FROM` ;
-- audit `facture.email` / `facture.relance` ;
+- audit `facture.email` / `facture.relance` / `facture.relances` ;
 - la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
 
 ## Paiements en ligne Stripe
@@ -559,7 +563,7 @@ src/
 tests/
   domain/           # tests purs
   application/      # tests avec dépôts mémoire
-  migrations/       # script base vide → 57 migrations → contrôles RLS
+  migrations/       # script base vide → 58 migrations → contrôles RLS
   e2e/              # Playwright (JS on/off, 320 px, offline)
 ```
 

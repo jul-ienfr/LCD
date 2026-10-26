@@ -214,10 +214,10 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **455/455**.
-- Migrations depuis zéro : `npm run db:test-migrations` → 57 migrations,
-  54 tables, 47 tables RLS, 47 policies, base vide, rôle `lcd_app` autorisé.
-- Playwright : **46/46** sur `next build` + `next start`, y compris une passe
+- Vitest : **461/461**.
+- Migrations depuis zéro : `npm run db:test-migrations` → 58 migrations,
+  55 tables, 48 tables RLS, 48 policies, base vide, rôle `lcd_app` autorisé.
+- Playwright : **47/47** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
   pile compose VPS avec PostgreSQL 18, RLS, seed admin/presta/proprio/
