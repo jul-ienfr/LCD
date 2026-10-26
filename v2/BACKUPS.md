@@ -85,9 +85,10 @@ cd /opt/lcd/v2
 
 Le script utilise `docker compose exec postgres pg_dump`, écrit dans
 `backups/` avec checksum SHA-256 et applique une rétention de 14 jours.
-Ce script **n’applique pas** le chiffrement AES-256-GCM : garder les fichiers
-hors site dans un stockage chiffré, ou utiliser `npm run db:backup` avec
-`BACKUP_ENCRYPTION_KEY`.
+Si `BACKUP_ENCRYPTION_KEY` est défini (dans `.env.prod` ou l’environnement),
+il chiffre ensuite l’archive avec le conteneur `tools`
+(`.sql.gz.enc`), supprime le dump clair et recalcule le checksum.
+Sans clé, il reste compatible et produit un `.sql.gz` non chiffré.
 Cron quotidien :
 
 ```cron
@@ -114,6 +115,7 @@ rétention) et publie un artefact privé de 30 jours.
 5. télécharger l'artefact, puis `BACKUP_FILE=... npm run db:restore-test`
    (avec `BACKUP_ENCRYPTION_KEY` si chiffré).
 
-> Le chiffrement n’est pas appliqué aux scripts `backup-vps.sh` et au cron VPS
-> historique : pour le VPS, copier le dossier chiffré hors site ou migrer vers
-> `npm run db:backup` avec la clé.
+> Le workflow GitHub est chiffré si le secret `BACKUP_ENCRYPTION_KEY` est créé.
+> Le cron VPS historique est chiffré si la clé est présente dans `.env.prod`
+> (voir `DEPLOIEMENT-VPS.md`). Dans les deux cas, conserver la clé hors du
+> serveur et hors du dépôt.

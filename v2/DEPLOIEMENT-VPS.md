@@ -125,19 +125,42 @@ Cron quotidien (03:15) :
 Les dumps vont dans `v2/backups/`, rétention 14 jours, checksum SHA-256.
 Copier régulièrement ce dossier hors du VPS (rsync, R2, autre serveur).
 
-Restauration de contrôle :
+### Chiffrement des sauvegardes VPS
+
+Ajouter dans `.env.prod` une clé base64 de 32 octets (à conserver aussi dans un
+coffre séparé, sans elle les archives sont irrécupérables) :
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# .env.prod : BACKUP_ENCRYPTION_KEY=<clé>
+```
+
+`backup-vps.sh` lit la clé dans `.env.prod` (ou l'environnement), produit
+`lcd-....sql.gz.enc`, supprime le dump en clair et écrit le checksum de
+l'archive chiffrée. Sans clé, le script reste compatible et produit un
+`.sql.gz` non chiffré.
+
+Restauration de contrôle (archive chiffrée) :
 
 ```bash
 docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
   sh -c 'createdb -U "$POSTGRES_USER" lcd_restore_test'
-gunzip -c backups/lcd-AAAA.sql.gz | \
-  docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
+docker compose --env-file .env.prod -f compose.prod.yml --profile tools \
+  run --rm --no-deps -T \
+  -v "$PWD/backups:/backups" tools \
+  node scripts/dechiffrer-fichier.mjs /backups/lcd-AAAA.sql.gz.enc \
+  | gunzip -c \
+  | docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
   sh -c 'psql -U "$POSTGRES_USER" -d lcd_restore_test -v ON_ERROR_STOP=1'
 docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
   sh -c 'psql -U "$POSTGRES_USER" -d lcd_restore_test -c "select count(*) from tenants;"'
 docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
   sh -c 'dropdb -U "$POSTGRES_USER" lcd_restore_test'
 ```
+
+Pour une archive non chiffrée, utiliser directement
+`gunzip -c backups/lcd-AAAA.sql.gz | ...`. Vérifier le SHA-256 avant toute
+restauration.
 
 ## 8. Mise à jour
 
