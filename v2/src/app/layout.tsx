@@ -1,22 +1,38 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
+import { connection } from "next/server";
+import { LireIdentiteSite } from "@/application/use-cases/identite-site";
+import { DrizzleParametresSiteRepository } from "@/infrastructure/db/repositories/parametres-site-repository";
+import { marque } from "@/lib/branding";
 import "./globals.css";
 import { DesignSite } from "./design-site";
 import { PwaRegister } from "./pwa-register";
-import { marque, marqueCourte } from "@/lib/branding";
 
-export const metadata: Metadata = {
-  title: marque(),
-  description:
-    "Conciergerie locative saisonnière : hôte, voyageur, propriétaire, prestataire.",
-  applicationName: marque(),
-  appleWebApp: {
-    capable: true,
-    title: marqueCourte(),
-    statusBarStyle: "default",
-  },
-  formatDetection: { telephone: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  await connection();
+  let nom = marque();
+  try {
+    nom = (
+      await new LireIdentiteSite(
+        new DrizzleParametresSiteRepository(),
+      ).executer()
+    ).nom;
+  } catch {
+    nom = marque();
+  }
+  return {
+    title: nom,
+    description:
+      "Conciergerie locative saisonnière : hôte, voyageur, propriétaire, prestataire.",
+    applicationName: nom,
+    appleWebApp: {
+      capable: true,
+      title: nom,
+      statusBarStyle: "default",
+    },
+    formatDetection: { telephone: false },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",

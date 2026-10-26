@@ -80,6 +80,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Caution : réception, restitution, retenue motivée.
 - [ ] Design : bascule des 4 thèmes, persistance après reconnexion, rendu
   mobile et contraste réel sur écran.
+- [ ] Identité : nom, logo, accent et contacts visibles sur `/`, `/login`,
+  `/legales` et le manifeste ; accent trop clair refusé ; retour au repli env.
 - [ ] Stocks : rotation de ménage, seuils, liste de courses, réassort,
   historique des mouvements.
 - [ ] Inventaire : QR imprimé scanné sur place, usage + lavage, état,

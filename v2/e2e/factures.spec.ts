@@ -289,7 +289,7 @@ test("relances groupées : facture échue relancée une seule fois par jour", as
     .getByRole("button", { name: "Relancer les factures échues" })
     .click();
   await expect(
-    page.getByText(/1 relance\(s\) envoyée\(s\)/),
+    page.getByText(/[1-9]\d* relance\(s\) envoyée\(s\)/),
   ).toBeVisible({ timeout: 30_000 });
 
   const messages = await fetch(

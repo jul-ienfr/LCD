@@ -110,7 +110,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | PWA + offline + outbox | Fait | `/voyageur`, `/presta`, SW. |
 | Mode léger L1 (`/api/lite`) | Absent | Cookie + CSS allégé non portés. |
 | i18n 5 langues | Partiel | Voyageur 5 langues ; staff FR. |
-| Marque blanche runtime | Partiel | Nom/titre/manifeste/pied via `MARQUE` ; logo et couleurs non pilotés. |
+| Marque blanche runtime | Fait | `/hote/design` : nom, logo, accent contrôlé (contraste 4,5:1 clair/sombre), contacts publics ; repli env `MARQUE` ; appliqué à la vitrine, la connexion, les mentions légales et le manifeste. |
 | RGPD : registre, export, purge | Fait | `/hote/rgpd`, cron mémoire. |
 | Audit 90 j | Fait | `/hote/audit`. |
 | Recherche globale par `ref` | Absent | — |
@@ -121,6 +121,5 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 ## Prochaines priorités proposées
 
 1. 2FA obligatoire pour admin/comptable + CAPTCHA login.
-2. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
-3. Bandeau cookies et médiation conso.
-4. Mode léger L1 (recherche globale `ref` faite).
+2. Bandeau cookies et médiation conso.
+3. Mode léger L1 (recherche globale `ref` faite).

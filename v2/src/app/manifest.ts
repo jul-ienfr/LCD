@@ -1,13 +1,18 @@
 import type { MetadataRoute } from "next";
 import { connection } from "next/server";
-import { marque, marqueCourte } from "@/lib/branding";
+import { LireIdentiteSite } from "@/application/use-cases/identite-site";
+import { DrizzleParametresSiteRepository } from "@/infrastructure/db/repositories/parametres-site-repository";
+import { marqueCourte } from "@/lib/branding";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   await connection();
+  const identite = await new LireIdentiteSite(
+    new DrizzleParametresSiteRepository(),
+  ).executer();
   return {
     id: "/",
-    name: `${marque()} — conciergerie`,
-    short_name: marqueCourte(),
+    name: `${identite.nom} — conciergerie`,
+    short_name: identite.nom.slice(0, 12) || marqueCourte(),
     description:
       "Conciergerie locative saisonnière : hôte, voyageur, propriétaire, prestataire.",
     lang: "fr",
@@ -16,9 +21,12 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     display: "standalone",
     orientation: "portrait",
     background_color: "#fafaf9",
-    theme_color: "#1c1917",
+    theme_color: identite.accent ?? "#1c1917",
     categories: ["travel", "business", "productivity"],
     icons: [
+      ...(identite.logoUrl
+        ? [{ src: identite.logoUrl, sizes: "any" }]
+        : []),
       {
         src: "/icons/icon-192.png",
         sizes: "192x192",

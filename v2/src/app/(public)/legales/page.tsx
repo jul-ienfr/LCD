@@ -6,6 +6,8 @@ import {
   LIBELLES_REGIME,
   LIBELLES_TVA,
 } from "@/domain/entite";
+import { LireIdentiteSite } from "@/application/use-cases/identite-site";
+import { DrizzleParametresSiteRepository } from "@/infrastructure/db/repositories/parametres-site-repository";
 import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
 
 export const instant = false;
@@ -27,6 +29,13 @@ export default async function PageLegales({
   const slug = params.tenant?.trim() || "lcd";
   const tenant = await new DrizzleTenantRepository().trouverParSlug(slug);
   const editeur = tenant && tenant.statut === "actif" ? tenant : null;
+  const identite = await new LireIdentiteSite(
+    new DrizzleParametresSiteRepository(),
+  ).executer();
+  const contactPublic =
+    identite.emailContact ||
+    identite.telephoneContact ||
+    identite.adresseContact;
   const sirenManquant = !editeur?.siren;
   const adresseManquante = !editeur?.adresse;
 
@@ -85,6 +94,32 @@ export default async function PageLegales({
                   {editeur.adresse ?? "À compléter"}
                 </dd>
               </div>
+              {contactPublic ? (
+                <div className="sm:col-span-2">
+                  <dt className="text-encre-faine">Contact</dt>
+                  <dd className="flex flex-wrap gap-x-4 gap-y-1">
+                    {identite.emailContact ? (
+                      <a
+                        className="underline"
+                        href={`mailto:${identite.emailContact}`}
+                      >
+                        {identite.emailContact}
+                      </a>
+                    ) : null}
+                    {identite.telephoneContact ? (
+                      <a
+                        className="underline"
+                        href={`tel:${identite.telephoneContact.replace(/[^+0-9]/gu, "")}`}
+                      >
+                        {identite.telephoneContact}
+                      </a>
+                    ) : null}
+                    {identite.adresseContact ? (
+                      <span>{identite.adresseContact}</span>
+                    ) : null}
+                  </dd>
+                </div>
+              ) : null}
             </dl>
             {(sirenManquant || adresseManquante) && (
               <p className="rounded-xl border border-bordure bg-fond px-4 py-3 text-sm text-encre-douce">

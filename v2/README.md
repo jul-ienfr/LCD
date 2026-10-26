@@ -194,12 +194,18 @@ revalidées, jamais republiées automatiquement.
 
 ## Marque blanche
 
-La vitrine (`/`), le titre de l’application, le manifeste PWA et le pied de
-page lisent `MARQUE` (repli `LCD_MARQUE`, puis « LCD Parc »), `MARQUE_COURTE`
-et `MARQUE_SLUG` dans `src/lib/branding.ts`. Changer ces variables puis
-redémarrer le serveur re-thème sans rebuild ; les identifiants internes
-(cookies, refs, en-têtes) ne changent jamais. Les factures, contrats et pages
-légales continuent de lire le nom du tenant en base.
+`/hote/design` (admin) pilote l’identité de marque stockée dans
+`parametres_site` (clé `identite`) : nom affiché, logo (URL `http(s)://` ou
+chemin `/…`), couleur d’accent et contacts publics (e-mail, téléphone,
+adresse). L’accent est refusé si son contraste n’atteint pas 4,5:1 en clair et
+en sombre ; les variantes `accent-fonce` et `accent-douce` sont dérivées.
+
+L’identité s’applique à la vitrine (`/`), à la connexion, aux mentions légales,
+au titre global et au manifeste PWA. Les variables `MARQUE`, `MARQUE_COURTE` et
+`MARQUE_SLUG` restent le repli d’environnement quand le nom est vide. Les
+identifiants internes (cookies, refs, en-têtes) ne changent jamais ; les
+factures, contrats et pages légales continuent de lire l’entité juridique du
+tenant en base.
 
 ## Partage client et email
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
+import { LireIdentiteSite } from "@/application/use-cases/identite-site";
+import { DrizzleParametresSiteRepository } from "@/infrastructure/db/repositories/parametres-site-repository";
 import { marque } from "@/lib/branding";
 
 export const instant = false;
@@ -96,12 +98,27 @@ const FORFAITS = [
 
 export default async function PagePublique() {
   await connection();
-  const nomMarque = marque();
+  const identite = await new LireIdentiteSite(
+    new DrizzleParametresSiteRepository(),
+  ).executer();
+  const nomMarque = identite.nom;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-6xl flex-col gap-10 px-6 py-10">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <Link className="text-lg font-black tracking-tight" href="/">
+        <Link
+          className="flex items-center gap-2 text-lg font-black tracking-tight"
+          href="/"
+        >
+          {identite.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              alt=""
+              className="h-8 w-auto"
+              height={32}
+              src={identite.logoUrl}
+            />
+          ) : null}
           {nomMarque}
         </Link>
         <nav
@@ -285,6 +302,31 @@ export default async function PagePublique() {
 
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-bordure pt-4 text-sm text-encre-faine">
         <p>{nomMarque} · Architecture HTML-first, JS islands, PostgreSQL.</p>
+        {identite.emailContact ||
+        identite.telephoneContact ||
+        identite.adresseContact ? (
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {identite.emailContact ? (
+              <a
+                className="underline"
+                href={`mailto:${identite.emailContact}`}
+              >
+                {identite.emailContact}
+              </a>
+            ) : null}
+            {identite.telephoneContact ? (
+              <a
+                className="underline"
+                href={`tel:${identite.telephoneContact.replace(/[^+0-9]/gu, "")}`}
+              >
+                {identite.telephoneContact}
+              </a>
+            ) : null}
+            {identite.adresseContact ? (
+              <span>{identite.adresseContact}</span>
+            ) : null}
+          </p>
+        ) : null}
         <nav className="flex flex-wrap gap-4" aria-label="Informations">
           <Link className="underline" href="/aide">
             Aide

@@ -14,10 +14,17 @@ import {
 import * as schema from "@/infrastructure/db/schema";
 import { creerEmailSmtp } from "@/infrastructure/adapters/email-smtp";
 import { env } from "@/lib/env";
+import { marque } from "@/lib/branding";
 import { logErreur } from "@/lib/logger";
 
+// La batterie E2E se connecte des dizaines de fois depuis la même IP locale.
+// En production, le plafond anti-brute-force reste à 100/min/IP.
+const limiteConnexion = /localhost|127\.0\.0\.1/u.test(env.BETTER_AUTH_URL)
+  ? 1_000
+  : 100;
+
 export const auth = betterAuth({
-  appName: "LCD Parc",
+  appName: marque(),
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [
@@ -131,10 +138,10 @@ export const auth = betterAuth({
     max: 500,
     // La règle par défaut /sign-in/email est 3/10 s, trop stricte pour une
     // équipe qui se reconnecte et pour les batteries E2E. On garde un plafond
-    // réel (100/min/IP) ; l'edge Caddy/Netlify peut durcir.
+    // réel (100/min/IP en production) ; l'edge Caddy/Netlify peut durcir.
     customRules: {
-      "/sign-in/email": { window: 60, max: 100 },
-      "/two-factor/*": { window: 60, max: 100 },
+      "/sign-in/email": { window: 60, max: limiteConnexion },
+      "/two-factor/*": { window: 60, max: limiteConnexion },
       "/request-password-reset": { window: 60, max: 5 },
       "/reset-password": { window: 60, max: 10 },
     },
