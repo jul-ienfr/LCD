@@ -38,13 +38,22 @@ export async function GET() {
             and table_name = 'logement_proprietaires'
             and column_name = 'mode'
         ) as "mandatMode",
-        (
-          select count(*)::int
-          from drizzle.__drizzle_migrations
-        ) as "migrations"
+        to_regclass('drizzle.__drizzle_migrations')::text as "migrationsTable"
     `;
 
-    const manquants = manquantsSchema(etat, journal.entries.length);
+    let migrations = 0;
+    if (etat?.migrationsTable) {
+      const [compte] = await sql<{ nombre: number }[]>`
+        select count(*)::int as nombre
+        from drizzle.__drizzle_migrations
+      `;
+      migrations = Number(compte?.nombre ?? 0);
+    }
+
+    const manquants = manquantsSchema(
+      { ...etat, migrations },
+      journal.entries.length,
+    );
 
     if (manquants.length > 0) {
       return Response.json(

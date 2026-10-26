@@ -18,6 +18,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] `/api/ready` bien **503 `schema: pending`** si une migration manque
   (test à faire sur une base de staging vide ou incomplète) ; le compteur
   `migrations` est comparé au journal Drizzle.
+  Validé en local le 2026-10-26 sur base vide : 503 `db: up`, sept entrées
+  `manquants` dont `migrations.56`.
 - [ ] `/api/ready` → `200` avec toutes les migrations appliquées.
 
 ## 1. Auth, rôles et sécurité
@@ -206,7 +208,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **427/427**.
+- Vitest : **428/428**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

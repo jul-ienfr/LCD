@@ -391,8 +391,9 @@ après les premiers clients ou si le LCP mobile se dégrade.
   minimales (`cautions`, `webhooks`, `webhook_deliveries`,
   `logement_proprietaires.commission_bp`, `tenants.nature`,
   `logement_proprietaires.mode`) et du nombre de migrations appliquées
-  comparé au journal Drizzle ; 503 avec la liste `manquants` si les migrations
-  ne sont pas appliquées.
+  comparé au journal Drizzle ; si le journal est absent, le compteur vaut zéro
+  et les migrations sont listées manquantes. 503 avec la liste `manquants` si
+  les migrations ne sont pas appliquées.
 - logs JSON via `src/lib/logger.ts` (ts, niveau, message, contexte).
 - **Sentry sans SDK** : `SENTRY_DSN` → erreurs serveur et erreurs client
   (`POST /api/telemetry`), secrets masqués, timeout 3 s, no-op sans DSN.

@@ -40,4 +40,10 @@ describe("readiness schéma", () => {
     expect(manquantsSchema(complet, 55)).toEqual(["migrations.55"]);
     expect(manquantsSchema({ ...complet, migrations: 55 }, 0)).toEqual([]);
   });
+
+  it("traite un journal absent comme zéro migration", () => {
+    expect(
+      manquantsSchema({ ...complet, migrationsTable: null, migrations: 0 }, 55),
+    ).toEqual(["migrations.55"]);
+  });
 });

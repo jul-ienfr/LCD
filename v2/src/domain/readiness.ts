@@ -1,11 +1,12 @@
 export interface EtatSchema {
-  cautions: string | null;
-  webhooks: string | null;
-  webhookDeliveries: string | null;
-  commissionBp: boolean;
-  tenantNature: boolean;
-  mandatMode: boolean;
+  cautions?: string | null;
+  webhooks?: string | null;
+  webhookDeliveries?: string | null;
+  commissionBp?: boolean;
+  tenantNature?: boolean;
+  mandatMode?: boolean;
   migrations?: number;
+  migrationsTable?: string | null;
 }
 
 /**
