@@ -49,7 +49,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | Conformité annonce (9 mentions, DPE/GES, Cerfa) | Fait | `/hote/annonce`. |
 | Machine d’état publication (brouillon→prêt→publié) | Fait (2 états) | `brouillon` par défaut, publication explicite auditée ; état « prêt » fusionné avec `/hote/onboarding`. |
 | Config générale groupée + dry-run/rollback | Absent | Pas d’équivalent V1. |
-| Archivage doux + double confirmation | Partiel | Statut `archive` en base ; pas d’UI dédiée. |
+| Archivage doux + double confirmation | Fait | UI `/hote/annonce#cycle-vie` : archive (statut + brouillon) et restauration ; refus si réservation non annulée à venir, audit `logement.archiver/restaurer`. |
 
 ## Planning, prix, OTA
 
@@ -121,7 +121,6 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 ## Prochaines priorités proposées
 
 1. 2FA obligatoire pour admin/comptable + CAPTCHA login.
-2. Machine d’état de publication d’annonce + archivage doux.
-3. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
-4. Bandeau cookies et médiation conso.
-5. Mode léger L1 (recherche globale `ref` faite).
+2. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
+3. Bandeau cookies et médiation conso.
+4. Mode léger L1 (recherche globale `ref` faite).

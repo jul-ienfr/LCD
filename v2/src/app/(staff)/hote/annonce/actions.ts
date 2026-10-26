@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { EnregistrerConformiteAnnonce } from "@/application/use-cases/annonce";
+import { ChangerCycleVieLogement } from "@/application/use-cases/changer-cycle-vie-logement";
 import {
   conformiteAnnonce,
   MENTIONS_ANNONCE,
@@ -12,6 +13,7 @@ import { peutPublierLogement } from "@/domain/logement";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleAnnoncesConformiteRepository } from "@/infrastructure/db/repositories/annonces-conformite-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
@@ -186,5 +188,124 @@ export async function changerPublicationAction(formData: FormData) {
   revalidatePath("/reserver");
   redirect(
     `${retour}?logement=${encodeURIComponent(logementId)}&publication=ok`,
+  );
+}
+
+export async function demanderArchivageAction(formData: FormData) {
+  const session = await requireRole(["admin", "hote"]);
+  tenantIdDeSession(session);
+  const logementId = String(formData.get("logementId") ?? "");
+  const retourBrut = String(formData.get("retour") ?? "");
+  const retour =
+    retourBrut.startsWith("/hote/") && !retourBrut.startsWith("//")
+      ? retourBrut
+      : "/hote/annonce";
+  redirect(
+    `${retour}?logement=${encodeURIComponent(logementId)}&archiver=confirmer`,
+  );
+}
+
+export async function archiverLogementAction(formData: FormData) {
+  const session = await requireRole(["admin", "hote"]);
+  const tenantId = tenantIdDeSession(session);
+  const logementId = String(formData.get("logementId") ?? "");
+  const retourBrut = String(formData.get("retour") ?? "");
+  const retour =
+    retourBrut.startsWith("/hote/") && !retourBrut.startsWith("//")
+      ? retourBrut
+      : "/hote/annonce";
+  if (formData.get("confirmation") !== "oui") {
+    redirect(
+      `${retour}?logement=${encodeURIComponent(logementId)}&archiver=confirmer`,
+    );
+  }
+
+  try {
+    const resultat = await new ChangerCycleVieLogement(
+      new DrizzleLogementRepository(),
+      new DrizzleReservationRepository(),
+    ).archiver({
+      tenantId,
+      logementId,
+      aujourdHui: new Date().toISOString().slice(0, 10),
+    });
+    await withTenant(tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId,
+        qui: session.user.id,
+        action: "logement.archiver",
+        cible: logementId,
+        payload: {
+          deja_archive: resultat.dejaArchive,
+          statut: resultat.logement.statut,
+          publication: resultat.logement.publication,
+        },
+      }),
+    );
+  } catch (error) {
+    if (error instanceof ErreurMetier) {
+      redirect(
+        `${retour}?logement=${encodeURIComponent(logementId)}&erreur=${encodeURIComponent(error.message)}`,
+      );
+    }
+    logErreur("archiverLogementAction", error, { tenantId, logementId });
+    redirect(
+      `${retour}?logement=${encodeURIComponent(logementId)}&erreur=inattendu`,
+    );
+  }
+
+  revalidatePath("/hote/annonce");
+  revalidatePath("/hote/logements");
+  revalidatePath("/reserver");
+  redirect(
+    `${retour}?logement=${encodeURIComponent(logementId)}&archive=ok`,
+  );
+}
+
+export async function restaurerLogementAction(formData: FormData) {
+  const session = await requireRole(["admin", "hote"]);
+  const tenantId = tenantIdDeSession(session);
+  const logementId = String(formData.get("logementId") ?? "");
+  const retourBrut = String(formData.get("retour") ?? "");
+  const retour =
+    retourBrut.startsWith("/hote/") && !retourBrut.startsWith("//")
+      ? retourBrut
+      : "/hote/annonce";
+
+  try {
+    const resultat = await new ChangerCycleVieLogement(
+      new DrizzleLogementRepository(),
+      new DrizzleReservationRepository(),
+    ).restaurer({ tenantId, logementId });
+    await withTenant(tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId,
+        qui: session.user.id,
+        action: "logement.restaurer",
+        cible: logementId,
+        payload: {
+          deja_actif: resultat.dejaActif,
+          statut: resultat.logement.statut,
+          publication: resultat.logement.publication,
+        },
+      }),
+    );
+  } catch (error) {
+    if (error instanceof ErreurMetier) {
+      redirect(
+        `${retour}?logement=${encodeURIComponent(logementId)}&erreur=${encodeURIComponent(error.message)}`,
+      );
+    }
+    logErreur("restaurerLogementAction", error, { tenantId, logementId });
+    redirect(
+      `${retour}?logement=${encodeURIComponent(logementId)}&erreur=inattendu`,
+    );
+  }
+
+  revalidatePath("/hote/annonce");
+  revalidatePath("/hote/logements");
+  revalidatePath("/reserver");
+  redirect(
+    `${retour}?logement=${encodeURIComponent(logementId)}&restauration=ok`,
   );
 }

@@ -185,6 +185,13 @@ vaut `brouillon` à la création et ne passe à `publiee` que par l’action
 remasque immédiatement le logement. Les logements actifs déjà vérifiés ont été
 repris en `publiee` par la migration `0059`.
 
+L’**archivage** est doux et réversible (`/hote/annonce#cycle-vie`) : double
+confirmation, passage en `archive` + `brouillon`, audit
+`logement.archiver`. Toute réservation non annulée et non terminée dont la fin
+est à venir bloque l’opération (brouillon compris). « Restaurer » remet le
+logement `actif` en `brouillon` : la copropriété et la publication doivent être
+revalidées, jamais republiées automatiquement.
+
 ## Marque blanche
 
 La vitrine (`/`), le titre de l’application, le manifeste PWA et le pied de

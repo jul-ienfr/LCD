@@ -13,8 +13,11 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { logementPubliable, peutPublierLogement } from "@/domain/logement";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
 import {
+  archiverLogementAction,
   changerPublicationAction,
+  demanderArchivageAction,
   enregistrerAnnonceAction,
+  restaurerLogementAction,
   verifierCoproAction,
 } from "./actions";
 
@@ -27,6 +30,9 @@ export default async function PageAnnonce({
     logement?: string;
     ok?: string;
     copro?: string;
+    archive?: string;
+    archiver?: string;
+    restauration?: string;
     erreur?: string;
   }>;
 }) {
@@ -47,6 +53,7 @@ export default async function PageAnnonce({
       )
     : null;
   const mentions = conformite?.mentions ?? mentionsParDefaut();
+  const archive = logement?.statut === "archive";
   const resume = conformiteAnnonce({
     mentions,
     dpeClasse: conformite?.dpeClasse ?? null,
@@ -128,6 +135,25 @@ export default async function PageAnnonce({
         </p>
       ) : null}
 
+      {params.archive ? (
+        <p
+          className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+          role="status"
+        >
+          Logement archivé : il reste dans l’historique mais n’est plus
+          proposé aux voyageurs.
+        </p>
+      ) : null}
+      {params.restauration ? (
+        <p
+          className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+          role="status"
+        >
+          Logement restauré en brouillon. Vérifiez la copropriété avant de le
+          republier.
+        </p>
+      ) : null}
+
       {params.copro ? (
         <p
           className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
@@ -202,40 +228,124 @@ export default async function PageAnnonce({
         </form>
 
         <div className="mt-5 border-t border-bordure pt-4">
-          <p className="text-sm text-encre-douce">
-            Publication :{" "}
-            <span className="font-semibold">
-              {publie ? "publiée" : "brouillon"}
-            </span>
-            . La publication est une décision explicite : un logement vérifié
-            mais en brouillon reste invisible sur `/reserver`.
-          </p>
+          {archive ? (
+            <p className="text-sm text-encre-douce">
+              Logement <strong>archivé</strong> : la publication est gelée.
+              Restaurez-le pour le remettre en brouillon et revalider la
+              copropriété.
+            </p>
+          ) : (
+            <>
+              <p className="text-sm text-encre-douce">
+                Publication :{" "}
+                <span className="font-semibold">
+                  {publie ? "publiée" : "brouillon"}
+                </span>
+                . La publication est une décision explicite : un logement
+                vérifié mais en brouillon reste invisible sur `/reserver`.
+              </p>
+              <form
+                key={`publication-${logement.id}`}
+                action={changerPublicationAction}
+                className="mt-3 flex flex-wrap items-center gap-3"
+              >
+                <input type="hidden" name="logementId" value={logement.id} />
+                <input type="hidden" name="retour" value="/hote/annonce" />
+                <input
+                  type="hidden"
+                  name="publication"
+                  value={publie ? "brouillon" : "publiee"}
+                />
+                <button
+                  className="rounded-full bg-encre px-5 py-2.5 text-sm font-semibold text-fond disabled:opacity-50"
+                  disabled={!publie && !peutPublierLogement(logement)}
+                  type="submit"
+                >
+                  {publie ? "Dépublier le logement" : "Publier le logement"}
+                </button>
+              </form>
+              {!publie && !peutPublierLogement(logement) ? (
+                <p className="mt-2 text-sm text-alerte">
+                  Vérifiez la copropriété avant de publier.
+                </p>
+              ) : null}
+            </>
+          )}
+        </div>
+      </section>
+
+      <section
+        className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm"
+        id="cycle-vie"
+      >
+        <h2 className="text-lg font-semibold">Cycle de vie</h2>
+        <p className="mt-1 text-sm text-encre-douce">
+          Statut actuel : <strong>{logement.statut}</strong>. L’archivage est
+          doux : historique, réservations et documents sont conservés, mais le
+          logement disparaît de la réservation publique. Une réservation non
+          annulée à venir ou en cours bloque l’archivage.
+        </p>
+        {archive ? (
           <form
-            key={`publication-${logement.id}`}
-            action={changerPublicationAction}
-            className="mt-3 flex flex-wrap items-center gap-3"
+            action={restaurerLogementAction}
+            className="mt-4 flex flex-wrap items-center gap-3"
           >
             <input type="hidden" name="logementId" value={logement.id} />
             <input type="hidden" name="retour" value="/hote/annonce" />
-            <input
-              type="hidden"
-              name="publication"
-              value={publie ? "brouillon" : "publiee"}
-            />
             <button
-              className="rounded-full bg-encre px-5 py-2.5 text-sm font-semibold text-fond disabled:opacity-50"
-              disabled={!publie && !peutPublierLogement(logement)}
+              className="rounded-full bg-encre px-5 py-2.5 text-sm font-semibold text-fond"
               type="submit"
             >
-              {publie ? "Dépublier le logement" : "Publier le logement"}
+              Restaurer le logement
             </button>
           </form>
-          {!publie && !peutPublierLogement(logement) ? (
-            <p className="mt-2 text-sm text-alerte">
-              Vérifiez la copropriété avant de publier.
+        ) : params.archiver === "confirmer" ? (
+          <div
+            className="mt-4 space-y-3 rounded-xl border border-danger bg-danger-douce p-4"
+            role="alert"
+          >
+            <p className="text-sm font-medium text-danger">
+              Confirmer l’archivage de « {logement.nom} » ?
             </p>
-          ) : null}
-        </div>
+            <p className="text-sm text-danger">
+              Le logement sera masqué de `/reserver` et remis en brouillon. Les
+              réservations non annulées à venir bloqueront l’opération.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <form action={archiverLogementAction}>
+                <input type="hidden" name="logementId" value={logement.id} />
+                <input type="hidden" name="retour" value="/hote/annonce" />
+                <input type="hidden" name="confirmation" value="oui" />
+                <button
+                  className="rounded-full bg-danger px-5 py-2.5 text-sm font-semibold text-fond"
+                  type="submit"
+                >
+                  Confirmer l’archivage
+                </button>
+              </form>
+              <Link
+                className="text-sm underline"
+                href={`/hote/annonce?logement=${logement.id}`}
+              >
+                Annuler
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <form
+            action={demanderArchivageAction}
+            className="mt-4 flex flex-wrap items-center gap-3"
+          >
+            <input type="hidden" name="logementId" value={logement.id} />
+            <input type="hidden" name="retour" value="/hote/annonce" />
+            <button
+              className="rounded-full border border-danger px-5 py-2.5 text-sm font-semibold text-danger"
+              type="submit"
+            >
+              Archiver le logement
+            </button>
+          </form>
+        )}
       </section>
 
       <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">

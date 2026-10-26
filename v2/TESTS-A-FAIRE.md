@@ -59,6 +59,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   `/reserver` ; cocher la vérification copro le rend publiable ; « Publier le
   logement » le rend visible ; « Dépublier » le remasque (audits
   `logement.copro`, `logement.publication`).
+- [ ] Archivage : double confirmation, logement masqué, restauration en
+  brouillon ; réservation future non annulée → refus avec sa `ref`.
 - [ ] Entité juridique : nature, régime, TVA, SIREN, adresse, mentions ;
   SIREN invalide refusé.
 - [ ] Facture HTML/PDF/Factur-X : nom, adresse, SIREN et mentions de l’entité.

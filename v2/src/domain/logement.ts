@@ -1,3 +1,4 @@
+import type { Reservation } from "./reservation";
 import type { TenantId } from "./tenant";
 
 export type LogementId = string;
@@ -57,4 +58,31 @@ export function peutPublierLogement(
   logement: Pick<Logement, "statut" | "coproVerifiee">,
 ): boolean {
   return logement.statut === "actif" && logement.coproVerifiee;
+}
+
+/**
+ * L'archivage est doux : le logement et son historique restent en base, mais
+ * il disparaît de la réservation publique. Toute réservation non annulée et
+ * non terminée qui n'est pas finie bloque l'archivage (brouillon compris),
+ * pour ne jamais casser un séjour à venir.
+ */
+export function reservationsBloquantArchivage(
+  reservations: Pick<
+    Reservation,
+    "logementId" | "debut" | "fin" | "statut" | "ref"
+  >[],
+  logementId: string,
+  aujourdHui: string,
+): Pick<Reservation, "logementId" | "debut" | "fin" | "statut" | "ref">[] {
+  return reservations.filter(
+    (reservation) =>
+      reservation.logementId === logementId &&
+      reservation.statut !== "annulee" &&
+      reservation.statut !== "terminee" &&
+      reservation.fin > aujourdHui,
+  );
+}
+
+export function logementArchive(logement: Pick<Logement, "statut">): boolean {
+  return logement.statut === "archive";
 }
