@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0053` appliquées.
+- [ ] Migrations `0026` → `0054` appliquées.
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
 - [ ] `/api/health` → `200`, `/api/ready` → `200`, `db: up`, `schema: ok`.
@@ -111,8 +111,9 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   coût et durée, moyennes et alerte qualité sous 3,5.
 - [ ] Assistant : routage selon intention/ton, prompt borné, refus des codes
   d’accès, comparaison neutre/chaleureux/concis, garde-fous de sortie
-  (80 mots, PIN, promesses), brouillon déterministe local, enregistrement
-  idempotent en message brouillon puis envoi depuis l’outbox.
+  (80 mots, PIN, promesses), quota 100 brouillons et budget 10 €/mois,
+  brouillon déterministe local, enregistrement idempotent en message brouillon
+  puis envoi depuis l’outbox.
 - [ ] Audit : bornes 90 jours par défaut, filtres 7/30/90 j et famille,
   recherche, export CSV filtré limité à 5 000 lignes.
 - [ ] Mission : création staff, exécution prestataire, statuts.
@@ -195,7 +196,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **418/418**.
+- Vitest : **420/420**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
@@ -207,7 +208,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - Build Netlify et build Docker standalone.
 - Pile compose VPS : PostgreSQL 18, migrations `0031`, seed, web, Caddy HTTPS,
   headers, `/api/health`, `/api/ready`.
-- Sauvegarde + restauration complètes : 52 tables, comptes, logements,
+- Sauvegarde + restauration complètes : 53 tables, comptes, logements,
   réservations, factures, paiements, blocages.
 - 2FA TOTP de bout en bout.
 - Inscription publique fermée, tenant/rôle non modifiables, exports protégés.

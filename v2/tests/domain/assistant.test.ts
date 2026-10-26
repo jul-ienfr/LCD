@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  BUDGET_ASSISTANT_MENSUEL_CENTIMES,
+  budgetAssistantAutorise,
   compterMots,
   construireInvite,
+  debutMois,
+  QUOTA_ASSISTANT_MENSUEL,
   refBrouillon,
   routerModele,
   typeMessageDepuisIntention,
@@ -112,5 +116,30 @@ describe("domaine assistant", () => {
     ).toContain(
       "Le brouillon contient une promesse commerciale (garantie, remboursement).",
     );
+  });
+
+  it("applique le quota et le budget mensuels", () => {
+    expect(
+      budgetAssistantAutorise({ nombre: 0, coutCentimes: 0 }, 2),
+    ).toEqual({ autorise: true, raison: "" });
+    expect(
+      budgetAssistantAutorise(
+        { nombre: QUOTA_ASSISTANT_MENSUEL, coutCentimes: 0 },
+        0,
+      ).autorise,
+    ).toBe(false);
+    expect(
+      budgetAssistantAutorise(
+        { nombre: 10, coutCentimes: BUDGET_ASSISTANT_MENSUEL_CENTIMES },
+        2,
+      ),
+    ).toEqual({
+      autorise: false,
+      raison: "Budget mensuel de 10,00 € atteint.",
+    });
+
+    const maintenant = new Date("2026-10-25T12:00:00.000Z");
+    expect(debutMois(maintenant).getDate()).toBe(1);
+    expect(debutMois(maintenant).getMonth()).toBe(9);
   });
 });

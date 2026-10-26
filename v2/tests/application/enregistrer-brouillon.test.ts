@@ -3,6 +3,7 @@ import { EnregistrerBrouillonAssistant } from "@/application/use-cases/enregistr
 import { PreparerMessageVoyageur } from "@/application/use-cases/message-voyageur";
 import { LogementRepositoryMemoire } from "../helpers/logement-repository-memoire";
 import { MessagesVoyageurRepositoryMemoire } from "../helpers/messages-voyageur-repository-memoire";
+import { ConsommationsAssistantRepositoryMemoire } from "../helpers/consommations-assistant-repository-memoire";
 
 const TEXTE =
   "Bonjour Camille, votre séjour approche. L’arrivée est possible dès 14 h.";
@@ -15,10 +16,13 @@ async function preparer() {
     nom: "Loft Bastille",
   });
   const messages = new MessagesVoyageurRepositoryMemoire();
-  const preparer = new PreparerMessageVoyageur(messages, logements);  return {
+  const consommations = new ConsommationsAssistantRepositoryMemoire();
+  const preparer = new PreparerMessageVoyageur(messages, logements);
+  return {
     logement,
     messages,
-    cas: new EnregistrerBrouillonAssistant(preparer),
+    consommations,
+    cas: new EnregistrerBrouillonAssistant(preparer, messages, consommations),
   };
 }
 
@@ -34,7 +38,7 @@ const base = {
 
 describe("cas d'usage enregistrement d’un brouillon assistant", () => {
   it("crée un message brouillon du bon type", async () => {
-    const { logement, messages, cas } = await preparer();
+    const { logement, messages, consommations, cas } = await preparer();
     const message = await cas.executer({
       ...base,
       logementId: logement.id,
@@ -46,14 +50,18 @@ describe("cas d'usage enregistrement d’un brouillon assistant", () => {
     expect(message.statut).toBe("brouillon");
     expect(message.ref).toMatch(/^assist-arrivee-[0-9a-f]{8}$/);
     expect(messages.items).toHaveLength(1);
+    expect(consommations.items).toHaveLength(1);
+    expect(consommations.items[0]?.coutCentimes).toBe(2);
+    expect(consommations.items[0]?.modele).toBe("standard");
   });
 
   it("est idempotent sur un brouillon identique et distingue le canal", async () => {
-    const { logement, messages, cas } = await preparer();
+    const { logement, messages, consommations, cas } = await preparer();
     const premier = await cas.executer({ ...base, logementId: logement.id });
     const second = await cas.executer({ ...base, logementId: logement.id });
     expect(second.id).toBe(premier.id);
     expect(messages.items).toHaveLength(1);
+    expect(consommations.items).toHaveLength(1);
 
     const sms = await cas.executer({
       ...base,
@@ -62,6 +70,16 @@ describe("cas d'usage enregistrement d’un brouillon assistant", () => {
     });
     expect(sms.id).not.toBe(premier.id);
     expect(messages.items).toHaveLength(2);
+    expect(consommations.items).toHaveLength(2);
+  });
+
+  it("rejette un enregistrement au-delà du quota mensuel", async () => {
+    const { logement, messages, consommations, cas } = await preparer();
+    consommations.force = { nombre: 100, coutCentimes: 0 };
+    await expect(
+      cas.executer({ ...base, logementId: logement.id }),
+    ).rejects.toMatchObject({ code: "ASSISTANT_QUOTA" });
+    expect(messages.items).toHaveLength(0);
   });
 
   it("refuse un brouillon vide, un canal invalide ou un code d’accès", async () => {

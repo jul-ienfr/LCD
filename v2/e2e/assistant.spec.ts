@@ -23,6 +23,10 @@ test("assistant : routage, brouillon et refus d’un code d’accès", async ({
   await expect(page.getByText(`Logement « ${code} » créé.`)).toBeVisible();
 
   await page.goto("/hote/assistant");
+  await expect(
+    page.getByText("Brouillons enregistrés ce mois"),
+  ).toBeVisible();
+  await expect(page.getByText(/\/ 100/).first()).toBeVisible();
   await page.getByRole("link", { name: nomLogement, exact: true }).click();
   await expect(page).toHaveURL(/logement=/);
   const logementId = new URL(page.url()).searchParams.get("logement");

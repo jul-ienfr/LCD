@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import {
+  BUDGET_ASSISTANT_MENSUEL_CENTIMES,
   compterMots,
+  debutMois,
   INTENTIONS_ASSISTANT,
   LIBELLES_INTENTION,
   LIBELLES_TON,
   MOTS_BROUILLON_MAX,
+  QUOTA_ASSISTANT_MENSUEL,
   TONS_ASSISTANT,
   tonValide,
   type TonAssistant,
@@ -16,6 +19,7 @@ import {
   type BrouillonAssistant,
 } from "@/application/use-cases/assistant";
 import { GenerateurBrouillonLocal } from "@/infrastructure/adapters/generateur-brouillon-local";
+import { DrizzleConsommationsAssistantRepository } from "@/infrastructure/db/repositories/consommations-assistant-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
@@ -134,6 +138,10 @@ export default async function PageAssistant({
   );
   const logement =
     logements.find((l) => l.id === params.logement) ?? logements[0];
+  const consomme = await new DrizzleConsommationsAssistantRepository().totalMois(
+    tenantId,
+    debutMois(),
+  );
 
   let cartes: { ton: TonAssistant; brouillon: BrouillonAssistant }[] = [];
   let erreur: string | null = params.erreur ?? null;
@@ -189,6 +197,34 @@ export default async function PageAssistant({
           Retour au tableau de bord
         </Link>
       </header>
+
+      <section className="grid gap-3 rounded-2xl border border-bordure bg-surface p-5 shadow-sm sm:grid-cols-2">
+        <div>
+          <p className="text-sm text-encre-faine">
+            Brouillons enregistrés ce mois
+          </p>
+          <p className="mt-1 text-xl font-semibold">
+            {consomme.nombre} / {QUOTA_ASSISTANT_MENSUEL}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-encre-faine">Coût estimé ce mois</p>
+          <p className="mt-1 text-xl font-semibold">
+            {formaterEuros(consomme.coutCentimes)} /{" "}
+            {formaterEuros(BUDGET_ASSISTANT_MENSUEL_CENTIMES)}
+          </p>
+        </div>
+        {consomme.nombre >= QUOTA_ASSISTANT_MENSUEL ||
+        consomme.coutCentimes >= BUDGET_ASSISTANT_MENSUEL_CENTIMES ? (
+          <p
+            className="rounded-xl border border-alerte bg-alerte-douce p-3 text-sm text-alerte sm:col-span-2"
+            role="alert"
+          >
+            Quota mensuel atteint : l’enregistrement de nouveaux brouillons est
+            bloqué jusqu’au mois prochain.
+          </p>
+        ) : null}
+      </section>
 
       {!logement ? (
         <p className="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">

@@ -42,6 +42,8 @@ export const LIBELLES_TON: Record<TonAssistant, string> = {
 export const DETAILS_ASSISTANT_MAX = 400;
 export const VOYAGEUR_ASSISTANT_MAX = 80;
 export const MOTS_BROUILLON_MAX = 80;
+export const QUOTA_ASSISTANT_MENSUEL = 100;
+export const BUDGET_ASSISTANT_MENSUEL_CENTIMES = 1_000;
 
 export const MODELES: Record<NiveauModele, string> = {
   local: "local-léger",
@@ -161,6 +163,35 @@ export function typeMessageDepuisIntention(
 export function compterMots(texte: string): number {
   const propre = texte.trim();
   return propre ? propre.split(/\s+/).length : 0;
+}
+
+export interface ConsommationMois {
+  nombre: number;
+  coutCentimes: number;
+}
+
+export function debutMois(maintenant = new Date()): Date {
+  return new Date(maintenant.getFullYear(), maintenant.getMonth(), 1);
+}
+
+export function budgetAssistantAutorise(
+  consomme: ConsommationMois,
+  coutSupplementaire: number,
+): { autorise: boolean; raison: string } {
+  if (consomme.nombre >= QUOTA_ASSISTANT_MENSUEL) {
+    return {
+      autorise: false,
+      raison: `Quota mensuel de ${QUOTA_ASSISTANT_MENSUEL} brouillons atteint.`,
+    };
+  }
+  const total = consomme.coutCentimes + Math.max(0, coutSupplementaire);
+  if (total > BUDGET_ASSISTANT_MENSUEL_CENTIMES) {
+    return {
+      autorise: false,
+      raison: `Budget mensuel de ${(BUDGET_ASSISTANT_MENSUEL_CENTIMES / 100).toFixed(2).replace(".", ",")} € atteint.`,
+    };
+  }
+  return { autorise: true, raison: "" };
 }
 
 /**

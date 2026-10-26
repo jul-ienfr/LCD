@@ -6,6 +6,7 @@ import { EnregistrerBrouillonAssistant } from "@/application/use-cases/enregistr
 import { PreparerMessageVoyageur } from "@/application/use-cases/message-voyageur";
 import { ErreurMetier } from "@/domain/erreurs";
 import { withTenant } from "@/infrastructure/db/client";
+import { DrizzleConsommationsAssistantRepository } from "@/infrastructure/db/repositories/consommations-assistant-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMessagesVoyageurRepository } from "@/infrastructure/db/repositories/messages-voyageur-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
@@ -42,6 +43,8 @@ export async function enregistrerBrouillonAction(formData: FormData) {
         new DrizzleMessagesVoyageurRepository(),
         new DrizzleLogementRepository(),
       ),
+      new DrizzleMessagesVoyageurRepository(),
+      new DrizzleConsommationsAssistantRepository(),
     );
     const message = await brouillon.executer({
       tenantId,

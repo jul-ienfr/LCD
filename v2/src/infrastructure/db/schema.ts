@@ -626,6 +626,31 @@ export const messagesVoyageur = pgTable(
   ],
 );
 
+export const assistantConsommations = pgTable(
+  "assistant_consommations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => messagesVoyageur.id, { onDelete: "cascade" }),
+    modele: text("modele").notNull(),
+    coutCentimes: integer("cout_centimes").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("assistant_consommations_message_uq").on(t.messageId),
+    index("assistant_consommations_tenant_date_idx").on(
+      t.tenantId,
+      t.createdAt,
+    ),
+  ],
+);
+
 export const dispatches = pgTable(
   "dispatches",
   {
