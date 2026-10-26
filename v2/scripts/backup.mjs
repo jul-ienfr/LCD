@@ -11,6 +11,7 @@ import {
 import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 import { config } from "dotenv";
+import { CLES_COMPTES, normaliserComptes } from "./backup-manifest.mjs";
 
 config({ path: ".env.local", quiet: true });
 
@@ -89,6 +90,53 @@ writeFileSync(chemin, compresse, { mode: 0o600 });
 const empreinte = createHash("sha256").update(compresse).digest("hex");
 writeFileSync(`${chemin}.sha256`, `${empreinte}  ${nom}\n`, { mode: 0o600 });
 
+const requeteComptes = `
+  select
+    (select count(*) from tenants)::int,
+    (select count(*) from users)::int,
+    (select count(*) from logements)::int,
+    (select count(*) from reservations)::int,
+    (select count(*) from factures)::int,
+    (select count(*) from paiements)::int,
+    (select count(*) from blocages)::int,
+    (select count(*) from information_schema.tables
+      where table_schema = 'public')::int,
+    (select count(*) from drizzle.__drizzle_migrations)::int;
+`;
+const comptes = normaliserComptes(
+  executer("docker", [
+    "exec",
+    container,
+    "psql",
+    "-U",
+    utilisateur,
+    "-d",
+    base,
+    "-tA",
+    "-F",
+    ",",
+    "-c",
+    requeteComptes,
+  ]).toString(),
+);
+writeFileSync(
+  `${chemin}.json`,
+  `${JSON.stringify(
+    {
+      version: 1,
+      fichier: nom,
+      sha256: empreinte,
+      tailleOctets: statSync(chemin).size,
+      prisLe: maintenant.toISOString(),
+      comptes,
+      cles: CLES_COMPTES,
+    },
+    null,
+    2,
+  )}\n`,
+  { mode: 0o600 },
+);
+
 const tailleMo = (statSync(chemin).size / 1024 / 1024).toFixed(2);
 console.log(`OK ${chemin} (${tailleMo} Mo)`);
 console.log(`SHA-256 ${empreinte}`);
@@ -99,10 +147,12 @@ for (const fichier of readdirSync(dossier)) {
   const complet = join(dossier, fichier);
   if (statSync(complet).mtimeMs < limite) {
     unlinkSync(complet);
-    try {
-      unlinkSync(`${complet}.sha256`);
-    } catch {
-      // Le fichier de checksum peut déjà avoir été supprimé.
+    for (const suffixe of [".sha256", ".json"]) {
+      try {
+        unlinkSync(`${complet}${suffixe}`);
+      } catch {
+        // Le fichier annexe peut déjà avoir été supprimé.
+      }
     }
     console.log(`supprimé (rétention ${retentionJours} j) : ${fichier}`);
   }

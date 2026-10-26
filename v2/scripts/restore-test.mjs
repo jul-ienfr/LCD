@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   readFileSync,
@@ -7,6 +8,7 @@ import {
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { config } from "dotenv";
+import { comparerComptes, normaliserComptes } from "./backup-manifest.mjs";
 
 config({ path: ".env.local", quiet: true });
 
@@ -53,7 +55,19 @@ if (!existsSync(chemin)) {
   throw new Error(`Sauvegarde introuvable : ${chemin}`);
 }
 
-const contenu = gunzipSync(readFileSync(chemin));
+const archive = readFileSync(chemin);
+
+let manifeste = null;
+if (existsSync(`${chemin}.json`)) {
+  manifeste = JSON.parse(readFileSync(`${chemin}.json`, "utf8"));
+}
+const empreinte = createHash("sha256").update(archive).digest("hex");
+if (manifeste?.sha256 && manifeste.sha256 !== empreinte) {
+  throw new Error(
+    `Checksum invalide pour ${chemin} : le fichier a été modifié ou corrompu.`,
+  );
+}
+const contenu = gunzipSync(archive);
 const scratch = `lcd_restore_${Date.now()}`;
 
 console.log(`Restauration de ${chemin} dans ${scratch}…`);
@@ -88,13 +102,16 @@ try {
 
   const requete = `
     select
-      (select count(*) from tenants) as tenants,
-      (select count(*) from users) as users,
-      (select count(*) from logements) as logements,
-      (select count(*) from reservations) as reservations,
-      (select count(*) from factures) as factures,
-      (select count(*) from paiements) as paiements,
-      (select count(*) from blocages) as blocages;
+      (select count(*) from tenants)::int,
+      (select count(*) from users)::int,
+      (select count(*) from logements)::int,
+      (select count(*) from reservations)::int,
+      (select count(*) from factures)::int,
+      (select count(*) from paiements)::int,
+      (select count(*) from blocages)::int,
+      (select count(*) from information_schema.tables
+        where table_schema = 'public')::int,
+      (select count(*) from drizzle.__drizzle_migrations)::int;
   `;
   const sortie = executer("docker", [
     "exec",
@@ -112,18 +129,32 @@ try {
   ])
     .toString()
     .trim();
-  const [tenants, users, logements, reservations, factures, paiements, blocages] =
-    sortie.split(",").map(Number);
+  const comptes = normaliserComptes(sortie);
 
   console.log(
-    `OK tenants=${tenants} users=${users} logements=${logements} reservations=${reservations} factures=${factures} paiements=${paiements} blocages=${blocages}`,
+    `OK tenants=${comptes.tenants} users=${comptes.users} logements=${comptes.logements} reservations=${comptes.reservations} factures=${comptes.factures} paiements=${comptes.paiements} blocages=${comptes.blocages} tables=${comptes.tables} migrations=${comptes.migrations}`,
   );
 
-  if (!Number.isInteger(tenants) || tenants < 1) {
+  if (!Number.isInteger(comptes.tenants) || comptes.tenants < 1) {
     throw new Error("La restauration ne contient aucun tenant.");
   }
-  if (!Number.isInteger(users) || users < 1) {
+  if (!Number.isInteger(comptes.users) || comptes.users < 1) {
     throw new Error("La restauration ne contient aucun utilisateur.");
+  }
+  if (comptes.migrations < 1) {
+    throw new Error("La restauration ne contient aucune migration.");
+  }
+
+  if (manifeste?.comptes) {
+    const ecarts = comparerComptes(manifeste.comptes, comptes);
+    if (ecarts.length > 0) {
+      throw new Error(`Restauration incohérente : ${ecarts.join(" ; ")}`);
+    }
+    console.log("Comptes conformes au manifeste de sauvegarde.");
+  } else {
+    console.warn(
+      "Manifeste absent : seuls les contrôles minimaux sont appliqués.",
+    );
   }
 
   console.log("RESTAURATION VALIDÉE");

@@ -403,9 +403,10 @@ après les premiers clients ou si le LCP mobile se dégrade.
 
 ## Sauvegardes
 
-- `npm run db:backup` : dump gzip + checksum SHA-256, rétention 14 jours ;
-- `npm run db:restore-test` : restauration dans une base jetable + contrôle
-  des comptes tenants/users/logements/réservations/factures/paiements/blocages ;
+- `npm run db:backup` : dump gzip + checksum SHA-256 + manifeste JSON des
+  comptes, rétention 14 jours ;
+- `npm run db:restore-test` : checksum vérifié avant décompression, restauration
+  dans une base jetable, comparaison au manifeste (dont tables et migrations) ;
 - workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
   (artefact privé 30 jours) ; secret `MIGRATION_DATABASE_URL` (owner) à
   configurer ;

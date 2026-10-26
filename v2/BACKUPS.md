@@ -3,6 +3,8 @@
 ## Principe
 
 - dump PostgreSQL **logique** (`pg_dump`), compressé gzip, checksum SHA-256 ;
+- manifeste JSON à côté de chaque dump : comptes attendus (tenants, users,
+  logements, réservations, factures, paiements, blocages, tables, migrations) ;
 - aucune donnée n'est envoyée à un fournisseur tiers : le dump est produit par
   un conteneur `postgres:18-alpine` et stocké localement ou en artefact GitHub ;
 - rétention locale : **14 jours** (`BACKUP_RETENTION_DAYS`) ;
@@ -18,10 +20,15 @@ npm run db:backup
 npm run db:restore-test
 ```
 
-`db:backup` écrit `backups/lcd-AAAAMMJJ-HHMMSS.sql.gz` + `.sha256`.
-`db:restore-test` restaure la dernière sauvegarde dans une base jetable
-`lcd_restore_*`, vérifie les comptes tenants/users/logements/réservations/
-factures/paiements/blocages, puis supprime la base de test.
+`db:backup` écrit `backups/lcd-AAAAMMJJ-HHMMSS.sql.gz` + `.sha256` + `.json`.
+`db:restore-test` vérifie le checksum **avant** de décompresser, restaure la
+sauvegarde dans une base jetable `lcd_restore_*`, compare les comptes au
+manifeste (dont le nombre de tables et de migrations), puis supprime la base de
+test.
+
+Validé en local le 2026-10-26 : 1 tenant, 196 users, 1 260 logements,
+722 réservations, 54 tables, 56 migrations ; un fichier altéré est refusé avec
+`Checksum invalide`.
 
 Variables utiles :
 
@@ -78,24 +85,3 @@ et publie un artefact privé de 30 jours.
 2. nom : `DATABASE_URL` ; valeur : la chaîne owner de production ;
 3. lancer une fois **Actions → v2-backup → Run workflow** pour valider ;
 4. télécharger l'artefact et faire un `db:restore-test` dessus.
-
-Sans ce secret, le workflow échoue volontairement avec un message explicite.
-
-## Drill de restauration
-
-À faire une fois par mois :
-
-1. télécharger le dernier artefact ;
-2. `$env:BACKUP_FILE="chemin\vers\lcd-....sql.gz"` ;
-3. `npm run db:restore-test` ;
-4. vérifier les comptes et un login sur une base de test ;
-5. noter la date et le résultat dans le journal d'exploitation.
-
-## Sécurité
-
-- `backups/` est ignoré par Git ;
-- les dumps contiennent des données personnelles : ne pas les envoyer par
-  email ni les déposer sur un stockage public ;
-- chiffrer le disque local ou le bucket si les backups sortent du poste ;
-- rotation : 14 jours local, 30 jours GitHub ; conserver un dump mensuel
-  hors ligne si un client l'exige.

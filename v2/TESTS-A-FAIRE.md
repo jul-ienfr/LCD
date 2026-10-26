@@ -181,6 +181,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - [ ] Backup GitHub Actions vert, artefact téléchargeable.
 - [ ] Restauration réelle dans une base de staging : comptes, logements,
   réservations, factures, paiements.
+  Validé en local le 2026-10-26 : checksum refusé si altéré, manifeste comparé
+  (1 tenant, 196 users, 1 260 logements, 54 tables, 56 migrations).
 - [ ] Copie hors site (R2/rsync) vérifiée.
 - [ ] Rotation `BETTER_AUTH_SECRET` testée : liens voyageur/facture/calendrier
   invalidés, sessions invalides.
@@ -208,7 +210,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **428/428**.
+- Vitest : **432/432**.
 - Playwright : **45/45** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la
@@ -220,8 +222,8 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - Build Netlify et build Docker standalone.
 - Pile compose VPS : PostgreSQL 18, migrations `0031`, seed, web, Caddy HTTPS,
   headers, `/api/health`, `/api/ready`.
-- Sauvegarde + restauration complètes : 53 tables, comptes, logements,
-  réservations, factures, paiements, blocages.
+- Sauvegarde + restauration complètes : 54 tables, comptes, logements,
+  réservations, factures, paiements, blocages, manifeste et checksum.
 - 2FA TOTP de bout en bout.
 - Inscription publique fermée, tenant/rôle non modifiables, exports protégés.
 - PWA : cache voyageur, factures/portails privés non cachés, noindex.
