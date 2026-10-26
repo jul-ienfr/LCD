@@ -471,8 +471,14 @@ après les premiers clients ou si le LCP mobile se dégrade.
   logements, tarifs, réservations, blocages, cautions, factures et lignes,
   paiements, paramètres fiscaux, missions, prospects, offres, tickets et
   messages, extras et commandes, incidents, messages voyageurs (avec
-  destinataire), consommations assistant, rattachements propriétaires,
-  flux ICS (sans URL), webhooks (sans URL ni secret), journal d’audit ;
+  destinataire), consommations assistant, avis, mémoires voyageurs, lieux
+  touristiques, sinistres, registres RGPD, annonces, preuves tranquillité,
+  objets trouvés, formations, phrases, questionnaires, ménages et tâches,
+  entretiens, états des lieux et lignes, consommables et mouvements de stock,
+  biens et événements, dispatchs, préférences séjour, rattachements
+  propriétaires, flux ICS (sans URL), webhooks (sans URL ni secret), journal
+  d’audit ;
+- exclut volontairement `idempotency_keys` et `webhook_deliveries` (internes) ;
 - jamais de hash de mot de passe, de session, de secret webhook ni d’URL de
   flux OTA ;
 - `Content-Disposition` daté, `Cache-Control: no-store` ;

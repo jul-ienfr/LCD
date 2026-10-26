@@ -1,25 +1,47 @@
 import { eq } from "drizzle-orm";
 import { connection } from "next/server";
 import {
+  annoncesConformite,
   assistantConsommations,
   auditLogs,
+  avis,
+  bienEvenements,
+  biens,
   blocages,
   cautions,
   commandesExtras,
+  consommables,
+  dispatches,
+  entretiens,
+  etatDesLieuxLignes,
+  etatsDesLieux,
   extras,
   factureLignes,
   factures,
   fluxIcs,
+  formationsProgressions,
   incidents,
+  lieuxTourisme,
   logementProprietaires,
   logements,
+  memoireVoyageurs,
+  menageTaches,
+  menages,
   messagesVoyageur,
   missions,
+  mouvementsStock,
+  objetsTrouves,
   offres,
   paiements,
   parametresFiscaux,
+  phrases,
+  preferencesSejour,
+  preuvesTranquillite,
   prospects,
+  questionnaires,
   reservations,
+  rgpdRegistres,
+  sinistres,
   tarifs,
   tenants,
   ticketMessages,
@@ -151,6 +173,94 @@ export async function GET() {
         .select()
         .from(assistantConsommations)
         .where(eq(assistantConsommations.tenantId, tenantId));
+      const listeAvis = await tx
+        .select()
+        .from(avis)
+        .where(eq(avis.tenantId, tenantId));
+      const listeMemoires = await tx
+        .select()
+        .from(memoireVoyageurs)
+        .where(eq(memoireVoyageurs.tenantId, tenantId));
+      const listeLieux = await tx
+        .select()
+        .from(lieuxTourisme)
+        .where(eq(lieuxTourisme.tenantId, tenantId));
+      const listeSinistres = await tx
+        .select()
+        .from(sinistres)
+        .where(eq(sinistres.tenantId, tenantId));
+      const listeRegistres = await tx
+        .select()
+        .from(rgpdRegistres)
+        .where(eq(rgpdRegistres.tenantId, tenantId));
+      const listeAnnonces = await tx
+        .select()
+        .from(annoncesConformite)
+        .where(eq(annoncesConformite.tenantId, tenantId));
+      const listePreuves = await tx
+        .select()
+        .from(preuvesTranquillite)
+        .where(eq(preuvesTranquillite.tenantId, tenantId));
+      const listeObjets = await tx
+        .select()
+        .from(objetsTrouves)
+        .where(eq(objetsTrouves.tenantId, tenantId));
+      const listeFormations = await tx
+        .select()
+        .from(formationsProgressions)
+        .where(eq(formationsProgressions.tenantId, tenantId));
+      const listePhrases = await tx
+        .select()
+        .from(phrases)
+        .where(eq(phrases.tenantId, tenantId));
+      const listeQuestionnaires = await tx
+        .select()
+        .from(questionnaires)
+        .where(eq(questionnaires.tenantId, tenantId));
+      const listeMenages = await tx
+        .select()
+        .from(menages)
+        .where(eq(menages.tenantId, tenantId));
+      const listeMenageTaches = await tx
+        .select()
+        .from(menageTaches)
+        .where(eq(menageTaches.tenantId, tenantId));
+      const listeEntretiens = await tx
+        .select()
+        .from(entretiens)
+        .where(eq(entretiens.tenantId, tenantId));
+      const listeEtatsDesLieux = await tx
+        .select()
+        .from(etatsDesLieux)
+        .where(eq(etatsDesLieux.tenantId, tenantId));
+      const listeEtatsDesLieuxLignes = await tx
+        .select()
+        .from(etatDesLieuxLignes)
+        .where(eq(etatDesLieuxLignes.tenantId, tenantId));
+      const listeConsommables = await tx
+        .select()
+        .from(consommables)
+        .where(eq(consommables.tenantId, tenantId));
+      const listeMouvements = await tx
+        .select()
+        .from(mouvementsStock)
+        .where(eq(mouvementsStock.tenantId, tenantId));
+      const listeBiens = await tx
+        .select()
+        .from(biens)
+        .where(eq(biens.tenantId, tenantId));
+      const listeBienEvenements = await tx
+        .select()
+        .from(bienEvenements)
+        .where(eq(bienEvenements.tenantId, tenantId));
+      const listeDispatches = await tx
+        .select()
+        .from(dispatches)
+        .where(eq(dispatches.tenantId, tenantId));
+      const listePreferences = await tx
+        .select()
+        .from(preferencesSejour)
+        .where(eq(preferencesSejour.tenantId, tenantId));
 
       // Les URLs et secrets d'intégration ne sortent jamais dans un export.
       const listeFlux = await tx
@@ -205,6 +315,28 @@ export async function GET() {
         incidents: listeIncidents,
         messagesVoyageur: listeMessagesVoyageurs,
         assistantConsommations: listeConsommationsAssistant,
+        avis: listeAvis,
+        memoireVoyageurs: listeMemoires,
+        lieuxTourisme: listeLieux,
+        sinistres: listeSinistres,
+        rgpdRegistres: listeRegistres,
+        annoncesConformite: listeAnnonces,
+        preuvesTranquillite: listePreuves,
+        objetsTrouves: listeObjets,
+        formationsProgressions: listeFormations,
+        phrases: listePhrases,
+        questionnaires: listeQuestionnaires,
+        menages: listeMenages,
+        menageTaches: listeMenageTaches,
+        entretiens: listeEntretiens,
+        etatsDesLieux: listeEtatsDesLieux,
+        etatDesLieuxLignes: listeEtatsDesLieuxLignes,
+        consommables: listeConsommables,
+        mouvementsStock: listeMouvements,
+        biens: listeBiens,
+        bienEvenements: listeBienEvenements,
+        dispatches: listeDispatches,
+        preferencesSejour: listePreferences,
         logementProprietaires: listeAssignations,
         fluxIcs: listeFlux,
         webhooks: listeWebhooks,
