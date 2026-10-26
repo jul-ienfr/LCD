@@ -207,6 +207,9 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - [ ] Test 3G lente / CPU throttle sur un téléphone réel.
 - [ ] 320 px, 360 px, 390 px, 768 px, desktop.
 - [ ] Budget JS `/voyageur` mesuré : `npm run measure:js`.
+- [ ] Marque blanche : `MARQUE`/`MARQUE_COURTE` changés puis redémarrage ;
+  landing, titre d’onglet, manifeste et pied de page cohérents, sans
+  « LCD Parc » résiduel.
 - [ ] Charge : 30 utilisateurs simultanés, 100 réservations, 30 flux OTA.
 - [ ] `pg_dump`/restore chronométré (RTO < 30 min).
 - [ ] Aucun 5xx dans Sentry après 24 h de pilote.

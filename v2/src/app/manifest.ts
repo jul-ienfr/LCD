@@ -1,10 +1,13 @@
 import type { MetadataRoute } from "next";
+import { connection } from "next/server";
+import { marque, marqueCourte } from "@/lib/branding";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  await connection();
   return {
     id: "/",
-    name: "LCD Parc — conciergerie",
-    short_name: "LCD Parc",
+    name: `${marque()} — conciergerie`,
+    short_name: marqueCourte(),
     description:
       "Conciergerie locative saisonnière : hôte, voyageur, propriétaire, prestataire.",
     lang: "fr",

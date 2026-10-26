@@ -31,12 +31,11 @@ test.describe("pages publiques sans JavaScript", () => {
 
   test("l'accueil relie l'aide et les mentions légales", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("link", { name: "Aide" })).toHaveAttribute(
-      "href",
-      "/aide",
-    );
     await expect(
-      page.getByRole("link", { name: "Mentions légales" }),
+      page.getByRole("link", { name: "Aide", exact: true }).first(),
+    ).toHaveAttribute("href", "/aide");
+    await expect(
+      page.getByRole("link", { name: "Mentions légales", exact: true }).first(),
     ).toHaveAttribute("href", "/legales");
   });
 });

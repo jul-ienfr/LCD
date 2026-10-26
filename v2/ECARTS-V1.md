@@ -11,7 +11,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 
 | Exigence V1 / plan | V2 | Note |
 |---|---|---|
-| Landing marketing (features, forfaits, marque) | Partiel | `/` = squelette ; contenu V1 non porté. |
+| Landing marketing (features, forfaits, marque) | Fait | Contenu V1 porté : 6 capacités, forfaits 149/190/290, CTA. |
 | `/aide` (rôles, écrans, limites) | Fait | `/aide`, sans JS. |
 | `/legales` (LCEN, mandat, RGPD, SIREN réel) | Fait | `/legales`, lit `tenants` ; « à compléter » si absent. |
 | Bandeau cookies (refus = zéro traceur) | Absent | Aucun traceur public aujourd’hui. |
@@ -110,7 +110,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | PWA + offline + outbox | Fait | `/voyageur`, `/presta`, SW. |
 | Mode léger L1 (`/api/lite`) | Absent | Cookie + CSS allégé non portés. |
 | i18n 5 langues | Partiel | Voyageur 5 langues ; staff FR. |
-| Marque blanche runtime | Absent | « LCD Parc » en dur. |
+| Marque blanche runtime | Partiel | Nom/titre/manifeste/pied via `MARQUE` ; logo et couleurs non pilotés. |
 | RGPD : registre, export, purge | Fait | `/hote/rgpd`, cron mémoire. |
 | Audit 90 j | Fait | `/hote/audit`. |
 | Recherche globale par `ref` | Absent | — |
@@ -124,7 +124,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 2. `super_admin` + pages `/supervision`, `/systeme`, `/secrets`, `/journal`
    (lecture cross-tenant encadrée) et « voir comme » audité.
 3. Machine d’état de publication d’annonce + archivage doux.
-4. Marque blanche runtime (nom, logo, couleurs, contacts).
-5. Landing marketing complète, bandeau cookies, médiation conso.
+4. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
+5. Bandeau cookies et médiation conso.
 6. Export compta Factur-X en lot + rapprochement >2 %.
 7. Mode léger L1 et recherche globale par `ref`.

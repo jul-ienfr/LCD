@@ -3,15 +3,16 @@ import { Suspense } from "react";
 import "./globals.css";
 import { DesignSite } from "./design-site";
 import { PwaRegister } from "./pwa-register";
+import { marque, marqueCourte } from "@/lib/branding";
 
 export const metadata: Metadata = {
-  title: "LCD Parc",
+  title: marque(),
   description:
     "Conciergerie locative saisonnière : hôte, voyageur, propriétaire, prestataire.",
-  applicationName: "LCD Parc",
+  applicationName: marque(),
   appleWebApp: {
     capable: true,
-    title: "LCD Parc",
+    title: marqueCourte(),
     statusBarStyle: "default",
   },
   formatDetection: { telephone: false },

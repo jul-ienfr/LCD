@@ -182,6 +182,15 @@ vaut `brouillon` à la création et ne passe à `publiee` que par l’action
 remasque immédiatement le logement. Les logements actifs déjà vérifiés ont été
 repris en `publiee` par la migration `0059`.
 
+## Marque blanche
+
+La vitrine (`/`), le titre de l’application, le manifeste PWA et le pied de
+page lisent `MARQUE` (repli `LCD_MARQUE`, puis « LCD Parc »), `MARQUE_COURTE`
+et `MARQUE_SLUG` dans `src/lib/branding.ts`. Changer ces variables puis
+redémarrer le serveur re-thème sans rebuild ; les identifiants internes
+(cookies, refs, en-têtes) ne changent jamais. Les factures, contrats et pages
+légales continuent de lire le nom du tenant en base.
+
 ## Partage client et email
 
 - lien signé HMAC par facture, valable 90 jours, page `/facture/[token]` ;
