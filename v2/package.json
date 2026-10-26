@@ -20,6 +20,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:role-app": "node scripts/creer-role-app.mjs",
     "db:test-rls": "node scripts/verifier-rls.mjs",
+    "db:test-migrations": "node scripts/test-migrations.mjs",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
