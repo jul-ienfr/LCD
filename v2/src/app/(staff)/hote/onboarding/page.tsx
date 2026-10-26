@@ -4,14 +4,17 @@ import {
   conformiteAnnonce,
 } from "@/domain/annonce";
 import { joursDuMois } from "@/domain/calendrier";
-import { logementPubliable, type Logement } from "@/domain/logement";
+import { peutPublierLogement, type Logement } from "@/domain/logement";
 import { DrizzleAnnoncesConformiteRepository } from "@/infrastructure/db/repositories/annonces-conformite-repository";
 import { DrizzleFluxIcsRepository } from "@/infrastructure/db/repositories/flux-ics-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleTarifRepository } from "@/infrastructure/db/repositories/tarif-repository";
 import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
-import { verifierCoproAction } from "../annonce/actions";
+import {
+  changerPublicationAction,
+  verifierCoproAction,
+} from "../annonce/actions";
 
 export const instant = false;
 
@@ -26,7 +29,12 @@ interface Etape {
 export default async function PageOnboarding({
   searchParams,
 }: {
-  searchParams: Promise<{ logement?: string; copro?: string }>;
+  searchParams: Promise<{
+    logement?: string;
+    copro?: string;
+    publication?: string;
+    erreur?: string;
+  }>;
 }) {
   await connection();
   const session = await requireRole(["admin", "hote"]);
@@ -79,8 +87,8 @@ export default async function PageOnboarding({
   const coproOk = Boolean(logement?.coproVerifiee);
   const prixOk = tarifs.length > 0;
   const icsOk = flux.length > 0;
-  const publiable = logement ? logementPubliable(logement) : false;
-  const pret = editeurOk && annonceOk && coproOk && prixOk && publiable;
+  const publie = logement?.publication === "publiee";
+  const pret = editeurOk && annonceOk && coproOk && prixOk && publie;
 
   const etapes: Etape[] = [
     {
@@ -155,7 +163,7 @@ export default async function PageOnboarding({
       code: "golive",
       titre: "7 · Mise en ligne",
       detail:
-        "Le logement est actif, vérifié et tarifé : il apparaît sur la page de réservation publique.",
+        "Le logement est actif, vérifié, tarifé et publié : il apparaît sur la page de réservation publique.",
       fait: pret,
     },
   ];
@@ -188,6 +196,25 @@ export default async function PageOnboarding({
           role="status"
         >
           Vérification copropriété enregistrée.
+        </p>
+      ) : null}
+
+      {params.publication ? (
+        <p
+          className="rounded-xl border border-accent bg-accent-douce p-3 text-sm text-accent"
+          role="status"
+        >
+          Publication mise à jour.
+        </p>
+      ) : null}
+
+      {params.erreur === "publication" ? (
+        <p
+          className="rounded-xl border border-danger bg-danger-douce p-3 text-sm text-danger"
+          role="alert"
+        >
+          Publication refusée : vérifiez d’abord la copropriété et le statut
+          actif du logement.
         </p>
       ) : null}
 
@@ -329,6 +356,52 @@ export default async function PageOnboarding({
                       Enregistrer
                     </button>
                   </form>
+                ) : null}
+
+                {etape.code === "golive" ? (
+                  <div className="mt-4 border-t border-bordure pt-4">
+                    <p className="text-sm text-encre-douce">
+                      État de publication :{" "}
+                      <span className="font-semibold">
+                        {publie ? "publié" : "brouillon"}
+                      </span>
+                      . Un logement en brouillon n’apparaît jamais sur
+                      `/reserver`, même vérifié.
+                    </p>
+                    <form
+                      key={logement.id}
+                      action={changerPublicationAction}
+                      className="mt-3 flex flex-wrap items-center gap-3"
+                    >
+                      <input
+                        type="hidden"
+                        name="logementId"
+                        value={logement.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="retour"
+                        value="/hote/onboarding"
+                      />
+                      <input
+                        type="hidden"
+                        name="publication"
+                        value={publie ? "brouillon" : "publiee"}
+                      />
+                      <button
+                        className="rounded-full bg-encre px-5 py-2.5 text-sm font-semibold text-fond disabled:opacity-50"
+                        disabled={!publie && !peutPublierLogement(logement)}
+                        type="submit"
+                      >
+                        {publie ? "Dépublier le logement" : "Publier le logement"}
+                      </button>
+                    </form>
+                    {!publie && !peutPublierLogement(logement) ? (
+                      <p className="mt-2 text-sm text-alerte">
+                        Vérifiez la copropriété avant de publier.
+                      </p>
+                    ) : null}
+                  </div>
                 ) : null}
 
                 {etape.lien ? (

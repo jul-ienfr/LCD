@@ -33,6 +33,8 @@ test("réservation directe : tarifs, devis, demande et espace séjour", async ({
   await expect(
     page.getByText("Vérification copropriété enregistrée."),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Publier le logement" }).click();
+  await expect(page.getByText("Publication mise à jour.")).toBeVisible();
 
   await page.goto("/hote/prix?mois=2027-02");
   await page.selectOption('select[name="logement"]', { label: nom });

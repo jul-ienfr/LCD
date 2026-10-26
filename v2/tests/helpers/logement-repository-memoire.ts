@@ -16,6 +16,7 @@ export class LogementRepositoryMemoire implements LogementRepository {
       nom: data.nom,
       adresse: data.adresse,
       coproVerifiee: false,
+      publication: "brouillon",
       statut: "actif",
       createdAt: maintenant,
       updatedAt: maintenant,
@@ -98,6 +99,18 @@ export class LogementRepositoryMemoire implements LogementRepository {
     const logement = await this.trouverParId(tenantId, id);
     if (!logement) return null;
     logement.statut = statut;
+    logement.updatedAt = new Date();
+    return logement;
+  }
+
+  async changerPublication(
+    tenantId: string,
+    id: string,
+    publication: Logement["publication"],
+  ): Promise<Logement | null> {
+    const logement = await this.trouverParId(tenantId, id);
+    if (!logement) return null;
+    logement.publication = publication;
     logement.updatedAt = new Date();
     return logement;
   }

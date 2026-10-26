@@ -38,6 +38,12 @@ test("onboarding : la copropriété non vérifiée bloque la mise en ligne", asy
     page.getByText("Vérification copropriété enregistrée."),
   ).toBeVisible();
 
+  const brouillon = await page.request.get("/reserver?tenant=lcd");
+  expect(await brouillon.text()).not.toContain(nom);
+
+  await page.getByRole("button", { name: "Publier le logement" }).click();
+  await expect(page.getByText("Publication mise à jour.")).toBeVisible();
+
   const apres = await page.request.get("/reserver?tenant=lcd");
   expect(await apres.text()).toContain(nom);
 });

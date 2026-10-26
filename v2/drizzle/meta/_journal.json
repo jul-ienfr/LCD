@@ -414,6 +414,13 @@
       "when": 1793038517638,
       "tag": "0058_logement_copro",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1793043803107,
+      "tag": "0059_logement_publication",
+      "breakpoints": true
     }
   ]
 }

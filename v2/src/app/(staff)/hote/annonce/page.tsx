@@ -10,9 +10,13 @@ import {
 } from "@/domain/annonce";
 import { DrizzleAnnoncesConformiteRepository } from "@/infrastructure/db/repositories/annonces-conformite-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
-import { logementPubliable } from "@/domain/logement";
+import { logementPubliable, peutPublierLogement } from "@/domain/logement";
 import { requireRole, tenantIdDeSession } from "@/lib/session";
-import { enregistrerAnnonceAction, verifierCoproAction } from "./actions";
+import {
+  changerPublicationAction,
+  enregistrerAnnonceAction,
+  verifierCoproAction,
+} from "./actions";
 
 export const instant = false;
 
@@ -66,6 +70,7 @@ export default async function PageAnnonce({
   }
 
   const publiable = logementPubliable(logement);
+  const publie = logement.publication === "publiee";
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
@@ -158,8 +163,8 @@ export default async function PageAnnonce({
 
         <p className="mt-3 text-sm text-encre-douce">
           {publiable
-            ? "Ce logement est actif et vérifié : il peut être proposé aux voyageurs."
-            : "Ce logement n’est pas publiable tant que la vérification copropriété n’est pas enregistrée."}
+            ? "Ce logement est actif, vérifié et publié : il peut être proposé aux voyageurs."
+            : "Ce logement n’est pas visible sur la page de réservation publique (copropriété non vérifiée ou publication en brouillon)."}
           {logement.coproVerifieeLe
             ? ` Dernière vérification le ${logement.coproVerifieeLe.toLocaleDateString("fr-FR")}.`
             : null}
@@ -195,6 +200,42 @@ export default async function PageAnnonce({
             Enregistrer la vérification
           </button>
         </form>
+
+        <div className="mt-5 border-t border-bordure pt-4">
+          <p className="text-sm text-encre-douce">
+            Publication :{" "}
+            <span className="font-semibold">
+              {publie ? "publiée" : "brouillon"}
+            </span>
+            . La publication est une décision explicite : un logement vérifié
+            mais en brouillon reste invisible sur `/reserver`.
+          </p>
+          <form
+            key={`publication-${logement.id}`}
+            action={changerPublicationAction}
+            className="mt-3 flex flex-wrap items-center gap-3"
+          >
+            <input type="hidden" name="logementId" value={logement.id} />
+            <input type="hidden" name="retour" value="/hote/annonce" />
+            <input
+              type="hidden"
+              name="publication"
+              value={publie ? "brouillon" : "publiee"}
+            />
+            <button
+              className="rounded-full bg-encre px-5 py-2.5 text-sm font-semibold text-fond disabled:opacity-50"
+              disabled={!publie && !peutPublierLogement(logement)}
+              type="submit"
+            >
+              {publie ? "Dépublier le logement" : "Publier le logement"}
+            </button>
+          </form>
+          {!publie && !peutPublierLogement(logement) ? (
+            <p className="mt-2 text-sm text-alerte">
+              Vérifiez la copropriété avant de publier.
+            </p>
+          ) : null}
+        </div>
       </section>
 
       <section className="rounded-2xl border border-bordure bg-surface p-6 shadow-sm">

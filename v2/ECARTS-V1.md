@@ -47,7 +47,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | Onboarding 7 étapes | Partiel | `/hote/onboarding` = état réel des gates ; étapes physiques exclues. |
 | Gate copro `copro.verifiee=false` → en ligne bloquée | Fait | `logements.copro_verifiee`, filtre `/reserver`, audit. |
 | Conformité annonce (9 mentions, DPE/GES, Cerfa) | Fait | `/hote/annonce`. |
-| Machine d’état publication (brouillon→prêt→publié) | Absent | Pas d’état de publication. |
+| Machine d’état publication (brouillon→prêt→publié) | Fait (2 états) | `brouillon` par défaut, publication explicite auditée ; état « prêt » fusionné avec `/hote/onboarding`. |
 | Config générale groupée + dry-run/rollback | Absent | Pas d’équivalent V1. |
 | Archivage doux + double confirmation | Partiel | Statut `archive` en base ; pas d’UI dédiée. |
 

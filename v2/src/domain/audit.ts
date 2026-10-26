@@ -18,6 +18,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "flux_ics.sync": "Flux ICS synchronisé",
   "logement.creer": "Logement créé",
   "logement.copro": "Vérification copro enregistrée",
+  "logement.publication": "Publication du logement modifiée",
   "logement.guide": "Guide du logement mis à jour",
   "mission.creer": "Mission créée",
   "mission.statut": "Statut de mission modifié",

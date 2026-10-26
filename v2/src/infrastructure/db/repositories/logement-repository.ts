@@ -23,6 +23,7 @@ function versDomaine(row: typeof logements.$inferSelect): Logement {
     guideTexte: row.guideTexte ?? undefined,
     coproVerifiee: row.coproVerifiee,
     coproVerifieeLe: row.coproVerifieeLe ?? undefined,
+    publication: row.publication as Logement["publication"],
     statut: row.statut as Logement["statut"],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -145,6 +146,20 @@ export class DrizzleLogementRepository implements LogementRepository {
       await tx
         .update(logements)
         .set({ statut, updatedAt: new Date() })
+        .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async changerPublication(
+    tenantId: string,
+    id: string,
+    publication: Logement["publication"],
+  ): Promise<Logement | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(logements)
+        .set({ publication, updatedAt: new Date() })
         .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
     });
     return this.trouverParId(tenantId, id);

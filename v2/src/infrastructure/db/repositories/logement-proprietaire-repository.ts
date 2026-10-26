@@ -24,6 +24,7 @@ function versDomaine(row: typeof logements.$inferSelect): Logement {
     guideTexte: row.guideTexte ?? undefined,
     coproVerifiee: row.coproVerifiee,
     coproVerifieeLe: row.coproVerifieeLe ?? undefined,
+    publication: row.publication as Logement["publication"],
     statut: row.statut as Logement["statut"],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

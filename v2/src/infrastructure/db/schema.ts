@@ -92,6 +92,7 @@ export const logements = pgTable(
     guideTexte: text("guide_texte"),
     coproVerifiee: boolean("copro_verifiee").notNull().default(false),
     coproVerifieeLe: timestamp("copro_verifiee_le", { withTimezone: true }),
+    publication: text("publication").notNull().default("brouillon"),
     statut: text("statut").notNull().default("actif"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

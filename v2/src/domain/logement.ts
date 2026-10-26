@@ -2,6 +2,7 @@ import type { TenantId } from "./tenant";
 
 export type LogementId = string;
 export type StatutLogement = "actif" | "inactif" | "archive";
+export type PublicationLogement = "brouillon" | "publiee";
 
 export interface Logement {
   id: LogementId;
@@ -18,6 +19,7 @@ export interface Logement {
   guideTexte?: string;
   coproVerifiee: boolean;
   coproVerifieeLe?: Date;
+  publication: PublicationLogement;
   statut: StatutLogement;
   createdAt: Date;
   updatedAt: Date;
@@ -36,11 +38,22 @@ export function nomLogementValide(nom: string): boolean {
 }
 
 /**
- * Un logement n'est proposé aux voyageurs que s'il est actif et si le
- * règlement de copropriété / l'accord du syndic a été vérifié. Tant que la
- * vérification n'est pas faite, la mise en ligne est bloquée (REQ-L-001).
+ * Un logement n'est proposé aux voyageurs que s'il est actif, si le règlement
+ * de copropriété / l'accord du syndic a été vérifié, et si l'hôte l'a
+ * explicitement publié. La publication est une décision distincte de la
+ * création : un logement neuf reste en brouillon.
  */
 export function logementPubliable(
+  logement: Pick<Logement, "statut" | "coproVerifiee" | "publication">,
+): boolean {
+  return (
+    logement.statut === "actif" &&
+    logement.coproVerifiee &&
+    logement.publication === "publiee"
+  );
+}
+
+export function peutPublierLogement(
   logement: Pick<Logement, "statut" | "coproVerifiee">,
 ): boolean {
   return logement.statut === "actif" && logement.coproVerifiee;

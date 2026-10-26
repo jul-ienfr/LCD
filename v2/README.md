@@ -175,6 +175,13 @@ sur `/reserver`. Elle s’enregistre depuis `/hote/annonce#copro` ou
 remasquer le logement. Les logements existants ont été repris à `true` par la
 migration `0058` ; les nouveaux restent bloqués jusqu’à vérification.
 
+La **publication** est une seconde décision explicite : `logements.publication`
+vaut `brouillon` à la création et ne passe à `publiee` que par l’action
+« Publier le logement » (audit `logement.publication`). `/reserver` exige
+`statut=actif`, `copro_verifiee=true` et `publication=publiee` ; dépublier
+remasque immédiatement le logement. Les logements actifs déjà vérifiés ont été
+repris en `publiee` par la migration `0059`.
+
 ## Partage client et email
 
 - lien signé HMAC par facture, valable 90 jours, page `/facture/[token]` ;

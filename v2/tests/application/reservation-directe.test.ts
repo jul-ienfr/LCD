@@ -53,6 +53,7 @@ function logement(): Logement {
     code: "log1",
     nom: "Logement 1",
     coproVerifiee: true,
+    publication: "publiee",
     statut: "actif",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -156,6 +157,9 @@ class LogementsMemoire implements LogementRepository {
     return null;
   }
   async changerStatut() {
+    return null;
+  }
+  async changerPublication() {
     return null;
   }
 }

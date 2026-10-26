@@ -36,6 +36,8 @@ test("avis : dépôt voyageur sans JS, unicité et modération hôte", async ({
   await expect(
     page.getByText("Vérification copropriété enregistrée."),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Publier le logement" }).click();
+  await expect(page.getByText("Publication mise à jour.")).toBeVisible();
 
   await page.goto("/hote/planning?mois=2026-12");
   await page.selectOption('select[name="logement"]', { label: nomLogement });

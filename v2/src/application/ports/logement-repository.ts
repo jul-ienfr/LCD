@@ -1,4 +1,8 @@
-import type { Logement, StatutLogement } from "@/domain/logement";
+import type {
+  Logement,
+  PublicationLogement,
+  StatutLogement,
+} from "@/domain/logement";
 import type { TenantId } from "@/domain/tenant";
 
 export interface CreerLogementData {
@@ -41,5 +45,10 @@ export interface LogementRepository {
     tenantId: TenantId,
     id: string,
     statut: StatutLogement,
+  ): Promise<Logement | null>;
+  changerPublication(
+    tenantId: TenantId,
+    id: string,
+    publication: PublicationLogement,
   ): Promise<Logement | null>;
 }
