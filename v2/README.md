@@ -546,6 +546,17 @@ jour borné au dernier jour du mois). Table `fiches_police` sous RLS.
 - payload JSON replié, jamais interprété comme du HTML ;
 - lecture via RLS tenant, aucune écriture depuis la page.
 
+## Recherche globale
+
+- `/hote/recherche?q=…` (admin, hôte, comptable, opérateur) : requête GET sans
+  JavaScript, 2 à 80 caractères, résultat groupé par catégorie ;
+- recherchés : logement (code/nom), réservation (ref/client), facture
+  (numéro/client), paiement (ref/référence), mission, ménage, état des lieux,
+  ticket, sinistre, objet trouvé, commande extra ;
+- motifs `ILIKE` échappés (`%`, `_`), 10 résultats par catégorie, 40 au total,
+  lecture RLS tenant — jamais de vue transverse ;
+- chaque résultat pointe vers sa page staff de référence.
+
 ## En-têtes de sécurité
 
 - **CSP partielle** : `base-uri 'self'`, `form-action 'self'`,

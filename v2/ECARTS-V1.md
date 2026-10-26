@@ -37,7 +37,7 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 | `/supervision` (santé, box, métriques) | Absent | `/api/health` et `/api/ready` existent. |
 | `/systeme` (santé gateway, hébergement, design) | Partiel | Design sur `/hote/design` ; pas de page système. |
 | `/secrets` (métadonnées + rotation) | Absent | Secrets webhooks gérés sur `/hote/integrations`. |
-| `/journal` 90 j + recherche par `ref` | Partiel | `/hote/audit` + export ; pas de recherche globale. |
+| `/journal` 90 j + recherche par `ref` | Fait | `/hote/audit` + export CSV + `/hote/recherche` multi-refs. |
 | `/metrics` Prometheus | Absent | `/api/telemetry` seulement. |
 
 ## Logements, onboarding, annonces
@@ -126,4 +126,4 @@ Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel/infra V
 3. Machine d’état de publication d’annonce + archivage doux.
 4. Marque blanche complète (logo, couleurs, contacts) au-delà du nom.
 5. Bandeau cookies et médiation conso.
-6. Mode léger L1 et recherche globale par `ref`.
+6. Mode léger L1 (recherche globale `ref` faite).

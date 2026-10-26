@@ -145,6 +145,8 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Portail propriétaire : rattachement, commission, relevé, isolation.
 - [ ] CRM : prospect, offre, pipeline.
 - [ ] Support : ticket, réponse, résolution.
+- [ ] Recherche globale `/hote/recherche` : refs réservation/facture/paiement,
+  groupement par catégorie, requête < 2 caractères refusée, isolation tenant.
 - [ ] Audit : les actions ci-dessus apparaissent dans `/hote/audit`.
 
 ## 3. Paiements Stripe
