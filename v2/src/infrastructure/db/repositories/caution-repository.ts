@@ -15,6 +15,10 @@ function versDomaine(row: typeof cautions.$inferSelect): Caution {
     tenantId: row.tenantId,
     reservationId: row.reservationId,
     montantCentimes: row.montantCentimes,
+    mode: (row.mode as Caution["mode"]) ?? "virement",
+    empreinteId: row.empreinteId,
+    empreinteStatut: row.empreinteStatut,
+    montantCaptureCentimes: row.montantCaptureCentimes,
     statut: row.statut as Caution["statut"],
     dateReception: row.dateReception,
     dateRestitution: row.dateRestitution,
@@ -35,6 +39,9 @@ export class DrizzleCautionRepository implements CautionRepository {
           tenantId: data.tenantId,
           reservationId: data.reservationId,
           montantCentimes: data.montantCentimes,
+          mode: data.mode ?? "virement",
+          empreinteId: data.empreinteId ?? null,
+          empreinteStatut: data.empreinteStatut ?? null,
           notes: data.notes ?? null,
         })
         .onConflictDoNothing({
@@ -124,6 +131,43 @@ export class DrizzleCautionRepository implements CautionRepository {
               : data.montantRetenuCentimes,
           motifRetenue:
             data.motifRetenue === undefined ? undefined : data.motifRetenue,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(cautions.tenantId, tenantId), eq(cautions.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async enregistrerEmpreinte(
+    tenantId: string,
+    id: string,
+    data: { empreinteId: string; empreinteStatut: string },
+  ): Promise<Caution | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(cautions)
+        .set({
+          mode: "empreinte",
+          empreinteId: data.empreinteId,
+          empreinteStatut: data.empreinteStatut,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(cautions.tenantId, tenantId), eq(cautions.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async enregistrerCapture(
+    tenantId: string,
+    id: string,
+    data: { montantCaptureCentimes: number; empreinteStatut: string },
+  ): Promise<Caution | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(cautions)
+        .set({
+          montantCaptureCentimes: data.montantCaptureCentimes,
+          empreinteStatut: data.empreinteStatut,
           updatedAt: new Date(),
         })
         .where(and(eq(cautions.tenantId, tenantId), eq(cautions.id, id)));

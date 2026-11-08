@@ -23,4 +23,9 @@ export interface TenantRepository {
     tenantId: string,
     data: EntiteData,
   ): Promise<Tenant | null>;
+  suspendreVentes(
+    tenantId: string,
+    suspendues: boolean,
+    motif: string | null,
+  ): Promise<Tenant | null>;
 }

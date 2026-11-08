@@ -1,28 +1,9 @@
-# LCD v2 — squelette migration-friendly
+# LCD v2 — SvelteKit 3, HTML-first
 
-Nouvelle base Next.js 16.4 + React 19.3 + TypeScript 6.0.3 (lint) / 7.0.2
-(tsc) + Tailwind 4.3 + PostgreSQL 18 + Drizzle + Better Auth + SMTP
-(nodemailer) + PDF (pdf-lib). Objectif : remplacer v1 en fast-track, sans
-perdre la capacité de migrer plus tard (voir `docs/78-plan-stack-deploiement.md`).
-
-## Déploiement beta
-
-- URL : <https://lcd-parc.netlify.app>
-- Netlify Free + Netlify Database (Postgres managé, `us-east-2`) ;
-- `/api/health` et `/api/ready` verts ;
-- email désactivé (`EMAIL_ENABLED=false`) tant qu'aucun SMTP de production
-  n'est configuré ;
-- variables d'environnement non secrètes sur le plan Free, base hors UE,
-  backups/Sentry/Uptime à ajouter ;
-- **alternative VPS prête et testée de bout en bout** : `compose.prod.yml` +
-  `Caddyfile` + Dockerfile multi-stage + sauvegardes ; PostgreSQL, migrations,
-  seed, rôle applicatif RLS, web et HTTPS validés en local, suite Playwright
-  **21/21** sur la pile compose ; voir `v2/DEPLOIEMENT-VPS.md` ;
-- **alternatives gratuites à Netlify** : Oracle Always Free, GCP e2-micro,
-  Render + Neon, home lab + tunnel ; comparatif et procédures dans
-  `v2/DEPLOIEMENT-GRATUIT.md`, blueprint `v2/render.yaml`, compose sans
-  PostgreSQL local `v2/compose.prod.external-db.yml` ;
-- procédure et limites : `v2/DEPLOIEMENT.md`.
+Application de conciergerie locative saisonnière. La v2 est une bascule **dans
+ce dossier** (pas de v3) : SvelteKit 3 + Svelte 5 + Vite 8 + Tailwind CSS 4,
+rendue par `@sveltejs/adapter-node`, avec PostgreSQL, Drizzle, Better Auth,
+SMTP et PDF.
 
 ## Démarrer
 
@@ -30,787 +11,170 @@ perdre la capacité de migrer plus tard (voir `docs/78-plan-stack-deploiement.md
 npm ci
 cp .env.example .env.local
 docker compose -f compose.dev.yml up -d   # Postgres + S3Mock + Mailpit
-npm run db:generate
 npm run db:migrate
-npm run db:seed          # tenant "lcd" + admin@lcd.test
-npm run dev
+npm run db:seed
+npm run db:seed-demo                          # optionnel : 3 logements de démo
+npm run dev                                # http://localhost:5173
 ```
 
-Compte de développement créé par le seed :
+Comptes de développement (à changer avant tout déploiement) :
 
 | Email | Mot de passe | Rôle |
 |---|---|---|
-| `admin@lcd.test` | `ChangeMe-2026!` | `admin` |
+| `admin@lcd.test` | `ChangeMe-2026!` | `super_admin` (promu au seed) |
 | `presta@lcd.test` | `ChangeMe-2026!` | `presta` |
 | `proprio@lcd.test` | `ChangeMe-2026!` | `proprietaire` |
 | `commercial@lcd.test` | `ChangeMe-2026!` | `commercial` |
 
-À changer avant tout déploiement. Le seed est idempotent.
+Un compte super-admin dédié peut être créé avec
+`SEED_SUPER_ADMIN_EMAIL` / `SEED_SUPER_ADMIN_PASSWORD`. Le seed est idempotent.
 
 ## Vérifier
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
+npm run check       # svelte-check + sync
+npm test            # Vitest (domaine, application, infrastructure)
 npm run build
+npm run test:e2e    # Playwright (serveur lancé automatiquement)
 ```
 
-E2E (serveur + DB seedés requis) :
-
-```bash
-npm run dev
-# autre terminal
-npm run test:e2e
-```
-
-Recette post-déploiement (services externes, production, charge) :
-`v2/TESTS-A-FAIRE.md`.
-
-Les tests couvrent : login staff, création d'un logement, prix, planning,
-anti-chevauchement, audit, facture + fiscalité auto + Factur-X XML + PDF +
-paiements + facture publique + email (si Mailpit) + statuts + compta + exports
-CSV, health/readiness, PWA offline, import ICS + blocages + idempotence +
-conflit + flux HTTPS, Stripe (gating sans clés + tests unitaires), webhooks
-signés + outbox, cautions + retenues, voyageur signé + incident **sans
-JavaScript** + idempotence + outbox + i18n FR/EN, missions staff → prestataire,
-propriétaire rattaché + commission + relevé + isolation, CRM prospect +
-pipeline + offre, support ticket + réponse + résolution, guide + extra
-commandé, comptes utilisateurs (création, connexion, réinitialisation,
-désactivation), 2FA TOTP (activation, connexion, désactivation), inscription
-publique refusée, tenant/rôle non modifiables, changement de rôle admin,
-prestataire refusé sur le tableau de bord hôte et les exports comptables,
-journal d'audit, export ICS, export JSON complet sans secrets, entité
-juridique + mandats, 320 px.
-
-## Pages
-
-| Route | Rôle |
-|---|---|
-| `/` | accueil public |
-| `/aide` | centre d’aide : rôles, espaces, limites |
-| `/legales` | mentions légales, mandat, RGPD (lecture du registre) |
-| `/login` | connexion staff |
-| `/two-factor` | vérification TOTP |
-| `/hote` | tableau de bord (logements, CA, arrivées/départs) |
-| `/hote/logements` | logements (création + liste) |
-| `/hote/logements/[id]` | guide, WiFi, check-in, règles |
-| `/hote/onboarding` | mise en ligne : éditeur, annonce, copro, prix, go-live |
-| `/hote/extras` | catalogue extras + commandes |
-| `/hote/prix` | prix par jour et par logement |
-| `/hote/planning` | réservations + calendrier + anti-chevauchement |
-| `/hote/planning/import` | import ICS OTA + blocages + conflits |
-| `/hote/cautions` | dépôts de garantie + retenues |
-| `/hote/compta` | CA, factures, TVA, taxe, paiements, exports |
-| `/hote/compta/parametres` | TVA, taxe de séjour, préfixe et mentions légales |
-| `/hote/avis` | avis voyageurs : moyenne, publication, masquage |
-| `/hote/design` | design du site : 4 thèmes et bascule |
-| `/hote/stocks` | seuils, réassort et liste de courses |
-| `/hote/inventaire` | inventaire durable : QR, usages, états, alertes |
-| `/hote/etats-des-lieux` | constats d’entrée/sortie : manquants, dégradés, coût |
-| `/hote/entretien` | carnet d’entretien : interventions, prestataires, coûts |
-| `/hote/menage` | ménages : checklists, avancement, réassort, score et coût de rotation |
-| `/hote/questionnaires` | satisfaction voyageur : moyennes par critère |
-| `/hote/phrases` | messages types : arrivée, départ, urgence, variables |
-| `/hote/formation` | parcours de formation : 4 modules, progression par membre |
-| `/hote/objets-trouves` | registre par logement : réclamation 15 €, envoi, don après 30 j |
-| `/hote/tranquillite` | carnet de bruit (seuils 55/35 dB), attestations, lettre au syndic |
-| `/hote/annonce` | conformité de l’annonce : 9 mentions, DPE/GES, classement, vérification copro |
-| `/hote/rgpd` | registre des 7 traitements, DPO, durées de conservation |
-| `/hote/sinistres` | dossiers sinistres : déclaration, expertise, indemnisation, clôture |
-| `/hote/dispatch` | offres de mission aux prestataires, acceptation/refus, réassignation |
-| `/hote/acces` | registre des sessions nominatives, révocation (admin, jamais soi-même) |
-| `/hote/assistant` | routage local/standard/premium, LLM OpenAI-compatible optionnel avec repli local, comparaison des 3 tons, garde-fous de sortie, quotas 20/h et 100/mois, budget 10 €/mois, brouillon et enregistrement en message |
-| `/hote/messages` | messages voyageurs J-1/arrivée/départ, garde-fou anti-PIN, envoi e-mail réel ou marquage manuel |
-| `/hote/tourisme` | lieux touristiques par logement |
-| `/hote/factures` | liste + création de factures |
-| `/hote/factures/[id]` | facture imprimable / PDF + statuts + paiements + Factur-X |
-| `/hote/missions` | missions staff + assignation prestataire |
-| `/hote/proprietaires` | mandats propriétaire ↔ logement + commission |
-| `/hote/entite` | entité juridique de facturation (admin) |
-| `/hote/integrations` | webhooks HA/Moli + livraisons |
-| `/hote/securite` | 2FA, mot de passe, sessions actives |
-| `/hote/utilisateurs` | comptes de l’équipe (admin) |
-| `/hote/audit` | journal d’audit (admin) : période 7/30/90 j, famille, recherche, CSV |
-| `/presta` | missions du prestataire + statuts |
-| `/proprio` | relevé propriétaire (lecture seule) |
-| `/commercial` | pipeline prospects |
-| `/commercial/prospects/[id]` | prospect + offres + statuts |
-| `/support` | tickets support (staff = tous, autres = les leurs) |
-| `/support/[id]` | fil de messages + réponses + statuts |
-| `/facture/[token]` | facture publique signée, sans compte |
-| `/contrat/[token]` | contrat de séjour signé (même lien voyageur), imprimable |
-| `/questionnaire/[token]` | questionnaire de séjour signé, une réponse par séjour |
-| `/reserver` | réservation directe (catalogue, devis, demande) |
-| `/voyageur?t=<token>` | séjour, guide, extras, préférences séjour, mémoire, avis, questionnaire, incident (sans JS) |
-| `/offline` | fallback PWA hors ligne |
-| `/api/health` | liveness (sans DB) |
-| `/api/ready` | readiness (ping DB + tables/colonnes minimales + migrations à jour) |
-| `/api/voyageur/incident` | API incident signée + idempotente |
-| `/api/exports/reservations` | export CSV des réservations |
-| `/api/exports/audit` | export CSV du journal filtré (période, famille, recherche) |
-| `/api/exports/factures` | export CSV des factures |
-| `/api/exports/factur-x?mois=AAAA-MM` | ZIP des XML Factur-X des factures émises/payées du mois |
-| `/api/exports/modele-rapprochement` | modèle CSV pour l’import bancaire |
-| `/api/exports/paiements` | export CSV des paiements |
-| `/api/exports/tenant` | export JSON complet du tenant (admin) |
-| `/api/calendrier/[logementId]?t=<token>` | flux ICS signé du logement |
-| `/api/factures/[id]/factur-x` | export XML CII Factur-X (authentifié) |
-| `/api/factures/[id]/pdf` | PDF facture + XML Factur-X incorporé |
-| `/api/stripe/webhook` | webhook Stripe Checkout signé |
-| `/api/cron/sync-ota` | synchronisation cron des flux ICS (`CRON_SECRET`) |
-| `/api/cron/relances` | relances quotidiennes des factures échues (`CRON_SECRET`, `RELANCE_AUTO_ENABLED=true`) |
-| `/api/cron/webhooks` | livraison cron des webhooks (`CRON_SECRET`) |
-| `/api/cron/memoire` | purge des préférences voyageur expirées (`CRON_SECRET`) |
-| `/api/cron/purge-police` | purge des fiches de police après 6 mois (`CRON_SECRET`) |
-
-## Onboarding et vérification copropriété
-
-`/hote/onboarding` calcule l’état réel d’un logement avant sa mise en ligne :
-identité de l’éditeur (SIREN, adresse), logement au registre, conformité de
-l’annonce (mentions, DPE/GES, numéro d’enregistrement), vérification
-copropriété, prix du mois, flux ICS et go-live.
-
-La vérification copropriété est un **gate métier**, pas une case décorative :
-`logements.copro_verifiee` (défaut `false`) conditionne la présence du logement
-sur `/reserver`. Elle s’enregistre depuis `/hote/annonce#copro` ou
-`/hote/onboarding`, est auditée (`logement.copro`) et peut être retirée pour
-remasquer le logement. Les logements existants ont été repris à `true` par la
-migration `0058` ; les nouveaux restent bloqués jusqu’à vérification.
-
-La **publication** est une seconde décision explicite : `logements.publication`
-vaut `brouillon` à la création et ne passe à `publiee` que par l’action
-« Publier le logement » (audit `logement.publication`). `/reserver` exige
-`statut=actif`, `copro_verifiee=true` et `publication=publiee` ; dépublier
-remasque immédiatement le logement. Les logements actifs déjà vérifiés ont été
-repris en `publiee` par la migration `0059`.
-
-L’**archivage** est doux et réversible (`/hote/annonce#cycle-vie`) : double
-confirmation, passage en `archive` + `brouillon`, audit
-`logement.archiver`. Toute réservation non annulée et non terminée dont la fin
-est à venir bloque l’opération (brouillon compris). « Restaurer » remet le
-logement `actif` en `brouillon` : la copropriété et la publication doivent être
-revalidées, jamais republiées automatiquement.
-
-## Marque blanche
-
-`/hote/design` (admin) pilote l’identité de marque stockée dans
-`parametres_site` (clé `identite`) : nom affiché, logo (URL `http(s)://` ou
-chemin `/…`), couleur d’accent et contacts publics (e-mail, téléphone,
-adresse). L’accent est refusé si son contraste n’atteint pas 4,5:1 en clair et
-en sombre ; les variantes `accent-fonce` et `accent-douce` sont dérivées.
-
-L’identité s’applique à la vitrine (`/`), à la connexion, aux mentions légales,
-au titre global et au manifeste PWA. Les variables `MARQUE`, `MARQUE_COURTE` et
-`MARQUE_SLUG` restent le repli d’environnement quand le nom est vide. Les
-identifiants internes (cookies, refs, en-têtes) ne changent jamais ; les
-factures, contrats et pages légales continuent de lire l’entité juridique du
-tenant en base.
-
-## Partage client et email
-
-- lien signé HMAC par facture, valable 90 jours, page `/facture/[token]` ;
-- page publique sans compte, sans JavaScript, responsive 320 px ;
-- le lien n'est généré que pour une facture `emise` ou `payee` ;
-- envoi email depuis la fiche facture, avec adresse pré-remplie si connue ;
-- **relance** d’une facture émise non soldée depuis la même fiche : objet
-  `Relance facture <numéro>`, rappel de l’échéance et lien de paiement, audit
-  `facture.relance` ; le bouton disparaît dès que la facture est soldée ;
-- **relances groupées** depuis `/hote/factures` : toutes les factures émises
-  dont l’échéance est dépassée et dont le solde reste dû, avec un seul email par
-  facture et par jour (table `relances_factures`, contrainte unique
-  tenant/facture/jour, RLS), audit `facture.relances` ;
-- relance automatique quotidienne : `POST /api/cron/relances` protégé par
-  `CRON_SECRET`, activée seulement avec `RELANCE_AUTO_ENABLED=true`, aux
-  échéances J+1, J+7, J+15 et J+30, un audit `facture.relances.auto` par tenant
-  ayant envoyé ou échoué ; workflow `.github/workflows/v2-relances.yml` à
-  07:15 UTC ;
-- **PDF de la facture joint** à l’email (même document que `/api/factures/[id]/pdf`,
-  Factur-X inclus) et lien signé dans le corps ;
-- adapter SMTP (`nodemailer`) : Mailpit en dev (`smtp://127.0.0.1:1025`),
-  Brevo/OVH/Scaleway en production via `SMTP_URL` + `EMAIL_FROM` ;
-- audit `facture.email` / `facture.relance` / `facture.relances` /
-  `facture.relances.auto` ;
-- la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
-
-## Paiements en ligne Stripe
-
-- bouton « Payer en ligne » sur la facture publique quand la facture est
-  `emise` et qu’il reste un solde ;
-- Stripe Checkout Session créée côté serveur (`STRIPE_SECRET_KEY`) ;
-- retour sur la facture publique `?paiement=ok|annule|erreur` ;
-- webhook `POST /api/stripe/webhook` : signature `stripe-signature` vérifiée
-  en HMAC SHA-256, tolérance 5 minutes ;
-- `checkout.session.completed` → paiement `cb` idempotent (`ref` dérivée de
-  la session), facture soldée automatiquement ;
-- désactivé automatiquement si `STRIPE_SECRET_KEY` ou
-  `STRIPE_WEBHOOK_SECRET` manque ;
-- audit `paiement.stripe` ;
-- mode test/live à choisir dans Stripe ; aucune carte n’est stockée.
-
-## Cautions
-
-- une caution par réservation, montant en centimes ;
-- cycle : `attendue` → `recue` → `restituee` ou `retenue` ;
-- retenue partielle avec montant et motif obligatoires ;
-- page `/hote/cautions` : création, réception, restitution, retenue ;
-- audit `caution.creer` / `caution.statut` ;
-- la caution ne modifie pas le CA et reste distincte de la taxe de séjour.
-
-## Paiements
-
-- modes : virement, espèces, chèque, carte bancaire, autre ;
-- montant en centimes, date, référence libre et notes ;
-- écriture idempotente par `ref` (UUID généré par le formulaire) ;
-- surpaiement refusé : le montant ne peut pas dépasser le reste à payer ;
-- paiement partiel : la facture reste `emise` avec un reste affiché ;
-- solde atteint : la facture passe automatiquement en `payee` ;
-- une facture en brouillon ou annulée ne peut pas être encaissée ;
-- compta : total encaissé du mois, liste des paiements, export CSV ;
-- exports CSV : guillemets échappés et préfixe `'` sur les valeurs commençant
-  par `=`, `+`, `-`, `@`, tabulation ou retour chariot (injection de formules
-  Excel) ;
-- audit `paiement.creer`.
-
-## Fiscalité et Factur-X
-
-- `/hote/compta/parametres` : TVA en points de base, taxe de séjour par nuit
-  et par personne, plafond facultatif, préfixe de facture, mentions légales ;
-- à la création d’une facture, laisser TVA/taxe vides applique les paramètres
-  du tenant ; saisir une valeur force le montant (surcharge manuelle) ;
-- TVA calculée en centimes entiers (`HT × taux / 10 000`, arrondi au centime) ;
-- taxe calculée sur `nuits × voyageurs × tarif`, plafonnée si configuré ;
-- numérotation `PREFIXE-AAAA-0001`, préfixe validé (2-8 caractères A-Z/0-9) ;
-- export `GET /api/factures/[id]/factur-x` : XML CII EN 16931, réservé aux
-  rôles `admin`, `hote`, `comptable`, `Cache-Control: private, no-store` ;
-- export `GET /api/exports/factur-x?mois=AAAA-MM` : ZIP (méthode store, noms
-  UTF-8) des XML des factures `emise`/`payee` du mois, pour dépôt PDP/Chorus ;
-  en-tête `X-Factures`, 404 si aucune facture émise ;
-- export `GET /api/factures/[id]/pdf` : PDF facture (lignes, totaux, paiements)
-  avec le XML Factur-X en pièce jointe ; accessible avec session staff ou
-  token public `?t=…` ;
-- **préparation** : le PDF n'est pas encore PDF/A-3 signé ; la validation par
-  une plateforme de dématérialisation reste à faire.
-
-## Rapprochement bancaire
-
-`/hote/compta/rapprochement` (admin/hôte/comptable) importe un CSV bancaire
-(`date;libelle;montant;reference` ou colonnes `debit`/`credit`, 2 Mo,
-2 000 lignes). Les crédits sont appariés aux paiements non espèces du tenant :
-même montant, ±3 jours, référence contenue dans le libellé en priorité, un
-paiement consommé une seule fois. L’écart entre crédits et paiements attendus
-déclenche une alerte au-delà de 2 % ; les crédits orphelins de plus de 7 jours
-sont signalés. L’import est idempotent par `ref`, audité
-(`rapprochement.importer`) et stocké dans `imports_banque`/`lignes_banque`
-(RLS). Limite assumée : les virements internes et charges non liées à un
-paiement restent visibles comme orphelins/débits, sans comptabilisation
-automatique.
-
-## Intégrations HA/Moli
-
-- page `/hote/integrations` : webhooks HTTPS signés HMAC-SHA256 ;
-- événements : `reservation.created`, `paiement.created`, `mission.status`,
-  `ticket.created` ;
-- en-têtes `X-LCD-Event`, `X-LCD-Delivery`, `X-LCD-Signature: sha256=…` ;
-- outbox persistée : livraison immédiate par cron horaire
-  `POST /api/cron/webhooks` (`CRON_SECRET`), 5 essais avec backoff
-  (1, 5, 15, 60 min) ;
-- page de suivi des livraisons (statut, essais, code HTTP, message) ;
-- URL validée (HTTPS public, localhost/IP privées refusés), secret ≥ 16
-  caractères ;
-- audit `webhook.enregistrer` / `webhook.supprimer` ;
-- workflow `.github/workflows/v2-webhooks.yml` ;
-- **adaptateur `RuntimeBox` HTTP** : état et commandes par box, config JSON
-  `BOX_RUNTIME_CONFIG` indexée par `boxId` ;
-- types `home_assistant` (état `/api/`, commande `domaine.service` vers
-  `/api/services/...`) et `generic` (état `/health`, commande
-  `/api/commands`) ;
-- Bearer token, timeout 5/10 s, taille de réponse limitée, aucune box inconnue
-  acceptée ; l’API Moli propriétaire reste à cadrer avec le fournisseur.
-
-## PWA
-
-- `src/app/manifest.ts` : manifest installable, icônes 192/512/maskable.
-- `public/sw.js` : service worker maison, versionné.
-- `/offline` : fallback hors ligne.
-- `public/icons/` : icônes générées localement (aucun CDN).
-- Enregistrement uniquement en production (`PwaRegister`).
-- Jamais mis en cache : `/hote`, `/login`, `/two-factor`, `/api/`,
-  `/presta`, `/proprio`, `/commercial`, `/support` et `/facture/*` ;
-  seules les pages publiques et voyageur sont mises en cache.
-- `public/robots.txt` + en-tête `X-Robots-Tag` : pages privées et liens
-  signés en `noindex, nofollow, noarchive`.
-
-Test réel :
-
-```bash
-npm run test:e2e   # inclut PWA offline + API jamais cachée
-```
-
-Mesure du JS initial :
-
-```bash
-npm run dev        # ou npm start
-npm run measure:js
-```
-
-**Mesure du 2026-10-26 : 180,3 Ko gzip sur `/voyageur` (178,8 Ko le
-2026-10-24).** C'est au-dessus du budget voyageur de 50 Ko. **Décision G1
-(2026-10-25)** : Next est conservé pour la beta ; le HTML fonctionne sans JS, la
-PWA/offline est intégrée, et un découpage Astro ajouterait une deuxième base de
-code. La cible < 50 Ko reste l'objectif d'une surface voyageur séparée en v2.1,
-à réévaluer après les premiers clients ou si le LCP mobile se dégrade.
-
-## Import OTA / ICS
-
-- page `/hote/planning/import` : coller un flux ICS ou déposer un fichier ;
-- flux HTTPS enregistrés par logement (libellé + URL), URL validée
-  (HTTPS public, localhost/IP privées refusés) ;
-- synchronisation à la demande depuis la page, ou quotidienne via
-  `POST /api/cron/sync-ota` protégé par `CRON_SECRET` ;
-- workflow GitHub Actions `.github/workflows/v2-sync-ota.yml` (03:00 UTC) :
-  secret `CRON_SECRET` à configurer dans le dépôt ;
-- parseur iCal pur : lignes pliées, dates `VALUE=DATE` ou date-time,
-  `DURATION`, échappements, annulations ignorées ;
-- réservations importées en `confirmee`, source `import-ics` ;
-- événements « Not available / Blocked / Closed » importés en **blocages**
-  (table `blocages`), sans impact sur le CA ;
-- idempotence par UID OTA → `ref` stable `ics-…` ;
-- conflit avec une réservation ou un blocage existant : signalé, non importé ;
-- montant récupéré si `Total: 450` figure dans la description, sinon 0 ;
-- audit `planning.import_ics`, `flux_ics.enregistrer`, `flux_ics.sync`,
-  `flux_ics.supprimer`.
-
-## Export calendrier ICS
-
-- URL signée par logement, générée sur `/hote/logements/[id]` ;
-- `GET /api/calendrier/[logementId]?t=<token>` ;
-- événements toute la journée : réservations non annulées + blocages ;
-- ni nom de client ni montant dans le flux ;
-- token HMAC valable 10 ans, séparé des tokens facture/voyageur ;
-- rotation de `BETTER_AUTH_SECRET` = invalidation des abonnements ;
-- `text/calendar`, `Cache-Control: private, max-age=300`, `X-Robots-Tag`
-  noindex ;
-- adapté à Google Calendar, Apple Calendar et Outlook.
-
-## Portail voyageur
-
-- lien signé **HMAC-SHA256** par réservation, généré depuis `/hote/planning` ;
-- payload : tenant, logement, réservation, expiration ;
-- lien valable au moins 60 jours, puis jusqu'à 30 jours après le départ ;
-- le même lien ouvre le **contrat de séjour** imprimable (`/contrat/<token>`) :
-  parties, logement, dates, nuits, voyageurs, prix, caution, clauses et
-  signatures ; toute signature falsifiée est refusée ;
-- le lien « Répondre au questionnaire de séjour » mène à
-  `/questionnaire/<token>` : 5 critères notés de 1 à 5, commentaire libre,
-  une seule réponse par séjour, moyennes visibles dans `/hote/questionnaires` ;
-- formulaire d'incident **sans JS** (Server Action) ;
-- **i18n voyageur** : `?lang=fr|en|it|es|de`, sélecteur sans JS, fallback
-  français, dictionnaires `src/lib/i18n.ts` ; les redirections conservent la
-  langue ;
-- API `POST /api/voyageur/incident` idempotente par `ref`, payload limité à
-  10 Ko (413 au-delà) ;
-- **outbox IndexedDB** : hors ligne, l'incident est mis en attente puis rejoué
-  au retour du réseau ;
-- 2xx = retiré, 4xx = retiré (définitif), 5xx/réseau = conservé ;
-- la rotation de `BETTER_AUTH_SECRET` invalide les liens déjà émis.
-
-## Guide et extras voyageur
-
-- guide par logement : heure de check-in, consignes, WiFi, règles, urgence,
-  bonnes adresses ;
-- catalogue d’extras global ou par logement ;
-- commande depuis le lien voyageur signé, quantité 1-20, `ref` idempotente ;
-- total calculé en centimes ;
-- staff : création d’extras, suivi et statuts des commandes
-  (demandée → confirmée/refusée → livrée) ;
-- audit `logement.guide`, `extra.creer`, `commande_extra.*`.
-
-## Fiche de police
-
-`/voyageur/police?t=<lien signé>` dépose une fiche par personne hébergée
-(nom, prénoms, naissance, nationalité, domicile, mobile) ; aucune pièce
-d’identité n’est demandée ni stockée. L’action revérifie le HMAC avant toute
-écriture, borne le nombre de fiches au nombre de voyageurs du séjour, journalise
-`fiche_police.enregistrer` et reste idempotente par `ref`. `/hote/police`
-(admin/hôte) liste les fiches du tenant avec leur date de purge. Le cron
-`POST /api/cron/purge-police` supprime les fiches arrivées à échéance (6 mois,
-jour borné au dernier jour du mois). Table `fiches_police` sous RLS.
-
-## Support
-
-- ticket : sujet, priorité, message initial ;
-- fil de messages avec auteur et horodatage ;
-- statuts : ouvert → en cours → résolu / fermé ;
-- staff (`admin`, `hote`) voit tous les tickets ;
-- les autres rôles ne voient que leurs propres tickets ;
-- audit `ticket.creer`, `ticket.message`, `ticket.statut`.
-
-## CRM commercial
-
-- pipeline : nouveau, qualifié, visite, offre, gagné, perdu ;
-- transitions contrôlées par domaine ;
-- offres : brouillon, envoyée, acceptée, refusée ;
-- montants en centimes ;
-- audit `prospect.*` / `offre.*` ;
-- isolation par tenant via RLS.
-
-## Entité juridique et mandats
-
-- une entité juridique par organisation en beta : nom, nature, régime, TVA,
-  SIREN, adresse de facturation, mentions légales ;
-- paramétrage admin sur `/hote/entite`, audit `entite.mettre_a_jour` ;
-- l’identité de l’entité est utilisée sur les factures HTML, PDF et Factur-X
-  (nom, adresse, SIREN, mentions), avec repli sur les paramètres fiscaux ;
-- mandat par logement sur `/hote/proprietaires` : propriétaire, mode
-  (`propre` / `mandat_tiers`), commission 0-50 %, statut, dates, notes ;
-- mode `propre` force une commission à 0 ;
-- le multi-entités (une entité par logement) est un chantier post-beta.
-
-## Portail propriétaire
-
-- rattachement explicite `logement_proprietaires` ;
-- un propriétaire ne voit que ses logements ;
-- relevé mensuel : séjours, CA, commission, net propriétaire, TTC ;
-- commission de mandat par logement (0 à 50 %, 20 % par défaut), calculée sur
-  le CA réservations hors taxe de séjour ; net = CA − commission ;
-- lecture seule par construction ;
-- audit `proprietaire.assigner` / `proprietaire.retirer`.
-
-## Observabilité
-
-- `/api/health` : liveness, ne dépend pas de la DB.
-- `/api/ready` : readiness, ping PostgreSQL + vérification des tables/colonnes
-  minimales (`cautions`, `webhooks`, `webhook_deliveries`,
-  `logement_proprietaires.commission_bp`, `tenants.nature`,
-  `logement_proprietaires.mode`) et du nombre de migrations appliquées
-  comparé au journal Drizzle ; si le journal est absent, le compteur vaut zéro
-  et les migrations sont listées manquantes. 503 avec la liste `manquants` si
-  les migrations ne sont pas appliquées.
-- `/api/ready` vérifie aussi le **rôle RLS** : 503 `rls: unsafe` si la
-  connexion est superuser, `BYPASSRLS` ou propriétaire des tables ; 200 avec
-  `rls: ok` et `role` pour le rôle applicatif non-propriétaire.
-- logs JSON via `src/lib/logger.ts` (ts, niveau, message, contexte).
-- **Sentry sans SDK** : `SENTRY_DSN` → erreurs serveur et erreurs client
-  (`POST /api/telemetry`), secrets masqués, timeout 3 s, no-op sans DSN.
-- **Uptime Kuma** : `compose.monitoring.yml`, monitors `/api/health`,
-  `/api/ready`, `/login` ; guide `v2/MONITORING.md`.
-- pages d'erreur `error.tsx` et `global-error.tsx`.
-
-## Sauvegardes
-
-- `npm run db:backup` : dump gzip + checksum SHA-256 + manifeste JSON des
-  comptes, rétention 14 jours ; chiffrement **AES-256-GCM optionnel** via
-  `BACKUP_ENCRYPTION_KEY` (clé base64 32 octets, fichier `.sql.gz.enc`) ;
-- `npm run db:restore-test` : checksum vérifié avant décompression, restauration
-  dans une base jetable, comparaison au manifeste (dont tables et migrations) ;
-  une archive chiffrée exige la même clé ;
-- workflow GitHub Actions quotidien `.github/workflows/v2-backup.yml`
-  (artefact privé 30 jours) ; secret `MIGRATION_DATABASE_URL` (owner) à
-  configurer ;
-- procédure, variables et drill mensuel : `v2/BACKUPS.md`.
-
-## Gestion des utilisateurs
-
-- page `/hote/utilisateurs`, réservée au rôle **admin** ;
-- création directe d’un compte email/password avec rôle :
-  `admin`, `hote`, `comptable`, `presta`, `proprietaire`, `commercial` ;
-- mot de passe provisoire de 12 à 128 caractères, jamais journalisé ;
-- réinitialisation du mot de passe par un admin : toutes les sessions de la
-  personne sont fermées ;
-- changement de rôle avec garde-fou sur le dernier administrateur actif ;
-- désactivation : sessions supprimées immédiatement et connexion refusée
-  (`databaseHooks.session.create.before` vérifie `users.actif`) ;
-  `requireSession` refuse aussi tout compte `actif=false` ;
-- garde-fous : impossible de modifier son propre rôle, de désactiver son
-  propre compte ou de retirer le rôle du dernier administrateur actif ;
-- audit `utilisateur.creer`, `utilisateur.role`, `utilisateur.activer`,
-  `utilisateur.desactiver`, `utilisateur.motdepasse` ;
-- email unique au niveau plateforme, normalisé en minuscules.
-
-## Messages voyageurs
-
-- préparation par logement, canaux e-mail/SMS, types J-1, arrivée, départ et
-  autre ;
-- adresse e-mail du voyageur facultative mais **requise pour un envoi réel** ;
-  format contrôlé, 254 caractères maximum ; téléphone requis pour le canal SMS ;
-- refus de tout code d’accès (PIN) dans le contenu ;
-- `EMAIL_ENABLED=true` : l’e-mail part par SMTP **avant** le passage en
-  `envoye` ; une erreur SMTP laisse le brouillon intact ;
-- `SMS_ENABLED=true` + `BREVO_API_KEY` : le SMS part par **Brevo
-  transactionnel** avant le statut `envoye` ; le numéro est normalisé
-  (espaces, points, tirets retirés) ;
-- `EMAIL_ENABLED=false` ou SMS non configuré : bouton « Marquer envoyé » pour
-  un envoi hors outil ;
-- objet `Votre séjour — <type>`, audit `message.preparer` / `message.envoyer` ;
-- enregistrement idempotent par `ref`.
-
-## Journal d’audit
-
-- rétention **1825 jours** par défaut (`AUDIT_RETENTION_JOURS`, minimum 365) ;
-- purge **manuelle uniquement**, réservée à l’admin, après saisie de
-  `PURGER` ; la purge elle-même est journalisée (`audit.purger`) ;
-- aucune tâche automatique ne supprime le journal.
-
-- page `/hote/audit`, réservée aux admins ;
-- 50 actions par page, les plus récentes d’abord ;
-- recherche sur l’action, l’auteur, la cible ou la référence ;
-- libellés français des actions connues, code brut conservé pour les autres ;
-- payload JSON replié, jamais interprété comme du HTML ;
-- lecture via RLS tenant, aucune écriture depuis la page.
-
-## Recherche globale
-
-- `/hote/recherche?q=…` (admin, hôte, comptable, opérateur) : requête GET sans
-  JavaScript, 2 à 80 caractères, résultat groupé par catégorie ;
-- recherchés : logement (code/nom), réservation (ref/client), facture
-  (numéro/client), paiement (ref/référence), mission, ménage, état des lieux,
-  ticket, sinistre, objet trouvé, commande extra ;
-- motifs `ILIKE` échappés (`%`, `_`), 10 résultats par catégorie, 40 au total,
-  lecture RLS tenant — jamais de vue transverse ;
-- chaque résultat pointe vers sa page staff de référence.
-
-## Supervision plateforme (super-admin)
-
-- rôle `super_admin` (ou e-mail dans `SUPER_ADMIN_EMAILS`, séparés par des
-  virgules) : accès cross-tenant **lecture seule** ;
-- `/supervision` : espaces, logements, réservations, comptes actifs, audits 24 h ;
-- `/systeme` : PostgreSQL, migrations appliquées vs journal Drizzle, tables et
-  couverture RLS, runtime ;
-- `/secrets` : états des variables (configuré / absent / défaut local /
-  alerte), jamais les valeurs ; rotation documentée ;
-- `/journal` : 200 dernières actions tous espaces, filtres espace/action ;
-- `/supervision/voir-comme` : aperçu des rôles `admin`, `hôte` ou `comptable`
-  via un cookie HMAC de 2 h lié au compte, bandeau permanent et **lecture
-  seule**. Toute mutation est refusée par `src/proxy.ts` et par les server
-  actions (`requireRole`), jamais par un élargissement de droits. Démarrage et
-  arrêt sont audités (`apercu.demarrer`, `apercu.arreter`) avec l’e-mail réel ;
-- ces pages utilisent la connexion **owner** (`MIGRATION_DATABASE_URL`), jamais
-  `lcd_app`. Sans cette variable, elles affichent un avertissement au lieu de
-  contourner RLS ;
-- `super_admin` ouvre aussi toutes les pages staff (`requireRole`) ; la 2FA y
-  est obligatoire comme pour les autres rôles staff ;
-- l’attribution du rôle reste réservée aux admins dans l’UI, avec un
-  avertissement : en production, préférer l’allowlist d’exploitation et
-  réserver le rôle aux opérateurs de la plateforme.
-
-## En-têtes de sécurité
-
-- **CSP partielle** : `base-uri 'self'`, `form-action 'self'`,
-  `frame-ancestors 'none'`, `object-src 'none'` ; une CSP à nonce est reportée
-  après la beta.
-- L’application pose elle-même `X-Content-Type-Options: nosniff`,
-  `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`
-  et `Permissions-Policy` (caméra, micro, géolocalisation, paiement coupés).
-- HSTS est posé par le reverse proxy (Caddy) et Netlify, pas par Next.
-- `X-Robots-Tag: noindex, nofollow, noarchive` sur les routes privées et les
-  liens signés.
-
-## Export complet du tenant
-
-- `GET /api/exports/tenant`, réservé au rôle **admin** ;
-- JSON versionné (`version: 1`) : tenant, utilisateurs (sans credentials),
-  logements, tarifs, réservations, blocages, cautions, factures et lignes,
-  paiements, paramètres fiscaux, missions, prospects, offres, tickets et
-  messages, extras et commandes, incidents, messages voyageurs (avec
-  destinataire), consommations assistant, avis, mémoires voyageurs, lieux
-  touristiques, sinistres, registres RGPD, annonces, preuves tranquillité,
-  objets trouvés, formations, phrases, questionnaires, ménages et tâches,
-  entretiens, états des lieux et lignes, consommables et mouvements de stock,
-  biens et événements, dispatchs, préférences séjour, rattachements
-  propriétaires, flux ICS (sans URL), webhooks (sans URL ni secret), journal
-  d’audit ;
-- exclut volontairement `idempotency_keys` et `webhook_deliveries` (internes) ;
-- jamais de hash de mot de passe, de session, de secret webhook ni d’URL de
-  flux OTA ;
-- `Content-Disposition` daté, `Cache-Control: no-store` ;
-- audit `tenant.export` avec les compteurs ;
-- téléchargement depuis `/hote/audit`.
-
-## Auth
-
-- **Better Auth 1.7.12**, email/password, TOTP actif.
-- **Inscription publique fermée** (`disableSignUp`) : aucun compte ne peut être
-  créé via `/api/auth/sign-up/email` ; les comptes naissent dans
-  `/hote/utilisateurs` ou via le seed.
-- `tenantId` et `role` sont en `input: false` : `/api/auth/update-user` les
-  refuse (`FIELD_NOT_ALLOWED`), isolation multi-tenant préservée.
-- Routes : `/login`, `/two-factor`, `/hote/securite`, `/api/auth/[...all]`.
-- **Mot de passe oublié** : `/mot-de-passe-oublie` envoie un lien signé
-  (1 heure, usage unique) via SMTP ; `/reinitialiser-mot-de-passe` enregistre
-  le nouveau mot de passe (12 caractères minimum), ferme toutes les sessions
-  et ne contourne pas la 2FA (elle reste demandée à la connexion suivante).
-  Réponse générique pour ne pas révéler l’existence d’un compte ; demande
-  limitée à 5 tentatives/minute par IP.
-- Enrôlement TOTP : `/hote/securite` (QR code + codes de secours).
-- Vérification à la connexion : `/two-factor`.
-- Session cookie httpOnly ; le tenant et le rôle viennent de `session.user`.
-- `requireRole(["admin","hote"])` protège les pages staff.
-- `AUTH_2FA_REQUIRED=true` rend la 2FA **obligatoire** pour `admin`, `hote`,
-  `comptable` et `operateur` : toute page `requireRole` redirige vers
-  `/hote/securite` tant que le TOTP n’est pas actif. Désactivé par défaut en
-  local ; à activer en production (`.env.prod.example`).
-- Tableau de bord `/hote` réservé à `admin`, `hote`, `comptable` ; un
-  prestataire, propriétaire ou commercial y est redirigé.
-- `/hote/securite` est ouvert à tout compte connecté : chacun gère son propre
-  mot de passe et sa 2FA, quel que soit son rôle.
-- Changement de mot de passe sur `/hote/securite` (12 caractères minimum,
-  révoque les autres sessions).
-- **Sessions actives** sur `/hote/securite` : jusqu’à 10 sessions affichées
-  (navigateur déduit du user-agent, IP, date d’ouverture, expiration), session
-  courante marquée et non révocable, bouton « Fermer les autres sessions »
-  (audit `utilisateur.sessions`).
-- Gestion des comptes sur `/hote/utilisateurs` (admin) : création, rôles,
-  réinitialisation, désactivation ; un compte désactivé ne peut plus ouvrir
-  de session.
-- Un admin peut **réinitialiser la 2FA** d’un autre compte (badge « 2FA
-  active ») : le secret TOTP et les codes de secours sont supprimés, les
-  sessions de la cible fermées et l’action auditée (`utilisateur.2fa`).
-- La connexion fait une **navigation complète** après sign-in (cookie de
-  session appliqué par le serveur) ; le service worker ignore les requêtes
-  RSC de Next.js.
-- Si la connexion semble bloquée : `Ctrl+F5`, puis DevTools → Application →
-  Service Workers → *Unregister*, et réessayer. La connexion staff nécessite
-  JavaScript ; l’espace voyageur, non.
-- Déconnexion : bouton sur `/hote`.
-
-## Architecture
+Les tests E2E couvrent les parcours publics, la connexion, l’apparence
+(brouillon, aperçu signé, publication, retour arrière), le chargement de toutes
+les routes staff et publiques avec et sans JavaScript, et la dégradation sans
+JavaScript (`javaScriptEnabled: false`).
+
+Sur une base locale migrée et seedée, `npm run db:test-ics` vérifie la chaîne
+ICS réelle (création, déplacement, suppression, blocage, conflit, 304,
+historique, bail distribué) dans un tenant jetable supprimé à la fin. `db:test-migrations` et
+`db:test-rls` valident les migrations et l’isolation tenant.
+
+## Apparence globale
+
+Un seul thème publié pour tout le site, choisi exclusivement par un
+super-admin dans `/supervision/apparence` :
+
+- 6 thèmes (`sejour`, `ocean`, `sable`, `nuit`, `foret`, `ardoise`), clair et
+  sombre, typographie, rayons, ombres, densité et variantes de navigation ;
+- un brouillon et une version publiée au maximum, garantis par index partiels ;
+- aperçu réservé au super-admin via cookie HMAC signé (30 min, lié au compte) ;
+- publication, historique et retour arrière versionnés, avec audit ;
+- couleurs vérifiées AA (4,5:1) par les tests ;
+- les e-mails et les PDF reprennent l’accent et l’identité publiés.
+
+Le thème est résolu côté serveur dans `src/routes/+layout.svelte` : aucune
+requête client, aucun flash, aucun JavaScript requis.
+
+## Structure
 
 ```text
-src/
-  domain/           # pur : règles, calendrier, planning, tarifs, factures
-  application/
-    ports/          # interfaces des dépendances externes
-    use-cases/      # orchestration métier
-  infrastructure/
-    db/             # Drizzle, schéma, auth-schema, repositories
-    adapters/       # S3, email, Stripe, queue, LLM, OTA, box
-  app/              # Next : routes, RSC, Server Actions
-  lib/              # env, auth, session, flags, utils neutres
-tests/
-  domain/           # tests purs
-  application/      # tests avec dépôts mémoire
-  migrations/       # script base vide → 58 migrations → contrôles RLS
-  e2e/              # Playwright (JS on/off, 320 px, offline)
+src/routes/            pages et endpoints SvelteKit
+src/domain/            domaine pur (aucun framework)
+src/application/       cas d’usage + ports
+src/infrastructure/    adapters Drizzle, SMTP, PDF, Stripe, S3
+src/lib/server/        auth, session, cookies, apparence
+src/lib/components/    composants Svelte partagés
+drizzle/               migrations SQL (immuables après application)
+tests/                 Vitest
+e2e/                   Playwright
+static/                assets PWA, service worker, icônes
 ```
 
-**Règle de dépendance** : `domain ← application ← infrastructure ← app`.
-Aucun import de Next, Drizzle, Stripe, Brevo ou S3 dans `domain/`.
+L’ancienne UI Next.js (`src/app/`, `src/components/*.tsx`) est conservée comme
+référence de parité, exclue du build et de `svelte-check`. Elle ne doit pas être
+importée.
 
-> **TypeScript 6.0.3, pas 7.0.2, pour l'instant** : Next 16.4.3 accepte TS 7
-> pour le build, mais `typescript-eslint` 8.72 (dans `eslint-config-next`
-> 16.4.3) refuse TS 7.0. On passera à TS 7 quand le lint le supportera.
+## Règles
 
-## Migrations
+- HTML-first : les pages publiques et voyageur fonctionnent sans JavaScript ;
+  les mutations passent par des actions serveur ou des endpoints natifs.
+- Thème unique global : jamais de préférence par utilisateur, jamais côté client.
+- `tenant_id` vient toujours de la session ; `withTenant()` pour les tables
+  métier.
+- Toute écriture rejouable porte une `ref` stable.
+- Pas de secret dans Git ; `BETTER_AUTH_SECRET` ≥ 32 caractères en production.
+- Photos de démonstration : `static/photos/` (Unsplash, voir
+  `static/photos/ATTRIBUTION.md`). À remplacer par les photos des biens avant
+  production.
+- Budget JS : voyageur < 50 Ko gzip, staff < 200 Ko. Mesure locale :
+  `/`, `/login`, `/reserver` et `/voyageur` chargent **0,1 Ko** de JavaScript
+  applicatif (hors service worker), grâce à `csr = false`.
 
-- `drizzle/` est versionné et **immuable** après application.
-- `npm run db:generate` génère le SQL depuis `src/infrastructure/db/schema.ts`.
-- `npm run db:migrate` applique en local/staging/prod via
-  `MIGRATION_DATABASE_URL` (owner), sinon `DATABASE_URL`.
-- `npm run db:check` détecte une dérive schéma/migrations.
-- `npm run db:test-migrations` crée une base locale jetable, applique **toutes**
-  les migrations depuis zéro, vérifie le nombre de migrations, les tables, les
-  policies RLS, l’absence de données et les droits du rôle applicatif, puis
-  supprime la base. Prérequis : `npm run db:role-app`. Le workflow
-  `.github/workflows/v2-ci.yml` exécute ce test sur un PostgreSQL 18 de service.
-- `0055` accorde au rôle applicatif la lecture du journal Drizzle
-  (`drizzle.__drizzle_migrations`) : `/api/ready` compare le nombre de
-  migrations appliquées sans privilège owner.
-- Changements destructifs : expand/contract en deux releases.
-- Avant prod : backup + dump + test de restauration.
+## Channel manager
 
-Le helper `withTenant()` positionne `app.tenant_id` dans la transaction ;
-les policies RLS PostgreSQL s'appuient dessus pour `logements`,
-`reservations`, `audit_logs` et `idempotency_keys`. Les tables Better Auth
-(`users`, `session`, `account`, `verification`, `two_factor`) ne sont pas
-sous RLS : la connexion doit retrouver un utilisateur par email avant de
-connaître son tenant.
+`/hote/planning/canaux` centralise les plateformes d’un logement : une fiche par
+annonce, un flux iCal d’import facultatif, un calendrier d’export signé et un
+buffer de ménage de 0 à 7 jours. Le catalogue couvre Airbnb, Booking, Abritel,
+Agoda, Trip.com, Gîtes de France, Clévacances, Leboncoin, Pitchup, Hipcamp et un
+canal générique.
 
-### Rôle applicatif et RLS
-
-- `DATABASE_URL` doit pointer en production vers un rôle **non-propriétaire**
-  (`lcd_app`) : sinon le owner contourne les policies RLS.
-- `MIGRATION_DATABASE_URL` garde la connexion owner pour les migrations, le
-  seed et les sauvegardes.
-- `npm run db:role-app` crée/actualise le rôle, accorde les droits et les
-  privilèges par défaut ; mot de passe dans `APP_ROLE_PASSWORD`, jamais commité.
-- `npm run db:test-rls` vérifie l’isolation : sans tenant = 0, avec le bon
-  tenant = total attendu, avec un autre tenant = 0.
-- Test local effectué : **0 sans tenant / total avec tenant / 0 autre
-  tenant**, puis suite Playwright **21/21** avec `DATABASE_URL` sur `lcd_app`.
-
-Migrations actuelles :
-
-- `0000_*.sql` : 11 tables (7 métier + 4 Better Auth) ;
-- `0001_rls.sql` : policies RLS des tables métier ;
-- `0002_*.sql` : tarifs + colonnes réservation ;
-- `0003_rls_tarifs.sql` : RLS des tarifs ;
-- `0004_*.sql` : factures + lignes de facture ;
-- `0005_rls_factures.sql` : RLS des factures ;
-- `0006_*.sql` : incidents voyageur ;
-- `0007_rls_incidents.sql` : RLS des incidents ;
-- `0008_*.sql` : missions prestataire ;
-- `0009_rls_missions.sql` : RLS des missions ;
-- `0010_*.sql` : rattachement propriétaire ↔ logement ;
-- `0011_rls_proprietaires.sql` : RLS des rattachements ;
-- `0012_*.sql` : prospects + offres ;
-- `0013_rls_commercial.sql` : RLS du CRM ;
-- `0014_*.sql` : tickets + messages ;
-- `0015_rls_support.sql` : RLS du support ;
-- `0016_*.sql` : guide logement + extras + commandes ;
-- `0017_rls_extras.sql` : RLS des extras et commandes ;
-- `0018_*.sql` : paramètres fiscaux par tenant ;
-- `0019_rls_parametres_fiscaux.sql` : RLS des paramètres fiscaux ;
-- `0020_*.sql` : paiements ;
-- `0021_rls_paiements.sql` : RLS des paiements ;
-- `0022_*.sql` : blocages calendrier OTA ;
-- `0023_rls_blocages.sql` : RLS des blocages ;
-- `0024_*.sql` : flux ICS OTA par logement ;
-- `0025_rls_flux_ics.sql` : RLS des flux ICS ;
-- `0026_*.sql` : commission de mandat sur les rattachements ;
-- `0027_*.sql` : webhooks + livraisons ;
-- `0028_rls_webhooks.sql` : RLS des webhooks ;
-- `0029_*.sql` : cautions / dépôts de garantie ;
-- `0030_rls_cautions.sql` : RLS des cautions ;
-- `0031_*.sql` : entité juridique du tenant + champs de mandat propriétaire.
-
-Total : **29 tables** (25 métier + 4 Better Auth).
-
-## Ports & adapters
-
-Chaque dépendance externe a une interface dans `src/application/ports/` et
-une implémentation dans `src/infrastructure/adapters/` :
-
-| Port | Adapter prévu |
-|---|---|
-| `AuthProvider` | Better Auth 1.7.12 (+ TOTP) / OIDC |
-| `StockageFichiers` | S3 / R2 / S3Mock (dev) |
-| `EmailSender` | Brevo / SMTP |
-| `Paiement` | Stripe |
-| `Queue` | Inngest / QStash / BullMQ |
-| `LlmProvider` | OpenAI / Anthropic / local |
-| `OtaSource` | API/ICS |
-| `RuntimeBox` | HTTP HA / générique (`BOX_RUNTIME_CONFIG`) |
+Le détail du périmètre, des limites et de l’exploitation est dans
+[CHANNEL-MANAGER.md](./CHANNEL-MANAGER.md). Le socle iCal reste le filet de
+sécurité. Un registre de cinq fournisseurs API optionnels — Beds24, Channex,
+Smoobu, Host Port et Nobeds — est activable uniquement par le super-admin dans
+`/supervision/fournisseurs`, puis affecté logement par logement. Voir
+[FOURNISSEURS-CHANNEL-MANAGER.md](./FOURNISSEURS-CHANNEL-MANAGER.md). Les API
+natives Airbnb/Booking/Expedia ne sont jamais appelées hors fournisseur certifié.
+Dans **Hôte → Prix**, un prix peut être saisi à la journée ou appliqué sur une
+plage (366 jours maximum) avec filtre par jour de semaine ; les plans tarifaires
+permettent plusieurs prix et règles par logement. La réservation directe refuse
+les nuits en stop-sell, les arrivées/départs interdits et les séjours hors durée
+minimale ou maximale.
 
 ## Déploiement
 
-Guide pas à pas : [`DEPLOIEMENT.md`](./DEPLOIEMENT.md).
+Le conteneur de production exécute `node build` derrière Caddy. Caddy transmet
+`X-Forwarded-Proto` et `X-Forwarded-Host` ; le `Dockerfile` active
+`PROTOCOL_HEADER=x-forwarded-proto` et `HOST_HEADER=x-forwarded-host` pour que
+SvelteKit calcule la bonne origine et accepte les formulaires natifs. Sans ces
+en-têtes, les POST sont refusés comme « cross-site » (403).
 
-- **Beta** : Netlify Free (ou Cloudflare) + Neon/Supabase + R2.
-- **Premier client** : VPS 4 Go ou Netlify Pro + Postgres managé.
-- **Portabilité** : `output: "standalone"` sur Docker/VPS, désactivé quand
-  `NETLIFY=true` (plugin Next). Aucune API Netlify dans le code métier.
-- Build Netlify validé : `NETLIFY=true npm run build`.
-- Variables standard : `DATABASE_URL`, `MIGRATION_DATABASE_URL`,
-  `APP_ROLE_NAME`, `APP_ROLE_PASSWORD`, `BOX_RUNTIME_CONFIG`, `S3_*`,
-  `SMTP_URL`, `SMS_ENABLED`, `BREVO_API_KEY`, `BREVO_SMS_SENDER`,
-  `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `BETTER_AUTH_TRUSTED_ORIGINS`,
-  `STRIPE_*`, `SENTRY_DSN`.
+## API et exploitation
 
-## Règles non négociables
+- `GET /api/health` (liveness) et `GET /api/ready` (DB, schéma, RLS).
+- `POST /api/cron/{memoire,purge-police,relances,sync-ota,sync-fournisseurs,webhooks}`
+  protégés par `Authorization: Bearer $CRON_SECRET`. Envoyer
+  `Content-Type: application/json`, sinon la protection CSRF répond `403` avant
+  le contrôle du secret.
+- `POST /api/fournisseurs/{code}/webhook` : webhooks fournisseurs, en
+  `Content-Type: application/json`, signature ou secret partagé vérifié avant
+  toute lecture.
+- `GET /api/ics/sante` : état agrégé des flux ICS (même secret).
+- **Synchronisation ICS** : sur un serveur persistant, `ICS_SCHEDULER_ENABLED=true`
+  démarre le planificateur in-process (toutes les 5 min, verrou en base). Sur
+  Netlify/Vercel, laisser `false` et appeler `/api/cron/sync-ota?force=1` par un
+  cron externe. Chaque flux utilise ETag/304 et une empreinte SHA-256 : un
+  contenu identique n’est pas réimporté. Backoff progressif, confirmation avant
+  suppression d’un calendrier vide et historique `ics_sync_runs`.
+- **Synchronisation fournisseurs** : `FOURNISSEUR_SYNC_ENABLED=true` démarre le
+  planificateur, ou appeler `/api/cron/sync-fournisseurs` par un cron externe.
+  Chaque logement affecté pousse son ARI, importe les réservations OTA et
+  enregistre une empreinte pour éviter les pushs identiques. Un webhook signé
+  déclenche la même synchronisation immédiatement.
+- `POST /api/stripe/webhook` avec vérification de signature.
+- Exports staff : `/api/exports/{reservations,factures,paiements,factur-x,audit,modele-rapprochement,tenant}`.
+- Calendrier public signé : `/api/calendrier/[logementId]?t=…` (HMAC, lecture
+  seule, `noindex`). Cette URL est l’abonnement global ; la page Channel manager
+  génère aussi une URL par canal, avec buffer et sans écho de son propre flux.
+  La rotation de `BETTER_AUTH_SECRET` invalide ces URLs : il faut alors
+  recoller l’URL dans chaque OTA.
 
-1. Les routes voyageur fonctionnent **sans JS**.
-2. Les écritures sont idempotentes (`ref`).
-3. `tenant_id` vient de la session, jamais du client.
-4. Aucun secret dans Git.
-5. Toute nouvelle brique a un port, un adapter, un test et un plan de retrait.
+## Limites connues
+
+- L’instance ne pousse pas d’écriture native aux OTA (API fermées) ; le socle
+  iCal diffuse les indisponibilités avec la latence propre à chaque plateforme
+  (souvent 1 à 3 h). Les connecteurs API certifiés (Beds24, Channex, Smoobu,
+  Nobeds) peuvent pousser disponibilités et tarifs ; Beds24 et Channex poussent
+  aussi les règles de séjour par date (dont le stop-sell), Smoobu les durées
+  min/max. Host Port reste en lecture seule. Le cut-off est configurable par
+  logement (0–365 jours) ; il ferme les dates proches dans l’ARI poussé et
+  refuse les arrivées trop proches à la réservation directe. Le délai de
+  préparation (0–7 jours) ferme les nuits après chaque départ et s’applique aux
+  réservations directes. Plusieurs plans
+  tarifaires par logement isolent leurs prix et règles ; un plan dérivé applique
+  un ajustement aux prix de base et peut hériter des règles. Channex pousse
+  chaque plan actif mappé à un `rate_plan_id`.
+- Aucun encaissement de carte n’est réalisé par la plateforme ; les paiements
+  et cautions sont suivis, pas débités.
+- L’envoi d’e-mails dépend de la configuration SMTP et de `EMAIL_ENABLED`.
+- La parité des écrans est assurée dans `src/routes/` ; l’ancienne UI Next reste
+  conservée à titre de référence jusqu’à sa suppression.

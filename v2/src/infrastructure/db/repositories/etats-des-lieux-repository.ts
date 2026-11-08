@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type {
   CreerEtatDesLieuxData,
   EtatsDesLieuxRepository,
+  MettreAJourEtatDesLieuxData,
 } from "@/application/ports/etats-des-lieux-repository";
 import type {
   EtatDesLieux,
@@ -86,6 +87,51 @@ export class DrizzleEtatsDesLieuxRepository implements EtatsDesLieuxRepository {
         )
         .returning();
 
+      return versDomaine(row, lignes);
+    });
+  }
+
+  async mettreAJour(
+    tenantId: string,
+    id: string,
+    data: MettreAJourEtatDesLieuxData,
+  ): Promise<EtatDesLieux | null> {
+    return withTenant(tenantId, async (tx) => {
+      const [row] = await tx
+        .update(etatsDesLieux)
+        .set({ notes: data.notes })
+        .where(
+          and(eq(etatsDesLieux.tenantId, tenantId), eq(etatsDesLieux.id, id)),
+        )
+        .returning();
+      if (!row) return null;
+
+      for (const ligne of data.lignes) {
+        await tx
+          .update(etatDesLieuxLignes)
+          .set({
+            etatConstate: ligne.etatConstate,
+            manquant: ligne.manquant,
+            commentaire: ligne.commentaire,
+          })
+          .where(
+            and(
+              eq(etatDesLieuxLignes.tenantId, tenantId),
+              eq(etatDesLieuxLignes.etatDesLieuxId, id),
+              eq(etatDesLieuxLignes.qr, ligne.qr),
+            ),
+          );
+      }
+
+      const lignes = await tx
+        .select()
+        .from(etatDesLieuxLignes)
+        .where(
+          and(
+            eq(etatDesLieuxLignes.tenantId, tenantId),
+            eq(etatDesLieuxLignes.etatDesLieuxId, id),
+          ),
+        );
       return versDomaine(row, lignes);
     });
   }

@@ -1,0 +1,1 @@
+ALTER TABLE "validations_sensibles" ADD COLUMN "payee_le" timestamp with time zone;

@@ -50,6 +50,18 @@ docs/strategie-famille/
 *.log
 *.jsonl
 
+# V2 — stockage local des photos de preuve (volume runtime, jamais versionné)
+.data/
+v2/.data/
+
+# V2 — artefacts de build et rapports de tests (jamais versionnés)
+v2/.svelte-kit/
+v2/build/
+v2/test-results*/
+v2/playwright-report/
+v2/node_modules/
+v2/coverage/
+
 # Backups / images / coordinator
 *.backup
 *.tar

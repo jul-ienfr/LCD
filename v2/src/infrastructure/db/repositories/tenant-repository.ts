@@ -19,6 +19,9 @@ function versDomaine(row: typeof tenants.$inferSelect): Tenant {
     adresse: row.adresse,
     mentionsLegales: row.mentionsLegales,
     statut: row.statut as Tenant["statut"],
+    ventesSuspendues: row.ventesSuspendues,
+    ventesSuspenduesMotif: row.ventesSuspenduesMotif,
+    ventesSuspenduesLe: row.ventesSuspenduesLe,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -68,6 +71,26 @@ export class DrizzleTenantRepository implements TenantRepository {
           siren: data.siren,
           adresse: data.adresse,
           mentionsLegales: data.mentionsLegales,
+          updatedAt: new Date(),
+        })
+        .where(eq(tenants.id, tenantId))
+        .returning();
+      return row ? versDomaine(row) : null;
+    });
+  }
+
+  async suspendreVentes(
+    tenantId: string,
+    suspendues: boolean,
+    motif: string | null,
+  ): Promise<Tenant | null> {
+    return withTenant(tenantId, async (tx) => {
+      const [row] = await tx
+        .update(tenants)
+        .set({
+          ventesSuspendues: suspendues,
+          ventesSuspenduesMotif: suspendues ? motif : null,
+          ventesSuspenduesLe: suspendues ? new Date() : null,
           updatedAt: new Date(),
         })
         .where(eq(tenants.id, tenantId))

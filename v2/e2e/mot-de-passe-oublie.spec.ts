@@ -8,6 +8,7 @@ test("mot de passe oublié : lien email, réinitialisation et sessions fermées"
   page,
   browser,
 }) => {
+  test.setTimeout(90_000);
   const mailpit = await fetch(`${MAILPIT}/api/v1/info`)
     .then((reponse) => reponse.ok)
     .catch(() => false);

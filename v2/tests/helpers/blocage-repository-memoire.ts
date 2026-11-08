@@ -23,6 +23,7 @@ export class BlocageRepositoryMemoire implements BlocageRepository {
       fin: data.fin,
       source: data.source ?? "import-ics",
       motif: data.motif ?? null,
+      fluxIcsId: null,
       createdAt: maintenant,
       updatedAt: maintenant,
     };

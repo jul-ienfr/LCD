@@ -1,8 +1,10 @@
 name: v2-sync-ota
 
 on:
+  # Filet de sécurité pour les hébergements sans planificateur in-process
+  # (Netlify, Vercel). GitHub peut retarder les crons de quelques minutes.
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -24,5 +26,6 @@ jobs:
         run: |
           curl --fail-with-body --silent --show-error \
             -X POST \
+            -H "Content-Type: application/json" \
             -H "Authorization: Bearer $CRON_SECRET" \
-            "https://lcd-parc.netlify.app/api/cron/sync-ota"
+            "https://lcd-parc.netlify.app/api/cron/sync-ota?force=1"

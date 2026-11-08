@@ -13,6 +13,9 @@ function versDomaine(row: typeof paiements.$inferSelect): Paiement {
     id: row.id,
     tenantId: row.tenantId,
     factureId: row.factureId,
+    reservationId: row.reservationId,
+    echeanceId: row.echeanceId,
+    externalId: row.externalId,
     ref: row.ref,
     montantCentimes: row.montantCentimes,
     mode: row.mode as Paiement["mode"],
@@ -31,7 +34,10 @@ export class DrizzlePaiementRepository implements PaiementRepository {
         .insert(paiements)
         .values({
           tenantId: data.tenantId,
-          factureId: data.factureId,
+          factureId: data.factureId ?? null,
+          reservationId: data.reservationId ?? null,
+          echeanceId: data.echeanceId ?? null,
+          externalId: data.externalId ?? null,
           ref: data.ref,
           montantCentimes: data.montantCentimes,
           mode: data.mode,
@@ -84,6 +90,25 @@ export class DrizzlePaiementRepository implements PaiementRepository {
           and(
             eq(paiements.tenantId, tenantId),
             eq(paiements.factureId, factureId),
+          ),
+        )
+        .orderBy(asc(paiements.datePaiement), asc(paiements.createdAt));
+      return rows.map(versDomaine);
+    });
+  }
+
+  async listerParReservation(
+    tenantId: string,
+    reservationId: string,
+  ): Promise<Paiement[]> {
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(paiements)
+        .where(
+          and(
+            eq(paiements.tenantId, tenantId),
+            eq(paiements.reservationId, reservationId),
           ),
         )
         .orderBy(asc(paiements.datePaiement), asc(paiements.createdAt));

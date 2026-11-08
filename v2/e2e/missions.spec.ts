@@ -48,10 +48,11 @@ test("missions : création staff, exécution prestataire", async ({
   await expect(pagePresta).toHaveURL(/\/presta$/);
   await expect(pagePresta.getByText(ref).first()).toBeVisible();
 
-  await pagePresta.getByRole("button", { name: "Commencer" }).first().click();
-  await expect(pagePresta.getByText("en_cours").first()).toBeVisible();
-  await pagePresta.getByRole("button", { name: "Terminer" }).first().click();
-  await expect(pagePresta.getByText("terminee").first()).toBeVisible();
+  const mission = pagePresta.locator("li").filter({ hasText: ref }).first();
+  await mission.getByRole("button", { name: "Commencer" }).click();
+  await expect(mission.getByText("en_cours", { exact: true })).toBeVisible();
+  await mission.getByRole("button", { name: "Terminer" }).click();
+  await expect(mission.getByText("terminee", { exact: true })).toBeVisible();
 
   await contextePresta.close();
 });

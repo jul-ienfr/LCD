@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Espaces privés et liens signés : jamais indexés.
+Disallow: /hote
+Disallow: /login
+Disallow: /two-factor
+Disallow: /presta
+Disallow: /proprio
+Disallow: /commercial
+Disallow: /support
+Disallow: /facture/
+Disallow: /voyageur
+Disallow: /api/
+Disallow: /offline

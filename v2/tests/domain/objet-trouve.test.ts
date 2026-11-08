@@ -41,7 +41,7 @@ describe("domaine objet trouvé", () => {
         trouveLe: "2026-10-20",
         voyageurNom: "  Camille  ",
         contact: "  camille@example.com ",
-      }),
+      }, maintenant),
     ).toEqual({
       description: "Chargeur USB",
       lieu: "Salon",
@@ -54,14 +54,14 @@ describe("domaine objet trouvé", () => {
         description: "a",
         lieu: "Salon",
         trouveLe: "2026-10-20",
-      }),
+      }, maintenant),
     ).toThrow(ErreurMetier);
     expect(() =>
       validerObjetTrouve({
         description: "Chargeur",
         lieu: "Salon",
         trouveLe: "2026-10-30",
-      }),
+      }, maintenant),
     ).toThrow(ErreurMetier);
     expect(
       validerObjetTrouve({
@@ -70,7 +70,7 @@ describe("domaine objet trouvé", () => {
         trouveLe: "2026-10-20",
         voyageurNom: "   ",
         contact: " ",
-      }),
+      }, maintenant),
     ).toMatchObject({ voyageurNom: null, contact: null });
   });
 

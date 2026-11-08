@@ -59,8 +59,8 @@ export function genererCalendrierIcs(
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${echapper(`LCD Parc — ${nom}`)}`,
     "X-WR-TIMEZONE:Europe/Paris",
-    "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
-    "X-PUBLISHED-TTL:PT1H",
+    "REFRESH-INTERVAL;VALUE=DURATION:PT5M",
+    "X-PUBLISHED-TTL:PT5M",
   ];
 
   for (const evenement of evenements) {

@@ -13,6 +13,7 @@ export interface CreerReservationInput {
   debut: string;
   fin: string;
   montantCentimes: number;
+  source?: string;
 }
 
 /** Cas d'usage : créer une réservation après contrôle d'anti-chevauchement. */
@@ -102,7 +103,7 @@ export class CreerReservation {
       debut: input.debut,
       fin: input.fin,
       montantCentimes: input.montantCentimes,
-      source: "direct",
+      source: input.source?.trim().slice(0, 60) || "direct",
     });
   }
 }

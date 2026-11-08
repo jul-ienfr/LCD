@@ -75,13 +75,16 @@ export function joursDepuis(iso: string, maintenant: Date = new Date()): number 
   return Math.floor((fin - debut) / 86_400_000);
 }
 
-export function validerObjetTrouve(input: {
-  description: string;
-  lieu: string;
-  trouveLe: string;
-  voyageurNom?: string | null;
-  contact?: string | null;
-}): {
+export function validerObjetTrouve(
+  input: {
+    description: string;
+    lieu: string;
+    trouveLe: string;
+    voyageurNom?: string | null;
+    contact?: string | null;
+  },
+  maintenant: Date = new Date(),
+): {
   description: string;
   lieu: string;
   trouveLe: string;
@@ -108,7 +111,7 @@ export function validerObjetTrouve(input: {
       "La date de découverte est invalide.",
     );
   }
-  if (input.trouveLe > aujourdHuiIso()) {
+  if (input.trouveLe > aujourdHuiIso(maintenant)) {
     throw new ErreurMetier(
       "OBJET_TROUVE_INVALIDE",
       "La date de découverte ne peut pas être future.",

@@ -7,6 +7,8 @@ export type StatutCaution =
   | "restituee"
   | "retenue";
 
+export type ModeCaution = "virement" | "empreinte";
+
 export const TRANSITIONS_CAUTION: Record<StatutCaution, StatutCaution[]> = {
   attendue: ["recue"],
   recue: ["restituee", "retenue"],
@@ -26,6 +28,10 @@ export interface Caution {
   tenantId: TenantId;
   reservationId: string;
   montantCentimes: Centimes;
+  mode: ModeCaution;
+  empreinteId: string | null;
+  empreinteStatut: string | null;
+  montantCaptureCentimes: Centimes;
   statut: StatutCaution;
   dateReception: string | null;
   dateRestitution: string | null;

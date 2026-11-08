@@ -16,6 +16,7 @@ export class LogementRepositoryMemoire implements LogementRepository {
       nom: data.nom,
       adresse: data.adresse,
       coproVerifiee: false,
+      strategiePrix: "equilibre",
       publication: "brouillon",
       statut: "actif",
       createdAt: maintenant,
@@ -91,6 +92,30 @@ export class LogementRepositoryMemoire implements LogementRepository {
     return logement;
   }
 
+  async definirCutoff(
+    tenantId: string,
+    id: string,
+    jours: number,
+  ): Promise<Logement | null> {
+    const logement = await this.trouverParId(tenantId, id);
+    if (!logement) return null;
+    logement.cutoffJours = jours;
+    logement.updatedAt = new Date();
+    return logement;
+  }
+
+  async definirBuffer(
+    tenantId: string,
+    id: string,
+    jours: number,
+  ): Promise<Logement | null> {
+    const logement = await this.trouverParId(tenantId, id);
+    if (!logement) return null;
+    logement.bufferJours = jours;
+    logement.updatedAt = new Date();
+    return logement;
+  }
+
   async changerStatut(
     tenantId: string,
     id: string,
@@ -107,10 +132,21 @@ export class LogementRepositoryMemoire implements LogementRepository {
     tenantId: string,
     id: string,
     publication: Logement["publication"],
+  ): Promise<Logement | null> {    const logement = await this.trouverParId(tenantId, id);
+    if (!logement) return null;
+    logement.publication = publication;
+    logement.updatedAt = new Date();
+    return logement;
+  }
+
+  async definirStrategiePrix(
+    tenantId: string,
+    id: string,
+    strategie: Logement["strategiePrix"],
   ): Promise<Logement | null> {
     const logement = await this.trouverParId(tenantId, id);
     if (!logement) return null;
-    logement.publication = publication;
+    logement.strategiePrix = strategie;
     logement.updatedAt = new Date();
     return logement;
   }

@@ -22,4 +22,8 @@ export class PaiementPortMemoire implements Paiement {
   async verifierEtLireWebhook(): Promise<EvenementPaiement> {
     throw new Error("Non utilisé dans ce test.");
   }
+
+  async soumettrePreuvesLitige(): Promise<{ statut: string }> {
+    throw new Error("Non utilisé dans ce test.");
+  }
 }

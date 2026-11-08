@@ -1,0 +1,1 @@
+ALTER TABLE "logements_fournisseurs" ADD COLUMN "external_rate_plan_id" text;

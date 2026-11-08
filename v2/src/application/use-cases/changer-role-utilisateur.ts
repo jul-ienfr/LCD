@@ -1,5 +1,9 @@
 import { ErreurMetier } from "@/domain/erreurs";
-import { roleUtilisateurValide } from "@/domain/utilisateur";
+import {
+  peutAdministrerCompte,
+  peutAttribuerRole,
+  roleUtilisateurValide,
+} from "@/domain/utilisateur";
 import type { UserRepository } from "../ports/user-repository";
 
 export class ChangerRoleUtilisateur {
@@ -10,6 +14,7 @@ export class ChangerRoleUtilisateur {
     id: string;
     role: string;
     acteurId: string;
+    acteurRole?: string | null;
   }) {
     if (input.id === input.acteurId) {
       throw new ErreurMetier(
@@ -26,6 +31,15 @@ export class ChangerRoleUtilisateur {
       throw new ErreurMetier(
         "UTILISATEUR_INVALIDE",
         "Utilisateur introuvable.",
+      );
+    }
+    if (
+      !peutAdministrerCompte(input.acteurRole, cible.role) ||
+      !peutAttribuerRole(input.acteurRole, input.role)
+    ) {
+      throw new ErreurMetier(
+        "UTILISATEUR_INVALIDE",
+        "Seul un super-administrateur peut gérer le rôle super-administrateur.",
       );
     }
     if (cible.role === input.role) {

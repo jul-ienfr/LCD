@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parserIcs, refDepuisUid } from "@/domain/ics";
+import { estCalendrierIcs, parserIcs, refDepuisUid } from "@/domain/ics";
 
 const ics = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -76,5 +76,15 @@ END:VCALENDAR
   it("ignore un calendrier sans événement exploitable", () => {
     const resultat = parserIcs("BEGIN:VCALENDAR\nEND:VCALENDAR\n");
     expect(resultat.evenements).toHaveLength(0);
+  });
+
+  it("distingue un calendrier vide valide d’une page d’erreur", () => {
+    expect(estCalendrierIcs("BEGIN:VCALENDAR\nEND:VCALENDAR\n")).toBe(true);
+    expect(
+      estCalendrierIcs("\uFEFFBEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR"),
+    ).toBe(true);
+    expect(estCalendrierIcs("<html>maintenance</html>")).toBe(false);
+    expect(estCalendrierIcs("BEGIN:VCALENDAR\nVERSION:2.0")).toBe(false);
+    expect(estCalendrierIcs("")).toBe(false);
   });
 });

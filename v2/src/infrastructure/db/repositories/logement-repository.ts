@@ -23,6 +23,9 @@ function versDomaine(row: typeof logements.$inferSelect): Logement {
     guideTexte: row.guideTexte ?? undefined,
     coproVerifiee: row.coproVerifiee,
     coproVerifieeLe: row.coproVerifieeLe ?? undefined,
+    cutoffJours: row.cutoffJours,
+    bufferJours: row.bufferJours,
+    strategiePrix: row.strategiePrix as Logement["strategiePrix"],
     publication: row.publication as Logement["publication"],
     statut: row.statut as Logement["statut"],
     createdAt: row.createdAt,
@@ -132,6 +135,48 @@ export class DrizzleLogementRepository implements LogementRepository {
           coproVerifieeLe: verifiee ? new Date() : null,
           updatedAt: new Date(),
         })
+        .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async definirCutoff(
+    tenantId: string,
+    id: string,
+    jours: number,
+  ): Promise<Logement | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(logements)
+        .set({ cutoffJours: jours, updatedAt: new Date() })
+        .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async definirBuffer(
+    tenantId: string,
+    id: string,
+    jours: number,
+  ): Promise<Logement | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(logements)
+        .set({ bufferJours: jours, updatedAt: new Date() })
+        .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async definirStrategiePrix(
+    tenantId: string,
+    id: string,
+    strategie: Logement["strategiePrix"],
+  ): Promise<Logement | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(logements)
+        .set({ strategiePrix: strategie, updatedAt: new Date() })
         .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));
     });
     return this.trouverParId(tenantId, id);

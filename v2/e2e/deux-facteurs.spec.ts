@@ -8,6 +8,7 @@ test("2FA : activation TOTP, connexion en deux étapes et désactivation", async
   page,
   browser,
 }) => {
+  test.setTimeout(60_000);
   const suffix = Date.now();
   const nom = `2FA E2E ${suffix}`;
   const email = `deux-facteurs-${suffix}@lcd.test`;

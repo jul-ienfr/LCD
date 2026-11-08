@@ -1,0 +1,230 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: reservation-directe.spec.ts >> réservation directe : tarifs, devis, demande et espace séjour
+- Location: e2e\reservation-directe.spec.ts:6:1
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=f6e4]:
+  - banner [ref=f6e5]:
+    - generic [ref=f6e6]:
+      - link "L LCD Parc Espace hôte" [ref=f6e7] [cursor=pointer]:
+        - /url: /hote
+        - generic [ref=f6e8]: L
+        - generic [ref=f6e9]:
+          - generic [ref=f6e10]: LCD Parc
+          - generic [ref=f6e11]: Espace hôte
+      - generic [ref=f6e12]: Super-admin
+      - navigation "Navigation principale" [ref=f6e13]:
+        - list [ref=f6e14]:
+          - listitem [ref=f6e15]:
+            - link "Tableau de bord" [ref=f6e16] [cursor=pointer]:
+              - /url: /hote
+          - listitem [ref=f6e17]:
+            - link "Logements" [ref=f6e18] [cursor=pointer]:
+              - /url: /hote/logements
+          - listitem [ref=f6e19]:
+            - link "Planning" [ref=f6e20] [cursor=pointer]:
+              - /url: /hote/planning
+          - listitem [ref=f6e21]:
+            - link "Ménage" [ref=f6e22] [cursor=pointer]:
+              - /url: /hote/menage
+          - listitem [ref=f6e23]:
+            - link "Factures" [ref=f6e24] [cursor=pointer]:
+              - /url: /hote/factures
+          - listitem [ref=f6e25]:
+            - link "Compta" [ref=f6e26] [cursor=pointer]:
+              - /url: /hote/compta
+          - listitem [ref=f6e27]:
+            - link "Messages" [ref=f6e28] [cursor=pointer]:
+              - /url: /hote/messages
+          - listitem [ref=f6e29]:
+            - group [ref=f6e30]:
+              - generic "Plus ＋" [ref=f6e31] [cursor=pointer]
+      - generic [ref=f6e32]:
+        - link "Apparence" [ref=f6e33] [cursor=pointer]:
+          - /url: /supervision/apparence
+        - link "Voir le site" [ref=f6e34] [cursor=pointer]:
+          - /url: /
+        - button "Quitter" [ref=f6e36] [cursor=pointer]
+  - main [ref=f6e37]:
+    - generic [ref=f6e38]:
+      - generic [ref=f6e39]:
+        - paragraph [ref=f6e40]: Nouveau logement · conformité
+        - heading "Onboarding" [level=1] [ref=f6e41]
+        - paragraph [ref=f6e42]: "Les conditions réelles avant qu’un logement puisse être proposé aux voyageurs. Aucune case n’est décorative : chaque étape est vérifiée sur les données enregistrées."
+      - link "Retour au tableau de bord" [ref=f6e43] [cursor=pointer]:
+        - /url: /hote
+    - status [ref=f6e44]: Vérification copropriété enregistrée.
+    - navigation "Choisir un logement" [ref=f6e45]:
+      - link "Logement Annonce E2E 1793087811294" [ref=f6e46] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=dcb163ae-76cc-47e3-b724-e2440bfe1de8
+      - link "Logement Avis E2E 1793088083607" [ref=f6e47] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=051bc5de-0e96-4b10-94b1-879fc52493b5
+      - link "Onboarding 1793088116156" [ref=f6e48] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=976def01-739d-44b0-af40-589ce46d31ad
+      - link "Direct E2E 1793088124580" [ref=f6e49] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=eb66f6e0-6bb0-4779-b395-42aae1c79d6f
+      - link "Logement Contrat E2E 1793088286421" [ref=f6e50] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=a8bd9dbf-9ad8-4bab-bc6e-aa5c62d7928a
+      - link "Logement Dispatch E2E 1793088398406" [ref=f6e51] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=bc0b4363-4d46-485b-b298-8f5795d9bfaf
+      - link "Logement EDL E2E 1793088427766" [ref=f6e52] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=e0038d93-632f-4be0-84f8-a185c23d048b
+      - link "Facturation E2E 1793088460673" [ref=f6e53] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=a2505d77-0072-4da0-a97b-ec6899b752bd
+      - link "Logement Entretien E2E 1793088421757" [ref=f6e54] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=590a9a42-2862-428f-91de-4d81b7596c6a
+      - link "Onboarding 1793088442073" [ref=f6e55] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=a9cc9bd6-59bc-432c-9baf-0f8b68a4fa8e
+      - link "Guide E2E 1793088445459" [ref=f6e56] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=7ce6445f-81cc-4cf6-8f96-90496a774a65
+      - link "Onboarding 1793088436378" [ref=f6e57] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=a1af1710-c706-418e-8236-a0aa7fc1a8b1
+      - link "Logement Avis E2E 1793088478820" [ref=f6e58] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=dbb04af7-a0dc-4a67-a74e-598ee170ebd6
+      - link "Direct E2E 1793088510376" [ref=f6e59] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=1b5cf1fb-8d92-436a-873c-7e3483288c77
+      - link "ICS E2E 1793088504112" [ref=f6e60] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=234029a3-e54a-4350-8071-3d7e86d60413
+      - link "Logement Avis E2E 1793088542166" [ref=f6e61] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=de1eb6c4-3e42-4c33-b309-6121bfe6903a
+      - link "Logement Ménage E2E 1793088566864" [ref=f6e62] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=3ecc542f-915f-45f7-ad8c-c864efbffb7c
+      - link "Logement Message E2E 1793088587170" [ref=f6e63] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=c6f12a39-7b2d-4605-bc6c-977bb5cea6dd
+      - link "Direct E2E 1793088574430" [ref=f6e64] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=96657181-40e8-4401-9ac3-82914f3dd648
+      - link "Mission E2E 1793088606496" [ref=f6e65] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=4d7da450-a974-4c87-a93d-7b2eb81f6ec9
+      - link "Logement Police E2E 1793088726168" [ref=f6e66] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=19ee7202-4a07-4566-894c-12b0f713830f
+      - link "Logement Objets E2E 1793088649754" [ref=f6e67] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=2ec141ac-6d28-41e7-8bb3-265d663fb9db
+      - link "Onboarding 1793088669058" [ref=f6e68] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=4e87070e-5765-42de-85a2-62841e086e1f
+      - link "Planning E2E 1793088712597" [ref=f6e69] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=d551ab70-d222-422e-ab6b-0abcd4ce612d
+      - link "Préférences E2E 1793088758469" [ref=f6e70] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=bbcb053b-0fc7-4bfd-84bb-116b90a355b0
+      - link "Proprio A 1793088790509" [ref=f6e71] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=cdc353a3-b610-44c4-b9eb-f9be6fcf5fdf
+      - link "Direct E2E 1793088803125" [ref=f6e72] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=4017a9f6-3055-4f4d-8a91-fce6b787017a
+      - link "Logement Questionnaire E2E 1793088808292" [ref=f6e73] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=f0d2e3af-2ab4-479f-b89b-38a94ed02c23
+      - link "Logement Recherche 1793088855176" [ref=f6e74] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=90865dd1-d366-4855-9935-a71350752f90
+      - link "Santa Severa E2E" [ref=f6e75] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=f546d364-f7d2-4827-bffd-b5d92a3c840b
+      - link "Debug 1793088946021" [ref=f6e76] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=57ea16ec-623a-4add-8ac8-53831e22206b
+      - link "Voyageur E2E 1793089004072" [ref=f6e77] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=0e4f6e53-e54e-4d39-b70a-cb374b4e07c3
+      - link "Logement Tranquillité E2E 1793088966744" [ref=f6e78] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=1c3a1b11-c06a-4fa7-968b-8b963a091bc9
+      - link "Direct E2E 1793089015102" [ref=f6e79] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=a4f441b6-58bb-45db-b591-49dae7d336dd
+      - link "Direct E2E 1793089193929" [ref=f6e80] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=1f7c6992-3b73-4a0c-b190-2e184161f2cb
+      - link "Villa Santa Severa" [ref=f6e81] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=286d0cb0-3458-4573-94cc-b0712c2cce33
+      - link "Le Mas des Oliviers" [ref=f6e82] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=700d9382-57da-4642-a13f-2c61ce5f31bc
+      - link "Le Loft du Port" [ref=f6e83] [cursor=pointer]:
+        - /url: /hote/onboarding?logement=e2f6d949-1293-4644-a22c-62cdc77a0a5e
+    - generic [ref=f6e85]:
+      - generic [ref=f6e86]:
+        - heading "Avancement — Direct E2E 1793089193929" [level=2] [ref=f6e87]
+        - paragraph [ref=f6e88]: 1 / 7 étapes · 14 %
+      - generic [ref=f6e89]: Non publiable
+    - list [ref=f6e92]:
+      - listitem [ref=f6e93]:
+        - generic [ref=f6e94]:
+          - generic [ref=f6e97]:
+            - heading "1 · Identité de l’éditeur" [level=3] [ref=f6e98]
+            - paragraph [ref=f6e99]: "SIREN et adresse complets : ils figurent sur les factures et les mentions légales."
+          - generic [ref=f6e100]: À faire
+        - link "Compléter l’entité" [ref=f6e101] [cursor=pointer]:
+          - /url: /hote/entite
+      - listitem [ref=f6e102]:
+        - generic [ref=f6e103]:
+          - generic [ref=f6e104]:
+            - generic [aria-hidden] [ref=f6e105]: ✓
+            - generic [ref=f6e106]:
+              - heading "2 · Logement au registre" [level=3] [ref=f6e107]
+              - paragraph [ref=f6e108]: Code stable, nom et adresse du logement. Le code sert dans les liens et les exports.
+          - generic [ref=f6e109]: Fait
+        - link "Gérer les logements" [ref=f6e110] [cursor=pointer]:
+          - /url: /hote/logements
+      - listitem [ref=f6e111]:
+        - generic [ref=f6e112]:
+          - generic [ref=f6e115]:
+            - heading "3 · Conformité de l’annonce" [level=3] [ref=f6e116]
+            - paragraph [ref=f6e117]: Les neuf mentions obligatoires, les étiquettes DPE/GES et le numéro d’enregistrement mairie.
+          - generic [ref=f6e118]: À faire
+        - link "Compléter l’annonce" [ref=f6e119] [cursor=pointer]:
+          - /url: /hote/annonce?logement=1f7c6992-3b73-4a0c-b190-2e184161f2cb
+      - listitem [ref=f6e120]:
+        - generic [ref=f6e121]:
+          - generic [ref=f6e124]:
+            - heading "4 · Vérification copropriété" [level=3] [ref=f6e125]
+            - paragraph [ref=f6e126]: Règlement de copropriété, PV d’assemblée et accord du syndic vérifiés. Bloque la mise en ligne tant que ce n’est pas fait.
+          - generic [ref=f6e127]: À faire
+        - generic [ref=f6e128]:
+          - generic [ref=f6e129]:
+            - checkbox "Règlement, PV et accord du syndic vérifiés Décochez pour remasquer le logement." [ref=f6e130]
+            - generic [ref=f6e131]:
+              - text: Règlement, PV et accord du syndic vérifiés
+              - generic [ref=f6e132]: Décochez pour remasquer le logement.
+          - button "Enregistrer" [ref=f6e133] [cursor=pointer]
+        - link "Ouvrir la vérification" [ref=f6e134] [cursor=pointer]:
+          - /url: /hote/annonce?logement=1f7c6992-3b73-4a0c-b190-2e184161f2cb#copro
+      - listitem [ref=f6e135]:
+        - generic [ref=f6e136]:
+          - generic [ref=f6e139]:
+            - heading "5 · Prix du mois" [level=3] [ref=f6e140]
+            - paragraph [ref=f6e141]: Au moins une nuit tarifée sur le mois en cours. Sans prix, aucune demande ne peut être chiffrée.
+          - generic [ref=f6e142]: À faire
+        - link "Définir les prix" [ref=f6e143] [cursor=pointer]:
+          - /url: /hote/prix?logement=1f7c6992-3b73-4a0c-b190-2e184161f2cb&mois=2026-10
+      - listitem [ref=f6e144]:
+        - generic [ref=f6e145]:
+          - generic [ref=f6e148]:
+            - heading "6 · Calendrier des plateformes" [level=3] [ref=f6e149]
+            - paragraph [ref=f6e150]: Flux ICS importé en lecture seule pour éviter les doubles réservations. Recommandé, pas bloquant pour la vente directe.
+          - generic [ref=f6e151]: À faire
+        - link "Ouvrir le planning" [ref=f6e152] [cursor=pointer]:
+          - /url: /hote/planning?logement=1f7c6992-3b73-4a0c-b190-2e184161f2cb
+      - listitem [ref=f6e153]:
+        - generic [ref=f6e154]:
+          - generic [ref=f6e157]:
+            - heading "7 · Mise en ligne" [level=3] [ref=f6e158]
+            - paragraph [ref=f6e159]: "Le logement est actif, vérifié, tarifé et publié : il apparaît sur la page de réservation publique."
+          - generic [ref=f6e160]: À faire
+        - generic [ref=f6e161]:
+          - paragraph [ref=f6e162]: "État de publication : brouillon. Un logement en brouillon n’apparaît jamais sur /reserver, même vérifié."
+          - button "Publier le logement" [disabled] [ref=f6e164]
+          - paragraph [ref=f6e165]: Vérifiez la copropriété avant de publier.
+    - paragraph [ref=f6e166]: Tant que les étapes 1 à 5 ne sont pas complètes, le logement n’apparaît pas sur la page de réservation publique.
+    - generic [ref=f6e167]:
+      - link "Conformité de l’annonce" [ref=f6e168] [cursor=pointer]:
+        - /url: /hote/annonce
+      - link "Logements" [ref=f6e169] [cursor=pointer]:
+        - /url: /hote/logements
+      - link "Tableau de bord" [ref=f6e170] [cursor=pointer]:
+        - /url: /hote
+```

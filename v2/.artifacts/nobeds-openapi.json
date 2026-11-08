@@ -1,0 +1,512 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "NOBEDS API - Core PMS & OTA Connectivity Services",
+    "description": "Official REST API for NOBEDS Property Management System (PMS) and Channel Manager. Connects developers, AI agents, and hospitality apps to Booking.com, Airbnb, Expedia, Trip.com, Agoda, and Google Hotels.",
+    "version": "2.0.0",
+    "contact": {
+      "name": "NOBEDS Developer Support",
+      "url": "https://nobeds.com/api",
+      "email": "info@nobeds.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.nobeds.com",
+      "description": "Production NOBEDS API Server"
+    }
+  ],
+  "paths": {
+    "/api/bookings/{api_token}": {
+      "get": {
+        "summary": "Get Property Bookings / Reservations",
+        "description": "Retrieve reservations for your hotel/property, consolidated from Booking.com, Airbnb, Expedia, Trip.com, Agoda, and Direct engine. Uses ISO date format (yyyy-MM-dd).",
+        "operationId": "ListBookings",
+        "parameters": [
+          {
+            "name": "api_token",
+            "in": "path",
+            "required": true,
+            "description": "Your hotel-specific API token (or 'api_token' for read-only test mode)",
+            "schema": { "type": "string", "example": "api_token" }
+          },
+          {
+            "name": "order_id",
+            "in": "query",
+            "required": false,
+            "description": "Filter by specific internal order ID or channel referral order ID",
+            "schema": { "type": "string", "example": "907123" }
+          },
+          {
+            "name": "fromdate",
+            "in": "query",
+            "required": false,
+            "description": "Filter check-ins from date (yyyy-MM-dd)",
+            "schema": { "type": "string", "format": "date", "example": "2026-06-01" }
+          },
+          {
+            "name": "todate",
+            "in": "query",
+            "required": false,
+            "description": "Filter check-ins to date (yyyy-MM-dd)",
+            "schema": { "type": "string", "format": "date", "example": "2026-06-30" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of reservations (orders)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "order_id": { "type": "integer", "example": 907123 },
+                      "hotel_id": { "type": "integer", "example": 4122 },
+                      "room_id": { "type": "integer", "example": 402 },
+                      "name": { "type": "string", "example": "Demo Guest" },
+                      "email": { "type": "string", "example": "demo@nobeds.com" },
+                      "phone": { "type": "string", "example": "+37000000000" },
+                      "checkin": { "type": "string", "format": "date-time", "example": "2026-06-12T14:00:00Z" },
+                      "checkout": { "type": "string", "format": "date-time", "example": "2026-06-15T10:00:00Z" },
+                      "price": { "type": "number", "example": 450.00 },
+                      "referral_order_id": { "type": "string", "example": "BDC-38192014" },
+                      "status": { "type": "string", "example": "confirmed" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid booking parameters" },
+          "402": { "description": "Subscription update required" },
+          "404": { "description": "Invalid API token" }
+        }
+      },
+      "post": {
+        "summary": "Create New Booking / Reservation",
+        "description": "Inserts a new reservation into NOBEDS PMS and blocks room calendar availability across connected OTA channels.",
+        "operationId": "CreateBooking",
+        "parameters": [
+          {
+            "name": "api_token",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["room_id", "name", "checkin", "checkout", "price"],
+                "properties": {
+                  "room_id": { "type": "integer", "example": 402 },
+                  "name": { "type": "string", "example": "Sophia Martinez" },
+                  "email": { "type": "string", "example": "sophia@example.com" },
+                  "phone": { "type": "string", "example": "+37060000000" },
+                  "checkin": { "type": "string", "format": "date", "example": "2026-07-01" },
+                  "checkout": { "type": "string", "format": "date", "example": "2026-07-05" },
+                  "price": { "type": "number", "example": 320.00 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Booking successfully created" },
+          "400": { "description": "Invalid booking data" },
+          "403": { "description": "Demo mode (read-only)" }
+        }
+      },
+      "delete": {
+        "summary": "Cancel / Delete Booking",
+        "description": "Deletes or cancels a rental reservation order by order_id and date.",
+        "operationId": "DeleteBooking",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "order_id", "in": "query", "required": true, "schema": { "type": "integer", "example": 907123 } },
+          { "name": "date", "in": "query", "required": true, "schema": { "type": "string", "format": "date", "example": "2026-06-12" } }
+        ],
+        "responses": {
+          "200": { "description": "Booking deleted successfully" },
+          "400": { "description": "Invalid booking parameters" },
+          "403": { "description": "Demo mode (read-only)" }
+        }
+      }
+    },
+    "/api/availability/{api_token}": {
+      "get": {
+        "summary": "Get Room Availability & Nightly Rates",
+        "description": "Monitors room capacity, availability status, and nightly price rates for your property listings.",
+        "operationId": "ListAvailability",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } },
+          { "name": "room_id", "in": "query", "required": false, "schema": { "type": "integer", "example": 402 } },
+          { "name": "fromdate", "in": "query", "required": false, "schema": { "type": "string", "format": "date", "example": "2026-06-01" } },
+          { "name": "todate", "in": "query", "required": false, "schema": { "type": "string", "format": "date", "example": "2026-06-30" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of availability and rate records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "availability_id": { "type": "integer", "example": 10520 },
+                      "hotel_id": { "type": "integer", "example": 4122 },
+                      "room_id": { "type": "integer", "example": 402 },
+                      "date": { "type": "string", "format": "date-time", "example": "2026-06-12T00:00:00Z" },
+                      "available": { "type": "integer", "example": 1 },
+                      "price": { "type": "number", "example": 95.00 },
+                      "min_stay": { "type": "integer", "example": 1 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Update / Insert Availability & Price Rates",
+        "description": "Pushes updated availability status, nightly room pricing, and minimum stay rules.",
+        "operationId": "CreateAvailability",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["room_id", "date", "price"],
+                "properties": {
+                  "room_id": { "type": "integer", "example": 402 },
+                  "date": { "type": "string", "format": "date", "example": "2026-07-10" },
+                  "available": { "type": "integer", "example": 1 },
+                  "price": { "type": "number", "example": 120.00 },
+                  "min_stay": { "type": "integer", "example": 2 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Availability updated successfully" }
+        }
+      }
+    },
+    "/api/rentals/{api_token}": {
+      "get": {
+        "summary": "Get Property Rental Units / Rooms",
+        "description": "Retrieves configuration details, capacity, and names of room listings.",
+        "operationId": "ListRentals",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } },
+          { "name": "room_id", "in": "query", "required": false, "schema": { "type": "integer", "example": 402 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of rental room units",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "room_id": { "type": "integer", "example": 402 },
+                      "hotel_id": { "type": "integer", "example": 4122 },
+                      "name": { "type": "string", "example": "Double Standard" },
+                      "capacity": { "type": "integer", "example": 2 },
+                      "price": { "type": "number", "example": 95.00 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{api_token}": {
+      "get": {
+        "summary": "Get Guest Conversation Messages",
+        "description": "Retrieves guest conversation threads and messages across Booking.com, Airbnb, and direct chat channels.",
+        "operationId": "ListMessages",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } },
+          { "name": "rid", "in": "query", "required": false, "description": "Filter messages by reservation order ID", "schema": { "type": "integer", "example": 907123 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of conversation messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer", "example": 1042 },
+                      "hotel_id": { "type": "integer", "example": 4122 },
+                      "rid": { "type": "integer", "example": 907123 },
+                      "message": { "type": "string", "example": "What is the WiFi password?" },
+                      "reply": { "type": "string", "example": "WiFi password is Welcome2026!" },
+                      "created_at": { "type": "string", "format": "date-time", "example": "2026-06-12T15:30:00Z" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Send Reply / New Message",
+        "description": "Dispatches a message or reply to the guest on Booking.com / Airbnb chat channel.",
+        "operationId": "CreateMessage",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rid", "reply"],
+                "properties": {
+                  "rid": { "type": "integer", "example": 907123 },
+                  "reply": { "type": "string", "example": "Hello! WiFi password is Welcome2026!" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Message dispatched successfully" }
+        }
+      }
+    },
+    "/api/tasks/{api_token}": {
+      "get": {
+        "summary": "Get Housekeeping & Turnover Tasks",
+        "description": "Retrieves turnover cleaning tasks, staff assignments, and room readiness status.",
+        "operationId": "ListTasks",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } },
+          { "name": "id", "in": "query", "required": false, "description": "Filter by rental room ID", "schema": { "type": "integer", "example": 402 } },
+          { "name": "fromdate", "in": "query", "required": false, "schema": { "type": "string", "format": "date", "example": "2026-06-12" } },
+          { "name": "todate", "in": "query", "required": false, "schema": { "type": "string", "format": "date", "example": "2026-06-15" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of turnover tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "task_id": { "type": "integer", "example": 8021 },
+                      "hotel_id": { "type": "integer", "example": 4122 },
+                      "room_id": { "type": "integer", "example": 402 },
+                      "task_name": { "type": "string", "example": "Full Turnover & Linen Change" },
+                      "assignee": { "type": "string", "example": "Elena Vance" },
+                      "status": { "type": "string", "example": "pending" },
+                      "updated": { "type": "string", "format": "date-time", "example": "2026-06-12T11:00:00Z" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/accounting/{api_token}": {
+      "get": {
+        "summary": "Get Accounting & Revenue Transactions",
+        "description": "Retrieves hotel financial transactions, guest payments, and ledger entries.",
+        "operationId": "ListAccounting",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } },
+          { "name": "room_id", "in": "query", "required": false, "schema": { "type": "integer", "example": 402 } },
+          { "name": "fromdate", "in": "query", "required": false, "schema": { "type": "string", "format": "date", "example": "2026-05-01" } },
+          { "name": "todate", "in": "query", "required": false, "schema": { "type": "string", "format": "date", "example": "2026-05-31" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accounting transaction entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer", "example": 4510 },
+                      "hotel_id": { "type": "integer", "example": 4122 },
+                      "amount": { "type": "number", "example": 450.00 },
+                      "type": { "type": "string", "example": "income" },
+                      "description": { "type": "string", "example": "Booking #907123 payment via Booking.com" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{api_token}": {
+      "get": {
+        "summary": "Get Guest Reviews & Feedback",
+        "description": "Retrieves reviews, numerical scores, and positive/negative comments left by guests.",
+        "operationId": "ListReviews",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } }
+        ],
+        "responses": {
+          "200": { "description": "List of guest reviews" }
+        }
+      }
+    },
+    "/api/ical/{api_token}": {
+      "get": {
+        "summary": "Get iCal Calendar Export Feeds",
+        "description": "Retrieves iCal calendar export links (.ics) for VRBO, FlipKey, and Google Calendar sync.",
+        "operationId": "ListiCal",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } },
+          { "name": "room_id", "in": "query", "required": false, "schema": { "type": "integer", "example": 402 } },
+          { "name": "fromdate", "in": "query", "required": false, "schema": { "type": "string", "format": "date", "example": "2026-06-01" } },
+          { "name": "todate", "in": "query", "required": false, "schema": { "type": "string", "format": "date", "example": "2026-06-30" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of iCal feed links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer", "example": 901 },
+                      "hotel_id": { "type": "integer", "example": 4122 },
+                      "room_id": { "type": "integer", "example": 402 },
+                      "url": { "type": "string", "example": "https://nobeds.com/ical/export/nb_4122_402.ics" },
+                      "channel_name": { "type": "string", "example": "VRBO iCal Feed" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/status/{api_token}": {
+      "get": {
+        "summary": "Check Integration Health & OTA Status",
+        "description": "Returns status of connected OTAs (Booking.com, Airbnb, Expedia, Trip.com, Agoda) and subscription details.",
+        "operationId": "GetStatus",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel integration health status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hotel_id": { "type": "integer", "example": 4122 },
+                    "status": { "type": "string", "example": "active" },
+                    "channels": {
+                      "type": "object",
+                      "properties": {
+                        "booking_com": { "type": "string", "example": "connected" },
+                        "airbnb": { "type": "string", "example": "connected" },
+                        "expedia": { "type": "string", "example": "connected" },
+                        "trip_com": { "type": "string", "example": "connected" }
+                      }
+                    },
+                    "last_sync": { "type": "string", "format": "date-time", "example": "2026-07-24T13:15:00Z" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/hotels/{api_token}": {
+      "get": {
+        "summary": "Get Property Profile & Hotel Details",
+        "description": "Retrieves property profile information, hotel ID, address, currency, and settings.",
+        "operationId": "ListHotel",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hotel property profile data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hotel_id": { "type": "integer", "example": 4122 },
+                    "name": { "type": "string", "example": "Grand Seaside Hotel & Apartments" },
+                    "currency": { "type": "string", "example": "EUR" },
+                    "address": { "type": "string", "example": "Ocean Drive 15, Klaipeda" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/logs/{api_token}": {
+      "get": {
+        "summary": "Get API Usage & Audit Logs",
+        "description": "Returns the last 50 API usage log entries and channel sync audit trails.",
+        "operationId": "ListLogs",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "example": 50 } }
+        ],
+        "responses": {
+          "200": { "description": "List of recent API execution logs" }
+        }
+      }
+    },
+    "/mcp/{api_token}": {
+      "get": {
+        "summary": "Model Context Protocol (MCP) Server for AI Agents",
+        "description": "Server-Sent Events (SSE) stream for connecting Claude, ChatGPT, and autonomous AI agents directly to NOBEDS PMS.",
+        "operationId": "GetMcpStream",
+        "parameters": [
+          { "name": "api_token", "in": "path", "required": true, "schema": { "type": "string", "example": "api_token" } }
+        ],
+        "responses": {
+          "200": { "description": "Text event-stream connection established" }
+        }
+      }
+    }
+  }
+}

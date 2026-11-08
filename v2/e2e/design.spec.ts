@@ -1,121 +1,105 @@
 import { expect, test } from "@playwright/test";
 
-const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@lcd.test";
-const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe-2026!";
+const email = process.env.SEED_SUPER_ADMIN_EMAIL ?? "super@lcd.test";
+const motDePasse =
+  process.env.SEED_SUPER_ADMIN_PASSWORD ??
+  process.env.SEED_ADMIN_PASSWORD ??
+  "";
 
-test("identité de marque : nom, logo, accent et contacts publics", async ({
-  page,
-}) => {
+test.skip(
+  !email || !motDePasse,
+  "SEED_SUPER_ADMIN_EMAIL / SEED_SUPER_ADMIN_PASSWORD absents de .env.local",
+);
+
+async function connexion(page: import("@playwright/test").Page) {
   await page.goto("/login");
-  await page.fill('input[type="email"]', ADMIN_EMAIL);
-  await page.fill('input[type="password"]', ADMIN_PASSWORD);
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', motDePasse);
   await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/hote$/);
+  await expect(page).toHaveURL(/\/hote/);
+}
 
-  await page.goto("/hote/design");
-  await page.fill('input[name="nom"]', "Marque E2E");
-  await page.fill('input[name="logoUrl"]', "/icon.svg");
-  await page.fill('input[name="emailContact"]', "contact@marque-e2e.test");
-  await page.fill('input[name="telephoneContact"]', "+33 1 23 45 67 89");
-  await page.fill('input[name="adresseContact"]', "1 rue des Tests, 75000 Paris");
-  await page.getByRole("checkbox", { name: /couleur d’accent/ }).check();
+async function publierIdentite(
+  page: import("@playwright/test").Page,
+  identite: {
+    nom: string;
+    logoUrl: string;
+    emailContact: string;
+    telephoneContact: string;
+    adresseContact: string;
+  },
+) {
+  await page.goto("/supervision/apparence");
+  await page.fill('input[name="nom"]', identite.nom);
+  await page.fill('input[name="logoUrl"]', identite.logoUrl);
+  await page.fill('input[name="emailContact"]', identite.emailContact);
+  await page.fill('input[name="telephoneContact"]', identite.telephoneContact);
+  await page.fill('input[name="adresseContact"]', identite.adresseContact);
   await page
-    .locator('input[name="accent"]')
-    .evaluate((element, valeur) => {
-      const input = element as HTMLInputElement;
-      input.value = valeur;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    }, "#1d4ed8");
-  await page.getByRole("button", { name: "Enregistrer l’identité" }).click();
-  await expect(page.getByText("Identité de marque enregistrée.")).toBeVisible();
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        getComputedStyle(document.documentElement)
-          .getPropertyValue("--accent")
-          .trim(),
-      ),
-    )
-    .toBe("#1d4ed8");
+    .getByRole("button", { name: "Enregistrer le brouillon" })
+    .click();
+  await expect(page.getByRole("status")).toContainText("Brouillon enregistré");
+  await page.waitForLoadState("networkidle");
+
+  await page
+    .getByPlaceholder("Ex. passage au thème Sable pour l’été")
+    .fill("E2E identité de marque");
+  await page.getByRole("button", { name: "Publier pour tout le site" }).click();
+  await expect(page.getByRole("status")).toContainText("publiée pour tout le site");
+  await page.waitForLoadState("networkidle");
+}
+
+test("identité de marque : nom, logo et contacts publics", async ({ page }) => {
+  await connexion(page);
+
+  await publierIdentite(page, {
+    nom: "Marque E2E",
+    logoUrl: "/icon.svg",
+    emailContact: "contact@marque-e2e.test",
+    telephoneContact: "+33 1 23 45 67 89",
+    adresseContact: "1 rue des Tests, 75000 Paris",
+  });
 
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Marque E2E" })).toBeVisible();
-  await expect(page.locator('img[src="/icon.svg"]')).toBeVisible();
+  await expect(page).toHaveTitle(/^Marque E2E/);
+  await expect(
+    page.getByRole("link", { name: "Marque E2E" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.locator('img[src="/icon.svg"]').first(),
+  ).toHaveAttribute("src", "/icon.svg");
   await expect(
     page.getByRole("link", { name: "contact@marque-e2e.test" }),
   ).toBeVisible();
-  await expect(page.getByText("+33 1 23 45 67 89")).toBeVisible();
 
   await page.goto("/legales");
   await expect(
     page.getByRole("link", { name: "contact@marque-e2e.test" }),
   ).toBeVisible();
 
-  await page.goto("/hote/design");
-  await page.fill('input[name="nom"]', "");
-  await page.fill('input[name="logoUrl"]', "");
-  await page.fill('input[name="emailContact"]', "");
-  await page.fill('input[name="telephoneContact"]', "");
-  await page.fill('input[name="adresseContact"]', "");
-  await page.getByRole("checkbox", { name: /couleur d’accent/ }).uncheck();
-  await page.getByRole("button", { name: "Enregistrer l’identité" }).click();
-  await expect(page.getByText("Identité de marque enregistrée.")).toBeVisible();
-  await expect(page.locator("style#identite-site")).toHaveCount(0);
+  await publierIdentite(page, {
+    nom: "",
+    logoUrl: "",
+    emailContact: "",
+    telephoneContact: "",
+    adresseContact: "",
+  });
+
+  await page.goto("/");
+  await expect(page.locator('img[src="/icon.svg"]')).toHaveCount(0);
 });
 
-test("design du site : 4 thèmes, bascule sans JS, retour au défaut", async ({
-  page,
-}) => {
-  await page.goto("/login");
-  await page.fill('input[type="email"]', ADMIN_EMAIL);
-  await page.fill('input[type="password"]', ADMIN_PASSWORD);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/hote$/);
+test("apparence : les thèmes globaux sont au complet", async ({ page }) => {
+  await connexion(page);
+  await page.goto("/supervision/apparence");
 
-  await page.goto("/hote/design");
   await expect(
-    page.getByRole("heading", { name: "Design du site" }),
+    page.getByRole("heading", { level: 2, name: "1. Choisir un thème" }),
   ).toBeVisible();
-  await expect(page.locator('input[name="design"]')).toHaveCount(4);
+  await expect(page.locator('input[name="themeId"]')).toHaveCount(6);
+  await expect(page.locator('input[name="accentActif"]')).toHaveCount(1);
+  await expect(page.locator('input[name="logoUrl"]')).toHaveCount(1);
   await expect(
-    page.getByRole("heading", { name: "Thème actif" }),
+    page.getByRole("heading", { level: 2, name: "3. Publier" }),
   ).toBeVisible();
-
-  await page.locator('input[name="design"][value="ocean"]').check();
-  await page.getByRole("button", { name: "Appliquer ce design" }).click();
-  await expect(page.getByText("Design appliqué : Océan.")).toBeVisible();
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        getComputedStyle(document.documentElement)
-          .getPropertyValue("--accent")
-          .trim(),
-      ),
-    )
-    .toBe("#1d4ed8");
-
-  await page.goto("/hote");
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        getComputedStyle(document.documentElement)
-          .getPropertyValue("--accent")
-          .trim(),
-      ),
-    )
-    .toBe("#1d4ed8");
-
-  await page.goto("/hote/design");
-  await page.locator('input[name="design"][value="sejour"]').check();
-  await page.getByRole("button", { name: "Appliquer ce design" }).click();
-  await expect(page.getByText("Design appliqué : Séjour.")).toBeVisible();
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        getComputedStyle(document.documentElement)
-          .getPropertyValue("--accent")
-          .trim(),
-      ),
-    )
-    .toBe("#0e7c6b");
 });

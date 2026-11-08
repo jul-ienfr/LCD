@@ -261,8 +261,41 @@
   faux-positifs non mesurables sans déploiement réel.
 - Statut : À FAIRE (protocole posé, exécution lab en attente).
 
+## R-09 Lodgify — PRIORITÉ 1 (benchmark public, 2026-11-06)
+
+- Cible : Lodgify (web + apps Host/PM/Guest), sans compte, sources publiques seules.
+- Chercher : channel manager natif, site de réservation, inbox OTA, paiements,
+  dynamic pricing, ops, conformité, API, modèle économique.
+- Rebuild : uniquement les écarts utiles à la V2 (distribution temps réel,
+  site direct + paiement, inbox unifiée, pricing, reporting), le reste en
+  partenariat ou assumé hors périmètre.
+- Protocole appliqué (sources publiques, pas de lab) :
+  1. 44 pages marketing FR téléchargées et extraites (fonctionnalités, tarifs,
+     channel manager, site, inbox, mobile, pricing, compta, propriétaires,
+     protection, MCP, intégrations).
+  2. 334 articles du centre d'aide FR listés via l'API publique Zendesk
+     (titres et structure, pas de contournement d'auth).
+  3. Documentation API v1/v2 lue via `docs.lodgify.com/llms.txt`.
+  4. Aucun compte Lodgify, aucun essai, aucun code source, aucune API privée,
+     aucun scraping OTA.
+  5. Comparaison avec l'état réel V2 (routes, 73 tables, docs channel manager).
+- Preuves collectées : `replica/recon.md` (28 écrans inférés, 10 flows,
+  19 entités), `replica/features.csv` (123 lignes), pages et articles listés
+  en sources.
+- Mapping rebuild maison : L1 distribution (Beds24/Channex), L2 site + Stripe,
+  L3 inbox, L4 Beyond/PriceLabs, L5 reporting, L6 API/intégrations. Voir
+  `Plan Comblement Ecarts Lodgify - LCD v1.md`.
+- Limites : UI connectée non observée, prix négociés inconnus, SLA non mesurés,
+  webhooks OTA non testés, qualité du dynamic pricing non prouvée (les 40 % de
+  revenus en plus sont une revendication Beyond), contrats OTA non lus.
+- Décision : retenir 5 écarts commerciaux (distribution, site+paiement, inbox,
+  pricing, reporting) ; écarter apps natives, builder complet, marketplace 25+,
+  financement/assurance, self-service. Détail :
+  `docs/analyses/LODGIFY-VS-LCD-2026-11.md`.
+- Statut : FAIT (benchmark public terminé le 2026-11-06).
+
 ## Journal des cibles
 
 | Date | Cible | Version | Compte lab | Fiche | Décision |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 2026-11-06 | Lodgify | web + apps (2026-11) | aucun (public) | R-09 | retenir 5 écarts, partenariats pour le reste |

@@ -1,4 +1,5 @@
 import { ErreurMetier } from "@/domain/erreurs";
+import { peutAdministrerCompte } from "@/domain/utilisateur";
 import type { UserRepository } from "../ports/user-repository";
 
 export class ReinitialiserDeuxFacteurs {
@@ -8,6 +9,7 @@ export class ReinitialiserDeuxFacteurs {
     tenantId: string;
     id: string;
     acteurId: string;
+    acteurRole?: string | null;
   }) {
     if (input.id === input.acteurId) {
       throw new ErreurMetier(
@@ -21,6 +23,12 @@ export class ReinitialiserDeuxFacteurs {
       throw new ErreurMetier(
         "UTILISATEUR_INVALIDE",
         "Utilisateur introuvable.",
+      );
+    }
+    if (!peutAdministrerCompte(input.acteurRole, cible.role)) {
+      throw new ErreurMetier(
+        "UTILISATEUR_INVALIDE",
+        "Seul un super-administrateur peut gérer un super-administrateur.",
       );
     }
     if (!(await this.users.aDeuxFacteurs(input.tenantId, input.id))) {

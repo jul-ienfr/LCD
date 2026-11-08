@@ -9,6 +9,7 @@ export interface Blocage {
   fin: string; // exclusive
   source: string;
   motif: string | null;
+  fluxIcsId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -25,6 +25,11 @@ test("import ICS : réservation, blocage, idempotence et conflit", async ({
   await page.getByRole("button", { name: "Créer le logement" }).click();
   await expect(page.getByText(`Logement « ${code} » créé.`)).toBeVisible();
 
+  await page.goto("/hote/planning/canaux");
+  await expect(
+    page.getByRole("heading", { name: "Channel manager" }),
+  ).toBeVisible();
+
   // Flux OTA : validation d'URL puis enregistrement.
   await page.goto("/hote/planning?mois=2027-01");
   await page.selectOption('select[name="logement"]', { label: nom });

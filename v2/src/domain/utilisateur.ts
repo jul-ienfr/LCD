@@ -2,6 +2,7 @@ export const ROLES_UTILISATEUR = [
   "super_admin",
   "admin",
   "hote",
+  "operateur",
   "comptable",
   "presta",
   "proprietaire",
@@ -14,6 +15,7 @@ export const LIBELLES_ROLE: Record<RoleUtilisateur, string> = {
   super_admin: "Super-administrateur",
   admin: "Administrateur",
   hote: "Hôte",
+  operateur: "Opérateur",
   comptable: "Comptable",
   presta: "Prestataire",
   proprietaire: "Propriétaire",
@@ -28,6 +30,27 @@ export function roleUtilisateurValide(
 
 export function libelleRole(role: string): string {
   return (LIBELLES_ROLE as Record<string, string>)[role] ?? role;
+}
+
+/**
+ * Seul un super-admin peut attribuer ou retirer le rôle super-admin. Un admin
+ * ordinaire ne doit jamais pouvoir s'élever ni créer un compte équivalent.
+ */
+export function peutAttribuerRole(
+  acteurRole: string | null | undefined,
+  roleCible: string,
+): boolean {
+  if (roleCible === "super_admin") return acteurRole === "super_admin";
+  return true;
+}
+
+/** Un super-admin ne peut être administré que par un autre super-admin. */
+export function peutAdministrerCompte(
+  acteurRole: string | null | undefined,
+  roleCible: string,
+): boolean {
+  if (roleCible === "super_admin") return acteurRole === "super_admin";
+  return true;
 }
 
 export function emailUtilisateurValide(email: string): boolean {
@@ -45,6 +68,29 @@ export function motDePasseValide(motDePasse: string): boolean {
 export function nomUtilisateurValide(nom: string): boolean {
   const valeur = nom.trim();
   return valeur.length >= 2 && valeur.length <= 120;
+}
+
+/**
+ * RC professionnelle du prestataire : une date absente ou passée bloque le
+ * dispatch. La comparaison est textuelle (ISO AAAA-MM-JJ), donc stable.
+ */
+export function assuranceRcValide(
+  rcExpireLe: string | null | undefined,
+  aujourdHui: string,
+): boolean {
+  if (!rcExpireLe) return false;
+  return rcExpireLe >= aujourdHui;
+}
+
+export function joursAvantExpirationRc(
+  rcExpireLe: string | null | undefined,
+  aujourdHui: string,
+): number | null {
+  if (!rcExpireLe) return null;
+  const fin = Date.parse(`${rcExpireLe}T00:00:00Z`);
+  const debut = Date.parse(`${aujourdHui}T00:00:00Z`);
+  if (!Number.isFinite(fin) || !Number.isFinite(debut)) return null;
+  return Math.round((fin - debut) / 86_400_000);
 }
 
 /**

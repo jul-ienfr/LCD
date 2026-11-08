@@ -25,7 +25,6 @@ test("super-admin : accès refusé aux admins puis pages plateforme", async ({
   await page.goto("/supervision");
   await expect(page).toHaveURL(/\/login\?erreur=acces/);
 
-  await connexion(page, ADMIN_EMAIL, ADMIN_PASSWORD);
   await page.goto("/hote/utilisateurs");
   await page.fill('input[name="name"]', "Super E2E");
   await page.fill('input[name="email"]', email);
@@ -46,6 +45,13 @@ test("super-admin : accès refusé aux admins puis pages plateforme", async ({
   ).toBeVisible();
   await expect(page.getByText("Vue agrégée, lecture seule")).toBeVisible();
   await expect(page.getByRole("link", { name: "Consulter" }).first()).toBeVisible();
+
+  await page.goto("/supervision/fournisseurs");
+  await expect(
+    page.getByRole("heading", { name: "Fournisseurs channel manager" }),
+  ).toBeVisible();
+  await expect(page.getByText("Beds24").first()).toBeVisible();
+  await expect(page.getByText("Channex").first()).toBeVisible();
 
   await page.goto("/systeme");
   await expect(page.getByRole("heading", { name: "Système" })).toBeVisible();

@@ -5,6 +5,7 @@ export interface PayloadCalendrier {
   v: 1;
   tenantId: string;
   logementId: string;
+  canalId?: string;
   exp: number;
 }
 
@@ -30,6 +31,7 @@ export function creerTokenCalendrier(
     v: 1,
     tenantId: data.tenantId,
     logementId: data.logementId,
+    ...(data.canalId ? { canalId: data.canalId } : {}),
     exp,
   };
   const encoded = base64url(JSON.stringify(payload));
@@ -57,6 +59,7 @@ export function verifierTokenCalendrier(
       payload.v !== 1 ||
       typeof payload.tenantId !== "string" ||
       typeof payload.logementId !== "string" ||
+      (payload.canalId !== undefined && typeof payload.canalId !== "string") ||
       typeof payload.exp !== "number"
     ) {
       return null;

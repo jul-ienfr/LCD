@@ -1,38 +1,38 @@
 {
+  "extends": "$app/tsconfig",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": false,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "types": ["node", "$app/types", "@sveltejs/kit"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "$core/*": ["./src/*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules", ".next", ".next/standalone", "coverage", "playwright-report", "test-results"]
+  "include": ["src", "tests", "e2e", "scripts", "*"],
+  "exclude": [
+    "src/app",
+    "src/components/**/*.tsx",
+    "src/lib/apercu.ts",
+    "src/lib/auth.ts",
+    "src/lib/session.ts",
+    "src/proxy.ts",
+    "src/lib/themes.ts",
+    "next.config.ts",
+    "eslint.config.mjs",
+    "scripts",
+    "node_modules",
+    ".svelte-kit",
+    "build"
+  ]
 }

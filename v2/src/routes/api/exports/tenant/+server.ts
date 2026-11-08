@@ -1,0 +1,385 @@
+import { eq } from "drizzle-orm";
+
+import {
+  annoncesConformite,
+  assistantConsommations,
+  auditLogs,
+  avis,
+  bienEvenements,
+  biens,
+  blocages,
+  cautions,
+  commandesExtras,
+  consommables,
+  dispatches,
+  entretiens,
+  etatDesLieuxLignes,
+  etatsDesLieux,
+  extras,
+  factureLignes,
+  factures,
+  fluxIcs,
+  formationsProgressions,
+  incidents,
+  lieuxTourisme,
+  logementProprietaires,
+  logements,
+  memoireVoyageurs,
+  menageTaches,
+  menages,
+  messagesVoyageur,
+  missions,
+  mouvementsStock,
+  objetsTrouves,
+  offres,
+  paiements,
+  parametresFiscaux,
+  phrases,
+  plansTarifaires,
+  preferencesSejour,
+  preuvesTranquillite,
+  prospects,
+  questionnaires,
+  reservations,
+  restrictionsSejour,
+  rgpdRegistres,
+  sinistres,
+  tarifs,
+  tenants,
+  ticketMessages,
+  tickets,
+  users,
+  webhooks,
+} from "@/infrastructure/db/schema";
+import { withTenant } from "@/infrastructure/db/client";
+import { logErreur } from "@/lib/logger";
+import { tenantIdDeSession, verifierAccesApi } from "@/lib/server/session";
+import type { RequestHandler } from "./$types";
+
+export const GET: RequestHandler = async ({ locals }) => {
+  const session = locals.session;
+  const refus = verifierAccesApi(session, ["admin"]);
+  if (refus) return refus;
+
+  const tenantId = tenantIdDeSession(session!);
+
+  try {
+    const donnees = await withTenant(tenantId, async (tx) => {
+      const [tenant] = await tx
+        .select()
+        .from(tenants)
+        .where(eq(tenants.id, tenantId))
+        .limit(1);
+
+      const utilisateurs = await tx
+        .select({
+          id: users.id,
+          tenantId: users.tenantId,
+          name: users.name,
+          email: users.email,
+          role: users.role,
+          actif: users.actif,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users)
+        .where(eq(users.tenantId, tenantId));
+
+      const listeLogements = await tx
+        .select()
+        .from(logements)
+        .where(eq(logements.tenantId, tenantId));
+      const listeTarifs = await tx
+        .select()
+        .from(tarifs)
+        .where(eq(tarifs.tenantId, tenantId));
+      const listeRestrictions = await tx
+        .select()
+        .from(restrictionsSejour)
+        .where(eq(restrictionsSejour.tenantId, tenantId));
+      const listePlans = await tx
+        .select()
+        .from(plansTarifaires)
+        .where(eq(plansTarifaires.tenantId, tenantId));
+      const listeReservations = await tx
+        .select()
+        .from(reservations)
+        .where(eq(reservations.tenantId, tenantId));
+      const listeBlocages = await tx
+        .select()
+        .from(blocages)
+        .where(eq(blocages.tenantId, tenantId));
+      const listeCautions = await tx
+        .select()
+        .from(cautions)
+        .where(eq(cautions.tenantId, tenantId));
+      const listeFactures = await tx
+        .select()
+        .from(factures)
+        .where(eq(factures.tenantId, tenantId));
+      const listeLignes = await tx
+        .select()
+        .from(factureLignes)
+        .where(eq(factureLignes.tenantId, tenantId));
+      const listePaiements = await tx
+        .select()
+        .from(paiements)
+        .where(eq(paiements.tenantId, tenantId));
+      const [fiscal] = await tx
+        .select()
+        .from(parametresFiscaux)
+        .where(eq(parametresFiscaux.tenantId, tenantId))
+        .limit(1);
+      const listeMissions = await tx
+        .select()
+        .from(missions)
+        .where(eq(missions.tenantId, tenantId));
+      const listeProspects = await tx
+        .select()
+        .from(prospects)
+        .where(eq(prospects.tenantId, tenantId));
+      const listeOffres = await tx
+        .select()
+        .from(offres)
+        .where(eq(offres.tenantId, tenantId));
+      const listeTickets = await tx
+        .select()
+        .from(tickets)
+        .where(eq(tickets.tenantId, tenantId));
+      const listeMessages = await tx
+        .select()
+        .from(ticketMessages)
+        .where(eq(ticketMessages.tenantId, tenantId));
+      const listeExtras = await tx
+        .select()
+        .from(extras)
+        .where(eq(extras.tenantId, tenantId));
+      const listeCommandes = await tx
+        .select()
+        .from(commandesExtras)
+        .where(eq(commandesExtras.tenantId, tenantId));
+      const listeIncidents = await tx
+        .select()
+        .from(incidents)
+        .where(eq(incidents.tenantId, tenantId));
+      const listeAssignations = await tx
+        .select()
+        .from(logementProprietaires)
+        .where(eq(logementProprietaires.tenantId, tenantId));
+      const listeAudit = await tx
+        .select()
+        .from(auditLogs)
+        .where(eq(auditLogs.tenantId, tenantId));
+      const listeMessagesVoyageurs = await tx
+        .select()
+        .from(messagesVoyageur)
+        .where(eq(messagesVoyageur.tenantId, tenantId));
+      const listeConsommationsAssistant = await tx
+        .select()
+        .from(assistantConsommations)
+        .where(eq(assistantConsommations.tenantId, tenantId));
+      const listeAvis = await tx
+        .select()
+        .from(avis)
+        .where(eq(avis.tenantId, tenantId));
+      const listeMemoires = await tx
+        .select()
+        .from(memoireVoyageurs)
+        .where(eq(memoireVoyageurs.tenantId, tenantId));
+      const listeLieux = await tx
+        .select()
+        .from(lieuxTourisme)
+        .where(eq(lieuxTourisme.tenantId, tenantId));
+      const listeSinistres = await tx
+        .select()
+        .from(sinistres)
+        .where(eq(sinistres.tenantId, tenantId));
+      const listeRegistres = await tx
+        .select()
+        .from(rgpdRegistres)
+        .where(eq(rgpdRegistres.tenantId, tenantId));
+      const listeAnnonces = await tx
+        .select()
+        .from(annoncesConformite)
+        .where(eq(annoncesConformite.tenantId, tenantId));
+      const listePreuves = await tx
+        .select()
+        .from(preuvesTranquillite)
+        .where(eq(preuvesTranquillite.tenantId, tenantId));
+      const listeObjets = await tx
+        .select()
+        .from(objetsTrouves)
+        .where(eq(objetsTrouves.tenantId, tenantId));
+      const listeFormations = await tx
+        .select()
+        .from(formationsProgressions)
+        .where(eq(formationsProgressions.tenantId, tenantId));
+      const listePhrases = await tx
+        .select()
+        .from(phrases)
+        .where(eq(phrases.tenantId, tenantId));
+      const listeQuestionnaires = await tx
+        .select()
+        .from(questionnaires)
+        .where(eq(questionnaires.tenantId, tenantId));
+      const listeMenages = await tx
+        .select()
+        .from(menages)
+        .where(eq(menages.tenantId, tenantId));
+      const listeMenageTaches = await tx
+        .select()
+        .from(menageTaches)
+        .where(eq(menageTaches.tenantId, tenantId));
+      const listeEntretiens = await tx
+        .select()
+        .from(entretiens)
+        .where(eq(entretiens.tenantId, tenantId));
+      const listeEtatsDesLieux = await tx
+        .select()
+        .from(etatsDesLieux)
+        .where(eq(etatsDesLieux.tenantId, tenantId));
+      const listeEtatsDesLieuxLignes = await tx
+        .select()
+        .from(etatDesLieuxLignes)
+        .where(eq(etatDesLieuxLignes.tenantId, tenantId));
+      const listeConsommables = await tx
+        .select()
+        .from(consommables)
+        .where(eq(consommables.tenantId, tenantId));
+      const listeMouvements = await tx
+        .select()
+        .from(mouvementsStock)
+        .where(eq(mouvementsStock.tenantId, tenantId));
+      const listeBiens = await tx
+        .select()
+        .from(biens)
+        .where(eq(biens.tenantId, tenantId));
+      const listeBienEvenements = await tx
+        .select()
+        .from(bienEvenements)
+        .where(eq(bienEvenements.tenantId, tenantId));
+      const listeDispatches = await tx
+        .select()
+        .from(dispatches)
+        .where(eq(dispatches.tenantId, tenantId));
+      const listePreferences = await tx
+        .select()
+        .from(preferencesSejour)
+        .where(eq(preferencesSejour.tenantId, tenantId));
+
+      // Les URLs et secrets d'intégration ne sortent jamais dans un export.
+      const listeFlux = await tx
+        .select({
+          id: fluxIcs.id,
+          tenantId: fluxIcs.tenantId,
+          logementId: fluxIcs.logementId,
+          libelle: fluxIcs.libelle,
+          actif: fluxIcs.actif,
+          derniereSync: fluxIcs.derniereSync,
+          dernierStatut: fluxIcs.dernierStatut,
+          createdAt: fluxIcs.createdAt,
+          updatedAt: fluxIcs.updatedAt,
+        })
+        .from(fluxIcs)
+        .where(eq(fluxIcs.tenantId, tenantId));
+
+      const listeWebhooks = await tx
+        .select({
+          id: webhooks.id,
+          tenantId: webhooks.tenantId,
+          libelle: webhooks.libelle,
+          events: webhooks.events,
+          actif: webhooks.actif,
+          createdAt: webhooks.createdAt,
+          updatedAt: webhooks.updatedAt,
+        })
+        .from(webhooks)
+        .where(eq(webhooks.tenantId, tenantId));
+
+      return {
+        version: 1,
+        exporteLe: new Date().toISOString(),
+        tenant: tenant ?? null,
+        utilisateurs,
+        logements: listeLogements,
+        plansTarifaires: listePlans,
+        tarifs: listeTarifs,
+        restrictions: listeRestrictions,
+        reservations: listeReservations,
+        blocages: listeBlocages,
+        cautions: listeCautions,
+        factures: listeFactures,
+        factureLignes: listeLignes,
+        paiements: listePaiements,
+        parametresFiscaux: fiscal ?? null,
+        missions: listeMissions,
+        prospects: listeProspects,
+        offres: listeOffres,
+        tickets: listeTickets,
+        ticketMessages: listeMessages,
+        extras: listeExtras,
+        commandesExtras: listeCommandes,
+        incidents: listeIncidents,
+        messagesVoyageur: listeMessagesVoyageurs,
+        assistantConsommations: listeConsommationsAssistant,
+        avis: listeAvis,
+        memoireVoyageurs: listeMemoires,
+        lieuxTourisme: listeLieux,
+        sinistres: listeSinistres,
+        rgpdRegistres: listeRegistres,
+        annoncesConformite: listeAnnonces,
+        preuvesTranquillite: listePreuves,
+        objetsTrouves: listeObjets,
+        formationsProgressions: listeFormations,
+        phrases: listePhrases,
+        questionnaires: listeQuestionnaires,
+        menages: listeMenages,
+        menageTaches: listeMenageTaches,
+        entretiens: listeEntretiens,
+        etatsDesLieux: listeEtatsDesLieux,
+        etatDesLieuxLignes: listeEtatsDesLieuxLignes,
+        consommables: listeConsommables,
+        mouvementsStock: listeMouvements,
+        biens: listeBiens,
+        bienEvenements: listeBienEvenements,
+        dispatches: listeDispatches,
+        preferencesSejour: listePreferences,
+        logementProprietaires: listeAssignations,
+        fluxIcs: listeFlux,
+        webhooks: listeWebhooks,
+        auditLogs: listeAudit,
+      };
+    });
+
+    await withTenant(tenantId, (tx) =>
+      tx.insert(auditLogs).values({
+        tenantId,
+        qui: session!.user.email,
+        action: "tenant.export",
+        cible: tenantId,
+        payload: {
+          logements: donnees.logements.length,
+          reservations: donnees.reservations.length,
+          factures: donnees.factures.length,
+        },
+      }),
+    );
+
+    const json = JSON.stringify(donnees, null, 2);
+    const jour = new Date().toISOString().slice(0, 10);
+
+    return new Response(json, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Disposition": `attachment; filename="lcd-export-${jour}.json"`,
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex, nofollow, noarchive",
+      },
+    });
+  } catch (error) {
+    logErreur("api.exports.tenant", error, { tenantId });
+    return new Response("Export impossible.", { status: 500 });
+  }
+}
+

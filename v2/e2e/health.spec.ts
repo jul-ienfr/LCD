@@ -15,6 +15,13 @@ test("health live + readiness DB", async ({ request }) => {
   expect(readyBody.schema).toBe("ok");
   expect(readyBody.rls).toBe("ok");
 
+  const metrics = await request.get("/api/metrics");
+  expect(metrics.status()).toBe(200);
+  const metricsBody = await metrics.text();
+  expect(metricsBody).toContain("lcd_up 1");
+  expect(metricsBody).toContain("lcd_ready 1");
+  expect(metricsBody).toContain("lcd_db_latency_ms");
+
   const accueil = await request.get("/");
   const entetes = accueil.headers();
   expect(entetes["content-security-policy"]).toContain(

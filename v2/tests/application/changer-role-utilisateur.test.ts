@@ -141,6 +141,51 @@ describe("changement de rôle", () => {
     });
   });
 
+  it("interdit à un admin de promouvoir ou de rétrograder un super-admin", async () => {
+    const superAdmin = semer(repo, {
+      id: "super-1",
+      name: "Super Admin",
+      email: "super@lcd.fr",
+      role: "super_admin",
+    });
+
+    await expect(
+      changer.executer({
+        tenantId: TENANT,
+        id: hote.id,
+        role: "super_admin",
+        acteurId: admin1.id,
+        acteurRole: "admin",
+      }),
+    ).rejects.toMatchObject({
+      code: "UTILISATEUR_INVALIDE",
+      message:
+        "Seul un super-administrateur peut gérer le rôle super-administrateur.",
+    });
+
+    await expect(
+      changer.executer({
+        tenantId: TENANT,
+        id: superAdmin.id,
+        role: "hote",
+        acteurId: admin1.id,
+        acteurRole: "admin",
+      }),
+    ).rejects.toMatchObject({ code: "UTILISATEUR_INVALIDE" });
+    expect(superAdmin.role).toBe("super_admin");
+  });
+
+  it("autorise un super-admin à promouvoir un compte", async () => {
+    const resultat = await changer.executer({
+      tenantId: TENANT,
+      id: hote.id,
+      role: "super_admin",
+      acteurId: "super-1",
+      acteurRole: "super_admin",
+    });
+    expect(resultat.role).toBe("super_admin");
+  });
+
   it("ne fait rien si le rôle est identique", async () => {
     const resultat = await changer.executer({
       tenantId: TENANT,

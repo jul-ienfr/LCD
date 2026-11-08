@@ -64,6 +64,19 @@ describe("adapter LLM de brouillons", () => {
     expect(llm.options?.modele).toBe("modele-premium");
   });
 
+  it("applique la surcharge standard aux niveaux local et standard", async () => {
+    const llm = new LlmEspion();
+    const generateur = new GenerateurBrouillonLlm(
+      llm,
+      "modele-premium",
+      "modele-standard",
+    );
+    await generateur.generer({ ...requete, niveau: "standard" });
+    expect(llm.options?.modele).toBe("modele-standard");
+    await generateur.generer({ ...requete, niveau: "local" });
+    expect(llm.options?.modele).toBe("modele-standard");
+  });
+
   it("replie sur le local si le fournisseur échoue", async () => {
     const llm = new LlmEspion();
     llm.erreur = new Error("réseau");

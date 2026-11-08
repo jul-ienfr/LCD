@@ -43,7 +43,8 @@ const MOTS_BLOCAGE = [
 ];
 
 function deplierLignes(texte: string): string[] {
-  const lignes = texte.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  const normalise = texte.replace(/^\uFEFF/u, "");
+  const lignes = normalise.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
   const resultat: string[] = [];
   for (const ligne of lignes) {
     if ((ligne.startsWith(" ") || ligne.startsWith("\t")) && resultat.length > 0) {
@@ -53,6 +54,19 @@ function deplierLignes(texte: string): string[] {
     }
   }
   return resultat;
+}
+
+/**
+ * Un flux OTA valide commence et se termine par VCALENDAR. Cette garde évite
+ * qu'une page d'erreur HTML servie en 200 ne soit interprétée comme un
+ * calendrier vide, ce qui supprimerait à tort les séjours importés.
+ */
+export function estCalendrierIcs(texte: string): boolean {
+  const normalise = texte.replace(/^\uFEFF/u, "").trim();
+  if (normalise.length === 0 || normalise.startsWith("<")) return false;
+  const debut = /^BEGIN:VCALENDAR\s*$/imu.test(normalise);
+  const fin = /^END:VCALENDAR\s*$/imu.test(normalise);
+  return debut && fin;
 }
 
 function parserPropriete(ligne: string): ProprieteIcs | null {

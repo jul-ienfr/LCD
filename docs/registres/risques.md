@@ -14,3 +14,11 @@
 | R-10 | Fuite token / vol box-VPS-vault | M×H | `runbook-fuite-token.md` + `runbook-vol-box-vps-vault.md` + rotation 90j `X-LCD-Box` + révocation `acces.yaml` | super_admin | drill avant G3 |
 | R-11 | Bac-a-sable contamine par donnees reelles (PII/secrets/commits) | MxH | Faux jeu LAB marque seul + secrets lab faux gitignores + jamais PII reelle + runtime jamais committe + reset down -v + checkout fixtures (REQ-S-004) | super_admin | continu |
 | R-12 | Teardown REA contamine le repo (code/design pompé, CGU violée, backend attaqué) | M×H | Clean-room §S10 (socle v1) : comportement seul + preuves + limites, jamais de dump ; lab isolé sans secrets + journal des cibles + juriste comme mandats/CGV ; P10-9b + registre `teardowns-rea.md` | super_admin | continu |
+| R-13 | Dépendance à un fournisseur unique de distribution | H×H | ADR-01 + benchmark, contrat avec export/résiliation, iCal maintenu, monitoring et réconciliation, plan de retrait | fondateur | avant L1 |
+| R-14 | Messaging OTA indisponible chez le fournisseur | M×H | inbox en couches (OTA + email + SMS), repli email/copier-coller, ne pas promettre l'inbox OTA sans test | fondateur | avant L3 |
+| R-15 | Encaissement pour autrui requalifié en service de paiement | M×H | ADR-02 + avis juridique, tenant marchand, LCD ne détient pas les fonds, repli lien de paiement | juriste | avant L2 |
+| R-16 | Dérive du coût des partenaires (distribution, pricing, WhatsApp) | M×M | budget plafonné, refacturation, audit trimestriel, BYO compte, seuils de renégociation | fondateur | trimestriel |
+| R-17 | Double réservation malgré le temps réel (latence, webhook perdu) | M×H | webhooks + polling + réconciliation quotidienne + verrou distribué + alerte + test 14 jours | fondateur | L1 |
+| R-18 | Fuite de données via API publique, webhook ou clé compromise | M×H | scopes, hash des clés, RLS, signature HMAC, rate limit, rotation, audit, test multi-tenant | super_admin | L6 |
+| R-19 | Coût IA ou volume de messages incontrôlé | M×M | brouillon par défaut, quota par tenant, cache, audit des tokens, alerte budget | fondateur | L3 |
+| R-20 | Retard L0 : décisions non signées, code lancé sur hypothèses | H×M | gate L0 bloquant, ADR datées, revue hebdomadaire, aucun code métier avant signature | fondateur | L0 |

@@ -1,0 +1,84 @@
+{"version":10,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.64.1","options":{},"platform":"win32","wallTime":1793089193374,"monotonicTime":823.212,"sdkLanguage":"javascript","testTimeout":30000,"annotations":[]}
+{"type":"before","callId":"vrke@1","startTime":837.291,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"vrke@28","parentId":"vrke@1","startTime":843.588,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"before","callId":"vrke@29","parentId":"vrke@28","startTime":844.662,"class":"Test","method":"pw:api","title":"Launch browser","params":{},"stack":[]}
+{"type":"after","callId":"vrke@29","endTime":1179.193,"annotations":[]}
+{"type":"after","callId":"vrke@28","endTime":1179.31,"annotations":[]}
+{"type":"before","callId":"vrke@32","parentId":"vrke@1","startTime":1180.458,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"vrke@33","parentId":"vrke@32","startTime":1181.736,"class":"Test","method":"pw:api","title":"Create context","params":{},"stack":[]}
+{"type":"after","callId":"vrke@33","endTime":1204.625,"annotations":[]}
+{"type":"after","callId":"vrke@32","endTime":1211.712,"annotations":[]}
+{"type":"before","callId":"vrke@40","parentId":"vrke@1","startTime":1212.002,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"vrke@41","parentId":"vrke@40","startTime":1212.628,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"vrke@41","endTime":1378.514,"annotations":[]}
+{"type":"after","callId":"vrke@40","endTime":1378.596,"annotations":[]}
+{"type":"after","callId":"vrke@1","endTime":1378.664,"annotations":[]}
+{"type":"before","callId":"vrke@43","startTime":1380.094,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/login","params":{"url":"/login"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":14,"column":14}]}
+{"type":"after","callId":"vrke@43","endTime":2640.213,"annotations":[]}
+{"type":"before","callId":"vrke@45","startTime":2644.388,"class":"Test","method":"pw:api","title":"Fill \"admin@lcd.test\"","subtitle":"locator('input[type=\"email\"]')","params":{"locator":"locator('input[type=\"email\"]')","value":"admin@lcd.test"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":15,"column":14}]}
+{"type":"after","callId":"vrke@45","endTime":2675.457,"annotations":[]}
+{"type":"before","callId":"vrke@47","startTime":2676.432,"class":"Test","method":"pw:api","title":"Fill \"ChangeMe-2026!\"","subtitle":"locator('input[type=\"password\"]')","params":{"locator":"locator('input[type=\"password\"]')","value":"ChangeMe-2026!"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":16,"column":14}]}
+{"type":"after","callId":"vrke@47","endTime":2693.358,"annotations":[]}
+{"type":"before","callId":"vrke@49","startTime":2695.224,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Se connecter' })","params":{"locator":"getByRole('button', { name: 'Se connecter' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":17,"column":60}]}
+{"type":"after","callId":"vrke@49","endTime":3033.188,"annotations":[]}
+{"type":"before","callId":"vrke@51","startTime":3035.936,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":18,"column":22}]}
+{"type":"after","callId":"vrke@51","endTime":3064.063,"annotations":[]}
+{"type":"before","callId":"vrke@53","startTime":3064.649,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/logements","params":{"url":"/hote/logements"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":20,"column":14}]}
+{"type":"after","callId":"vrke@53","endTime":3267.099,"annotations":[]}
+{"type":"before","callId":"vrke@55","startTime":3268.233,"class":"Test","method":"pw:api","title":"Fill \"direct-e2e-1793089193929\"","subtitle":"locator('input[name=\"code\"]')","params":{"locator":"locator('input[name=\"code\"]')","value":"direct-e2e-1793089193929"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":21,"column":14}]}
+{"type":"after","callId":"vrke@55","endTime":3357.487,"annotations":[]}
+{"type":"before","callId":"vrke@57","startTime":3358.276,"class":"Test","method":"pw:api","title":"Fill \"Direct E2E 1793089193929\"","subtitle":"locator('input[name=\"nom\"]')","params":{"locator":"locator('input[name=\"nom\"]')","value":"Direct E2E 1793089193929"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":22,"column":14}]}
+{"type":"after","callId":"vrke@57","endTime":3449.533,"annotations":[]}
+{"type":"before","callId":"vrke@59","startTime":3450.078,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Créer le logement' })","params":{"locator":"getByRole('button', { name: 'Créer le logement' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":23,"column":65}]}
+{"type":"after","callId":"vrke@59","endTime":3658.306,"annotations":[]}
+{"type":"before","callId":"vrke@61","startTime":3659.155,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Logement « direct-e2e-1793089193929 » créé.')","params":{"locator":"getByText('Logement « direct-e2e-1793089193929 » créé.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":24,"column":62}]}
+{"type":"after","callId":"vrke@61","endTime":3784.358,"annotations":[]}
+{"type":"before","callId":"vrke@63","startTime":3784.953,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/onboarding","params":{"url":"/hote/onboarding"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":26,"column":14}]}
+{"type":"after","callId":"vrke@63","endTime":3959.273,"annotations":[]}
+{"type":"before","callId":"vrke@65","startTime":3961.253,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('link', { name: 'Direct E2E 1793089193929', exact: true })","params":{"locator":"getByRole('link', { name: 'Direct E2E 1793089193929', exact: true })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":27,"column":60}]}
+{"type":"after","callId":"vrke@65","endTime":4279.049,"annotations":[]}
+{"type":"before","callId":"vrke@67","startTime":4279.692,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":28,"column":22}]}
+{"type":"after","callId":"vrke@67","endTime":4329.965,"annotations":[]}
+{"type":"before","callId":"vrke@69","startTime":4331.112,"class":"Test","method":"pw:api","title":"Check","subtitle":"getByRole('checkbox', { name: /Règlement, PV et accord du syndic/ })","params":{"locator":"getByRole('checkbox', { name: /Règlement, PV et accord du syndic/ })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":31,"column":6}]}
+{"type":"after","callId":"vrke@69","endTime":4466.407,"annotations":[]}
+{"type":"before","callId":"vrke@71","startTime":4467.634,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Enregistrer', exact: true })","params":{"locator":"getByRole('button', { name: 'Enregistrer', exact: true })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":32,"column":72}]}
+{"type":"after","callId":"vrke@71","endTime":4674.566,"annotations":[]}
+{"type":"before","callId":"vrke@73","startTime":4675.433,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Vérification copropriété enregistrée.')","params":{"locator":"getByText('Vérification copropriété enregistrée.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":35,"column":5}]}
+{"type":"after","callId":"vrke@73","endTime":4771.314,"annotations":[]}
+{"type":"before","callId":"vrke@75","startTime":4772.075,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Publier le logement' })","params":{"locator":"getByRole('button', { name: 'Publier le logement' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":36,"column":67}]}
+{"type":"error","message":"\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m","stack":[]}
+{"type":"before","callId":"vrke@77","startTime":31189.33,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"vrke@78","parentId":"vrke@77","startTime":31189.939,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"vrke@78","endTime":31190.065,"annotations":[]}
+{"type":"before","callId":"vrke@79","parentId":"vrke@77","startTime":31190.274,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"vrke@86","parentId":"vrke@79","startTime":31484.527,"class":"Test","method":"pw:api","title":"Close context","params":{},"stack":[]}
+{"type":"after","callId":"vrke@86","endTime":31497.276,"annotations":[]}
+{"type":"after","callId":"vrke@79","endTime":31497.319,"annotations":[]}
+{"type":"before","callId":"vrke@93","startTime":31501.7,"class":"Test","method":"test.attach","title":"Attach \"error-context\"","params":{},"stack":[]}
+{"type":"after","callId":"vrke@93","endTime":31501.738,"attachments":[{"name":"error-context","contentType":"text/markdown","file":"attachments/464dd213e85fffef29ca0db9db32dcb1cc2f6e16"}]}
+{"type":"before","callId":"vrke@96","parentId":"vrke@77","startTime":31502.665,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@96","endTime":31502.68,"annotations":[]}
+{"type":"before","callId":"vrke@97","parentId":"vrke@77","startTime":31502.689,"class":"Test","method":"fixture","title":"Fixture \"userAgent\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@97","endTime":31502.696,"annotations":[]}
+{"type":"before","callId":"vrke@99","parentId":"vrke@77","startTime":31502.831,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@99","endTime":31502.84,"annotations":[]}
+{"type":"before","callId":"vrke@101","parentId":"vrke@77","startTime":31502.98,"class":"Test","method":"fixture","title":"Fixture \"screen\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@101","endTime":31503.033,"annotations":[]}
+{"type":"before","callId":"vrke@108","parentId":"vrke@77","startTime":31504.009,"class":"Test","method":"fixture","title":"Fixture \"isMobile\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@108","endTime":31504.029,"annotations":[]}
+{"type":"before","callId":"vrke@112","parentId":"vrke@77","startTime":31504.837,"class":"Test","method":"fixture","title":"Fixture \"hasTouch\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@112","endTime":31504.859,"annotations":[]}
+{"type":"before","callId":"vrke@115","parentId":"vrke@77","startTime":31505.525,"class":"Test","method":"fixture","title":"Fixture \"deviceScaleFactor\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@115","endTime":31505.543,"annotations":[]}
+{"type":"after","callId":"vrke@77","endTime":31507.255,"annotations":[]}
+{"type":"before","callId":"vrke@122","startTime":31507.525,"class":"Test","method":"hook","title":"Worker Cleanup","params":{},"stack":[]}
+{"type":"before","callId":"vrke@127","parentId":"vrke@122","startTime":31508.792,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"error","message":"Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Publier le logement' })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"submit\" class=\"ui-bouton ui-bouton--encre ui-bouton--petit\">Publier le logement</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    51 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n","stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\reservation-directe.spec.ts","line":36,"column":67}]}
+{"type":"after","callId":"vrke@127","endTime":31776.029,"annotations":[]}
+{"type":"before","callId":"vrke@132","parentId":"vrke@122","startTime":31776.443,"class":"Test","method":"fixture","title":"Fixture \"defaultBrowserType\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@132","endTime":31776.453,"annotations":[]}
+{"type":"before","callId":"vrke@136","parentId":"vrke@122","startTime":31776.667,"class":"Test","method":"fixture","title":"Fixture \"channel\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@136","endTime":31776.671,"annotations":[]}
+{"type":"before","callId":"vrke@137","parentId":"vrke@122","startTime":31776.673,"class":"Test","method":"fixture","title":"Fixture \"headless\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"vrke@137","endTime":31776.677,"annotations":[]}
+{"type":"after","callId":"vrke@122","endTime":31776.771,"annotations":[]}

@@ -24,5 +24,6 @@ jobs:
         run: |
           curl --fail-with-body --silent --show-error \
             -X POST \
+            -H "Content-Type: application/json" \
             -H "Authorization: Bearer $CRON_SECRET" \
             "https://lcd-parc.netlify.app/api/cron/webhooks"

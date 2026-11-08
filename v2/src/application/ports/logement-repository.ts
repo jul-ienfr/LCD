@@ -3,6 +3,7 @@ import type {
   PublicationLogement,
   StatutLogement,
 } from "@/domain/logement";
+import type { StrategiePrix } from "@/domain/strategie-prix";
 import type { TenantId } from "@/domain/tenant";
 
 export interface CreerLogementData {
@@ -40,6 +41,21 @@ export interface LogementRepository {
     tenantId: TenantId,
     id: string,
     verifiee: boolean,
+  ): Promise<Logement | null>;
+  definirCutoff(
+    tenantId: TenantId,
+    id: string,
+    jours: number,
+  ): Promise<Logement | null>;
+  definirBuffer(
+    tenantId: TenantId,
+    id: string,
+    jours: number,
+  ): Promise<Logement | null>;
+  definirStrategiePrix(
+    tenantId: TenantId,
+    id: string,
+    strategie: StrategiePrix,
   ): Promise<Logement | null>;
   changerStatut(
     tenantId: TenantId,

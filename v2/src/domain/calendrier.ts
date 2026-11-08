@@ -72,6 +72,17 @@ export function ajouterJours(date: string, jours: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
+export function nuitsEntre(debut: string, fin: string): number {
+  if (!dateIsoValide(debut) || !dateIsoValide(fin)) {
+    throw new Error("Dates invalides.");
+  }
+  return Math.round(
+    (Date.parse(`${fin}T00:00:00.000Z`) -
+      Date.parse(`${debut}T00:00:00.000Z`)) /
+      86_400_000,
+  );
+}
+
 export function moisEnFrancais(mois: string): string {
   const { annee, moisNum } = morceauxMois(mois);
   return new Intl.DateTimeFormat("fr-FR", {

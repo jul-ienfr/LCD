@@ -54,6 +54,7 @@ Renseigner au minimum :
   `lcd_app`) ;
 - `BETTER_AUTH_SECRET` ;
 - `CRON_SECRET` ;
+- `ICS_SCHEDULER_ENABLED=true` pour la synchronisation ICS automatique ;
 - `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` pour la première initialisation.
 
 > Les mots de passe Postgres doivent être compatibles URL. Utiliser
@@ -93,6 +94,93 @@ curl -fsS https://VOTRE-DOMAINE/api/ready
 Caddy obtient automatiquement le certificat Let's Encrypt. Ouvrir
 `https://VOTRE-DOMAINE/login` et se connecter avec l'admin seedé.
 
+## 5.1 Synchronisation ICS automatique
+
+Le planificateur in-process est activé par `ICS_SCHEDULER_ENABLED=true` dans
+`.env.prod`. Il interroge les flux OTA toutes les 5 minutes, sans dépendre d'un
+cron externe. Un verrou distribué en base empêche deux instances de doubler les
+écritures ; le bail expire seul si le conteneur redémarre brutalement. Les flux
+d’un même logement sont traités en série (détection des chevauchements
+inter-OTA), les logements différents en parallèle. Les historiques de
+synchronisation sont purgés après 30 jours.
+
+Points de contrôle :
+
+```bash
+# Santé agrégée des flux (protégée par CRON_SECRET)
+curl -fsS -H "Authorization: Bearer $CRON_SECRET" \
+  https://VOTRE-DOMAINE/api/ics/sante
+
+# Forcer un cycle immédiat (même secret)
+curl -fsS -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CRON_SECRET" \
+  "https://VOTRE-DOMAINE/api/cron/sync-ota?force=1"
+```
+
+La découverte cross-tenant est assurée par la fonction SQL `SECURITY DEFINER`
+`lister_flux_ics_a_synchroniser`, exécutable par `lcd_app` : le runtime n’a pas
+besoin de la connexion owner. `MIGRATION_DATABASE_URL` reste réservé aux
+migrations et aux sauvegardes. Sur un hébergement serverless (Netlify), laisser
+`ICS_SCHEDULER_ENABLED=false` et utiliser le workflow GitHub
+`.github/workflows/v2-sync-ota.yml` ou un cron externe qui appelle
+`/api/cron/sync-ota?force=1`.
+
+### 5.2 Channel manager
+
+La page `/hote/planning/canaux` crée un canal par annonce et logement. Chaque
+canal peut avoir un flux d’import iCal et une URL d’export signée distincte.
+Le buffer de ménage (0 à 7 jours) et l’exclusion du flux cible sont appliqués
+au rendu de l’export, pas stockés dans les réservations.
+
+La migration `0066_canaux.sql` est additive et reprend les flux existants en
+canaux `generique`. Supprimer un canal supprime son flux et son historique de
+synchronisation ; les réservations déjà importées restent dans le planning.
+Comme pour l’URL globale, la rotation de `BETTER_AUTH_SECRET` invalide toutes
+les URLs par canal : il faut les recoller dans chaque plateforme.
+
+### 5.3 Fournisseurs API (Beds24, Channex, Smoobu, Host Port, Nobeds)
+
+Le super-admin active les fournisseurs et affecte un fournisseur par logement
+dans **Supervision → Fournisseurs**. Les clés restent dans `.env.prod` ; aucun
+secret n’est stocké en base ni renvoyé au navigateur.
+
+Pour un serveur persistant, activer le planificateur :
+
+```dotenv
+FOURNISSEUR_SYNC_ENABLED=true
+FOURNISSEUR_SYNC_INTERVAL_MINUTES=15
+```
+
+Sinon, appeler le cron avec le même `CRON_SECRET` :
+
+```bash
+curl -fsS -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CRON_SECRET" \
+  "https://VOTRE-DOMAINE/api/cron/sync-fournisseurs"
+```
+
+Déclarer les webhooks dans chaque fournisseur :
+`https://VOTRE-DOMAINE/api/fournisseurs/{code}/webhook`, en
+`Content-Type: application/json`, avec le secret partagé ou la signature HMAC
+décrits dans
+[FOURNISSEURS-CHANNEL-MANAGER.md](./FOURNISSEURS-CHANNEL-MANAGER.md). Sans
+secret configuré, l’endpoint répond `503` et le cron reste la seule voie.
+
+Vérifier après déploiement que la colonne `derniere_empreinte` existe
+(migration `0070_etat_sync_fournisseur.sql`), que la table
+`restrictions_sejour` existe avec `stop_sell` (migrations
+`0071_pale_vance_astro.sql` et `0072_short_spectrum.sql`), que `demandes_sync`
+existe (migration `0073_amused_phantom_reporter.sql`), que `logements.cutoff_jours`
+existe (migration `0074_sloppy_rage.sql`), que `plans_tarifaires` et les colonnes
+`plan_tarifaire_id` existent (migration `0075_military_doctor_spectrum.sql`),
+que `plans_tarifaires.mode`, `ajustement_pourcentage` et `herite_restrictions`
+existent (migration `0076_concerned_cannonball.sql`), que `logements.buffer_jours`
+existe (migration `0077_brainy_alex_power.sql`) et que
+`POST /api/cron/sync-fournisseurs` renvoie `200` avec `ownerDisponible: true`.
+L’endpoint `GET /api/ready` reste le contrôle global du schéma et des policies.
+
 ## 6. Monitoring (optionnel)
 
 ```bash
@@ -106,8 +194,22 @@ ssh -L 3001:127.0.0.1:3001 user@VPS
 # puis http://localhost:3001
 ```
 
-Monitors : `/api/health` (60 s), `/api/ready` (60 s), `/login` (5 min).
+Monitors : `/api/health` (60 s), `/api/ready` (60 s), `/login` (5 min),
+`/api/ics/sante` et `/api/cron/sante-fournisseurs` (5 min, en-tête
+`Authorization: Bearer <CRON_SECRET>`). Ajouter `/api/health/systeme` (5 min,
+en-tête `x-health-token: <HEALTH_TOKEN>`) : il renvoie `503` si le disque passe
+sous `ALERTE_DISQUE_GO`, si le certificat expire dans moins de
+`ALERTE_TLS_JOURS`, ou si la box configurée n’a plus donné de heartbeat.
 Configurer une notification email/ntfy.
+
+La box terrain peut signaler sa présence :
+
+```bash
+curl -fsS -X POST https://lcd.example.fr/api/box/heartbeat \
+  -H "x-box-token: $BOX_TOKEN"
+```
+
+Le dernier contact est visible dans `/supervision` (section Santé système).
 
 ## 7. Sauvegardes
 
@@ -139,6 +241,26 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 `lcd-....sql.gz.enc`, supprime le dump en clair et écrit le checksum de
 l'archive chiffrée. Sans clé, le script reste compatible et produit un
 `.sql.gz` non chiffré.
+
+Les photos de preuve ménage vivent dans le volume Docker `photos`
+(`STOCKAGE_LOCAL_DIR=/var/lib/lcd/photos`). Elles ne sont pas dans le dump SQL :
+archiver ce volume séparément (ou brancher l'adaptateur S3/R2) et tester sa
+restauration. `BODY_SIZE_LIMIT=12M` est déjà posé pour les uploads 10 Mo.
+
+Purge des blobs orphelins (fichiers présents sur le volume mais absents de
+`photos_menage`) :
+
+```bash
+npm run db:purge-blobs                 # dry-run, liste seulement
+npm run db:purge-blobs -- --apply      # supprime les fichiers > 24 h
+```
+
+Cron quotidien après la sauvegarde, avec `MIGRATION_DATABASE_URL` dans
+`.env.local` pour contourner la RLS :
+
+```cron
+45 3 * * * cd /opt/lcd/v2 && npm run db:purge-blobs -- --apply >> /var/log/lcd-purge.log 2>&1
+```
 
 Restauration de contrôle (archive chiffrée) :
 

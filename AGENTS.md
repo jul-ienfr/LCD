@@ -2,7 +2,10 @@
 
 ## Périmètre actif : V2
 
-La version en cours de développement est `v2/` (Next.js + Postgres/Mailpit locaux).
+La version en cours de développement est `v2/` (SvelteKit 3 + Svelte 5 +
+Tailwind 4 + Better Auth + Drizzle/Postgres, Mailpit local). L'UI Next.js
+héritée dans `v2/src/app` et `v2/src/components/*.tsx` sert uniquement de
+référence de parité : elle est exclue du build et ne doit pas être importée.
 La V1 et le lab sont **gelés** : ils restent la source de référence (code, plans,
 docs, registres, données) mais **ne doivent plus être lancés**.
 

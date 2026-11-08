@@ -1,0 +1,1 @@
+ALTER TABLE "logements" ADD COLUMN "cutoff_jours" integer DEFAULT 0 NOT NULL;

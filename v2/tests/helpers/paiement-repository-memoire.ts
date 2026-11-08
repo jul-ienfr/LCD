@@ -16,7 +16,10 @@ export class PaiementRepositoryMemoire implements PaiementRepository {
     const paiement: Paiement = {
       id: crypto.randomUUID(),
       tenantId: data.tenantId,
-      factureId: data.factureId,
+      factureId: data.factureId ?? null,
+      reservationId: data.reservationId ?? null,
+      echeanceId: data.echeanceId ?? null,
+      externalId: data.externalId ?? null,
       ref: data.ref,
       montantCentimes: data.montantCentimes,
       mode: data.mode,
@@ -42,6 +45,15 @@ export class PaiementRepositoryMemoire implements PaiementRepository {
   ): Promise<Paiement[]> {
     return this.rows.filter(
       (p) => p.tenantId === tenantId && p.factureId === factureId,
+    );
+  }
+
+  async listerParReservation(
+    tenantId: string,
+    reservationId: string,
+  ): Promise<Paiement[]> {
+    return this.rows.filter(
+      (p) => p.tenantId === tenantId && p.reservationId === reservationId,
     );
   }
 

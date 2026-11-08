@@ -7,12 +7,19 @@ import {
 } from "./generateur-brouillon-llm";
 import { creerLlmProvider, llmConfigured } from "./llm-provider";
 
-export function creerGenerateurBrouillon(): GenerateurBrouillon {
+export function creerGenerateurBrouillon(options?: {
+  modeleStandard?: string;
+  modelePremium?: string;
+}): GenerateurBrouillon {
   const local = new GenerateurBrouillonLocal();
   if (!llmConfigured()) return local;
 
   return new GenerateurBrouillonAvecRepli(
-    new GenerateurBrouillonLlm(creerLlmProvider(), env.LLM_MODEL_PREMIUM),
+    new GenerateurBrouillonLlm(
+      creerLlmProvider(),
+      options?.modelePremium || env.LLM_MODEL_PREMIUM,
+      options?.modeleStandard || undefined,
+    ),
     local,
   );
 }

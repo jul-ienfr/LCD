@@ -1,4 +1,5 @@
 import { ErreurMetier } from "@/domain/erreurs";
+import { assuranceRcValide } from "@/domain/utilisateur";
 import {
   refDispatchValide,
   repondreDispatch,
@@ -8,6 +9,32 @@ import {
 } from "@/domain/dispatch";
 import type { DispatchRepository } from "../ports/dispatch-repository";
 import type { MissionRepository } from "../ports/mission-repository";
+import type { UserRepository } from "../ports/user-repository";
+
+function aujourdHui(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+async function verifierPrestataire(
+  utilisateurs: UserRepository | undefined,
+  tenantId: string,
+  prestataireId: string,
+): Promise<void> {
+  if (!utilisateurs) return;
+  const prestataire = await utilisateurs.trouverParId(tenantId, prestataireId);
+  if (!prestataire || !prestataire.actif || prestataire.role !== "presta") {
+    throw new ErreurMetier(
+      "DISPATCH_INVALIDE",
+      "Prestataire introuvable ou inactif.",
+    );
+  }
+  if (!assuranceRcValide(prestataire.rcExpireLe, aujourdHui())) {
+    throw new ErreurMetier(
+      "DISPATCH_INVALIDE",
+      "RC professionnelle absente ou expirée : dispatch bloqué. Mettez à jour l’assurance du prestataire.",
+    );
+  }
+}
 
 export interface ProposerDispatchInput {
   tenantId: string;
@@ -21,6 +48,7 @@ export class ProposerDispatch {
   constructor(
     private readonly dispatches: DispatchRepository,
     private readonly missions: MissionRepository,
+    private readonly utilisateurs?: UserRepository,
   ) {}
 
   async executer(input: ProposerDispatchInput) {
@@ -33,6 +61,11 @@ export class ProposerDispatch {
         "Choisissez un prestataire.",
       );
     }
+    await verifierPrestataire(
+      this.utilisateurs,
+      input.tenantId,
+      input.prestataireId,
+    );
     const mission = await this.missions.trouverParId(
       input.tenantId,
       input.missionId,
@@ -84,6 +117,7 @@ export class RepondreDispatch {
   constructor(
     private readonly dispatches: DispatchRepository,
     private readonly missions: MissionRepository,
+    private readonly utilisateurs?: UserRepository,
   ) {}
 
   async executer(input: RepondreDispatchInput) {
@@ -97,6 +131,11 @@ export class RepondreDispatch {
     const etape = repondreDispatch(dispatch, input.decision);
 
     if (etape.statut === "acceptee") {
+      await verifierPrestataire(
+        this.utilisateurs,
+        input.tenantId,
+        dispatch.prestataireId,
+      );
       const mission = await this.missions.assigner(
         input.tenantId,
         dispatch.missionId,

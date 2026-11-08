@@ -8,6 +8,7 @@ export interface UtilisateurTenant {
   role: string;
   actif: boolean;
   deuxFacteurs?: boolean;
+  rcExpireLe?: string | null;
 }
 
 export interface CreerUtilisateurData {
@@ -45,4 +46,9 @@ export interface UserRepository {
   compterActifsParRole(tenantId: string, role: string): Promise<number>;
   aDeuxFacteurs(tenantId: string, id: string): Promise<boolean>;
   supprimerDeuxFacteurs(tenantId: string, id: string): Promise<boolean>;
+  definirRcExpireLe(
+    tenantId: string,
+    id: string,
+    rcExpireLe: string | null,
+  ): Promise<UtilisateurTenant | null>;
 }

@@ -18,6 +18,7 @@ function versDomaine(row: typeof blocages.$inferSelect): Blocage {
     fin: row.fin,
     source: row.source,
     motif: row.motif,
+    fluxIcsId: row.fluxIcsId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

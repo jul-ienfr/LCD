@@ -40,8 +40,10 @@ test("avis : dépôt voyageur sans JS, unicité et modération hôte", async ({
   await expect(page.getByText("Publication mise à jour.")).toBeVisible();
 
   await page.goto("/hote/planning?mois=2026-12");
+  await page.waitForLoadState("networkidle");
   await page.selectOption('select[name="logement"]', { label: nomLogement });
   await page.getByRole("button", { name: "Afficher" }).click();
+  await page.waitForURL(/logement=/);
   await page.fill('input[name="ref"]', refResa);
   await page.fill('input[name="clientNom"]', nomVoyageur);
   await page.fill('input[name="debut"]', "2026-12-10");

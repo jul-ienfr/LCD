@@ -118,4 +118,15 @@ export class UserRepositoryMemoire implements UserRepository {
     this.deuxFacteursActifs.delete(id);
     return true;
   }
+
+  async definirRcExpireLe(
+    tenantId: string,
+    id: string,
+    rcExpireLe: string | null,
+  ): Promise<UtilisateurTenant | null> {
+    const utilisateur = await this.trouverParId(tenantId, id);
+    if (!utilisateur) return null;
+    utilisateur.rcExpireLe = rcExpireLe;
+    return utilisateur;
+  }
 }

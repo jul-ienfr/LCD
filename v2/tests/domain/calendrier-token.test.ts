@@ -17,6 +17,20 @@ describe("calendrier-token", () => {
     expect(payload?.logementId).toBe(base.logementId);
   });
 
+  it("porte le canal dans le token", () => {
+    const token = creerTokenCalendrier({
+      ...base,
+      canalId: "33333333-3333-4333-8333-333333333333",
+    });
+    const payload = verifierTokenCalendrier(token);
+    expect(payload?.canalId).toBe("33333333-3333-4333-8333-333333333333");
+  });
+
+  it("laisse le canal absent pour un token global", () => {
+    const token = creerTokenCalendrier(base);
+    expect(verifierTokenCalendrier(token)?.canalId).toBeUndefined();
+  });
+
   it("refuse un token altéré", () => {
     const token = creerTokenCalendrier(base);
     expect(verifierTokenCalendrier(`${token.slice(0, -2)}xx`)).toBeNull();

@@ -37,7 +37,7 @@ test("support : ticket propriétaire, réponse et résolution admin", async ({
   await expect(pageAdmin).toHaveURL(/\/hote$/);
 
   await pageAdmin.goto("/support");
-  await pageAdmin.getByRole("link", { name: sujet }).click();
+  await pageAdmin.getByRole("link", { name: sujet }).first().click();
   await expect(pageAdmin.getByText(message).first()).toBeVisible();
 
   await pageAdmin.fill('textarea[name="message"]', "Nous regardons cela.");
@@ -50,7 +50,7 @@ test("support : ticket propriétaire, réponse et résolution admin", async ({
   await expect(pageAdmin.getByText("resolu").first()).toBeVisible();
 
   await pageProprio.reload();
-  await pageProprio.getByRole("link", { name: sujet }).click();
+  await pageProprio.getByRole("link", { name: sujet }).first().click();
   await expect(pageProprio.getByText("Nous regardons cela.")).toBeVisible();
   await expect(pageProprio.getByText("resolu").first()).toBeVisible();
 

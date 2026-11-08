@@ -63,6 +63,16 @@ export interface Traductions {
   avisErreur: string;
   avisDeja: string;
   questionnaireLien: string;
+  departTitre: string;
+  departTexte: string;
+  departCle: string;
+  departChecklist: string[];
+  departChecklistErreur: string;
+  departNote: string;
+  departBouton: string;
+  departOk: string;
+  departErreur: string;
+  departDeja: string;
   quantite: string;
   commander: string;
   vosCommandes: string;
@@ -160,6 +170,23 @@ const FR: Traductions = {
   avisErreur: "Impossible d’enregistrer votre avis.",
   avisDeja: "Vous avez déjà laissé un avis pour ce séjour.",
   questionnaireLien: "Répondre au questionnaire de séjour",
+  departTitre: "Départ",
+  departTexte:
+    "Un seul geste pour prévenir l’hôte : le logement est rendu, les clés remises et le ménage peut être planifié.",
+  departCle: "J’ai rendu les clés et laissé le logement en ordre.",
+  departChecklist: [
+    "Poubelles vidées et sacs sortis",
+    "Vaisselle lavée et rangée",
+    "Fenêtres fermées et lumières éteintes",
+    "Clés déposées ou code de boîte remis",
+  ],
+  departChecklistErreur:
+    "Cochez toutes les étapes du départ avant de confirmer.",
+  departNote: "Un mot pour l’hôte (facultatif)",
+  departBouton: "Confirmer mon départ",
+  departOk: "Départ confirmé. Merci, et à bientôt !",
+  departErreur: "Le départ n’a pas pu être confirmé. Réessayez ou contactez l’hôte.",
+  departDeja: "Départ confirmé",
   quantite: "Quantité",
   commander: "Commander",
   vosCommandes: "Vos commandes",
@@ -262,6 +289,22 @@ const EN: Traductions = {
   avisErreur: "Your review could not be saved.",
   avisDeja: "You already reviewed this stay.",
   questionnaireLien: "Answer the stay questionnaire",
+  departTitre: "Departure",
+  departTexte:
+    "One tap to let your host know: the home is returned, keys handed back and cleaning can be scheduled.",
+  departCle: "I returned the keys and left the home in order.",
+  departChecklist: [
+    "Bins emptied and bags taken out",
+    "Dishes washed and put away",
+    "Windows closed and lights off",
+    "Keys returned or lockbox code reset",
+  ],
+  departChecklistErreur: "Tick every departure step before confirming.",
+  departNote: "A word for your host (optional)",
+  departBouton: "Confirm my departure",
+  departOk: "Departure confirmed. Thank you, see you soon!",
+  departErreur: "Departure could not be confirmed. Try again or contact your host.",
+  departDeja: "Departure confirmed",
   quantite: "Quantity",
   commander: "Order",
   vosCommandes: "Your orders",
@@ -363,6 +406,23 @@ const IT: Traductions = {
   avisErreur: "Impossibile salvare la recensione.",
   avisDeja: "Hai già lasciato una recensione per questo soggiorno.",
   questionnaireLien: "Rispondi al questionario del soggiorno",
+  departTitre: "Partenza",
+  departTexte:
+    "Un solo gesto per avvisare l’host: l’alloggio è riconsegnato, le chiavi restituite e le pulizie possono essere pianificate.",
+  departCle: "Ho restituito le chiavi e lasciato l’alloggio in ordine.",
+  departChecklist: [
+    "Pattumiera svuotata e sacchi portati fuori",
+    "Piatti lavati e riposti",
+    "Finestre chiuse e luci spente",
+    "Chiavi riconsegnate o codice della cassetta ripristinato",
+  ],
+  departChecklistErreur:
+    "Spunta tutte le fasi della partenza prima di confermare.",
+  departNote: "Un messaggio per l’host (facoltativo)",
+  departBouton: "Conferma la partenza",
+  departOk: "Partenza confermata. Grazie e a presto!",
+  departErreur: "Impossibile confermare la partenza. Riprova o contatta l’host.",
+  departDeja: "Partenza confermata",
   quantite: "Quantità",
   commander: "Ordina",
   vosCommandes: "I tuoi ordini",
@@ -465,6 +525,23 @@ const ES: Traductions = {
   avisErreur: "No se pudo guardar tu opinión.",
   avisDeja: "Ya has dejado una opinión para esta estancia.",
   questionnaireLien: "Responder al cuestionario de la estancia",
+  departTitre: "Salida",
+  departTexte:
+    "Un solo gesto para avisar al anfitrión: la vivienda queda devuelta, las llaves entregadas y la limpieza puede planificarse.",
+  departCle: "He devuelto las llaves y dejado la vivienda en orden.",
+  departChecklist: [
+    "Basura vaciada y bolsas sacadas",
+    "Vajilla lavada y guardada",
+    "Ventanas cerradas y luces apagadas",
+    "Llaves entregadas o código de la caja restablecido",
+  ],
+  departChecklistErreur:
+    "Marca todos los pasos de la salida antes de confirmar.",
+  departNote: "Unas palabras para el anfitrión (opcional)",
+  departBouton: "Confirmar mi salida",
+  departOk: "Salida confirmada. ¡Gracias y hasta pronto!",
+  departErreur: "No se pudo confirmar la salida. Inténtalo de nuevo o contacta con el anfitrión.",
+  departDeja: "Salida confirmada",
   quantite: "Cantidad",
   commander: "Pedir",
   vosCommandes: "Tus pedidos",
@@ -566,6 +643,23 @@ const DE: Traductions = {
   avisErreur: "Bewertung konnte nicht gespeichert werden.",
   avisDeja: "Sie haben diesen Aufenthalt bereits bewertet.",
   questionnaireLien: "Fragebogen zum Aufenthalt ausfüllen",
+  departTitre: "Abreise",
+  departTexte:
+    "Ein Griff, um den Gastgeber zu informieren: Die Wohnung ist zurückgegeben, die Schlüssel übergeben und die Reinigung kann geplant werden.",
+  departCle: "Ich habe die Schlüssel zurückgegeben und die Wohnung in Ordnung verlassen.",
+  departChecklist: [
+    "Müll geleert und Beutel hinausgebracht",
+    "Geschirr gespült und weggeräumt",
+    "Fenster geschlossen und Lichter ausgeschaltet",
+    "Schlüssel abgegeben oder Code der Schlüsselbox zurückgesetzt",
+  ],
+  departChecklistErreur:
+    "Bitte alle Schritte der Abreise ankreuzen, bevor Sie bestätigen.",
+  departNote: "Eine Nachricht an den Gastgeber (optional)",
+  departBouton: "Abreise bestätigen",
+  departOk: "Abreise bestätigt. Danke und bis bald!",
+  departErreur: "Die Abreise konnte nicht bestätigt werden. Versuchen Sie es erneut oder kontaktieren Sie den Gastgeber.",
+  departDeja: "Abreise bestätigt",
   quantite: "Menge",
   commander: "Bestellen",
   vosCommandes: "Ihre Bestellungen",

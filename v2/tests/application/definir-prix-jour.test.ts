@@ -62,4 +62,41 @@ describe("DefinirPrixJour", () => {
       }),
     ).rejects.toMatchObject({ code: "PRIX_INVALIDE" });
   });
+
+  it("enregistre le supplément par personne et les personnes incluses", async () => {
+    const repo = new TarifRepositoryMemoire();
+    const uc = new DefinirPrixJour(repo);
+    const tarif = await uc.executer({
+      tenantId,
+      logementId,
+      date: "2026-11-20",
+      prixCentimes: 20_000,
+      prixParPersonneCentimes: 2_000,
+      personnesIncluses: 4,
+    });
+    expect(tarif.prixParPersonneCentimes).toBe(2_000);
+    expect(tarif.personnesIncluses).toBe(4);
+  });
+
+  it("refuse un supplément négatif ou trop de personnes incluses", async () => {
+    const uc = new DefinirPrixJour(new TarifRepositoryMemoire());
+    await expect(
+      uc.executer({
+        tenantId,
+        logementId,
+        date: "2026-11-20",
+        prixCentimes: 20_000,
+        prixParPersonneCentimes: -100,
+      }),
+    ).rejects.toMatchObject({ code: "PRIX_INVALIDE" });
+    await expect(
+      uc.executer({
+        tenantId,
+        logementId,
+        date: "2026-11-20",
+        prixCentimes: 20_000,
+        personnesIncluses: 21,
+      }),
+    ).rejects.toMatchObject({ code: "PRIX_INVALIDE" });
+  });
 });

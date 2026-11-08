@@ -1,0 +1,4 @@
+// node_modules/svelte/src/internal/disclose-version.js
+if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add("5");
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic3ZlbHRlX2ludGVybmFsX2Rpc2Nsb3NlLXZlcnNpb24uanMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiLi4vLi4vc3ZlbHRlL3NyYy9pbnRlcm5hbC9kaXNjbG9zZS12ZXJzaW9uLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IFBVQkxJQ19WRVJTSU9OIH0gZnJvbSAnLi4vdmVyc2lvbi5qcyc7XG5cbmlmICh0eXBlb2Ygd2luZG93ICE9PSAndW5kZWZpbmVkJykge1xuXHQvLyBAdHMtZXhwZWN0LWVycm9yXG5cdCgod2luZG93Ll9fc3ZlbHRlID8/PSB7fSkudiA/Pz0gbmV3IFNldCgpKS5hZGQoUFVCTElDX1ZFUlNJT04pO1xufVxuIl0sIm1hcHBpbmdzIjoiO0FBRUEsSUFBSSxPQUFPLFdBQVcsYUFFckIsQ0FBQyxDQUFDLE9BQU8sYUFBYSxDQUFDLEVBQUEsQ0FBRyxzQkFBTSxJQUFJLElBQUksRUFBQSxDQUFHLElBQUEsR0FBa0IiLCJ4X2dvb2dsZV9pZ25vcmVMaXN0IjpbMF19

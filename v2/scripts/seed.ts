@@ -64,13 +64,21 @@ async function main() {
     )[0];
 
     if (existant) {
+      if (role === "super_admin" && existant.role !== "super_admin") {
+        await db
+          .update(users)
+          .set({ role: "super_admin" })
+          .where(eq(users.id, existant.id));
+        console.log(`rôle promu super_admin : ${utilisateurEmail}`);
+        return existant;
+      }
       console.log(`utilisateur déjà présent : ${utilisateurEmail}`);
-      return;
+      return existant;
     }
 
     // Inscription publique désactivée : le seed passe par le même dépôt que
     // la page admin, sans créer de session.
-    await depotUtilisateurs.creer({
+    return depotUtilisateurs.creer({
       tenantId,
       name: nom,
       email: utilisateurEmail,
@@ -80,12 +88,37 @@ async function main() {
     console.log(`utilisateur créé : ${utilisateurEmail} (${role})`);
   }
 
-  await creerUtilisateur(email, password, "Admin LCD", "admin");
+  const superEmail = process.env.SEED_SUPER_ADMIN_EMAIL ?? "super@lcd.test";
+  const superPassword = process.env.SEED_SUPER_ADMIN_PASSWORD ?? password;
+  await creerUtilisateur(
+    superEmail,
+    superPassword,
+    "Super-admin LCD",
+    "super_admin",
+  );
+  if (superEmail.trim().toLowerCase() !== email.trim().toLowerCase()) {
+    await creerUtilisateur(email, password, "Admin LCD", "admin");
+  }
 
   const prestaEmail = process.env.SEED_PRESTA_EMAIL;
   const prestaPassword = process.env.SEED_PRESTA_PASSWORD;
   if (prestaEmail && prestaPassword && prestaPassword.length >= 12) {
-    await creerUtilisateur(prestaEmail, prestaPassword, "Prestataire LCD", "presta");
+    const presta = await creerUtilisateur(
+      prestaEmail,
+      prestaPassword,
+      "Prestataire LCD",
+      "presta",
+    );
+    if (presta) {
+      const dansUnAn = new Date(Date.now() + 365 * 86_400_000)
+        .toISOString()
+        .slice(0, 10);
+      await depotUtilisateurs.definirRcExpireLe(
+        tenantId,
+        presta.id,
+        dansUnAn,
+      );
+    }
   }
 
   const proprietaireEmail = process.env.SEED_PROPRIO_EMAIL;

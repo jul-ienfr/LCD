@@ -1,0 +1,111 @@
+{"version":10,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.64.1","options":{},"platform":"win32","wallTime":1793092114758,"monotonicTime":849.237,"sdkLanguage":"javascript","testTimeout":30000,"annotations":[]}
+{"type":"before","callId":"jjha@1","startTime":864.597,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"jjha@28","parentId":"jjha@1","startTime":871.147,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"before","callId":"jjha@29","parentId":"jjha@28","startTime":872.573,"class":"Test","method":"pw:api","title":"Launch browser","params":{},"stack":[]}
+{"type":"after","callId":"jjha@29","endTime":1107.736,"annotations":[]}
+{"type":"after","callId":"jjha@28","endTime":1107.851,"annotations":[]}
+{"type":"before","callId":"jjha@32","parentId":"jjha@1","startTime":1109.255,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"jjha@33","parentId":"jjha@32","startTime":1111.847,"class":"Test","method":"pw:api","title":"Create context","params":{},"stack":[]}
+{"type":"after","callId":"jjha@33","endTime":1131.023,"annotations":[]}
+{"type":"after","callId":"jjha@32","endTime":1136.902,"annotations":[]}
+{"type":"before","callId":"jjha@40","parentId":"jjha@1","startTime":1137.208,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"jjha@41","parentId":"jjha@40","startTime":1137.912,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"jjha@41","endTime":1330.943,"annotations":[]}
+{"type":"after","callId":"jjha@40","endTime":1330.997,"annotations":[]}
+{"type":"after","callId":"jjha@1","endTime":1331.049,"annotations":[]}
+{"type":"before","callId":"jjha@43","startTime":1332.366,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/login","params":{"url":"/login"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":17,"column":14}]}
+{"type":"after","callId":"jjha@43","endTime":2245.546,"annotations":[]}
+{"type":"before","callId":"jjha@45","startTime":2249.701,"class":"Test","method":"pw:api","title":"Fill \"admin@lcd.test\"","subtitle":"locator('input[type=\"email\"]')","params":{"locator":"locator('input[type=\"email\"]')","value":"admin@lcd.test"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":18,"column":14}]}
+{"type":"after","callId":"jjha@45","endTime":2287.166,"annotations":[]}
+{"type":"before","callId":"jjha@47","startTime":2288.04,"class":"Test","method":"pw:api","title":"Fill \"ChangeMe-2026!\"","subtitle":"locator('input[type=\"password\"]')","params":{"locator":"locator('input[type=\"password\"]')","value":"ChangeMe-2026!"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":19,"column":14}]}
+{"type":"after","callId":"jjha@47","endTime":2308.439,"annotations":[]}
+{"type":"before","callId":"jjha@49","startTime":2310.078,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Se connecter' })","params":{"locator":"getByRole('button', { name: 'Se connecter' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":20,"column":60}]}
+{"type":"after","callId":"jjha@49","endTime":3192.982,"annotations":[]}
+{"type":"before","callId":"jjha@51","startTime":3195.727,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":21,"column":22}]}
+{"type":"after","callId":"jjha@51","endTime":3359.613,"annotations":[]}
+{"type":"before","callId":"jjha@53","startTime":3360.257,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/logements","params":{"url":"/hote/logements"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":23,"column":14}]}
+{"type":"after","callId":"jjha@53","endTime":3584.755,"annotations":[]}
+{"type":"before","callId":"jjha@55","startTime":3585.758,"class":"Test","method":"pw:api","title":"Fill \"avis-e2e-1793092115240\"","subtitle":"locator('input[name=\"code\"]')","params":{"locator":"locator('input[name=\"code\"]')","value":"avis-e2e-1793092115240"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":24,"column":14}]}
+{"type":"after","callId":"jjha@55","endTime":3745.457,"annotations":[]}
+{"type":"before","callId":"jjha@57","startTime":3746.273,"class":"Test","method":"pw:api","title":"Fill \"Logement Avis E2E 1793092115240\"","subtitle":"locator('input[name=\"nom\"]')","params":{"locator":"locator('input[name=\"nom\"]')","value":"Logement Avis E2E 1793092115240"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":25,"column":14}]}
+{"type":"after","callId":"jjha@57","endTime":3800.955,"annotations":[]}
+{"type":"before","callId":"jjha@59","startTime":3801.752,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Créer le logement' })","params":{"locator":"getByRole('button', { name: 'Créer le logement' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":26,"column":65}]}
+{"type":"after","callId":"jjha@59","endTime":4039.024,"annotations":[]}
+{"type":"before","callId":"jjha@61","startTime":4039.79,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Logement « avis-e2e-1793092115240 » créé.')","params":{"locator":"getByText('Logement « avis-e2e-1793092115240 » créé.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":27,"column":62}]}
+{"type":"after","callId":"jjha@61","endTime":4197.388,"annotations":[]}
+{"type":"before","callId":"jjha@63","startTime":4197.917,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/onboarding","params":{"url":"/hote/onboarding"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":29,"column":14}]}
+{"type":"after","callId":"jjha@63","endTime":4461.201,"annotations":[]}
+{"type":"before","callId":"jjha@65","startTime":4462.032,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('link', { name: 'Logement Avis E2E 1793092115240', exact: true })","params":{"locator":"getByRole('link', { name: 'Logement Avis E2E 1793092115240', exact: true })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":30,"column":68}]}
+{"type":"after","callId":"jjha@65","endTime":4760.253,"annotations":[]}
+{"type":"before","callId":"jjha@67","startTime":4760.788,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":31,"column":22}]}
+{"type":"after","callId":"jjha@67","endTime":4811.677,"annotations":[]}
+{"type":"before","callId":"jjha@69","startTime":4812.834,"class":"Test","method":"pw:api","title":"Check","subtitle":"getByRole('checkbox', { name: /Règlement, PV et accord du syndic/ })","params":{"locator":"getByRole('checkbox', { name: /Règlement, PV et accord du syndic/ })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":34,"column":6}]}
+{"type":"after","callId":"jjha@69","endTime":4897.23,"annotations":[]}
+{"type":"before","callId":"jjha@71","startTime":4898.158,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Enregistrer', exact: true })","params":{"locator":"getByRole('button', { name: 'Enregistrer', exact: true })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":35,"column":72}]}
+{"type":"after","callId":"jjha@71","endTime":5135.552,"annotations":[]}
+{"type":"before","callId":"jjha@73","startTime":5136.319,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Vérification copropriété enregistrée.')","params":{"locator":"getByText('Vérification copropriété enregistrée.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":38,"column":5}]}
+{"type":"after","callId":"jjha@73","endTime":5223.816,"annotations":[]}
+{"type":"before","callId":"jjha@75","startTime":5224.54,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Publier le logement' })","params":{"locator":"getByRole('button', { name: 'Publier le logement' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":39,"column":67}]}
+{"type":"after","callId":"jjha@75","endTime":5693.13,"annotations":[]}
+{"type":"before","callId":"jjha@77","startTime":5693.631,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Publication mise à jour.')","params":{"locator":"getByText('Publication mise à jour.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":40,"column":60}]}
+{"type":"after","callId":"jjha@77","endTime":5783.314,"annotations":[]}
+{"type":"before","callId":"jjha@79","startTime":5783.903,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/planning?mois=2026-12","params":{"url":"/hote/planning?mois=2026-12"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":42,"column":14}]}
+{"type":"after","callId":"jjha@79","endTime":6270.84,"annotations":[]}
+{"type":"before","callId":"jjha@81","startTime":6272.1,"class":"Test","method":"pw:api","title":"Wait for load state \"networkidle\"","params":{},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":43,"column":14}]}
+{"type":"after","callId":"jjha@81","endTime":7007.96,"annotations":[]}
+{"type":"before","callId":"jjha@85","startTime":7008.667,"class":"Test","method":"pw:api","title":"Select option","subtitle":"locator('select[name=\"logement\"]')","params":{"locator":"locator('select[name=\"logement\"]')","options":"[Object]"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":44,"column":14}]}
+{"type":"after","callId":"jjha@85","endTime":7132.361,"annotations":[]}
+{"type":"before","callId":"jjha@87","startTime":7132.968,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Afficher' })","params":{"locator":"getByRole('button', { name: 'Afficher' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":45,"column":56}]}
+{"type":"after","callId":"jjha@87","endTime":7227.839,"annotations":[]}
+{"type":"before","callId":"jjha@89","startTime":7228.778,"class":"Test","method":"pw:api","title":"Fill \"resa-avis-1793092115240\"","subtitle":"locator('input[name=\"ref\"]')","params":{"locator":"locator('input[name=\"ref\"]')","value":"resa-avis-1793092115240"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":46,"column":14}]}
+{"type":"after","callId":"jjha@89","endTime":7296.692,"annotations":[]}
+{"type":"before","callId":"jjha@91","startTime":7297.84,"class":"Test","method":"pw:api","title":"Fill \"Marie Avis 1793092115240\"","subtitle":"locator('input[name=\"clientNom\"]')","params":{"locator":"locator('input[name=\"clientNom\"]')","value":"Marie Avis 1793092115240"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":47,"column":14}]}
+{"type":"after","callId":"jjha@91","endTime":7392.171,"annotations":[]}
+{"type":"before","callId":"jjha@93","startTime":7393.767,"class":"Test","method":"pw:api","title":"Fill \"2026-12-10\"","subtitle":"locator('input[name=\"debut\"]')","params":{"locator":"locator('input[name=\"debut\"]')","value":"2026-12-10"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":48,"column":14}]}
+{"type":"after","callId":"jjha@93","endTime":7459.13,"annotations":[]}
+{"type":"before","callId":"jjha@95","startTime":7459.917,"class":"Test","method":"pw:api","title":"Fill \"2026-12-14\"","subtitle":"locator('input[name=\"fin\"]')","params":{"locator":"locator('input[name=\"fin\"]')","value":"2026-12-14"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":49,"column":14}]}
+{"type":"after","callId":"jjha@95","endTime":7519.677,"annotations":[]}
+{"type":"before","callId":"jjha@97","startTime":7520.371,"class":"Test","method":"pw:api","title":"Fill \"600\"","subtitle":"locator('input[name=\"montantEuros\"]')","params":{"locator":"locator('input[name=\"montantEuros\"]')","value":"600"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":50,"column":14}]}
+{"type":"after","callId":"jjha@97","endTime":7579.502,"annotations":[]}
+{"type":"before","callId":"jjha@99","startTime":7580.022,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Créer la réservation' })","params":{"locator":"getByRole('button', { name: 'Créer la réservation' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":51,"column":68}]}
+{"type":"after","callId":"jjha@99","endTime":7959.991,"annotations":[]}
+{"type":"before","callId":"jjha@101","startTime":7960.444,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Réservation resa-avis-1793092115240 créée')","params":{"locator":"getByText('Réservation resa-avis-1793092115240 créée')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":52,"column":64}]}
+{"type":"after","callId":"jjha@101","endTime":8264.511,"annotations":[]}
+{"type":"before","callId":"jjha@103","startTime":8265.998,"class":"Test","method":"pw:api","title":"Get attribute \"href\"","subtitle":"locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092115240' }).first().getByRole('link', { name: 'Lien voyageur' })","params":{"locator":"locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092115240' }).first().getByRole('link', { name: 'Lien voyageur' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":62,"column":6}],"group":"getter"}
+{"type":"error","message":"\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m","stack":[]}
+{"type":"before","callId":"jjha@105","startTime":31110.963,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"jjha@106","parentId":"jjha@105","startTime":31111.611,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"jjha@106","endTime":31111.724,"annotations":[]}
+{"type":"before","callId":"jjha@107","parentId":"jjha@105","startTime":31111.901,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"jjha@114","parentId":"jjha@107","startTime":31732.634,"class":"Test","method":"pw:api","title":"Close context","params":{},"stack":[]}
+{"type":"after","callId":"jjha@103","endTime":31738.67,"annotations":[],"error":{"name":"","message":"Error: locator.getAttribute: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092115240' }).first().getByRole('link', { name: 'Lien voyageur' })\u001b[22m\n","stack":"Error: locator.getAttribute: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092115240' }).first().getByRole('link', { name: 'Lien voyageur' })\u001b[22m\n\n    at C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts:62:6"}}
+{"type":"error","message":"Error: locator.getAttribute: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092115240' }).first().getByRole('link', { name: 'Lien voyageur' })\u001b[22m\n","stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":62,"column":6}]}
+{"type":"after","callId":"jjha@114","endTime":31744.156,"annotations":[]}
+{"type":"after","callId":"jjha@107","endTime":31744.197,"annotations":[]}
+{"type":"before","callId":"jjha@121","startTime":31748.535,"class":"Test","method":"test.attach","title":"Attach \"error-context\"","params":{},"stack":[]}
+{"type":"after","callId":"jjha@121","endTime":31748.543,"attachments":[{"name":"error-context","contentType":"text/markdown","file":"attachments/4f1abe1e3d52a4715b1d8831dc477b598fb5f2a5"}]}
+{"type":"before","callId":"jjha@124","parentId":"jjha@105","startTime":31749.314,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@124","endTime":31749.329,"annotations":[]}
+{"type":"before","callId":"jjha@125","parentId":"jjha@105","startTime":31749.338,"class":"Test","method":"fixture","title":"Fixture \"userAgent\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@125","endTime":31749.346,"annotations":[]}
+{"type":"before","callId":"jjha@127","parentId":"jjha@105","startTime":31749.492,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@127","endTime":31749.502,"annotations":[]}
+{"type":"before","callId":"jjha@129","parentId":"jjha@105","startTime":31749.717,"class":"Test","method":"fixture","title":"Fixture \"screen\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@129","endTime":31749.781,"annotations":[]}
+{"type":"before","callId":"jjha@136","parentId":"jjha@105","startTime":31750.785,"class":"Test","method":"fixture","title":"Fixture \"isMobile\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@136","endTime":31750.796,"annotations":[]}
+{"type":"before","callId":"jjha@140","parentId":"jjha@105","startTime":31751.134,"class":"Test","method":"fixture","title":"Fixture \"hasTouch\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@140","endTime":31751.143,"annotations":[]}
+{"type":"before","callId":"jjha@143","parentId":"jjha@105","startTime":31751.372,"class":"Test","method":"fixture","title":"Fixture \"deviceScaleFactor\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@143","endTime":31751.379,"annotations":[]}
+{"type":"after","callId":"jjha@105","endTime":31752.222,"annotations":[]}
+{"type":"before","callId":"jjha@150","startTime":31752.406,"class":"Test","method":"hook","title":"Worker Cleanup","params":{},"stack":[]}
+{"type":"before","callId":"jjha@155","parentId":"jjha@150","startTime":31753.144,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"after","callId":"jjha@155","endTime":32003.513,"annotations":[]}
+{"type":"before","callId":"jjha@160","parentId":"jjha@150","startTime":32004.029,"class":"Test","method":"fixture","title":"Fixture \"defaultBrowserType\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@160","endTime":32004.037,"annotations":[]}
+{"type":"before","callId":"jjha@164","parentId":"jjha@150","startTime":32004.336,"class":"Test","method":"fixture","title":"Fixture \"channel\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@164","endTime":32004.343,"annotations":[]}
+{"type":"before","callId":"jjha@165","parentId":"jjha@150","startTime":32004.346,"class":"Test","method":"fixture","title":"Fixture \"headless\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"jjha@165","endTime":32004.349,"annotations":[]}
+{"type":"after","callId":"jjha@150","endTime":32004.47,"annotations":[]}

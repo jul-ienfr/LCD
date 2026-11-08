@@ -3,9 +3,18 @@ import type { BiensRepository } from "@/application/ports/biens-repository";
 import type {
   CreerEtatDesLieuxData,
   EtatsDesLieuxRepository,
+  MettreAJourEtatDesLieuxData,
 } from "@/application/ports/etats-des-lieux-repository";
-import { EnregistrerEtatDesLieux } from "@/application/use-cases/etat-des-lieux";
-import { analyserEtatDesLieux, type EtatDesLieux } from "@/domain/etat-des-lieux";
+import {
+  CompleterEtatDesLieux,
+  CreerBrouillonEtatDesLieux,
+  EnregistrerEtatDesLieux,
+} from "@/application/use-cases/etat-des-lieux";
+import {
+  analyserEtatDesLieux,
+  estBrouillon,
+  type EtatDesLieux,
+} from "@/domain/etat-des-lieux";
 import { ErreurMetier } from "@/domain/erreurs";
 import type { Bien, BienInput } from "@/domain/inventaire";
 import { ReservationRepositoryMemoire } from "../helpers/reservation-repository-memoire";
@@ -69,6 +78,21 @@ class MemoireEtats implements EtatsDesLieuxRepository {
       updatedAt: maintenant,
     };
     this.items.push(etat);
+    return etat;
+  }
+  async mettreAJour(
+    tenantId: string,
+    id: string,
+    data: MettreAJourEtatDesLieuxData,
+  ) {
+    const etat = this.items.find((e) => e.tenantId === tenantId && e.id === id);
+    if (!etat) return null;
+    etat.notes = data.notes;
+    etat.lignes = etat.lignes.map((ligne) => {
+      const constat = data.lignes.find((entree) => entree.qr === ligne.qr);
+      return constat ? { ...ligne, ...constat } : ligne;
+    });
+    etat.updatedAt = new Date();
     return etat;
   }
   async trouverParRef(tenantId: string, ref: string) {
@@ -211,5 +235,93 @@ describe("cas d'usage état des lieux", () => {
       }),
     ).rejects.toMatchObject({ code: "ETAT_DES_LIEUX_INVALIDE" });
     expect(etats.items).toHaveLength(0);
+  });
+
+  it("crée un brouillon non constaté puis le complète", async () => {
+    const { biens, etats, reservations } = preparer();
+    const reservation = await reservations.creer({
+      tenantId: "t1",
+      logementId: "l1",
+      ref: "resa-edl",
+      voyageurs: 2,
+      debut: "2026-10-01",
+      fin: "2026-10-05",
+      montantCentimes: 40_000,
+    });
+    const brouillon = await new CreerBrouillonEtatDesLieux(
+      etats,
+      biens,
+      reservations,
+    ).executer({
+      tenantId: "t1",
+      logementId: "l1",
+      reservationId: reservation.id,
+      ref: `edl-${reservation.id}`,
+      date: "2026-10-05",
+    });
+
+    expect(estBrouillon(brouillon)).toBe(true);
+    expect(brouillon.lignes.every((ligne) => ligne.etatConstate === null)).toBe(
+      true,
+    );
+
+    const complete = await new CompleterEtatDesLieux(etats).executer({
+      tenantId: "t1",
+      id: brouillon.id,
+      notes: "Sortie constatée",
+      constats: {
+        "drap-1": { etat: 5, manquant: false },
+        "serviette-1": { etat: null, manquant: true },
+      },
+    });
+
+    expect(complete).not.toBeNull();
+    expect(estBrouillon(complete!)).toBe(false);
+    expect(
+      analyserEtatDesLieux(complete!.lignes).coutRemplacementCentimes,
+    ).toBe(4000);
+
+    await expect(
+      new CompleterEtatDesLieux(etats).executer({
+        tenantId: "t1",
+        id: brouillon.id,
+        constats: {
+          "drap-1": { etat: 4, manquant: false },
+          "serviette-1": { etat: 4, manquant: false },
+        },
+      }),
+    ).rejects.toMatchObject({ code: "ETAT_DES_LIEUX_INVALIDE" });
+  });
+
+  it("refuse un brouillon incomplet", async () => {
+    const { biens, etats, reservations } = preparer();
+    const reservation = await reservations.creer({
+      tenantId: "t1",
+      logementId: "l1",
+      ref: "resa-edl-2",
+      voyageurs: 2,
+      debut: "2026-10-01",
+      fin: "2026-10-05",
+      montantCentimes: 40_000,
+    });
+    const brouillon = await new CreerBrouillonEtatDesLieux(
+      etats,
+      biens,
+      reservations,
+    ).executer({
+      tenantId: "t1",
+      logementId: "l1",
+      reservationId: reservation.id,
+      ref: `edl-${reservation.id}`,
+      date: "2026-10-05",
+    });
+
+    await expect(
+      new CompleterEtatDesLieux(etats).executer({
+        tenantId: "t1",
+        id: brouillon.id,
+        constats: { "drap-1": { etat: 5, manquant: false } },
+      }),
+    ).rejects.toMatchObject({ code: "ETAT_DES_LIEUX_INVALIDE" });
   });
 });

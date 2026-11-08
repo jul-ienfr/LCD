@@ -14,6 +14,9 @@ services:
       - .env.prod
     environment:
       NODE_ENV: production
+      BODY_SIZE_LIMIT: 12M
+    volumes:
+      - photos:/var/lib/lcd/photos
     networks:
       - lcd
 
@@ -50,6 +53,7 @@ services:
       - lcd
 
 volumes:
+  photos:
   caddy_data:
   caddy_config:
 

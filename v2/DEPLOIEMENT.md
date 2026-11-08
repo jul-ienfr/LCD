@@ -106,12 +106,21 @@ Netlify détecte Next.js et installe `@netlify/plugin-nextjs` au build.
 | `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | si stockage fichiers activé |
 | `SMTP_URL` / `EMAIL_FROM` | si emails activés |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | si paiement en ligne activé |
-| `CRON_SECRET` | si synchronisation OTA quotidienne activée |
+| `CRON_SECRET` | si synchronisation OTA par cron HTTP activée |
+| `ICS_SCHEDULER_ENABLED` | `false` sur Netlify (pas de processus persistant) |
 | `SENTRY_DSN` | si Sentry activé |
 
 **Ne pas** mettre `SEED_*` en production : le seed est une opération locale
 ponctuelle. `MIGRATION_DATABASE_URL` (owner) reste dans le shell local ou le
 secret GitHub de sauvegarde, jamais dans le runtime Netlify.
+
+La synchronisation ICS est déclenchée par
+`.github/workflows/v2-sync-ota.yml` (toutes les 5 min, `?force=1`) ou par un
+cron externe équivalent. La découverte cross-tenant passe par la fonction SQL
+`SECURITY DEFINER` `lister_flux_ics_a_synchroniser`, donc le runtime Netlify
+n’a besoin que de `DATABASE_URL` (`lcd_app`). Le channel manager
+(`/hote/planning/canaux`) et les exports iCal par canal fonctionnent de la même
+façon ; seule la boucle automatique change de déclencheur.
 
 > Netlify Free ne chiffre pas les variables : l’URL du rôle `lcd_app` limite
 > les dégâts si elle fuite, car RLS reste appliquée.
@@ -145,8 +154,9 @@ Après le premier déploiement :
 2. Ajouter `STRIPE_SECRET_KEY` dans Netlify.
 3. Créer un endpoint webhook vers
    `https://<site>.netlify.app/api/stripe/webhook`, événements
-   `checkout.session.completed` et
-   `checkout.session.async_payment_succeeded`.
+   `checkout.session.completed`, `checkout.session.async_payment_succeeded`
+   et `charge.dispute.created` / `charge.dispute.updated` /
+   `charge.dispute.closed`.
 4. Copier le signing secret (`whsec_…`) dans `STRIPE_WEBHOOK_SECRET`.
 5. Redéployer, ouvrir une facture publique avec un solde et vérifier le
    bouton « Payer en ligne ».
@@ -159,12 +169,22 @@ Sans ces deux variables, le bouton est masqué et le webhook répond 503.
 1. Générer un secret aléatoire (`openssl rand -hex 32`).
 2. Netlify → Environment variables → `CRON_SECRET`.
 3. GitHub → Settings → Secrets and variables → Actions → `CRON_SECRET`.
-4. Le workflow `.github/workflows/v2-sync-ota.yml` appelle chaque jour à
-   03:00 UTC `POST /api/cron/sync-ota`.
+4. Le workflow `.github/workflows/v2-sync-ota.yml` appelle toutes les 5 minutes
+   `POST /api/cron/sync-ota?force=1`.
 5. Tester manuellement : **Actions → v2-sync-ota → Run workflow**.
 
-L’endpoint renvoie `{ total, reussis, erreurs, details }` ; chaque flux
-conserve son dernier statut et son message dans `/hote/planning/import`.
+La synchronisation des fournisseurs API (`/api/cron/sync-fournisseurs`) exige
+la connexion owner `MIGRATION_DATABASE_URL` pour lister les affectations
+cross-tenant. Sur Netlify sans owner, elle répond `503` : garder
+`FOURNISSEUR_SYNC_ENABLED=false` et utiliser un hébergement avec owner (VPS)
+ou ajouter une fonction SQL `SECURITY DEFINER` équivalente. Tout appel POST
+doit envoyer `Content-Type: application/json`, sinon la protection CSRF répond
+`403` avant le contrôle du secret.
+
+L’endpoint renvoie
+`{ total, reussis, erreurs, ignores, verrouille, ownerDisponible, details }` ;
+chaque flux conserve son dernier statut et son message dans
+`/hote/planning/import`.
 
 Le même `CRON_SECRET` protège `POST /api/cron/webhooks`, appelé chaque heure
 par `.github/workflows/v2-webhooks.yml` pour livrer les webhooks HA/Moli.

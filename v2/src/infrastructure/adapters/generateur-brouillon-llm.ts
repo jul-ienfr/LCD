@@ -16,11 +16,14 @@ export class GenerateurBrouillonLlm implements GenerateurBrouillon {
   constructor(
     private readonly llm: LlmProvider,
     private readonly modelePremium?: string,
+    private readonly modeleStandard?: string,
   ) {}
 
   async generer(requete: RequeteBrouillon): Promise<BrouillonGenere> {
     const modele =
-      requete.niveau === "premium" ? this.modelePremium : undefined;
+      requete.niveau === "premium"
+        ? this.modelePremium
+        : this.modeleStandard;
     const reponse = await this.llm.completer(
       [
         { role: "system", content: SYSTEME },

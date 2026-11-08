@@ -28,6 +28,9 @@ async function contexte() {
     adresse: null,
     mentionsLegales: null,
     statut: "actif",
+    ventesSuspendues: false,
+    ventesSuspenduesMotif: null,
+    ventesSuspenduesLe: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   });

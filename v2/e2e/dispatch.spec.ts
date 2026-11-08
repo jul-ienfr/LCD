@@ -36,6 +36,14 @@ test("dispatch : proposition, acceptation prestataire et assignation", async ({
   await page.getByRole("button", { name: "Créer le compte" }).click();
   await expect(page.getByText(`Compte créé pour ${emailPresta}.`)).toBeVisible();
 
+  const lignePresta = page.locator("li").filter({ hasText: emailPresta }).first();
+  await lignePresta.getByText("Assurance RC professionnelle").click();
+  await lignePresta.locator('input[name="rcExpireLe"]').fill("2027-12-31");
+  await lignePresta.getByRole("button", { name: "Enregistrer la RC" }).click();
+  await expect(
+    page.getByText(`RC de ${emailPresta} valable jusqu’au 2027-12-31.`),
+  ).toBeVisible();
+
   await page.goto("/hote/missions");
   await page.selectOption('select[name="logementId"]', {
     label: `${nomLogement} (${code})`,

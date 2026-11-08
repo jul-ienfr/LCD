@@ -22,6 +22,9 @@ export interface Tenant {
   adresse: string | null;
   mentionsLegales: string | null;
   statut: StatutTenant;
+  ventesSuspendues: boolean;
+  ventesSuspenduesMotif: string | null;
+  ventesSuspenduesLe: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

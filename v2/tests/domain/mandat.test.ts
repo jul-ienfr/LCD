@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  chargesMensuellesValides,
   datesMandatValides,
   modeMandatValide,
   notesMandatValides,
@@ -14,6 +15,15 @@ describe("mandat", () => {
     expect(statutMandatValide("actif")).toBe(true);
     expect(statutMandatValide("suspendu")).toBe(true);
     expect(statutMandatValide("archive")).toBe(false);
+  });
+
+  it("borne les charges mensuelles", () => {
+    expect(chargesMensuellesValides(0)).toBe(true);
+    expect(chargesMensuellesValides(25_000)).toBe(true);
+    expect(chargesMensuellesValides(1_000_000)).toBe(true);
+    expect(chargesMensuellesValides(-1)).toBe(false);
+    expect(chargesMensuellesValides(1_000_001)).toBe(false);
+    expect(chargesMensuellesValides(12.5)).toBe(false);
   });
 
   it("valide les dates et les notes", () => {

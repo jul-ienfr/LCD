@@ -1,12 +1,24 @@
-<!-- BEGIN:nextjs-agent-rules -->
+## Stack LCD v2 (opposable)
 
-## This is NOT the Next.js you know
+La v2 est une application **SvelteKit 3 + Svelte 5 + Vite 8 + Tailwind 4**,
+rendue par `@sveltejs/adapter-node`. Il n'y a pas de v3 : la bascule se fait
+dans ce dossier.
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+- Les routes vivent dans `src/routes/` (`+page.svelte`, `+page.server.ts`,
+  `+server.ts`).
+- `src/app/`, `src/components/*.tsx`, `src/proxy.ts` et `src/lib/{auth,session,apercu,themes}.ts`
+  sont l'**ancienne UI Next conservée en référence**. Elle est exclue du build
+  et de `svelte-check` ; ne jamais l'importer. Elle sera supprimée à parité.
+- Alias : `@/…` et `$core/…` pointent vers `src/` (`@/lib/...` pour la
+  bibliothèque). SvelteKit 3 n'expose plus `$lib` : ne pas l'utiliser.
+- SvelteKit 3 : `$app/environment` devient `$app/env` ; `svelte.config.js`
+  n'existe plus (adapter déclaré dans `vite.config.ts`) ; `tsconfig` étend
+  `$app/tsconfig`.
+- Toute mutation passe par une action serveur (`+page.server.ts`) ou un
+  endpoint `+server.ts` ; les formulaires restent natifs.
+- Le code serveur spécifique (auth, session, cookies) va dans
+  `src/lib/server/`.
+- Le thème est résolu et injecté côté serveur dans `src/routes/+layout.svelte`.
 
 ## Règles projet LCD v2 (opposables)
 
@@ -14,12 +26,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
    sans JavaScript. Test Playwright `javaScriptEnabled: false`.
 2. **JS islands** : aucun composant client obligatoire sur le voyageur ;
    les îlots sont chargés à la demande.
-3. **Budget JS** : cible voyageur < 50 Ko gzip, staff < 200 Ko. Exception
-   acceptée pour la beta : le plancher Next `/voyageur` est à 180,3 Ko gzip
-   (mesure du 2026-10-26 ; décision G1 du 2026-10-25), avec no-JS comme filet
-   et une cible Astro/HTML en v2.1. Mesurer avant d'ajouter une dépendance.
-4. **Domaine pur** : `src/domain/` n'importe ni Next, ni Drizzle, ni Stripe,
-   ni Brevo, ni S3.
+3. **Budget JS** : cible voyageur < 50 Ko gzip, staff < 200 Ko. Les routes
+   publiques et voyageur utilisent `export const csr = false` et ne chargent
+   aucun îlot obligatoire. Mesurer avant d'ajouter une dépendance.
+4. **Domaine pur** : `src/domain/` n'importe ni SvelteKit, ni Drizzle, ni
+   Stripe, ni Brevo, ni S3.
 5. **Ports/adapters** : toute dépendance externe passe par
    `src/application/ports/` + `src/infrastructure/adapters/`.
 6. **Tenant** : `tenant_id` vient de la session, jamais du client ;

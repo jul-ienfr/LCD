@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0026` → `0056` appliquées.
+- [ ] Migrations `0001` → `0088` appliquées (89 fichiers SQL).
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
   Déjà validé en local le 2026-10-26 (owner `lcd`, rôle `lcd_app`) ; les 45
@@ -19,7 +19,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   (test à faire sur une base de staging vide ou incomplète) ; le compteur
   `migrations` est comparé au journal Drizzle.
   Validé en local le 2026-10-26 sur base vide : 503 `db: up`, sept entrées
-  `manquants` dont `migrations.56`.
+  `manquants` ; rejouer le test avec le journal courant (85 migrations).
 - [ ] `/api/ready` → `200` avec toutes les migrations appliquées.
 
 ## 1. Auth, rôles et sécurité
@@ -69,10 +69,43 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] Portail propriétaire : commission et net cohérents avec le mandat.
 - [ ] Prix par jour, plusieurs logements, isolation.
 - [ ] Réservation manuelle, anti-chevauchement, annulation.
-- [ ] Import ICS manuel + flux HTTPS + cron OTA.
+- [ ] Import ICS manuel : fichier valide, HTML refusé, doublons ignorés.
+- [ ] Flux HTTPS réel Airbnb/Booking : import, rattachement `fluxIcsId`, dates
+  et noms corrects ; URL `webcal://` normalisée en `https://`.
+- [ ] Deux synchronisations consécutives : la seconde répond 304 ou « contenu
+  inchangé », aucun doublon, une exécution dans l’historique.
+- [ ] Déplacement d’un séjour dans l’OTA : dates mises à jour dans LCD ; séjour
+  supprimé dans l’OTA : ligne supprimée après réconciliation.
+- [ ] Conflit avec une réservation directe : l’événement OTA n’est pas inséré,
+  le conflit est visible dans le flux et l’historique, les autres événements
+  passent.
+- [ ] Calendrier vide : premier cycle « partiel » sans suppression, second
+  cycle confirme et supprime les séjours absents.
+- [ ] Suppression du flux : les réservations importées restent, leur
+  `fluxIcsId` devient nul, les autres flux ne sont pas affectés.
 - [ ] Blocages OTA sans impact CA.
-- [ ] Export ICS : abonnement Google Calendar ou Apple Calendar réel.
+- [ ] Export ICS : abonnement Google Calendar ou Apple Calendar réel, rafraîchi
+  avec `REFRESH-INTERVAL:PT5M`, ETag/304, `Last-Modified`.
 - [ ] Lien ICS invalide → `401` ; mauvais logement → `401`.
+- [ ] Planificateur : `ICS_SCHEDULER_ENABLED=true`, bail unique, reprise après
+  expiration, arrêt propre sur SIGTERM ; `/api/ics/sante` cohérent.
+- [ ] Cron de secours : `POST /api/cron/sync-ota?force=1` avec et sans
+  `CRON_SECRET`, verrou déjà pris → réponse `verrouille: true`.
+- [ ] Channel manager : ajout Airbnb avec URL iCal, flux lié au canal, état
+  visible, synchronisation forcée, URL d’export par canal.
+- [ ] Deux annonces Airbnb du même logement : clés distinctes, pas de doublon ;
+  deux canaux différents avec la même URL → refus explicite.
+- [ ] Export par canal : buffer de 1 jour après départ, réservations du flux
+  cible exclues, réservations des autres flux et réservations directes incluses.
+- [ ] Canal désactivé ou export coupé → URL par canal en `404` ; URL globale
+  toujours valide.
+- [ ] Suppression d’un canal : flux et historique supprimés, réservations
+  importées conservées avec `fluxIcsId` nul.
+- [ ] Reprise d’un flux existant après migration : canal `generique` hérité,
+  édition sans collision de clé.
+- [ ] Rotation `BETTER_AUTH_SECRET` : toutes les URLs par canal sont refusées.
+- [ ] Connecteurs API natifs : non testés, car non activés sans contrat
+  partenaire ; aucun écran ne doit laisser croire le contraire.
 - [ ] Portail voyageur signé : séjour, guide, extras, incident.
 - [ ] Voyageur sans JavaScript à 320 px sur un vrai téléphone ancien.
 - [ ] PWA installée, hors ligne, rejeu IndexedDB.
@@ -203,7 +236,7 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - [ ] Restauration réelle dans une base de staging : comptes, logements,
   réservations, factures, paiements.
   Validé en local le 2026-10-26 : checksum refusé si altéré, manifeste comparé
-  (1 tenant, 196 users, 1 260 logements, 54 tables, 56 migrations).
+  (1 tenant, 196 users, 1 260 logements, 54 tables, 81 migrations).
 - [ ] Copie hors site (R2/rsync) vérifiée.
 - [ ] Rotation `BETTER_AUTH_SECRET` testée : liens voyageur/facture/calendrier
   invalidés, sessions invalides.
@@ -245,9 +278,14 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 
 ## Déjà validé localement
 
-- Vitest : **464/464**.
-- Migrations depuis zéro : `npm run db:test-migrations` → 58 migrations,
-  55 tables, 48 tables RLS, 48 policies, base vide, rôle `lcd_app` autorisé.
+- SvelteKit 3 : `npm run check` à 0 erreur / 0 avertissement, `npm run build`
+  vert (adapter-node).
+- Vitest : **761/761** (2026-11-04), `npm run check` à 0 erreur.
+- Playwright SvelteKit : 10/10 (apparence avec et sans JS, application du
+  thème au public, au voyageur et au staff, smoke de toutes les routes
+  publiques et staff avec et sans JS).
+- Migrations depuis zéro : `npm run db:test-migrations` à rejouer ; le journal
+  courant contient 85 migrations (`0001` → `0084`).
 - Playwright : **47/47** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

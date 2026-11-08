@@ -58,7 +58,7 @@ test("ménage : planification, checklist et réassort au départ", async ({
   await page.getByRole("button", { name: "Enregistrer le ménage" }).click();
   await expect(page.getByText("Ménage enregistré.")).toBeVisible();
   await expect(
-    page.getByText(new RegExp(`Fait.*${nombre} / ${nombre}`)),
+    page.getByText(new RegExp(`Fait[\\s\\S]*${nombre}\\s*\\/\\s*${nombre}`)),
   ).toBeVisible();
 
   await page.selectOption('select[name="score"]', "4");

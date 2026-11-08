@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+test.skip(
+  ({ javaScriptEnabled }) => !javaScriptEnabled,
+  "Le service worker exige JavaScript.",
+);
+
 test("PWA : voyageur en cache, fallback offline, API et factures jamais cachées", async ({
   page,
   context,

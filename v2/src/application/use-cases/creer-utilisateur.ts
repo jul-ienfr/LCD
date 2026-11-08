@@ -3,6 +3,7 @@ import {
   emailUtilisateurValide,
   motDePasseValide,
   nomUtilisateurValide,
+  peutAttribuerRole,
   roleUtilisateurValide,
 } from "@/domain/utilisateur";
 import type { UserRepository } from "../ports/user-repository";
@@ -16,6 +17,7 @@ export class CreerUtilisateur {
     email: string;
     role: string;
     password: string;
+    acteurRole?: string | null;
   }) {
     const nom = input.name.trim();
     const email = input.email.trim().toLowerCase();
@@ -34,6 +36,12 @@ export class CreerUtilisateur {
     }
     if (!roleUtilisateurValide(input.role)) {
       throw new ErreurMetier("UTILISATEUR_INVALIDE", "Rôle inconnu.");
+    }
+    if (!peutAttribuerRole(input.acteurRole, input.role)) {
+      throw new ErreurMetier(
+        "UTILISATEUR_INVALIDE",
+        "Seul un super-administrateur peut créer un super-administrateur.",
+      );
     }
     if (!motDePasseValide(input.password)) {
       throw new ErreurMetier(

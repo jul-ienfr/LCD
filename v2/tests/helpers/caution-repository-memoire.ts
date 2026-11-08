@@ -22,6 +22,10 @@ export class CautionRepositoryMemoire implements CautionRepository {
       tenantId: data.tenantId,
       reservationId: data.reservationId,
       montantCentimes: data.montantCentimes,
+      mode: data.mode ?? "virement",
+      empreinteId: data.empreinteId ?? null,
+      empreinteStatut: data.empreinteStatut ?? null,
+      montantCaptureCentimes: 0,
       statut: "attendue",
       dateReception: null,
       dateRestitution: null,
@@ -80,6 +84,33 @@ export class CautionRepositoryMemoire implements CautionRepository {
     if (data.motifRetenue !== undefined) {
       caution.motifRetenue = data.motifRetenue;
     }
+    caution.updatedAt = new Date();
+    return caution;
+  }
+
+  async enregistrerEmpreinte(
+    tenantId: string,
+    id: string,
+    data: { empreinteId: string; empreinteStatut: string },
+  ): Promise<Caution | null> {
+    const caution = await this.trouverParId(tenantId, id);
+    if (!caution) return null;
+    caution.mode = "empreinte";
+    caution.empreinteId = data.empreinteId;
+    caution.empreinteStatut = data.empreinteStatut;
+    caution.updatedAt = new Date();
+    return caution;
+  }
+
+  async enregistrerCapture(
+    tenantId: string,
+    id: string,
+    data: { montantCaptureCentimes: number; empreinteStatut: string },
+  ): Promise<Caution | null> {
+    const caution = await this.trouverParId(tenantId, id);
+    if (!caution) return null;
+    caution.montantCaptureCentimes = data.montantCaptureCentimes;
+    caution.empreinteStatut = data.empreinteStatut;
     caution.updatedAt = new Date();
     return caution;
   }

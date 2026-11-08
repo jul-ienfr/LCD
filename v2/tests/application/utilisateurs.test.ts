@@ -61,6 +61,36 @@ describe("création d’utilisateur", () => {
     expect(repo.motsDePasse.get(utilisateur.id)).toBe("MotDePasse-2026!");
   });
 
+  it("interdit à un admin de créer un super-admin", async () => {
+    await expect(
+      creer.executer({
+        tenantId: TENANT,
+        name: "Julie Martin",
+        email: "julie@lcd.fr",
+        role: "super_admin",
+        password: "MotDePasse-2026!",
+        acteurRole: "admin",
+      }),
+    ).rejects.toMatchObject({
+      code: "UTILISATEUR_INVALIDE",
+      message:
+        "Seul un super-administrateur peut créer un super-administrateur.",
+    });
+    expect(repo.rows).toHaveLength(0);
+  });
+
+  it("autorise un super-admin à créer un super-admin", async () => {
+    const utilisateur = await creer.executer({
+      tenantId: TENANT,
+      name: "Julie Martin",
+      email: "julie@lcd.fr",
+      role: "super_admin",
+      password: "MotDePasse-2026!",
+      acteurRole: "super_admin",
+    });
+    expect(utilisateur.role).toBe("super_admin");
+  });
+
   it("refuse un email déjà utilisé, sans tenir compte de la casse", async () => {
     semer(repo, {
       id: "user-existant",

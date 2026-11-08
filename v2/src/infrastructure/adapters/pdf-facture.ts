@@ -18,10 +18,21 @@ export interface PdfFactureOptions {
   montantPayeCentimes?: number;
   resteCentimes?: number;
   mentionsLegales?: string | null;
+  mediation?: string | null;
+  couleurAccent?: string | null;
 }
 
 function euros(centimes: number): string {
   return `${(centimes / 100).toFixed(2).replace(".", ",")} €`;
+}
+
+function couleurHex(valeur: string | null | undefined) {
+  const hex = /^#[0-9a-f]{6}$/i.test(valeur ?? "") ? (valeur ?? "").slice(1) : "0e7c6b";
+  return rgb(
+    Number.parseInt(hex.slice(0, 2), 16) / 255,
+    Number.parseInt(hex.slice(2, 4), 16) / 255,
+    Number.parseInt(hex.slice(4, 6), 16) / 255,
+  );
 }
 
 function texteSur(valeur: string): string {
@@ -68,6 +79,14 @@ export async function genererPdfFacture(
 
   let page = document.addPage([595.28, 841.89]);
   const largeur = page.getWidth();
+  const accent = couleurHex(options.couleurAccent);
+  page.drawRectangle({
+    x: 0,
+    y: page.getHeight() - 6,
+    width: largeur,
+    height: 6,
+    color: accent,
+  });
   let y = page.getHeight() - 56;
 
   await ecrire(page, options.vendeurNom, {
@@ -108,6 +127,7 @@ export async function genererPdfFacture(
     y,
     taille: 20,
     police: gras,
+    couleur: accent,
   });
   await ecrire(page, facture.numero, {
     x: largeur - 190,
@@ -294,6 +314,18 @@ export async function genererPdfFacture(
   if (options.mentionsLegales) {
     y -= 18;
     await ecrire(page, options.mentionsLegales, {
+      x: 50,
+      y,
+      taille: 7,
+      police: normal,
+      couleur: rgb(0.45, 0.45, 0.45),
+      maxWidth: 495,
+    });
+  }
+
+  if (options.mediation) {
+    y -= 14;
+    await ecrire(page, options.mediation, {
       x: 50,
       y,
       taille: 7,

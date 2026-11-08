@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CreerFacture } from "@/application/use-cases/creer-facture";
 import { TraiterPaiementStripe } from "@/application/use-cases/traiter-paiement-stripe";
-import type { EvenementPaiement } from "@/application/ports/paiement";
+import type { EvenementPaiementReussi } from "@/application/ports/paiement";
 import { FactureRepositoryMemoire } from "../helpers/facture-repository-memoire";
 import { PaiementRepositoryMemoire } from "../helpers/paiement-repository-memoire";
 
@@ -31,7 +31,7 @@ async function contexte() {
   return { factures, facture, paiements };
 }
 
-function evenement(factureId: string): EvenementPaiement {
+function evenement(factureId: string): EvenementPaiementReussi {
   return {
     type: "paiement_reussi",
     sessionId: "cs_test_a1b2c3d4e5",
@@ -53,7 +53,7 @@ describe("TraiterPaiementStripe", () => {
     expect(resultat.ignore).toBe(false);
     if (resultat.ignore) return;
     expect(resultat.paiement.mode).toBe("cb");
-    expect(resultat.facture.statut).toBe("payee");
+    expect(resultat.facture?.statut).toBe("payee");
     expect(resultat.resteCentimes).toBe(0);
   });
 
@@ -76,7 +76,14 @@ describe("TraiterPaiementStripe", () => {
     const resultat = await new TraiterPaiementStripe(
       paiements,
       factures,
-    ).executer({ ...evenement(facture.id), type: "autre" });
+    ).executer({
+      type: "autre",
+      sessionId: "cs_test_autre",
+      montantCentimes: 0,
+      devise: "EUR",
+      reference: "",
+      metadata: {},
+    });
 
     expect(resultat.ignore).toBe(true);
   });
@@ -87,7 +94,7 @@ describe("TraiterPaiementStripe", () => {
       new TraiterPaiementStripe(paiements, factures).executer({
         ...evenement(facture.id),
         metadata: {},
-      }),
+      } satisfies EvenementPaiementReussi),
     ).rejects.toMatchObject({ code: "PAIEMENT_INVALIDE" });
   });
 });

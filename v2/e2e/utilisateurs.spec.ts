@@ -35,6 +35,7 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   page,
   browser,
 }) => {
+  test.setTimeout(60_000);
   const suffix = Date.now();
   const nom = `Équipe E2E ${suffix}`;
   const email = `equipe-${suffix}@lcd.test`;

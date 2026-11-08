@@ -1,0 +1,2 @@
+ALTER TABLE "logements_fournisseurs" ADD COLUMN "derniere_empreinte" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "logements_fournisseurs_externe_uq" ON "logements_fournisseurs" USING btree ("fournisseur_code","external_property_id");

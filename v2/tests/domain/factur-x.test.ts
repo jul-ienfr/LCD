@@ -61,6 +61,19 @@ describe("Factur-X", () => {
     );
   });
 
+  it("ajoute la médiation de la consommation quand elle est configurée", () => {
+    const xml = genererFacturXXml(facture, {
+      vendeurNom: "LCD Parc",
+      tauxTvaBp: 1_000,
+      mediation:
+        "Médiation de la consommation : CM2C — 14 rue Saint-Jean, 75017 Paris — https://www.cm2c.net",
+    });
+
+    expect(xml).toContain("<ram:Subject>Médiation de la consommation</ram:Subject>");
+    expect(xml).toContain("CM2C");
+    expect(xml).toContain("https://www.cm2c.net");
+  });
+
   it("échappe les caractères XML et reprend les notes", () => {
     const xml = genererFacturXXml(facture, {
       vendeurNom: "LCD & Co",

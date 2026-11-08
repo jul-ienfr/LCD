@@ -1,0 +1,93 @@
+import { DeclarerIncident } from "@/application/use-cases/declarer-incident";
+import { ErreurMetier } from "@/domain/erreurs";
+import { DrizzleIncidentRepository } from "@/infrastructure/db/repositories/incident-repository";
+import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
+import { logErreur } from "@/lib/logger";
+import { verifierTokenVoyageur } from "@/lib/voyageur-token";
+import type { RequestHandler } from "./$types";
+
+const TAILLE_MAX = 10_000;
+
+const json = (corps: unknown, status: number) =>
+  new Response(JSON.stringify(corps), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    },
+  });
+
+export const POST: RequestHandler = async ({ request }) => {
+  const longueur = Number(request.headers.get("content-length") ?? 0);
+  if (Number.isFinite(longueur) && longueur > TAILLE_MAX) {
+    return json({ ok: false, erreur: "Payload trop volumineux." }, 413);
+  }
+
+  const texte = await request.text();
+  if (texte.length > TAILLE_MAX) {
+    return json({ ok: false, erreur: "Payload trop volumineux." }, 413);
+  }
+
+  let body: unknown;
+  try {
+    body = JSON.parse(texte);
+  } catch {
+    return json({ ok: false, erreur: "JSON invalide." }, 400);
+  }
+  if (typeof body !== "object" || body === null) {
+    return json({ ok: false, erreur: "Corps invalide." }, 400);
+  }
+
+  const { token, ref, message } = body as {
+    token?: unknown;
+    ref?: unknown;
+    message?: unknown;
+  };
+  const payload =
+    typeof token === "string" ? verifierTokenVoyageur(token) : null;
+  if (!payload) {
+    return json(
+      { ok: false, erreur: "Lien voyageur invalide ou expiré." },
+      401,
+    );
+  }
+
+  try {
+    const resultat = await new DeclarerIncident(
+      new DrizzleIncidentRepository(),
+      new DrizzleReservationRepository(),
+    ).executer({
+      tenantId: payload.tenantId,
+      logementId: payload.logementId,
+      reservationId: payload.reservationId,
+      ref: String(ref ?? ""),
+      message: String(message ?? ""),
+    });
+
+    return json(
+      {
+        ok: true,
+        idempotent: !resultat.cree,
+        incident: {
+          id: resultat.incident.id,
+          ref: resultat.incident.ref,
+          statut: resultat.incident.statut,
+          createdAt: resultat.incident.createdAt,
+        },
+      },
+      resultat.cree ? 201 : 200,
+    );
+  } catch (error) {
+    if (error instanceof ErreurMetier) {
+      return json(
+        { ok: false, erreur: error.message },
+        error.code === "RESERVATION_INTROUVABLE" ? 404 : 422,
+      );
+    }
+    logErreur("api.voyageur.incident", error, {
+      tenantId: payload.tenantId,
+      reservationId: payload.reservationId,
+    });
+    return json({ ok: false, erreur: "Erreur inattendue." }, 500);
+  }
+};

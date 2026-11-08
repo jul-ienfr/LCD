@@ -1,5 +1,5 @@
 import { ErreurMetier } from "@/domain/erreurs";
-import { motDePasseValide } from "@/domain/utilisateur";
+import { motDePasseValide, peutAdministrerCompte } from "@/domain/utilisateur";
 import type { UserRepository } from "../ports/user-repository";
 
 export class ReinitialiserMotDePasse {
@@ -9,6 +9,7 @@ export class ReinitialiserMotDePasse {
     tenantId: string;
     id: string;
     password: string;
+    acteurRole?: string | null;
   }) {
     if (!motDePasseValide(input.password)) {
       throw new ErreurMetier(
@@ -22,6 +23,12 @@ export class ReinitialiserMotDePasse {
       throw new ErreurMetier(
         "UTILISATEUR_INVALIDE",
         "Utilisateur introuvable.",
+      );
+    }
+    if (!peutAdministrerCompte(input.acteurRole, cible.role)) {
+      throw new ErreurMetier(
+        "UTILISATEUR_INVALIDE",
+        "Seul un super-administrateur peut gérer un super-administrateur.",
       );
     }
 

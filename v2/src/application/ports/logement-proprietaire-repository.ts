@@ -5,6 +5,7 @@ export interface AssignationProprietaire {
   logementId: string;
   userId: string;
   commissionBp: number;
+  chargesMensuellesCentimes: number;
   mode: ModeMandat;
   statut: StatutMandat;
   dateDebut: string | null;
@@ -14,6 +15,7 @@ export interface AssignationProprietaire {
 
 export interface MandatData {
   commissionBp: number;
+  chargesMensuellesCentimes: number;
   mode: ModeMandat;
   statut: StatutMandat;
   dateDebut: string | null;

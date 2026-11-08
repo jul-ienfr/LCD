@@ -81,6 +81,20 @@ async function main() {
     await sql.unsafe(
       `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO ${echapperIdentifiant(role)}`,
     );
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF to_regprocedure('public.lister_flux_ics_a_synchroniser(integer,boolean)') IS NOT NULL THEN
+          GRANT EXECUTE ON FUNCTION public.lister_flux_ics_a_synchroniser(integer,boolean) TO ${echapperIdentifiant(role)};
+        END IF;
+        IF to_regprocedure('public.resume_ics_sync(integer)') IS NOT NULL THEN
+          GRANT EXECUTE ON FUNCTION public.resume_ics_sync(integer) TO ${echapperIdentifiant(role)};
+        END IF;
+        IF to_regprocedure('public.purger_ics_sync_runs(integer)') IS NOT NULL THEN
+          GRANT EXECUTE ON FUNCTION public.purger_ics_sync_runs(integer) TO ${echapperIdentifiant(role)};
+        END IF;
+      END $$;
+    `);
 
     console.log(`Rôle applicatif "${role}" prêt (RLS appliquée).`);
     console.log(

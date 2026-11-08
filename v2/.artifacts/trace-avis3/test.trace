@@ -1,0 +1,110 @@
+{"version":10,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.64.1","options":{},"platform":"win32","wallTime":1793093407059,"monotonicTime":752.054,"sdkLanguage":"javascript","testTimeout":30000,"annotations":[]}
+{"type":"before","callId":"twum@1","startTime":765.919,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"twum@28","parentId":"twum@1","startTime":771.734,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"before","callId":"twum@29","parentId":"twum@28","startTime":772.724,"class":"Test","method":"pw:api","title":"Launch browser","params":{},"stack":[]}
+{"type":"after","callId":"twum@29","endTime":1178.512,"annotations":[]}
+{"type":"after","callId":"twum@28","endTime":1178.671,"annotations":[]}
+{"type":"before","callId":"twum@32","parentId":"twum@1","startTime":1179.948,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"twum@33","parentId":"twum@32","startTime":1181.053,"class":"Test","method":"pw:api","title":"Create context","params":{},"stack":[]}
+{"type":"after","callId":"twum@33","endTime":1195.024,"annotations":[]}
+{"type":"after","callId":"twum@32","endTime":1203.258,"annotations":[]}
+{"type":"before","callId":"twum@40","parentId":"twum@1","startTime":1203.559,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"twum@41","parentId":"twum@40","startTime":1204.199,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"twum@41","endTime":1343.002,"annotations":[]}
+{"type":"after","callId":"twum@40","endTime":1343.048,"annotations":[]}
+{"type":"after","callId":"twum@1","endTime":1343.101,"annotations":[]}
+{"type":"before","callId":"twum@43","startTime":1344.334,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/login","params":{"url":"/login"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":17,"column":14}]}
+{"type":"after","callId":"twum@43","endTime":3035.613,"annotations":[]}
+{"type":"before","callId":"twum@45","startTime":3039.767,"class":"Test","method":"pw:api","title":"Fill \"admin@lcd.test\"","subtitle":"locator('input[type=\"email\"]')","params":{"locator":"locator('input[type=\"email\"]')","value":"admin@lcd.test"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":18,"column":14}]}
+{"type":"after","callId":"twum@45","endTime":3090.63,"annotations":[]}
+{"type":"before","callId":"twum@47","startTime":3091.31,"class":"Test","method":"pw:api","title":"Fill \"ChangeMe-2026!\"","subtitle":"locator('input[type=\"password\"]')","params":{"locator":"locator('input[type=\"password\"]')","value":"ChangeMe-2026!"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":19,"column":14}]}
+{"type":"after","callId":"twum@47","endTime":3108.786,"annotations":[]}
+{"type":"before","callId":"twum@49","startTime":3110.973,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Se connecter' })","params":{"locator":"getByRole('button', { name: 'Se connecter' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":20,"column":60}]}
+{"type":"after","callId":"twum@49","endTime":3424.134,"annotations":[]}
+{"type":"before","callId":"twum@51","startTime":3427.358,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":21,"column":22}]}
+{"type":"after","callId":"twum@51","endTime":3451.176,"annotations":[]}
+{"type":"before","callId":"twum@53","startTime":3451.793,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/logements","params":{"url":"/hote/logements"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":23,"column":14}]}
+{"type":"after","callId":"twum@53","endTime":3654.646,"annotations":[]}
+{"type":"before","callId":"twum@55","startTime":3655.716,"class":"Test","method":"pw:api","title":"Fill \"avis-e2e-1793093407651\"","subtitle":"locator('input[name=\"code\"]')","params":{"locator":"locator('input[name=\"code\"]')","value":"avis-e2e-1793093407651"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":24,"column":14}]}
+{"type":"after","callId":"twum@55","endTime":3762.16,"annotations":[]}
+{"type":"before","callId":"twum@57","startTime":3762.966,"class":"Test","method":"pw:api","title":"Fill \"Logement Avis E2E 1793093407651\"","subtitle":"locator('input[name=\"nom\"]')","params":{"locator":"locator('input[name=\"nom\"]')","value":"Logement Avis E2E 1793093407651"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":25,"column":14}]}
+{"type":"after","callId":"twum@57","endTime":3825.969,"annotations":[]}
+{"type":"before","callId":"twum@59","startTime":3826.618,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Créer le logement' })","params":{"locator":"getByRole('button', { name: 'Créer le logement' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":26,"column":65}]}
+{"type":"after","callId":"twum@59","endTime":4374.449,"annotations":[]}
+{"type":"before","callId":"twum@61","startTime":4375.173,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Logement « avis-e2e-1793093407651 » créé.')","params":{"locator":"getByText('Logement « avis-e2e-1793093407651 » créé.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":27,"column":62}]}
+{"type":"after","callId":"twum@61","endTime":4514.636,"annotations":[]}
+{"type":"before","callId":"twum@63","startTime":4515.523,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/onboarding","params":{"url":"/hote/onboarding"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":29,"column":14}]}
+{"type":"after","callId":"twum@63","endTime":4737.27,"annotations":[]}
+{"type":"before","callId":"twum@65","startTime":4737.97,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('link', { name: 'Logement Avis E2E 1793093407651', exact: true })","params":{"locator":"getByRole('link', { name: 'Logement Avis E2E 1793093407651', exact: true })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":30,"column":68}]}
+{"type":"after","callId":"twum@65","endTime":5027.915,"annotations":[]}
+{"type":"before","callId":"twum@67","startTime":5028.324,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":31,"column":22}]}
+{"type":"after","callId":"twum@67","endTime":5120.622,"annotations":[]}
+{"type":"before","callId":"twum@69","startTime":5121.622,"class":"Test","method":"pw:api","title":"Check","subtitle":"getByRole('checkbox', { name: /Règlement, PV et accord du syndic/ })","params":{"locator":"getByRole('checkbox', { name: /Règlement, PV et accord du syndic/ })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":34,"column":6}]}
+{"type":"after","callId":"twum@69","endTime":5216.289,"annotations":[]}
+{"type":"before","callId":"twum@71","startTime":5216.848,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Enregistrer', exact: true })","params":{"locator":"getByRole('button', { name: 'Enregistrer', exact: true })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":35,"column":72}]}
+{"type":"after","callId":"twum@71","endTime":5402.796,"annotations":[]}
+{"type":"before","callId":"twum@73","startTime":5403.276,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Vérification copropriété enregistrée.')","params":{"locator":"getByText('Vérification copropriété enregistrée.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":38,"column":5}]}
+{"type":"after","callId":"twum@73","endTime":5482.688,"annotations":[]}
+{"type":"before","callId":"twum@75","startTime":5483.414,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Publier le logement' })","params":{"locator":"getByRole('button', { name: 'Publier le logement' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":39,"column":67}]}
+{"type":"after","callId":"twum@75","endTime":5609.586,"annotations":[]}
+{"type":"before","callId":"twum@77","startTime":5610.169,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Publication mise à jour.')","params":{"locator":"getByText('Publication mise à jour.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":40,"column":60}]}
+{"type":"after","callId":"twum@77","endTime":5772.849,"annotations":[]}
+{"type":"before","callId":"twum@79","startTime":5773.442,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/planning?mois=2026-12","params":{"url":"/hote/planning?mois=2026-12"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":42,"column":14}]}
+{"type":"after","callId":"twum@79","endTime":6224.241,"annotations":[]}
+{"type":"before","callId":"twum@81","startTime":6225.092,"class":"Test","method":"pw:api","title":"Wait for load state \"networkidle\"","params":{},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":43,"column":14}]}
+{"type":"after","callId":"twum@81","endTime":6940.378,"annotations":[]}
+{"type":"before","callId":"twum@85","startTime":6940.932,"class":"Test","method":"pw:api","title":"Select option","subtitle":"locator('select[name=\"logement\"]')","params":{"locator":"locator('select[name=\"logement\"]')","options":"[Object]"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":44,"column":14}]}
+{"type":"after","callId":"twum@85","endTime":7040.482,"annotations":[]}
+{"type":"before","callId":"twum@87","startTime":7041.358,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Afficher' })","params":{"locator":"getByRole('button', { name: 'Afficher' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":45,"column":56}]}
+{"type":"after","callId":"twum@87","endTime":7127.715,"annotations":[]}
+{"type":"before","callId":"twum@89","startTime":7128.931,"class":"Test","method":"pw:api","title":"Wait for navigation","params":{},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":46,"column":14}]}
+{"type":"after","callId":"twum@89","endTime":7176.272,"annotations":[]}
+{"type":"before","callId":"twum@94","startTime":7176.769,"class":"Test","method":"pw:api","title":"Fill \"resa-avis-1793093407651\"","subtitle":"locator('input[name=\"ref\"]')","params":{"locator":"locator('input[name=\"ref\"]')","value":"resa-avis-1793093407651"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":47,"column":14}]}
+{"type":"after","callId":"twum@94","endTime":7253.338,"annotations":[]}
+{"type":"before","callId":"twum@96","startTime":7254.015,"class":"Test","method":"pw:api","title":"Fill \"Marie Avis 1793093407651\"","subtitle":"locator('input[name=\"clientNom\"]')","params":{"locator":"locator('input[name=\"clientNom\"]')","value":"Marie Avis 1793093407651"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":48,"column":14}]}
+{"type":"after","callId":"twum@96","endTime":7305.263,"annotations":[]}
+{"type":"before","callId":"twum@98","startTime":7305.946,"class":"Test","method":"pw:api","title":"Fill \"2026-12-10\"","subtitle":"locator('input[name=\"debut\"]')","params":{"locator":"locator('input[name=\"debut\"]')","value":"2026-12-10"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":49,"column":14}]}
+{"type":"after","callId":"twum@98","endTime":7366.809,"annotations":[]}
+{"type":"before","callId":"twum@100","startTime":7367.386,"class":"Test","method":"pw:api","title":"Fill \"2026-12-14\"","subtitle":"locator('input[name=\"fin\"]')","params":{"locator":"locator('input[name=\"fin\"]')","value":"2026-12-14"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":50,"column":14}]}
+{"type":"after","callId":"twum@100","endTime":7419.197,"annotations":[]}
+{"type":"before","callId":"twum@102","startTime":7419.845,"class":"Test","method":"pw:api","title":"Fill \"600\"","subtitle":"locator('input[name=\"montantEuros\"]')","params":{"locator":"locator('input[name=\"montantEuros\"]')","value":"600"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":51,"column":14}]}
+{"type":"after","callId":"twum@102","endTime":7480.635,"annotations":[]}
+{"type":"before","callId":"twum@104","startTime":7481.139,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Créer la réservation' })","params":{"locator":"getByRole('button', { name: 'Créer la réservation' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":52,"column":68}]}
+{"type":"after","callId":"twum@104","endTime":7761.872,"annotations":[]}
+{"type":"before","callId":"twum@106","startTime":7762.31,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Réservation resa-avis-1793093407651 créée')","params":{"locator":"getByText('Réservation resa-avis-1793093407651 créée')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":53,"column":64}]}
+{"type":"after","callId":"twum@106","endTime":17845.122,"annotations":[],"error":{"name":"","message":"Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Réservation resa-avis-1793093407651 créée')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Réservation resa-avis-1793093407651 créée') with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Réservation resa-avis-1793093407651 créée')\u001b[22m\n","stack":"Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Réservation resa-avis-1793093407651 créée')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Réservation resa-avis-1793093407651 créée') with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Réservation resa-avis-1793093407651 créée')\u001b[22m\n\n    at C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts:53:64"}}
+{"type":"error","message":"Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Réservation resa-avis-1793093407651 créée')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Réservation resa-avis-1793093407651 créée') with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Réservation resa-avis-1793093407651 créée')\u001b[22m\n","stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":53,"column":64}]}
+{"type":"before","callId":"twum@108","startTime":17845.537,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"twum@109","parentId":"twum@108","startTime":17846.076,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"twum@109","endTime":17846.176,"annotations":[]}
+{"type":"before","callId":"twum@110","parentId":"twum@108","startTime":17846.329,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"twum@116","parentId":"twum@110","startTime":18238.528,"class":"Test","method":"pw:api","title":"Close context","params":{},"stack":[]}
+{"type":"after","callId":"twum@116","endTime":18257.231,"annotations":[]}
+{"type":"after","callId":"twum@110","endTime":18257.274,"annotations":[]}
+{"type":"before","callId":"twum@123","startTime":18260.647,"class":"Test","method":"test.attach","title":"Attach \"error-context\"","params":{},"stack":[]}
+{"type":"after","callId":"twum@123","endTime":18260.655,"attachments":[{"name":"error-context","contentType":"text/markdown","file":"attachments/60d097d5bac16eb734758fd975cf5a29cbf7a9c0"}]}
+{"type":"before","callId":"twum@126","parentId":"twum@108","startTime":18261.132,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@126","endTime":18261.143,"annotations":[]}
+{"type":"before","callId":"twum@127","parentId":"twum@108","startTime":18261.151,"class":"Test","method":"fixture","title":"Fixture \"userAgent\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@127","endTime":18261.158,"annotations":[]}
+{"type":"before","callId":"twum@129","parentId":"twum@108","startTime":18261.296,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@129","endTime":18261.306,"annotations":[]}
+{"type":"before","callId":"twum@131","parentId":"twum@108","startTime":18261.441,"class":"Test","method":"fixture","title":"Fixture \"screen\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@131","endTime":18261.449,"annotations":[]}
+{"type":"before","callId":"twum@138","parentId":"twum@108","startTime":18262.154,"class":"Test","method":"fixture","title":"Fixture \"isMobile\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@138","endTime":18262.16,"annotations":[]}
+{"type":"before","callId":"twum@142","parentId":"twum@108","startTime":18262.626,"class":"Test","method":"fixture","title":"Fixture \"hasTouch\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@142","endTime":18262.635,"annotations":[]}
+{"type":"before","callId":"twum@145","parentId":"twum@108","startTime":18262.983,"class":"Test","method":"fixture","title":"Fixture \"deviceScaleFactor\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@145","endTime":18262.992,"annotations":[]}
+{"type":"after","callId":"twum@108","endTime":18265.026,"annotations":[]}
+{"type":"before","callId":"twum@152","startTime":18265.209,"class":"Test","method":"hook","title":"Worker Cleanup","params":{},"stack":[]}
+{"type":"before","callId":"twum@157","parentId":"twum@152","startTime":18266.059,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"after","callId":"twum@157","endTime":18702.259,"annotations":[]}
+{"type":"before","callId":"twum@162","parentId":"twum@152","startTime":18702.895,"class":"Test","method":"fixture","title":"Fixture \"defaultBrowserType\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@162","endTime":18702.91,"annotations":[]}
+{"type":"before","callId":"twum@166","parentId":"twum@152","startTime":18703.432,"class":"Test","method":"fixture","title":"Fixture \"channel\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@166","endTime":18703.445,"annotations":[]}
+{"type":"before","callId":"twum@167","parentId":"twum@152","startTime":18703.451,"class":"Test","method":"fixture","title":"Fixture \"headless\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"twum@167","endTime":18703.459,"annotations":[]}
+{"type":"after","callId":"twum@152","endTime":18703.671,"annotations":[]}

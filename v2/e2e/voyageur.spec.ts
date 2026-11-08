@@ -111,6 +111,7 @@ test("voyageur : lien signé, incident sans JS, idempotence et outbox", async ({
 
   // 3. Outbox : hors ligne, mise en attente, rejeu au retour réseau.
   const jsContext = await browser.newContext({
+    javaScriptEnabled: true,
     viewport: { width: 390, height: 844 },
   });
   const jsPage = await jsContext.newPage();

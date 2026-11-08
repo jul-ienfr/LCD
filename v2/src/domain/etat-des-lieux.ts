@@ -114,6 +114,12 @@ export function validerConstat(input: {
   };
 }
 
+export function estBrouillon(etat: EtatDesLieux): boolean {
+  return etat.lignes.some(
+    (ligne) => !ligne.manquant && ligne.etatConstate === null,
+  );
+}
+
 export function analyserEtatDesLieux(
   lignes: readonly LigneEtatDesLieux[],
 ): AnalyseEtatDesLieux {

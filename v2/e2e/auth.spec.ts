@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@lcd.test";
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe-2026!";
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4173";
 const PRESTA_EMAIL = process.env.SEED_PRESTA_EMAIL ?? "presta@lcd.test";
 const PRESTA_PASSWORD =
   process.env.SEED_PRESTA_PASSWORD ?? "ChangeMe-2026!";

@@ -11,6 +11,7 @@ export interface FacturXOptions {
   vendeurSiren?: string | null;
   tauxTvaBp: number;
   mentionsLegales?: string | null;
+  mediation?: string | null;
 }
 
 function echapperXml(valeur: string): string {
@@ -97,6 +98,14 @@ export function genererFacturXXml(
 `
     : "";
 
+  const mediation = options.mediation?.trim()
+    ? `      <ram:IncludedNote>
+        <ram:Subject>Médiation de la consommation</ram:Subject>
+        <ram:Content>${echapperXml(options.mediation.trim())}</ram:Content>
+      </ram:IncludedNote>
+`
+    : "";
+
   const echeance = facture.echeance
     ? `      <ram:SpecifiedTradePaymentTerms>
         <ram:DueDateDateTime>
@@ -130,7 +139,7 @@ export function genererFacturXXml(
     <ram:IssueDateTime>
       <udt:DateTimeString format="102">${date102(facture.dateEmission)}</udt:DateTimeString>
     </ram:IssueDateTime>
-${note}${mentions}  </rsm:ExchangedDocument>
+${note}${mentions}${mediation}  </rsm:ExchangedDocument>
   <rsm:SupplyChainTradeTransaction>
 ${lignes}
     <ram:ApplicableHeaderTradeAgreement>

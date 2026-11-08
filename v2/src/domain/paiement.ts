@@ -28,7 +28,10 @@ export const LIBELLES_MODE_PAIEMENT: Record<ModePaiement, string> = {
 export interface Paiement {
   id: string;
   tenantId: string;
-  factureId: string;
+  factureId: string | null;
+  reservationId: string | null;
+  echeanceId: string | null;
+  externalId: string | null;
   ref: string;
   montantCentimes: Centimes;
   mode: ModePaiement;

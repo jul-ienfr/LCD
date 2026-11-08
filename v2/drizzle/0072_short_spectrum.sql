@@ -1,0 +1,1 @@
+ALTER TABLE "restrictions_sejour" ADD COLUMN "stop_sell" boolean;

@@ -33,4 +33,10 @@ export interface ReservationRepository {
   ): Promise<Reservation | null>;
   trouverParRef(tenantId: string, ref: string): Promise<Reservation | null>;
   listerTous(tenantId: string): Promise<Reservation[]>;
+  confirmerDepart(
+    tenantId: string,
+    id: string,
+    note: string | null,
+  ): Promise<Reservation | null>;
+  annuler(tenantId: string, id: string): Promise<Reservation | null>;
 }

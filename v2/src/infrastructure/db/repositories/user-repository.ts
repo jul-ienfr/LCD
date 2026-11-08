@@ -19,6 +19,7 @@ function versDomaine(row: typeof users.$inferSelect): UtilisateurTenant {
     name: row.name,
     role: row.role,
     actif: row.actif,
+    rcExpireLe: row.rcExpireLe,
   };
 }
 
@@ -226,8 +227,7 @@ export class DrizzleUserRepository implements UserRepository {
   async supprimerDeuxFacteurs(
     tenantId: string,
     id: string,
-  ): Promise<boolean> {
-    return withTenant(tenantId, async (tx) => {
+  ): Promise<boolean> {    return withTenant(tenantId, async (tx) => {
       const [utilisateur] = await tx
         .select({ id: users.id })
         .from(users)
@@ -245,5 +245,19 @@ export class DrizzleUserRepository implements UserRepository {
       await tx.delete(session).where(eq(session.userId, id));
       return true;
     });
+  }
+
+  async definirRcExpireLe(
+    tenantId: string,
+    id: string,
+    rcExpireLe: string | null,
+  ): Promise<UtilisateurTenant | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(users)
+        .set({ rcExpireLe, updatedAt: new Date() })
+        .where(and(eq(users.tenantId, tenantId), eq(users.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
   }
 }

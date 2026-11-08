@@ -1,9 +1,12 @@
-import type { Caution, StatutCaution } from "@/domain/caution";
+import type { Caution, ModeCaution, StatutCaution } from "@/domain/caution";
 
 export interface CreerCautionData {
   tenantId: string;
   reservationId: string;
   montantCentimes: number;
+  mode?: ModeCaution;
+  empreinteId?: string | null;
+  empreinteStatut?: string | null;
   notes?: string | null;
 }
 
@@ -32,5 +35,15 @@ export interface CautionRepository {
     tenantId: string,
     id: string,
     data: ChangerStatutCautionData,
+  ): Promise<Caution | null>;
+  enregistrerEmpreinte(
+    tenantId: string,
+    id: string,
+    data: { empreinteId: string; empreinteStatut: string },
+  ): Promise<Caution | null>;
+  enregistrerCapture(
+    tenantId: string,
+    id: string,
+    data: { montantCaptureCentimes: number; empreinteStatut: string },
   ): Promise<Caution | null>;
 }

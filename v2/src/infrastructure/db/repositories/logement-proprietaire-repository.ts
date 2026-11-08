@@ -24,6 +24,7 @@ function versDomaine(row: typeof logements.$inferSelect): Logement {
     guideTexte: row.guideTexte ?? undefined,
     coproVerifiee: row.coproVerifiee,
     coproVerifieeLe: row.coproVerifieeLe ?? undefined,
+    strategiePrix: row.strategiePrix as Logement["strategiePrix"],
     publication: row.publication as Logement["publication"],
     statut: row.statut as Logement["statut"],
     createdAt: row.createdAt,
@@ -65,6 +66,8 @@ export class DrizzleLogementProprietaireRepository
           logementId: logementProprietaires.logementId,
           userId: logementProprietaires.userId,
           commissionBp: logementProprietaires.commissionBp,
+          chargesMensuellesCentimes:
+            logementProprietaires.chargesMensuellesCentimes,
           mode: logementProprietaires.mode,
           statut: logementProprietaires.statut,
           dateDebut: logementProprietaires.dateDebut,
@@ -95,6 +98,7 @@ export class DrizzleLogementProprietaireRepository
           logementId,
           userId,
           commissionBp: data.commissionBp,
+          chargesMensuellesCentimes: data.chargesMensuellesCentimes,
           mode: data.mode,
           statut: data.statut,
           dateDebut: data.dateDebut,
@@ -109,6 +113,7 @@ export class DrizzleLogementProprietaireRepository
           ],
           set: {
             commissionBp: data.commissionBp,
+            chargesMensuellesCentimes: data.chargesMensuellesCentimes,
             mode: data.mode,
             statut: data.statut,
             dateDebut: data.dateDebut,

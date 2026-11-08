@@ -39,7 +39,10 @@ test("réservation directe : tarifs, devis, demande et espace séjour", async ({
   await page.goto("/hote/prix?mois=2027-02");
   await page.selectOption('select[name="logement"]', { label: nom });
   await page.getByRole("button", { name: "Afficher" }).click();
-  await expect(page.getByText(nom, { exact: false }).first()).toBeVisible();
+  await page.waitForURL(/logement=/);
+  await expect(
+    page.getByText(nom, { exact: false }).filter({ visible: true }).first(),
+  ).toBeVisible();
 
   for (const [date, prix] of [
     ["2027-02-01", "100"],

@@ -1,6 +1,8 @@
 import nodemailer from "nodemailer";
 import type { EmailSender } from "@/application/ports/email";
+import { habillerEmail, paletteEmail, themeResolu } from "@/lib/apparence";
 import { env } from "@/lib/env";
+import { lireApparencePubliee } from "@/lib/server/apparence";
 
 /**
  * Adapter SMTP : Mailpit en dev, Brevo/OVH/Scaleway en production.
@@ -27,16 +29,24 @@ export function creerEmailSmtp(): EmailSender {
     connectionTimeout: 10_000,
     greetingTimeout: 20_000,
     socketTimeout: 30_000,
+    pool: true,
+    maxConnections: 2,
+    maxMessages: 100,
   });
 
   return {
     async envoyer(message): Promise<void> {
+      const apparence = await lireApparencePubliee();
+      const palette = paletteEmail(
+        themeResolu(apparence),
+        apparence.identite.nom,
+      );
       await transport.sendMail({
         from: env.EMAIL_FROM,
         to: message.to,
         subject: message.subject,
         text: message.text,
-        html: message.html,
+        html: message.html ?? habillerEmail(message.text, palette),
         replyTo: message.replyTo,
         attachments: message.attachments?.map((piece) => ({
           filename: piece.filename,

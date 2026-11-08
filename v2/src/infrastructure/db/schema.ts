@@ -1,3 +1,5 @@
+import { sql } from "drizzle-orm";
+import type { LanguePublique, SeoPage } from "@/domain/page-publique";
 import {
   boolean,
   date,
@@ -30,6 +32,11 @@ export const tenants = pgTable(
     adresse: text("adresse"),
     mentionsLegales: text("mentions_legales"),
     statut: text("statut").notNull().default("actif"),
+    ventesSuspendues: boolean("ventes_suspendues").notNull().default(false),
+    ventesSuspenduesMotif: text("ventes_suspendues_motif"),
+    ventesSuspenduesLe: timestamp("ventes_suspendues_le", {
+      withTimezone: true,
+    }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -59,6 +66,7 @@ export const users = pgTable(
     twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
     role: text("role").notNull().default("operateur"),
     actif: boolean("actif").notNull().default(true),
+    rcExpireLe: date("rc_expire_le", { mode: "string" }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -92,7 +100,10 @@ export const logements = pgTable(
     guideTexte: text("guide_texte"),
     coproVerifiee: boolean("copro_verifiee").notNull().default(false),
     coproVerifieeLe: timestamp("copro_verifiee_le", { withTimezone: true }),
+    cutoffJours: integer("cutoff_jours").notNull().default(0),
+  bufferJours: integer("buffer_jours").notNull().default(0),
     publication: text("publication").notNull().default("brouillon"),
+    strategiePrix: text("strategie_prix").notNull().default("equilibre"),
     statut: text("statut").notNull().default("actif"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -127,6 +138,11 @@ export const reservations = pgTable(
     statut: text("statut").notNull().default("brouillon"),
     montantCentimes: integer("montant_centimes").notNull().default(0),
     source: text("source").notNull().default("direct"),
+    departConfirmeLe: timestamp("depart_confirme_le", { withTimezone: true }),
+    departNote: text("depart_note"),
+    fluxIcsId: uuid("flux_ics_id").references(() => fluxIcs.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -139,6 +155,7 @@ export const reservations = pgTable(
     uniqueIndex("reservations_tenant_ref_uq").on(t.tenantId, t.ref),
     index("reservations_tenant_debut_idx").on(t.tenantId, t.debut),
     index("reservations_logement_idx").on(t.logementId, t.debut, t.fin),
+    index("reservations_flux_ics_idx").on(t.fluxIcsId),
   ],
 );
 
@@ -157,6 +174,9 @@ export const blocages = pgTable(
     fin: text("fin").notNull(),
     source: text("source").notNull().default("import-ics"),
     motif: text("motif"),
+    fluxIcsId: uuid("flux_ics_id").references(() => fluxIcs.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -173,6 +193,176 @@ export const blocages = pgTable(
       t.debut,
       t.fin,
     ),
+    index("blocages_flux_ics_idx").on(t.fluxIcsId),
+  ],
+);
+
+export const canaux = pgTable(
+  "canaux",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    libelle: text("libelle").notNull(),
+    cle: text("cle").notNull(),
+    externalListingId: text("external_listing_id"),
+    actif: boolean("actif").notNull().default(true),
+    exportActif: boolean("export_actif").notNull().default(true),
+    bufferJours: integer("buffer_jours").notNull().default(0),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("canaux_tenant_logement_cle_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.cle,
+    ),
+    index("canaux_tenant_logement_idx").on(t.tenantId, t.logementId),
+  ],
+);
+
+// Registre plateforme des fournisseurs de channel manager. Aucun tenant_id :
+// seul le super-admin active ou désactive un fournisseur pour toute la plateforme.
+export const fournisseursCanaux = pgTable("fournisseurs_canaux", {
+  code: text("code").primaryKey(),
+  actif: boolean("actif").notNull().default(false),
+  ordre: integer("ordre").notNull().default(100),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+  updatedBy: text("updated_by"),
+});
+
+// Fournisseur réellement utilisé pour un logement. Un seul fournisseur actif
+// par logement ; le super-admin peut le changer sans toucher aux canaux iCal.
+export const logementsFournisseurs = pgTable(
+  "logements_fournisseurs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    fournisseurCode: text("fournisseur_code")
+      .notNull()
+      .references(() => fournisseursCanaux.code, { onDelete: "restrict" }),
+    externalPropertyId: text("external_property_id"),
+    externalRoomTypeId: text("external_room_type_id"),
+    externalRatePlanId: text("external_rate_plan_id"),
+    actif: boolean("actif").notNull().default(true),
+    derniereSync: timestamp("derniere_sync", { withTimezone: true }),
+    dernierStatut: text("dernier_statut"),
+    dernierMessage: text("dernier_message"),
+    derniereEmpreinte: text("derniere_empreinte"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("logements_fournisseurs_logement_uq").on(t.logementId),
+    uniqueIndex("logements_fournisseurs_externe_uq").on(
+      t.fournisseurCode,
+      t.externalPropertyId,
+    ),
+    index("logements_fournisseurs_tenant_idx").on(t.tenantId),
+    index("logements_fournisseurs_code_idx").on(t.fournisseurCode),
+  ],
+);
+
+export const demandesSync = pgTable(
+  "demandes_sync",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    revision: integer("revision").notNull().default(1),
+    tentatives: integer("tentatives").notNull().default(0),
+    disponibleA: timestamp("disponible_a", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    derniereErreur: text("derniere_erreur"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("demandes_sync_tenant_logement_uq").on(
+      t.tenantId,
+      t.logementId,
+    ),
+    index("demandes_sync_disponible_idx").on(t.disponibleA),
+    index("demandes_sync_tenant_idx").on(t.tenantId),
+  ],
+);
+
+// Journal des événements reçus d'un fournisseur de distribution (webhook,
+// erreur de push…). Il sert à l'audit et au rejeu, jamais à l'état métier :
+// la réservation reste la source de vérité.
+export const evenementsCanal = pgTable(
+  "evenements_canal",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementFournisseurId: uuid("logement_fournisseur_id")
+      .notNull()
+      .references(() => logementsFournisseurs.id, { onDelete: "cascade" }),
+    fournisseurCode: text("fournisseur_code")
+      .notNull()
+      .references(() => fournisseursCanaux.code, { onDelete: "restrict" }),
+    type: text("type").notNull(),
+    externalId: text("external_id"),
+    cleIdempotence: text("cle_idempotence").notNull(),
+    payload: jsonb("payload")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    statut: text("statut").notNull().default("recu"),
+    message: text("message"),
+    traiteAt: timestamp("traite_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("evenements_canal_cle_uq").on(t.cleIdempotence),
+    index("evenements_canal_tenant_date_idx").on(t.tenantId, t.createdAt),
+    index("evenements_canal_mapping_date_idx").on(
+      t.logementFournisseurId,
+      t.createdAt,
+    ),
+    index("evenements_canal_code_date_idx").on(
+      t.fournisseurCode,
+      t.createdAt,
+    ),
   ],
 );
 
@@ -186,12 +376,23 @@ export const fluxIcs = pgTable(
     logementId: uuid("logement_id")
       .notNull()
       .references(() => logements.id, { onDelete: "cascade" }),
+    canalId: uuid("canal_id").references(() => canaux.id, {
+      onDelete: "cascade",
+    }),
     libelle: text("libelle").notNull(),
     url: text("url").notNull(),
     actif: boolean("actif").notNull().default(true),
+    intervalleMinutes: integer("intervalle_minutes").notNull().default(5),
     derniereSync: timestamp("derniere_sync", { withTimezone: true }),
+    derniereTentative: timestamp("derniere_tentative", { withTimezone: true }),
+    prochainEssai: timestamp("prochain_essai", { withTimezone: true }),
     dernierStatut: text("dernier_statut"),
     dernierMessage: text("dernier_message"),
+    echecsConsecutifs: integer("echecs_consecutifs").notNull().default(0),
+    videsConsecutifs: integer("vides_consecutifs").notNull().default(0),
+    etag: text("etag"),
+    derniereModification: text("derniere_modification"),
+    empreinte: text("empreinte"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -206,9 +407,48 @@ export const fluxIcs = pgTable(
       t.logementId,
       t.url,
     ),
+    uniqueIndex("flux_ics_canal_uq").on(t.canalId),
     index("flux_ics_tenant_logement_idx").on(t.tenantId, t.logementId),
+    index("flux_ics_prochain_essai_idx").on(t.actif, t.prochainEssai),
   ],
 );
+
+export const icsSyncRuns = pgTable(
+  "ics_sync_runs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    fluxIcsId: uuid("flux_ics_id")
+      .notNull()
+      .references(() => fluxIcs.id, { onDelete: "cascade" }),
+    debut: timestamp("debut", { withTimezone: true }).notNull().defaultNow(),
+    fin: timestamp("fin", { withTimezone: true }),
+    statut: text("statut").notNull(),
+    statutHttp: integer("statut_http"),
+    dureeMs: integer("duree_ms"),
+    evenements: integer("evenements").notNull().default(0),
+    crees: integer("crees").notNull().default(0),
+    misAJour: integer("mis_a_jour").notNull().default(0),
+    annules: integer("annules").notNull().default(0),
+    deja: integer("deja").notNull().default(0),
+    conflits: integer("conflits").notNull().default(0),
+    ignores: integer("ignores").notNull().default(0),
+    message: text("message"),
+    details: jsonb("details").$type<Record<string, unknown>>(),
+  },
+  (t) => [
+    index("ics_sync_runs_flux_idx").on(t.fluxIcsId, t.debut),
+    index("ics_sync_runs_tenant_idx").on(t.tenantId, t.debut),
+  ],
+);
+
+export const verrousSysteme = pgTable("verrous_systeme", {
+  nom: text("nom").primaryKey(),
+  titulaire: text("titulaire").notNull(),
+  expireLe: timestamp("expire_le", { withTimezone: true }).notNull(),
+});
 
 export const webhooks = pgTable(
   "webhooks",
@@ -277,6 +517,48 @@ export const webhookDeliveries = pgTable(
   ],
 );
 
+export const plansTarifaires = pgTable(
+  "plans_tarifaires",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    nom: text("nom").notNull(),
+    code: text("code").notNull(),
+    externalRatePlanId: text("external_rate_plan_id"),
+    mode: text("mode").notNull().default("independant"),
+    ajustementPourcentage: integer("ajustement_pourcentage")
+      .notNull()
+      .default(0),
+    heriteRestrictions: boolean("herite_restrictions").notNull().default(true),
+    priorite: integer("priorite").notNull().default(0),
+    actif: boolean("actif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("plans_tarifaires_tenant_logement_code_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.code,
+    ),
+    index("plans_tarifaires_tenant_logement_actif_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.actif,
+    ),
+  ],
+);
+
 export const tarifs = pgTable(
   "tarifs",
   {
@@ -287,8 +569,14 @@ export const tarifs = pgTable(
     logementId: uuid("logement_id")
       .notNull()
       .references(() => logements.id, { onDelete: "cascade" }),
+    planTarifaireId: uuid("plan_tarifaire_id").references(
+      () => plansTarifaires.id,
+      { onDelete: "restrict" },
+    ),
     date: date("date", { mode: "string" }).notNull(), // AAAA-MM-JJ
     prixCentimes: integer("prix_centimes").notNull(),
+    prixParPersonneCentimes: integer("prix_par_personne_centimes"),
+    personnesIncluses: integer("personnes_incluses").notNull().default(2),
     source: text("source").notNull().default("manuel"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -299,12 +587,52 @@ export const tarifs = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [
-    uniqueIndex("tarifs_tenant_logement_date_uq").on(
-      t.tenantId,
-      t.logementId,
-      t.date,
-    ),
+    uniqueIndex("tarifs_tenant_logement_date_base_uq")
+      .on(t.tenantId, t.logementId, t.date)
+      .where(sql`${t.planTarifaireId} is null`),
+    uniqueIndex("tarifs_tenant_logement_plan_date_uq")
+      .on(t.tenantId, t.logementId, t.planTarifaireId, t.date)
+      .where(sql`${t.planTarifaireId} is not null`),
     index("tarifs_tenant_date_idx").on(t.tenantId, t.date),
+  ],
+);
+
+export const restrictionsSejour = pgTable(
+  "restrictions_sejour",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    planTarifaireId: uuid("plan_tarifaire_id").references(
+      () => plansTarifaires.id,
+      { onDelete: "restrict" },
+    ),
+    date: date("date", { mode: "string" }).notNull(),
+    sejourMin: integer("sejour_min"),
+    sejourMax: integer("sejour_max"),
+    arriveeAutorisee: boolean("arrivee_autorisee"),
+    departAutorisee: boolean("depart_autorisee"),
+    stopSell: boolean("stop_sell"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("restrictions_sejour_tenant_logement_date_base_uq")
+      .on(t.tenantId, t.logementId, t.date)
+      .where(sql`${t.planTarifaireId} is null`),
+    uniqueIndex("restrictions_sejour_tenant_logement_plan_date_uq")
+      .on(t.tenantId, t.logementId, t.planTarifaireId, t.date)
+      .where(sql`${t.planTarifaireId} is not null`),
+    index("restrictions_sejour_tenant_date_idx").on(t.tenantId, t.date),
   ],
 );
 
@@ -510,6 +838,9 @@ export const logementProprietaires = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     commissionBp: integer("commission_bp").notNull().default(2000),
+    chargesMensuellesCentimes: integer("charges_mensuelles_centimes")
+      .notNull()
+      .default(0),
     mode: text("mode").notNull().default("mandat_tiers"),
     statut: text("statut").notNull().default("actif"),
     dateDebut: date("date_debut", { mode: "string" }),
@@ -616,6 +947,11 @@ export const messagesVoyageur = pgTable(
     contenu: text("contenu").notNull(),
     statut: text("statut").notNull().default("brouillon"),
     envoyeAt: timestamp("envoye_at", { withTimezone: true }),
+    filId: uuid("fil_id"),
+    sens: text("sens").notNull().default("sortant"),
+    externalId: text("external_id"),
+    expediteur: text("expediteur"),
+    luAt: timestamp("lu_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -625,6 +961,214 @@ export const messagesVoyageur = pgTable(
     index("messages_voyageur_tenant_logement_idx").on(
       t.tenantId,
       t.logementId,
+      t.createdAt,
+    ),
+    index("messages_voyageur_tenant_fil_idx").on(
+      t.tenantId,
+      t.filId,
+      t.createdAt,
+    ),
+  ],
+);
+
+export const filsVoyageur = pgTable(
+  "fils_voyageur",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "set null",
+    }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    voyageurNom: text("voyageur_nom").notNull(),
+    voyageurEmail: text("voyageur_email"),
+    voyageurTelephone: text("voyageur_telephone"),
+    langue: text("langue").notNull().default("fr"),
+    cleRegroupement: text("cle_regroupement").notNull(),
+    consentements: jsonb("consentements")
+      .$type<{ email: boolean; sms: boolean; whatsapp: boolean }>()
+      .notNull()
+      .default({ email: true, sms: false, whatsapp: false }),
+    statut: text("statut").notNull().default("ouvert"),
+    dernierMessageAt: timestamp("dernier_message_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("fils_voyageur_tenant_cle_uq").on(t.tenantId, t.cleRegroupement),
+    index("fils_voyageur_tenant_statut_idx").on(
+      t.tenantId,
+      t.statut,
+      t.dernierMessageAt,
+    ),
+    index("fils_voyageur_tenant_logement_idx").on(t.tenantId, t.logementId),
+  ],
+);
+
+export const piecesJointesMessage = pgTable(
+  "pieces_jointes_message",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => messagesVoyageur.id, { onDelete: "cascade" }),
+    nomFichier: text("nom_fichier").notNull(),
+    typeMime: text("type_mime").notNull(),
+    tailleOctets: integer("taille_octets").notNull(),
+    cleStockage: text("cle_stockage").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("pieces_jointes_message_tenant_message_idx").on(t.tenantId, t.messageId),
+  ],
+);
+
+export const automatisations = pgTable(
+  "automatisations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    libelle: text("libelle").notNull(),
+    declencheur: text("declencheur").notNull(),
+    canal: text("canal").notNull().default("email"),
+    sujet: text("sujet"),
+    modele: text("modele").notNull(),
+    conditions: jsonb("conditions")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    actif: boolean("actif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("automatisations_tenant_code_uq").on(t.tenantId, t.code),
+    index("automatisations_tenant_declencheur_idx").on(
+      t.tenantId,
+      t.declencheur,
+      t.actif,
+    ),
+  ],
+);
+
+export const executionsAutomatisation = pgTable(
+  "executions_automatisation",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    automatisationId: uuid("automatisation_id")
+      .notNull()
+      .references(() => automatisations.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    filId: uuid("fil_id").references(() => filsVoyageur.id, {
+      onDelete: "set null",
+    }),
+    messageId: uuid("message_id").references(() => messagesVoyageur.id, {
+      onDelete: "set null",
+    }),
+    ref: text("ref").notNull(),
+    statut: text("statut").notNull().default("brouillon"),
+    details: jsonb("details")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("executions_automatisation_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("executions_automatisation_tenant_auto_idx").on(
+      t.tenantId,
+      t.automatisationId,
+      t.createdAt,
+    ),
+  ],
+);
+
+export const filsInternes = pgTable(
+  "fils_internes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "set null",
+    }),
+    canal: text("canal").notNull(),
+    sujet: text("sujet").notNull(),
+    statut: text("statut").notNull().default("ouvert"),
+    creePar: text("cree_par").notNull(),
+    dernierMessageAt: timestamp("dernier_message_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("fils_internes_tenant_canal_idx").on(
+      t.tenantId,
+      t.canal,
+      t.dernierMessageAt,
+    ),
+    index("fils_internes_tenant_logement_idx").on(t.tenantId, t.logementId),
+  ],
+);
+
+export const messagesFilsInternes = pgTable(
+  "messages_fils_internes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    filId: uuid("fil_id")
+      .notNull()
+      .references(() => filsInternes.id, { onDelete: "cascade" }),
+    auteurEmail: text("auteur_email").notNull(),
+    auteurRole: text("auteur_role").notNull(),
+    corps: text("corps").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("messages_fils_internes_tenant_fil_idx").on(
+      t.tenantId,
+      t.filId,
       t.createdAt,
     ),
   ],
@@ -833,6 +1377,43 @@ export const relancesFactures = pgTable(
   ],
 );
 
+export const echeancesPaiement = pgTable(
+  "echeances_paiement",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    montantCentimes: integer("montant_centimes").notNull(),
+    exigibleLe: date("exigible_le", { mode: "string" }).notNull(),
+    statut: text("statut").notNull().default("a_payer"),
+    paiementId: uuid("paiement_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("echeances_paiement_reservation_type_uq").on(
+      t.tenantId,
+      t.reservationId,
+      t.type,
+    ),
+    index("echeances_paiement_tenant_statut_idx").on(
+      t.tenantId,
+      t.statut,
+      t.exigibleLe,
+    ),
+  ],
+);
+
 export const paiements = pgTable(
   "paiements",
   {
@@ -840,9 +1421,16 @@ export const paiements = pgTable(
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    factureId: uuid("facture_id")
-      .notNull()
-      .references(() => factures.id, { onDelete: "cascade" }),
+    factureId: uuid("facture_id").references(() => factures.id, {
+      onDelete: "cascade",
+    }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    echeanceId: uuid("echeance_id").references(() => echeancesPaiement.id, {
+      onDelete: "set null",
+    }),
+    externalId: text("external_id"),
     ref: text("ref").notNull(),
     montantCentimes: integer("montant_centimes").notNull(),
     mode: text("mode").notNull().default("virement"),
@@ -879,6 +1467,12 @@ export const cautions = pgTable(
       .notNull()
       .references(() => reservations.id, { onDelete: "cascade" }),
     montantCentimes: integer("montant_centimes").notNull(),
+    mode: text("mode").notNull().default("virement"),
+    empreinteId: text("empreinte_id"),
+    empreinteStatut: text("empreinte_statut"),
+    montantCaptureCentimes: integer("montant_capture_centimes")
+      .notNull()
+      .default(0),
     statut: text("statut").notNull().default("attendue"),
     dateReception: date("date_reception", { mode: "string" }),
     dateRestitution: date("date_restitution", { mode: "string" }),
@@ -1196,6 +1790,56 @@ export const parametresSite = pgTable("parametres_site", {
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
+
+// Apparence globale du site : une seule version publiée, un seul brouillon.
+// Table plateforme (aucun tenant_id) : le super-admin change le thème de tous.
+export const apparenceVersions = pgTable(
+  "apparence_versions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    version: integer("version").notNull(),
+    configuration: jsonb("configuration").notNull(),
+    schemaVersion: integer("schema_version").notNull().default(2),
+    statut: text("statut").notNull().default("archive"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    creePar: text("cree_par").notNull(),
+    publieLe: timestamp("publie_le", { withTimezone: true }),
+    publiePar: text("publie_par"),
+    motif: text("motif"),
+  },
+  (t) => [
+    uniqueIndex("apparence_versions_version_uq").on(t.version),
+    uniqueIndex("apparence_versions_publie_uq")
+      .on(t.statut)
+      .where(sql`${t.statut} = 'publie'`),
+    uniqueIndex("apparence_versions_brouillon_uq")
+      .on(t.statut)
+      .where(sql`${t.statut} = 'brouillon'`),
+  ],
+);
+
+export const configVersions = pgTable(
+  "config_versions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    action: text("action").notNull(),
+    auteurEmail: text("auteur_email").notNull(),
+    lignes: jsonb("lignes").$type<unknown[]>().notNull().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("config_versions_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("config_versions_tenant_created_idx").on(t.tenantId, t.createdAt),
+  ],
+);
 
 export const sinistres = pgTable(
   "sinistres",
@@ -1525,6 +2169,39 @@ export const menageTaches = pgTable(
   ],
 );
 
+export const photosMenage = pgTable(
+  "photos_menage",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    menageId: uuid("menage_id")
+      .notNull()
+      .references(() => menages.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    phase: text("phase").notNull(),
+    chemin: text("chemin").notNull(),
+    contentType: text("content_type").notNull(),
+    tailleOctets: integer("taille_octets").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("photos_menage_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("photos_menage_tenant_menage_idx").on(t.tenantId, t.menageId),
+    index("photos_menage_tenant_logement_created_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.createdAt,
+    ),
+  ],
+);
+
 export const entretiens = pgTable(
   "entretiens",
   {
@@ -1622,6 +2299,8 @@ export const etatDesLieuxLignes = pgTable(
 );
 
 export type ParametreSiteRow = typeof parametresSite.$inferSelect;export type NewParametreSiteRow = typeof parametresSite.$inferInsert;
+export type ApparenceVersionRow = typeof apparenceVersions.$inferSelect;
+export type NewApparenceVersionRow = typeof apparenceVersions.$inferInsert;
 export type ConsommableRow = typeof consommables.$inferSelect;
 export type NewConsommableRow = typeof consommables.$inferInsert;
 export type MouvementStockRow = typeof mouvementsStock.$inferSelect;
@@ -1662,6 +2341,16 @@ export type DispatchRow = typeof dispatches.$inferSelect;
 export type NewDispatchRow = typeof dispatches.$inferInsert;
 export type MessageVoyageurRow = typeof messagesVoyageur.$inferSelect;
 export type NewMessageVoyageurRow = typeof messagesVoyageur.$inferInsert;
+export type FilVoyageurRow = typeof filsVoyageur.$inferSelect;
+export type NewFilVoyageurRow = typeof filsVoyageur.$inferInsert;
+export type PieceJointeMessageRow = typeof piecesJointesMessage.$inferSelect;
+export type NewPieceJointeMessageRow = typeof piecesJointesMessage.$inferInsert;
+export type AutomatisationRow = typeof automatisations.$inferSelect;
+export type NewAutomatisationRow = typeof automatisations.$inferInsert;
+export type ExecutionAutomatisationRow =
+  typeof executionsAutomatisation.$inferSelect;
+export type NewExecutionAutomatisationRow =
+  typeof executionsAutomatisation.$inferInsert;
 export type PreferenceSejourRow = typeof preferencesSejour.$inferSelect;
 export type NewPreferenceSejourRow = typeof preferencesSejour.$inferInsert;
 export type EtatDesLieuxLigneRow = typeof etatDesLieuxLignes.$inferSelect;
@@ -1804,6 +2493,65 @@ export const lignesBanque = pgTable(
   ],
 );
 
+// Compteur anti-bot du login : clé = HMAC(IP + email). Aucune donnée
+// nominative en clair, purgeable sans impact métier. Trois échecs dans la
+// fenêtre déclenchent le CAPTCHA ; Better Auth garde sa propre limite IP.
+export const tentativesConnexion = pgTable(
+  "tentatives_connexion",
+  {
+    cle: text("cle").primaryKey(),
+    echecs: integer("echecs").notNull().default(0),
+    dernierEchec: timestamp("dernier_echec", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    bloqueJusqua: timestamp("bloque_jusqua", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("tentatives_connexion_dernier_idx").on(t.dernierEchec)],
+);
+
+// Double validation humaine (4 yeux) des gestes financiers sensibles :
+// retenue de caution au-delà du seuil, reversement, débit. Le demandeur ne
+// peut jamais approuver sa propre demande ; l'exécution n'a lieu qu'après
+// approbation d'un second compte habilité.
+export const validationsSensibles = pgTable(
+  "validations_sensibles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    cibleId: text("cible_id").notNull(),
+    ref: text("ref").notNull(),
+    montantCentimes: integer("montant_centimes").notNull().default(0),
+    payload: jsonb("payload").notNull().default({}),
+    demandeurId: text("demandeur_id").notNull(),
+    demandeurEmail: text("demandeur_email").notNull(),
+    statut: text("statut").notNull().default("en_attente"),
+    decideurId: text("decideur_id"),
+    decideurEmail: text("decideur_email"),
+    motifDecision: text("motif_decision"),
+    decideLe: timestamp("decide_le", { withTimezone: true }),
+    payeeLe: timestamp("payee_le", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("validations_sensibles_pending_uq")
+      .on(t.tenantId, t.type, t.cibleId)
+      .where(sql`${t.statut} = 'en_attente'`),
+    index("validations_sensibles_tenant_statut_idx").on(
+      t.tenantId,
+      t.statut,
+      t.createdAt,
+    ),
+  ],
+);
+
 export type MissionRow = typeof missions.$inferSelect;
 export type NewMissionRow = typeof missions.$inferInsert;
 export type IncidentRow = typeof incidents.$inferSelect;
@@ -1822,3 +2570,204 @@ export type ImportBanqueRow = typeof importsBanque.$inferSelect;
 export type NewImportBanqueRow = typeof importsBanque.$inferInsert;
 export type LigneBanqueRow = typeof lignesBanque.$inferSelect;
 export type NewLigneBanqueRow = typeof lignesBanque.$inferInsert;
+
+export const sitesTenants = pgTable(
+  "sites_tenants",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    template: text("template").notNull().default("sejour"),
+    langues: jsonb("langues").$type<LanguePublique[]>().notNull().default(["fr"]),
+    seoDefaut: jsonb("seo_defaut").$type<SeoPage>().notNull().default({
+      title: "",
+      description: "",
+      ogImage: null,
+    }),
+    statut: text("statut").notNull().default("brouillon"),
+    publieAt: timestamp("publie_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [uniqueIndex("sites_tenants_tenant_uq").on(t.tenantId)],
+);
+
+export const pagesSite = pgTable(
+  "pages_site",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sitesTenants.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    type: text("type").notNull(),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "cascade",
+    }),
+    template: text("template").notNull().default("sejour"),
+    statut: text("statut").notNull().default("brouillon"),
+    seo: jsonb("seo").$type<SeoPage>().notNull().default({
+      title: "",
+      description: "",
+      ogImage: null,
+    }),
+    langues: jsonb("langues")
+      .$type<Partial<Record<LanguePublique, string>>>()
+      .notNull()
+      .default({}),
+    publieAt: timestamp("publie_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("pages_site_tenant_slug_uq").on(t.tenantId, t.slug),
+    index("pages_site_tenant_site_idx").on(t.tenantId, t.siteId),
+  ],
+);
+
+export const sectionsSite = pgTable(
+  "sections_site",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    pageId: uuid("page_id")
+      .notNull()
+      .references(() => pagesSite.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    position: integer("position").notNull().default(0),
+    contenu: jsonb("contenu")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    visible: boolean("visible").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("sections_site_page_position_idx").on(t.tenantId, t.pageId, t.position)],
+);
+
+export const domaines = pgTable(
+  "domaines",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    domaine: text("domaine").notNull(),
+    statut: text("statut").notNull().default("en_attente"),
+    verificationToken: text("verification_token"),
+    certificatAt: timestamp("certificat_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("domaines_domaine_uq").on(t.domaine),
+    index("domaines_tenant_idx").on(t.tenantId),
+  ],
+);
+
+export const promotions = pgTable(
+  "promotions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "cascade",
+    }),
+    type: text("type").notNull(),
+    valeur: integer("valeur").notNull(),
+    code: text("code"),
+    conditions: jsonb("conditions")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    actif: boolean("actif").notNull().default(true),
+    debutAt: timestamp("debut_at", { withTimezone: true }),
+    finAt: timestamp("fin_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("promotions_tenant_code_uq").on(t.tenantId, t.code),
+    index("promotions_tenant_actif_idx").on(t.tenantId, t.actif),
+  ],
+);
+
+export const demandesSejour = pgTable(
+  "demandes_sejour",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    logementId: uuid("logement_id").references(() => logements.id, {
+      onDelete: "set null",
+    }),
+    nom: text("nom").notNull(),
+    email: text("email").notNull(),
+    telephone: text("telephone"),
+    arrivee: date("arrivee", { mode: "string" }),
+    depart: date("depart", { mode: "string" }),
+    voyageurs: integer("voyageurs").notNull().default(1),
+    message: text("message"),
+    statut: text("statut").notNull().default("nouvelle"),
+    motifRefus: text("motif_refus"),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    source: text("source").notNull().default("site"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("demandes_sejour_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("demandes_sejour_tenant_statut_idx").on(
+      t.tenantId,
+      t.statut,
+      t.createdAt,
+    ),
+  ],
+);
+
+export type SiteTenantRow = typeof sitesTenants.$inferSelect;
+export type NewSiteTenantRow = typeof sitesTenants.$inferInsert;
+export type PageSiteRow = typeof pagesSite.$inferSelect;
+export type NewPageSiteRow = typeof pagesSite.$inferInsert;
+export type SectionSiteRow = typeof sectionsSite.$inferSelect;
+export type NewSectionSiteRow = typeof sectionsSite.$inferInsert;
+export type DomaineRow = typeof domaines.$inferSelect;
+export type NewDomaineRow = typeof domaines.$inferInsert;
+export type PromotionRow = typeof promotions.$inferSelect;
+export type NewPromotionRow = typeof promotions.$inferInsert;
+export type DemandeSejourRow = typeof demandesSejour.$inferSelect;

@@ -1,0 +1,1 @@
+ALTER TABLE "logement_proprietaires" ADD COLUMN "charges_mensuelles_centimes" integer DEFAULT 0 NOT NULL;

@@ -15,8 +15,25 @@ export interface CreerEtatDesLieuxData {
   lignes: LigneEtatDesLieux[];
 }
 
+export interface ConstatLigneData {
+  qr: string;
+  etatConstate: LigneEtatDesLieux["etatConstate"];
+  manquant: boolean;
+  commentaire: string;
+}
+
+export interface MettreAJourEtatDesLieuxData {
+  notes: string;
+  lignes: ConstatLigneData[];
+}
+
 export interface EtatsDesLieuxRepository {
   creer(data: CreerEtatDesLieuxData): Promise<EtatDesLieux>;
+  mettreAJour(
+    tenantId: string,
+    id: string,
+    data: MettreAJourEtatDesLieuxData,
+  ): Promise<EtatDesLieux | null>;
   trouverParRef(tenantId: string, ref: string): Promise<EtatDesLieux | null>;
   trouverParId(tenantId: string, id: string): Promise<EtatDesLieux | null>;
   listerParTenant(tenantId: string): Promise<EtatDesLieux[]>;

@@ -34,6 +34,16 @@ export function datesMandatValides(
   return true;
 }
 
+export const CHARGES_MENSUELLES_MAX_CENTIMES = 1_000_000;
+
+export function chargesMensuellesValides(montantCentimes: number): boolean {
+  return (
+    Number.isInteger(montantCentimes) &&
+    montantCentimes >= 0 &&
+    montantCentimes <= CHARGES_MENSUELLES_MAX_CENTIMES
+  );
+}
+
 export function notesMandatValides(
   notes: string | null | undefined,
 ): boolean {

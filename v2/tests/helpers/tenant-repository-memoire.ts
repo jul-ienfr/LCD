@@ -41,4 +41,18 @@ export class TenantRepositoryMemoire implements TenantRepository {
     tenant.updatedAt = new Date();
     return tenant;
   }
+
+  async suspendreVentes(
+    tenantId: string,
+    suspendues: boolean,
+    motif: string | null,
+  ): Promise<Tenant | null> {
+    const tenant = await this.trouver(tenantId);
+    if (!tenant) return null;
+    tenant.ventesSuspendues = suspendues;
+    tenant.ventesSuspenduesMotif = suspendues ? motif : null;
+    tenant.ventesSuspenduesLe = suspendues ? new Date() : null;
+    tenant.updatedAt = new Date();
+    return tenant;
+  }
 }

@@ -1,5 +1,6 @@
 import type { Facture } from "@/domain/facture";
 import { genererFacturXXml } from "@/domain/factur-x";
+import { mediateurDepuisEnv, mentionMediation } from "@/domain/mediation";
 import { resteAPayer, totalPaiements } from "@/domain/paiement";
 import { ObtenirParametresFiscaux } from "@/application/use-cases/parametres-fiscaux";
 import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
@@ -8,6 +9,9 @@ import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paie
 import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
 import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
 import { genererPdfFacture } from "./pdf-facture";
+import { themeResolu } from "@/lib/apparence";
+import { env } from "@/lib/env";
+import { lireApparencePubliee } from "@/lib/server/apparence";
 
 export interface DocumentFacture {
   facture: Facture;
@@ -40,12 +44,20 @@ export async function chargerDocumentFacture(
     new DrizzlePaiementRepository().listerParFacture(tenantId, factureId),
   ]);
 
+  const mediation = mentionMediation(
+    mediateurDepuisEnv({
+      nom: env.MEDIATEUR_NOM,
+      url: env.MEDIATEUR_URL,
+      adresse: env.MEDIATEUR_ADRESSE,
+    }),
+  );
   const xml = genererFacturXXml(facture, {
     vendeurNom: tenant?.nom ?? "LCD Parc",
     vendeurAdresse: tenant?.adresse ?? logement?.adresse ?? null,
     vendeurSiren: tenant?.siren ?? null,
     tauxTvaBp: fiscal.tauxTvaBp,
     mentionsLegales: fiscal.mentionsLegales ?? tenant?.mentionsLegales ?? null,
+    mediation,
   });
 
   const pdf = await genererPdfFacture(facture, {
@@ -60,6 +72,8 @@ export async function chargerDocumentFacture(
         ? 0
         : resteAPayer(facture.montantTtcCentimes, paiements),
     mentionsLegales: fiscal.mentionsLegales ?? tenant?.mentionsLegales ?? null,
+    mediation,
+    couleurAccent: themeResolu(await lireApparencePubliee()).clair.accent,
   });
 
   return { facture, pdf };

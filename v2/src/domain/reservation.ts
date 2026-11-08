@@ -22,6 +22,23 @@ export interface Reservation {
   statut: StatutReservation;
   montantCentimes: number;
   source: string;
+  fluxIcsId: string | null;
+  departConfirmeLe: Date | null;
+  departNote: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** Étapes minimales du check-out, dans l'ordre affiché au voyageur. */
+export const ETAPES_DEPART = [
+  "poubelles",
+  "vaisselle",
+  "fenetres",
+  "cles",
+] as const;
+
+export type EtapeDepart = (typeof ETAPES_DEPART)[number];
+
+export function checklistDepartComplete(valeurs: readonly string[]): boolean {
+  return ETAPES_DEPART.every((etape) => valeurs.includes(etape));
 }

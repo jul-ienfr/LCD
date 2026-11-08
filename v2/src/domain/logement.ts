@@ -1,4 +1,5 @@
 import type { Reservation } from "./reservation";
+import type { StrategiePrix } from "./strategie-prix";
 import type { TenantId } from "./tenant";
 
 export type LogementId = string;
@@ -20,6 +21,9 @@ export interface Logement {
   guideTexte?: string;
   coproVerifiee: boolean;
   coproVerifieeLe?: Date;
+  cutoffJours?: number;
+  bufferJours?: number;
+  strategiePrix: StrategiePrix;
   publication: PublicationLogement;
   statut: StatutLogement;
   createdAt: Date;

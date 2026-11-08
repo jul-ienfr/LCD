@@ -1,0 +1,113 @@
+{"version":10,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.64.1","options":{},"platform":"win32","wallTime":1793092773213,"monotonicTime":934.39,"sdkLanguage":"javascript","testTimeout":30000,"annotations":[]}
+{"type":"before","callId":"yrch@1","startTime":948.339,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"yrch@28","parentId":"yrch@1","startTime":953.609,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"before","callId":"yrch@29","parentId":"yrch@28","startTime":954.69,"class":"Test","method":"pw:api","title":"Launch browser","params":{},"stack":[]}
+{"type":"after","callId":"yrch@29","endTime":1183.742,"annotations":[]}
+{"type":"after","callId":"yrch@28","endTime":1183.87,"annotations":[]}
+{"type":"before","callId":"yrch@32","parentId":"yrch@1","startTime":1185.259,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"yrch@33","parentId":"yrch@32","startTime":1186.566,"class":"Test","method":"pw:api","title":"Create context","params":{},"stack":[]}
+{"type":"after","callId":"yrch@33","endTime":1207.372,"annotations":[]}
+{"type":"after","callId":"yrch@32","endTime":1214.288,"annotations":[]}
+{"type":"before","callId":"yrch@40","parentId":"yrch@1","startTime":1214.742,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"yrch@41","parentId":"yrch@40","startTime":1215.323,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"yrch@41","endTime":1412.486,"annotations":[]}
+{"type":"after","callId":"yrch@40","endTime":1412.532,"annotations":[]}
+{"type":"after","callId":"yrch@1","endTime":1412.593,"annotations":[]}
+{"type":"before","callId":"yrch@43","startTime":1413.745,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/login","params":{"url":"/login"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":17,"column":14}]}
+{"type":"after","callId":"yrch@43","endTime":2093.267,"annotations":[]}
+{"type":"before","callId":"yrch@45","startTime":2096.628,"class":"Test","method":"pw:api","title":"Fill \"admin@lcd.test\"","subtitle":"locator('input[type=\"email\"]')","params":{"locator":"locator('input[type=\"email\"]')","value":"admin@lcd.test"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":18,"column":14}]}
+{"type":"after","callId":"yrch@45","endTime":2129.85,"annotations":[]}
+{"type":"before","callId":"yrch@47","startTime":2130.749,"class":"Test","method":"pw:api","title":"Fill \"ChangeMe-2026!\"","subtitle":"locator('input[type=\"password\"]')","params":{"locator":"locator('input[type=\"password\"]')","value":"ChangeMe-2026!"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":19,"column":14}]}
+{"type":"after","callId":"yrch@47","endTime":2144.634,"annotations":[]}
+{"type":"before","callId":"yrch@49","startTime":2146.249,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Se connecter' })","params":{"locator":"getByRole('button', { name: 'Se connecter' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":20,"column":60}]}
+{"type":"after","callId":"yrch@49","endTime":2442.23,"annotations":[]}
+{"type":"before","callId":"yrch@51","startTime":2445.89,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":21,"column":22}]}
+{"type":"after","callId":"yrch@51","endTime":2473.764,"annotations":[]}
+{"type":"before","callId":"yrch@53","startTime":2474.28,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/logements","params":{"url":"/hote/logements"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":23,"column":14}]}
+{"type":"after","callId":"yrch@53","endTime":2716.512,"annotations":[]}
+{"type":"before","callId":"yrch@55","startTime":2717.51,"class":"Test","method":"pw:api","title":"Fill \"avis-e2e-1793092773692\"","subtitle":"locator('input[name=\"code\"]')","params":{"locator":"locator('input[name=\"code\"]')","value":"avis-e2e-1793092773692"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":24,"column":14}]}
+{"type":"after","callId":"yrch@55","endTime":2811.221,"annotations":[]}
+{"type":"before","callId":"yrch@57","startTime":2812.136,"class":"Test","method":"pw:api","title":"Fill \"Logement Avis E2E 1793092773692\"","subtitle":"locator('input[name=\"nom\"]')","params":{"locator":"locator('input[name=\"nom\"]')","value":"Logement Avis E2E 1793092773692"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":25,"column":14}]}
+{"type":"after","callId":"yrch@57","endTime":2890.674,"annotations":[]}
+{"type":"before","callId":"yrch@59","startTime":2891.81,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Créer le logement' })","params":{"locator":"getByRole('button', { name: 'Créer le logement' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":26,"column":65}]}
+{"type":"after","callId":"yrch@59","endTime":3220.409,"annotations":[]}
+{"type":"before","callId":"yrch@61","startTime":3221.211,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Logement « avis-e2e-1793092773692 » créé.')","params":{"locator":"getByText('Logement « avis-e2e-1793092773692 » créé.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":27,"column":62}]}
+{"type":"after","callId":"yrch@61","endTime":3271.364,"annotations":[]}
+{"type":"before","callId":"yrch@63","startTime":3271.779,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/onboarding","params":{"url":"/hote/onboarding"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":29,"column":14}]}
+{"type":"after","callId":"yrch@63","endTime":3458.032,"annotations":[]}
+{"type":"before","callId":"yrch@65","startTime":3458.98,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('link', { name: 'Logement Avis E2E 1793092773692', exact: true })","params":{"locator":"getByRole('link', { name: 'Logement Avis E2E 1793092773692', exact: true })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":30,"column":68}]}
+{"type":"after","callId":"yrch@65","endTime":3706.245,"annotations":[]}
+{"type":"before","callId":"yrch@67","startTime":3706.727,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":31,"column":22}]}
+{"type":"after","callId":"yrch@67","endTime":3781.278,"annotations":[]}
+{"type":"before","callId":"yrch@69","startTime":3782.26,"class":"Test","method":"pw:api","title":"Check","subtitle":"getByRole('checkbox', { name: /Règlement, PV et accord du syndic/ })","params":{"locator":"getByRole('checkbox', { name: /Règlement, PV et accord du syndic/ })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":34,"column":6}]}
+{"type":"after","callId":"yrch@69","endTime":3837.825,"annotations":[]}
+{"type":"before","callId":"yrch@71","startTime":3838.877,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Enregistrer', exact: true })","params":{"locator":"getByRole('button', { name: 'Enregistrer', exact: true })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":35,"column":72}]}
+{"type":"after","callId":"yrch@71","endTime":4007.887,"annotations":[]}
+{"type":"before","callId":"yrch@73","startTime":4008.391,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Vérification copropriété enregistrée.')","params":{"locator":"getByText('Vérification copropriété enregistrée.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":38,"column":5}]}
+{"type":"after","callId":"yrch@73","endTime":4080.563,"annotations":[]}
+{"type":"before","callId":"yrch@75","startTime":4081.372,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Publier le logement' })","params":{"locator":"getByRole('button', { name: 'Publier le logement' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":39,"column":67}]}
+{"type":"after","callId":"yrch@75","endTime":4353.986,"annotations":[]}
+{"type":"before","callId":"yrch@77","startTime":4354.444,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Publication mise à jour.')","params":{"locator":"getByText('Publication mise à jour.')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":40,"column":60}]}
+{"type":"after","callId":"yrch@77","endTime":4409.073,"annotations":[]}
+{"type":"before","callId":"yrch@79","startTime":4409.601,"class":"Test","method":"pw:api","title":"Navigate","subtitle":"/hote/planning?mois=2026-12","params":{"url":"/hote/planning?mois=2026-12"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":42,"column":14}]}
+{"type":"after","callId":"yrch@79","endTime":4872.655,"annotations":[]}
+{"type":"before","callId":"yrch@81","startTime":4873.669,"class":"Test","method":"pw:api","title":"Wait for load state \"networkidle\"","params":{},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":43,"column":14}]}
+{"type":"after","callId":"yrch@81","endTime":5591.502,"annotations":[]}
+{"type":"before","callId":"yrch@85","startTime":5592.303,"class":"Test","method":"pw:api","title":"Select option","subtitle":"locator('select[name=\"logement\"]')","params":{"locator":"locator('select[name=\"logement\"]')","options":"[Object]"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":44,"column":14}]}
+{"type":"after","callId":"yrch@85","endTime":5732.299,"annotations":[]}
+{"type":"before","callId":"yrch@87","startTime":5733.397,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Afficher' })","params":{"locator":"getByRole('button', { name: 'Afficher' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":45,"column":56}]}
+{"type":"after","callId":"yrch@87","endTime":5833.723,"annotations":[]}
+{"type":"before","callId":"yrch@89","startTime":5834.872,"class":"Test","method":"pw:api","title":"Wait for navigation","params":{},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":46,"column":14}]}
+{"type":"after","callId":"yrch@89","endTime":5885.434,"annotations":[]}
+{"type":"before","callId":"yrch@94","startTime":5885.965,"class":"Test","method":"pw:api","title":"Fill \"resa-avis-1793092773692\"","subtitle":"locator('input[name=\"ref\"]')","params":{"locator":"locator('input[name=\"ref\"]')","value":"resa-avis-1793092773692"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":47,"column":14}]}
+{"type":"after","callId":"yrch@94","endTime":5981.944,"annotations":[]}
+{"type":"before","callId":"yrch@96","startTime":5982.581,"class":"Test","method":"pw:api","title":"Fill \"Marie Avis 1793092773692\"","subtitle":"locator('input[name=\"clientNom\"]')","params":{"locator":"locator('input[name=\"clientNom\"]')","value":"Marie Avis 1793092773692"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":48,"column":14}]}
+{"type":"after","callId":"yrch@96","endTime":6044.282,"annotations":[]}
+{"type":"before","callId":"yrch@98","startTime":6044.971,"class":"Test","method":"pw:api","title":"Fill \"2026-12-10\"","subtitle":"locator('input[name=\"debut\"]')","params":{"locator":"locator('input[name=\"debut\"]')","value":"2026-12-10"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":49,"column":14}]}
+{"type":"after","callId":"yrch@98","endTime":6104.967,"annotations":[]}
+{"type":"before","callId":"yrch@100","startTime":6108.166,"class":"Test","method":"pw:api","title":"Fill \"2026-12-14\"","subtitle":"locator('input[name=\"fin\"]')","params":{"locator":"locator('input[name=\"fin\"]')","value":"2026-12-14"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":50,"column":14}]}
+{"type":"after","callId":"yrch@100","endTime":6176.828,"annotations":[]}
+{"type":"before","callId":"yrch@102","startTime":6177.471,"class":"Test","method":"pw:api","title":"Fill \"600\"","subtitle":"locator('input[name=\"montantEuros\"]')","params":{"locator":"locator('input[name=\"montantEuros\"]')","value":"600"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":51,"column":14}]}
+{"type":"after","callId":"yrch@102","endTime":6241.448,"annotations":[]}
+{"type":"before","callId":"yrch@104","startTime":6242.101,"class":"Test","method":"pw:api","title":"Click","subtitle":"getByRole('button', { name: 'Créer la réservation' })","params":{"locator":"getByRole('button', { name: 'Créer la réservation' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":52,"column":68}]}
+{"type":"after","callId":"yrch@104","endTime":6521.23,"annotations":[]}
+{"type":"before","callId":"yrch@106","startTime":6521.711,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","subtitle":"getByText('Réservation resa-avis-1793092773692 créée')","params":{"locator":"getByText('Réservation resa-avis-1793092773692 créée')"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":53,"column":64}]}
+{"type":"after","callId":"yrch@106","endTime":6819.223,"annotations":[]}
+{"type":"before","callId":"yrch@108","startTime":6820.316,"class":"Test","method":"pw:api","title":"Get attribute \"href\"","subtitle":"locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092773692' }).first().getByRole('link', { name: 'Lien voyageur' })","params":{"locator":"locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092773692' }).first().getByRole('link', { name: 'Lien voyageur' })"},"stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":63,"column":6}],"group":"getter"}
+{"type":"error","message":"\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m","stack":[]}
+{"type":"before","callId":"yrch@110","startTime":31197.425,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"yrch@111","parentId":"yrch@110","startTime":31198.074,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"yrch@111","endTime":31198.185,"annotations":[]}
+{"type":"before","callId":"yrch@112","parentId":"yrch@110","startTime":31198.367,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"yrch@119","parentId":"yrch@112","startTime":31807.922,"class":"Test","method":"pw:api","title":"Close context","params":{},"stack":[]}
+{"type":"after","callId":"yrch@108","endTime":31816.065,"annotations":[],"error":{"name":"","message":"Error: locator.getAttribute: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092773692' }).first().getByRole('link', { name: 'Lien voyageur' })\u001b[22m\n","stack":"Error: locator.getAttribute: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092773692' }).first().getByRole('link', { name: 'Lien voyageur' })\u001b[22m\n\n    at C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts:63:6"}}
+{"type":"error","message":"Error: locator.getAttribute: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('section').filter({ hasText: 'Réservations du mois' }).locator('li').filter({ hasText: 'resa-avis-1793092773692' }).first().getByRole('link', { name: 'Lien voyageur' })\u001b[22m\n","stack":[{"file":"C:\\Users\\julie\\Desktop\\Location courte duree\\v2\\e2e\\avis.spec.ts","line":63,"column":6}]}
+{"type":"after","callId":"yrch@119","endTime":31824.797,"annotations":[]}
+{"type":"after","callId":"yrch@112","endTime":31824.846,"annotations":[]}
+{"type":"before","callId":"yrch@126","startTime":31831.837,"class":"Test","method":"test.attach","title":"Attach \"error-context\"","params":{},"stack":[]}
+{"type":"after","callId":"yrch@126","endTime":31831.848,"attachments":[{"name":"error-context","contentType":"text/markdown","file":"attachments/e5c460450d5313313ebb0d6877a1890493dc4441"}]}
+{"type":"before","callId":"yrch@129","parentId":"yrch@110","startTime":31832.956,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@129","endTime":31832.977,"annotations":[]}
+{"type":"before","callId":"yrch@130","parentId":"yrch@110","startTime":31832.99,"class":"Test","method":"fixture","title":"Fixture \"userAgent\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@130","endTime":31833.003,"annotations":[]}
+{"type":"before","callId":"yrch@132","parentId":"yrch@110","startTime":31833.216,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@132","endTime":31833.229,"annotations":[]}
+{"type":"before","callId":"yrch@134","parentId":"yrch@110","startTime":31833.415,"class":"Test","method":"fixture","title":"Fixture \"screen\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@134","endTime":31833.424,"annotations":[]}
+{"type":"before","callId":"yrch@141","parentId":"yrch@110","startTime":31834.39,"class":"Test","method":"fixture","title":"Fixture \"isMobile\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@141","endTime":31834.403,"annotations":[]}
+{"type":"before","callId":"yrch@145","parentId":"yrch@110","startTime":31835.074,"class":"Test","method":"fixture","title":"Fixture \"hasTouch\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@145","endTime":31835.084,"annotations":[]}
+{"type":"before","callId":"yrch@148","parentId":"yrch@110","startTime":31835.494,"class":"Test","method":"fixture","title":"Fixture \"deviceScaleFactor\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@148","endTime":31835.509,"annotations":[]}
+{"type":"after","callId":"yrch@110","endTime":31837.111,"annotations":[]}
+{"type":"before","callId":"yrch@155","startTime":31837.376,"class":"Test","method":"hook","title":"Worker Cleanup","params":{},"stack":[]}
+{"type":"before","callId":"yrch@160","parentId":"yrch@155","startTime":31844.048,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"after","callId":"yrch@160","endTime":32094.767,"annotations":[]}
+{"type":"before","callId":"yrch@165","parentId":"yrch@155","startTime":32095.34,"class":"Test","method":"fixture","title":"Fixture \"defaultBrowserType\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@165","endTime":32095.352,"annotations":[]}
+{"type":"before","callId":"yrch@169","parentId":"yrch@155","startTime":32095.779,"class":"Test","method":"fixture","title":"Fixture \"channel\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@169","endTime":32095.788,"annotations":[]}
+{"type":"before","callId":"yrch@170","parentId":"yrch@155","startTime":32095.792,"class":"Test","method":"fixture","title":"Fixture \"headless\"","params":{},"stack":[{"file":"project#js","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"yrch@170","endTime":32095.798,"annotations":[]}
+{"type":"after","callId":"yrch@155","endTime":32095.958,"annotations":[]}
