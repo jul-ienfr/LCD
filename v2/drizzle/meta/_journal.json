@@ -729,6 +729,13 @@
       "when": 1795379200000,
       "tag": "0103_domaine_public",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1795465600000,
+      "tag": "0104_migration_v1",
+      "breakpoints": true
     }
   ]
 }

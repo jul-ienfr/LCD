@@ -1,0 +1,382 @@
+{
+  "genereLe": "2026-11-14T23:34:22.702Z",
+  "racine": "C:\\Users\\julie\\Desktop\\Location courte duree\\custom",
+  "totalOctets": 21365,
+  "totalEnregistrements": 17,
+  "fichiers": [
+    {
+      "chemin": "logements.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 5659,
+      "sha256": "7fb285dad6f48c81b9a06ff1671950b5103c826d77ba4a71769eda40ba4c8d6d",
+      "mtime": "2026-10-10T19:09:16.469Z",
+      "volume": 2,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "migrer (logements réels uniquement)",
+      "note": null
+    },
+    {
+      "chemin": "passerelle-parc/entites.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 1899,
+      "sha256": "9d0e65dab0d05e38012cfe638175a33b4dc9d7ee1c1b50ff4f12a59b129bfda9",
+      "mtime": "2026-10-10T12:39:01.598Z",
+      "volume": 1,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "migrer (entité émettrice)",
+      "note": null
+    },
+    {
+      "chemin": "passerelle-parc/mandats.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 2079,
+      "sha256": "e711d1a4368d7d95a21a504a34d41d1b8f43d8500079e371fa40c9679d881325",
+      "mtime": "2026-10-10T12:40:47.939Z",
+      "volume": 1,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "décision par mandat (propre ou tiers)",
+      "note": null
+    },
+    {
+      "chemin": "passerelle-parc/annonces.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 2461,
+      "sha256": "269319ecda23ace3f9371d3ae51a45ba94cbcae8d36fa16263d61b7c2dec2240",
+      "mtime": "2026-10-10T04:57:32.030Z",
+      "volume": 2,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "à ressaisir dans V2 (contenu brouillon)",
+      "note": null
+    },
+    {
+      "chemin": "passerelle-parc/prospects.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 506,
+      "sha256": "1e0e3272f10bcbb9d1d158600977f4d8920fd70b05e22ba80ccbc0925cda3d8e",
+      "mtime": "2026-10-13T09:53:40.439Z",
+      "volume": 0,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "importer si base légale, sinon purger",
+      "note": null
+    },
+    {
+      "chemin": "acces.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 4961,
+      "sha256": "852503cda6ca555112ac49f3f919d0235ae172188acbd16ef386809654d7140d",
+      "mtime": "2026-10-13T09:56:55.464Z",
+      "volume": 10,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "réinviter (aucun mot de passe migré)",
+      "note": null
+    },
+    {
+      "chemin": "memoire/voyageurs.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 377,
+      "sha256": "b36fcccf1477413279500e831a217f22063a05b22464890b70c67aafb6a2e34a",
+      "mtime": "2026-10-06T11:56:14.797Z",
+      "volume": 0,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "repartir à zéro (opt-in à reconstruire)",
+      "note": null
+    },
+    {
+      "chemin": "design.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 149,
+      "sha256": "17146a2bffe4b91dbf70ab5b9f0dffca19671f26e753931d766066633b80b9d9",
+      "mtime": "2026-10-25T03:06:56.254Z",
+      "volume": 1,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "exclu (thème par défaut V2)",
+      "note": null
+    },
+    {
+      "chemin": "zones.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 571,
+      "sha256": "1e60ed715e7e8f970ca19faff2d0d145632aa8e2532e94d0ce3d63034a70f96f",
+      "mtime": "2026-10-08T12:40:46.350Z",
+      "volume": 0,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "exclu (pas de table zones en V2)",
+      "note": "Configuration de zonage non modélisée en V2"
+    },
+    {
+      "chemin": "vitrines.yaml",
+      "role": "source",
+      "present": true,
+      "octets": 2703,
+      "sha256": "a944fafaaa6d3edf2ca8a005e3af2a42f09ca9655ad6a3036def674dec62edcd",
+      "mtime": "2026-10-08T12:40:46.349Z",
+      "volume": 0,
+      "proprietaire": "fondateur",
+      "sensibilite": "données de gestion internes",
+      "devenir": "exclu (vitrines désactivées par défaut)",
+      "note": null
+    },
+    {
+      "chemin": "secrets.yaml",
+      "role": "interdit",
+      "present": false,
+      "octets": null,
+      "sha256": null,
+      "mtime": null,
+      "volume": null,
+      "proprietaire": "fondateur",
+      "sensibilite": "secret — non lu",
+      "devenir": "exclu — jamais lu",
+      "note": "Absent"
+    },
+    {
+      "chemin": "passerelle-parc/secrets-registre.yaml",
+      "role": "interdit",
+      "present": true,
+      "octets": null,
+      "sha256": null,
+      "mtime": null,
+      "volume": null,
+      "proprietaire": "fondateur",
+      "sensibilite": "secret — non lu",
+      "devenir": "exclu — jamais lu",
+      "note": "Registre de secrets V1 : jamais migré"
+    },
+    {
+      "chemin": "passerelle-parc/state",
+      "role": "infrastructure",
+      "present": true,
+      "octets": null,
+      "sha256": null,
+      "mtime": null,
+      "volume": null,
+      "proprietaire": "fondateur",
+      "sensibilite": "état runtime — non lu",
+      "devenir": "hors périmètre",
+      "note": "État interne de la passerelle"
+    },
+    {
+      "chemin": "passerelle-parc/boxes.yaml",
+      "role": "infrastructure",
+      "present": true,
+      "octets": null,
+      "sha256": null,
+      "mtime": null,
+      "volume": null,
+      "proprietaire": "fondateur",
+      "sensibilite": "infrastructure",
+      "devenir": "hors périmètre",
+      "note": "Box hébergées : documentées, non migrées"
+    },
+    {
+      "chemin": "passerelle-parc/config.yaml",
+      "role": "infrastructure",
+      "present": true,
+      "octets": null,
+      "sha256": null,
+      "mtime": null,
+      "volume": null,
+      "proprietaire": "fondateur",
+      "sensibilite": "infrastructure",
+      "devenir": "hors périmètre",
+      "note": "Configuration passerelle : hors périmètre métier"
+    }
+  ],
+  "sources": {
+    "entites": [
+      {
+        "cle": "ent-nom-propre-julie",
+        "libelle": "Julie — nom propre",
+        "nature": "nom_propre",
+        "regime": "micro_bic_non_classe",
+        "tva": "non",
+        "siren": "",
+        "statut": "active"
+      }
+    ],
+    "logements": [
+      {
+        "cle": "log1",
+        "nom": "Santa Severa",
+        "commune": "Saint-Laurent-du-Var",
+        "surfaceM2": 65,
+        "capacite": 5,
+        "prixBase": 110,
+        "prixMin": 75,
+        "prixMax": 290,
+        "modeGestion": "equilibre",
+        "coproVerifiee": false,
+        "annonceStatut": "brouillon"
+      },
+      {
+        "cle": "log2",
+        "nom": "Logement 2 (à définir)",
+        "commune": "À définir",
+        "surfaceM2": null,
+        "capacite": 4,
+        "prixBase": 90,
+        "prixMin": 75,
+        "prixMax": 290,
+        "modeGestion": "remplissage_max",
+        "coproVerifiee": false,
+        "annonceStatut": "brouillon"
+      }
+    ],
+    "annonces": [
+      {
+        "cle": "log1",
+        "titre": "Santa Severa — location meublée à Saint-Laurent-du-Var",
+        "statut": "brouillon",
+        "nombreDescriptions": 2,
+        "nombrePhotos": 0
+      },
+      {
+        "cle": "log2",
+        "titre": "Logement 2 — fiche à compléter",
+        "statut": "brouillon",
+        "nombreDescriptions": 0,
+        "nombrePhotos": 0
+      }
+    ],
+    "mandats": [
+      {
+        "cle": "log1",
+        "entiteId": "ent-nom-propre-julie",
+        "mode": "propre",
+        "commissionPct": 0,
+        "statut": "actif"
+      }
+    ],
+    "personnes": [
+      {
+        "id": "personne_01",
+        "role": "super_admin",
+        "sousRole": "super_admin",
+        "logements": [
+          "log1",
+          "log2",
+          "log3"
+        ],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "personne_02",
+        "role": "super_admin",
+        "sousRole": "admin",
+        "logements": [
+          "log1",
+          "log2",
+          "log3"
+        ],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "personne_03",
+        "role": "gestionnaire",
+        "sousRole": "operateur",
+        "logements": [
+          "log1"
+        ],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "personne_04",
+        "role": "gestionnaire",
+        "sousRole": "comptable",
+        "logements": [
+          "log1",
+          "log2"
+        ],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "personne_05",
+        "role": "proprietaire",
+        "sousRole": "proprio_logement",
+        "logements": [
+          "log1",
+          "log2"
+        ],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "personne_06",
+        "role": "prestataires",
+        "sousRole": "menage_interne",
+        "logements": [
+          "log1"
+        ],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "personne_07",
+        "role": "prestataires",
+        "sousRole": "presta_externe",
+        "logements": [
+          "log1"
+        ],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "commercial_01",
+        "role": "gestionnaire",
+        "sousRole": "commercial",
+        "logements": [],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "dashboard_hote",
+        "role": "gestionnaire",
+        "sousRole": "dashboard",
+        "logements": [
+          "log1",
+          "log2",
+          "log3"
+        ],
+        "expireLe": null,
+        "mfa": false
+      },
+      {
+        "id": "passerelle_parc",
+        "role": "gestionnaire",
+        "sousRole": "dashboard",
+        "logements": [
+          "log1",
+          "log2",
+          "log3"
+        ],
+        "expireLe": null,
+        "mfa": false
+      }
+    ],
+    "prospects": [],
+    "voyageurs": [],
+    "design": "sejour"
+  }
+}

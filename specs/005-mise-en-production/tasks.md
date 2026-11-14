@@ -3,7 +3,7 @@
 ```text
 Statut : ACTIF
 Propriétaire : exploitation
-Dernière vérification : 2026-11-14
+Dernière vérification : 2026-11-15
 Remplace / remplacé par : —
 Source de vérité : specs/005-mise-en-production/spec.md
 ```
@@ -163,24 +163,39 @@ import sans doublon.
 
 ### Inventaire et correspondance
 
-- [ ] T100 [US3] Inventorier toutes les sources V1 : `custom/passerelle-parc/parc.db`, YAML (`logements.yaml`, `acces.yaml`, `branding.yaml`, `design.yaml`, `vitrines.yaml`, `zones.yaml`), JSONL d'état, `custom/memoire/voyageurs.yaml`, ICS et exports OTA
-- [ ] T101 [US3] Décrire chaque source : table ou fichier, volume, propriétaire, qualité, sensibilité, devenir (migrer, archiver, exclure)
-- [ ] T102 [US3] Écrire la matrice de correspondance V1 → V2 : entités → tenants, logements → logements, mandats → mandats, prospects/offres → CRM, annonces → annonces, documents → stockage
-- [ ] T103 [US3] Statuer sur les données personnelles : base légale, minimisation, durée, purge, et exclure tous les secrets V1
-- [ ] T104 [US3] Écrire le script d'extraction V1 en lecture seule, avec empreinte SHA-256 et refus d'écriture dans les sources
+- [x] T100 [US3] Inventorier toutes les sources V1 : `custom/passerelle-parc/parc.db`, YAML (`logements.yaml`, `acces.yaml`, `branding.yaml`, `design.yaml`, `vitrines.yaml`, `zones.yaml`), JSONL d'état, `custom/memoire/voyageurs.yaml`, ICS et exports OTA
+  — fait : `npm run migration:inventaire` ; 14 fichiers présents, 17 enregistrements, 10 sources métier ; aucune base `parc.db` (V1 en YAML + état). Preuve : `docs/ops/migration-2026-11/inventaire-v1.md`.
+- [x] T101 [US3] Décrire chaque source : table ou fichier, volume, propriétaire, qualité, sensibilité, devenir (migrer, archiver, exclure)
+  — fait : tableau complet (octets, SHA-256, volume, sensibilité, devenir) dans `inventaire-v1.md` ; secrets, état runtime et infrastructure listés « non lus ».
+- [x] T102 [US3] Écrire la matrice de correspondance V1 → V2 : entités → tenants, logements → logements, mandats → mandats, prospects/offres → CRM, annonces → annonces, documents → stockage
+  — fait : `docs/plans/PLAN-MIGRATION-V1-V2.md` §3, complété par les décisions réelles (gabarit `log2` exclu, annonces à ressaisir, tarifs sans date non importés).
+- [x] T103 [US3] Statuer sur les données personnelles : base légale, minimisation, durée, purge, et exclure tous les secrets V1
+  — fait : 10 comptes `acces.yaml` exclus (réinvitation, 2FA), 0 prospect, 0 voyageur, secrets jamais ouverts ; motifs dans le rapport de réconciliation.
+- [x] T104 [US3] Écrire le script d'extraction V1 en lecture seule, avec empreinte SHA-256 et refus d'écriture dans les sources
+  — fait : `v2/scripts/migration-v1/sources.ts` + `inventaire.ts` ; SHA-256 avant/après, liens symboliques refusés, aucune écriture dans `custom/`.
 
 ### Import et réconciliation
 
-- [ ] T105 [US3] Créer une table ou un journal de correspondance `v1:<type>:<id>` → identifiant V2, avec statut et empreinte
-- [ ] T106 [US3] Importer les tenants, utilisateurs et rôles, en refusant les comptes de démonstration et les mots de passe V1
-- [ ] T107 [US3] Importer les logements et mandats, avec configuration, commissions, cautions et particularités
-- [ ] T108 [US3] Importer les prospects, offres et annonces, en conservant les statuts et les dates utiles
-- [ ] T109 [US3] Importer les documents et photos utiles, vérifier type, taille et intégrité, et exclure les fichiers orphelins
-- [ ] T110 [US3] Statuer sur les réservations historiques : importer les réservations retenues depuis les exports/ICS ou les exclure avec justification
-- [ ] T111 [US3] Tester l'idempotence : relancer l'import complet et vérifier zéro doublon, zéro modification silencieuse
-- [ ] T112 [US3] Produire le rapport de réconciliation : comptes par type, totaux financiers disponibles, orphelins, écarts et décisions
-- [ ] T113 [US3] Exécuter l'import à blanc sur une copie de la production et corriger les erreurs
-- [ ] T114 [US3] Répéter l'import sur une seconde copie, comparer les rapports et signer la migration avec l'exploitant
+- [x] T105 [US3] Créer une table ou un journal de correspondance `v1:<type>:<id>` → identifiant V2, avec statut et empreinte
+  — fait : table `migration_v1` (migration `v2/drizzle/0104_migration_v1.sql`), clé primaire `(source, cle_source, cible)`, statut et empreinte par ligne.
+- [x] T106 [US3] Importer les tenants, utilisateurs et rôles, en refusant les comptes de démonstration et les mots de passe V1
+  — fait : tenant `lcd` importé depuis `ent-nom-propre-julie` ; 10 comptes exclus (identifiants anonymisés, aucun email réel, aucun mot de passe migré) ; réinvitation à faire.
+- [x] T107 [US3] Importer les logements et mandats, avec configuration, commissions, cautions et particularités
+  — fait : `log1` importé (nom, commune, stratégie, copro non vérifiée, publication brouillon) ; `log2` gabarit exclu ; mandat propre journalisé sans propriétaire tiers ; bornes tarifaires conservées, aucune ligne datée inventée.
+- [x] T108 [US3] Importer les prospects, offres et annonces, en conservant les statuts et les dates utiles
+  — fait : 0 prospect et 0 offre dans les sources ; 2 annonces brouillon exclues avec motif (aucun contenu exploitable), statuts conservés dans le journal.
+- [~] T109 [US3] Importer les documents et photos utiles, vérifier type, taille et intégrité, et exclure les fichiers orphelins
+  — partiel : 0 photo dans les annonces (`photos: []`), donc rien à importer ; `docs/logN/` privés non versionnés, import manuel après vérification d'intégrité à faire.
+- [~] T110 [US3] Statuer sur les réservations historiques : importer les réservations retenues depuis les exports/ICS ou les exclure avec justification
+  — recommandation écrite (archiver les exports, ne pas importer) ; décision du fondateur en attente, aucune réservation importée.
+- [x] T111 [US3] Tester l'idempotence : relancer l'import complet et vérifier zéro doublon, zéro modification silencieuse
+  — fait : second passage `0 importée, 0 mise à jour, 2 inchangées, 0 erreur` ; compteurs identiques (1 tenant, 1 logement, 17 lignes de journal).
+- [x] T112 [US3] Produire le rapport de réconciliation : comptes par type, totaux financiers disponibles, orphelins, écarts et décisions
+  — fait : `docs/ops/migration-2026-11/rapport-reconciliation.md` (+ JSON et CSV) ; 17 lignes, bornes log1, aucune anomalie.
+- [~] T113 [US3] Exécuter l'import à blanc sur une copie de la production et corriger les erreurs
+  — fait sur deux bases vierges migrées (`lcd_migration_blanc1`, `lcd_migration_blanc2`) ; la copie de production reste à faire dès que la sauvegarde existe (R2).
+- [~] T114 [US3] Répéter l'import sur une seconde copie, comparer les rapports et signer la migration avec l'exploitant
+  — comparaison faite : 17/17 lignes identiques, constats et valeurs cibles identiques (`rapport-blanc-2-copies.md`) ; signature de l'exploitant en attente.
 
 **Checkpoint US3**: la migration est rejouable, réconciliée et signée ; les
 exclusions sont acceptées.

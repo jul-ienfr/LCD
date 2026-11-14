@@ -3,7 +3,7 @@
 ```text
 Statut : ACTIF
 Propriétaire : fondateur
-Dernière vérification : 2026-11-14
+Dernière vérification : 2026-11-15
 Remplace / remplacé par : —
 Source de vérité : specs/005-mise-en-production/spec.md (US3)
 ```
@@ -22,7 +22,7 @@ L'inventaire du 14/11 montre une V1 surtout **déclarative** :
 | Source | Volume constaté | Nature |
 | --- | --- | --- |
 | `custom/logements.yaml` | 2 logements (`log1` réel, `log2` gabarit) | configuration |
-| `custom/acces.yaml` | 7 personnes, 10 entrées de périmètre | rôles, non nominatif |
+| `custom/acces.yaml` | 10 comptes (7 personnes + 3 comptes de service), 10 entrées de périmètre | rôles, non nominatif |
 | `custom/passerelle-parc/entites.yaml` | 1 entité (`ent-nom-propre-julie`) | juridique |
 | `custom/passerelle-parc/mandats.yaml` | 1 mandat actif (`log1`) | mandat |
 | `custom/passerelle-parc/annonces.yaml` | 2 fiches, dont 1 gabarit | annonces |
@@ -88,7 +88,7 @@ Chaque étape est suivie d'un comptage et d'un contrôle avant la suivante.
 
 ## 5. Journal de correspondance
 
-Table dédiée (à créer en US3 si absente) :
+Table dédiée, créée par la migration `v2/drizzle/0104_migration_v1.sql` :
 
 ```sql
 create table if not exists migration_v1 (
@@ -155,12 +155,21 @@ Critères de sortie :
 
 ## 10. Ce qui reste à faire
 
-- [ ] Trancher le sort des réservations historiques (§7).
-- [ ] Écrire `v2/scripts/migrer-v1.mjs` (extraction, empreinte, import,
-      journal, `--simulation` par défaut).
-- [ ] Créer la table `migration_v1` si elle n'existe pas.
-- [ ] Exécuter l'import à blanc sur une copie.
-- [ ] Signer le rapport de réconciliation.
+- [~] Trancher le sort des réservations historiques (§7).
+  — recommandation écrite (archiver, ne pas importer) ; décision du fondateur
+  en attente.
+- [x] Écrire l'outillage d'extraction, d'empreinte, d'import et de journal.
+  — `v2/scripts/migration-v1/inventaire.ts`, `sources.ts`, `mapper.ts`,
+  `importer.ts` ; `--simulation` par défaut, `--appliquer` explicite.
+- [x] Créer la table `migration_v1`.
+  — migration `v2/drizzle/0104_migration_v1.sql`, appliquée sur PostgreSQL 18.
+- [x] Exécuter l'import à blanc sur deux copies vierges et comparer.
+  — 17 lignes identiques, 2 imports, 15 exclusions, 0 erreur ; relance
+  idempotente (2 inchangées). Voir
+  `docs/ops/migration-2026-11/rapport-blanc-2-copies.md`.
+- [~] Rejouer l'import sur une copie de production.
+  — impossible tant que la sauvegarde de production n'existe pas (R2).
+- [ ] Signer le rapport de réconciliation avec l'exploitant.
 
-Tant que ces points ne sont pas faits, la migration reste **non démarrée** :
-aucune donnée réelle n'a été copiée.
+L'outillage et la preuve à blanc sont faits ; aucune donnée de production n'a
+encore été copiée. La migration reste **non signée** jusqu'à la copie réelle.

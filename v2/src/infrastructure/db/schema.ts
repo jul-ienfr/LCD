@@ -8,6 +8,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -3258,6 +3259,35 @@ export const suiviEvenements = pgTable(
     ),
   ],
 );
+
+// Journal de correspondance V1 → V2 (spec 005, US3). Une ligne par
+// enregistrement source traité ; la clé primaire rend l'import idempotent et
+// interdit deux écritures concurrentes sur la même correspondance.
+export const migrationV1 = pgTable(
+  "migration_v1",
+  {
+    source: text("source").notNull(),
+    cleSource: text("cle_source").notNull(),
+    cible: text("cible").notNull(),
+    idCible: text("id_cible").notNull(),
+    empreinte: text("empreinte").notNull(),
+    statut: text("statut").notNull(),
+    motif: text("motif"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    majLe: timestamp("maj_le", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    primaryKey({ columns: [t.source, t.cleSource, t.cible] }),
+    index("migration_v1_statut_idx").on(t.statut),
+  ],
+);
+
+export type MigrationV1Row = typeof migrationV1.$inferSelect;
 
 export type SuiviConfigurationRow = typeof suiviConfiguration.$inferSelect;
 export type NewSuiviConfigurationRow =

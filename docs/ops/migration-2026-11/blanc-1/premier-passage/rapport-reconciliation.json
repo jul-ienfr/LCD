@@ -1,0 +1,171 @@
+{
+  "date": "2026-11-15",
+  "mode": "application",
+  "base": "127.0.0.1:5432/lcd_migration_blanc1",
+  "lignes": [
+    {
+      "source": "entites.yaml",
+      "cleSource": "ent-nom-propre-julie",
+      "cible": "tenants",
+      "idCible": "d36407b0-d828-4cde-b866-6e5386980978",
+      "empreinte": "2a142232da3eb4bdec781996dd22cb72d00a1592a9e7af3858aad4453ab0dffa",
+      "statut": "importe",
+      "motif": null
+    },
+    {
+      "source": "logements.yaml",
+      "cleSource": "log1",
+      "cible": "logements",
+      "idCible": "e6136ab4-6214-4438-b4f8-0ba38674874d",
+      "empreinte": "6ca7164ee68fc6273bf3446fda10d02166abfb099aacdf15117d999626299017",
+      "statut": "importe",
+      "motif": null
+    },
+    {
+      "source": "mandats.yaml",
+      "cleSource": "log1",
+      "cible": "logement_proprietaires",
+      "idCible": "-",
+      "empreinte": "0a480052cb096dcc501e758863a9697c581db420e8ab36f484c275e22c96c7b2",
+      "statut": "exclu",
+      "motif": "Mandat en mode propre : le bien appartient au tenant, aucun propriétaire tiers à créer (commission 0 %)."
+    },
+    {
+      "source": "logements.yaml",
+      "cleSource": "log2",
+      "cible": "logements",
+      "idCible": "-",
+      "empreinte": "a7538fd3523c8ed2b40513862e55fa9b76947e3cb2071c36f877a56ebc20130c",
+      "statut": "exclu",
+      "motif": "Gabarit non publié (nom ou commune « à définir ») : rien à reprendre, le logement sera créé dans V2 à l'onboarding réel."
+    },
+    {
+      "source": "annonces.yaml",
+      "cleSource": "log1",
+      "cible": "annonces_conformite",
+      "idCible": "-",
+      "empreinte": "6f3ee2b456115b9f552952c89ba3648070bb25e7f58855034ce6f46051cdd3fd",
+      "statut": "exclu",
+      "motif": "Annonce « brouillon » avec 2 description(s) et 0 photo(s) : contenu à rédiger dans V2, rien d'exploitable à copier."
+    },
+    {
+      "source": "annonces.yaml",
+      "cleSource": "log2",
+      "cible": "annonces_conformite",
+      "idCible": "-",
+      "empreinte": "c682182e6f034c74ba25b9c3f51fda57124439dc2ac55e82122f734d69976e82",
+      "statut": "exclu",
+      "motif": "Annonce d'un logement gabarit (« brouillon », 0 description(s)) : à rédiger avec le logement réel dans V2."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "personne_01",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "2e0415d94202542eb14aaf19edc3e7c2b9a90239fc23b6b5310ab91e4133b441",
+      "statut": "exclu",
+      "motif": "Compte V1 « super_admin/super_admin » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "personne_02",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "f1c430fc9a574203741b428f0f8af715854732c5177d59c486972d6bba1baee4",
+      "statut": "exclu",
+      "motif": "Compte V1 « super_admin/admin » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "personne_03",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "51f18302e246dd7333df03845b3af20de28d453702e8185e824faba713cd2fe1",
+      "statut": "exclu",
+      "motif": "Compte V1 « gestionnaire/operateur » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "personne_04",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "ccd908b64e14cacd25353fb86f0d5b8f141a36dcea9fccfcb239d9c0b473ddf6",
+      "statut": "exclu",
+      "motif": "Compte V1 « gestionnaire/comptable » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "personne_05",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "f5370815ff022f90e46a3ccc5ffbd812f0c3bfb0f5c7ebdf495d99f6a6930629",
+      "statut": "exclu",
+      "motif": "Compte V1 « proprietaire/proprio_logement » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "personne_06",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "17249a0ee8f739a009f3fb41b7c6d0f8b7e5bfa40f455038fbd0f59f541d992a",
+      "statut": "exclu",
+      "motif": "Compte V1 « prestataires/menage_interne » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "personne_07",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "44a0739fb0db90002e92233a1cfa93884239d72d1b4d41648c8742afaa3f30d0",
+      "statut": "exclu",
+      "motif": "Compte V1 « prestataires/presta_externe » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "commercial_01",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "b9d093a8e504b08ca7c9d9317627002b1eb13a07d2c2152783148076f4d70538",
+      "statut": "exclu",
+      "motif": "Compte V1 « gestionnaire/commercial » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "dashboard_hote",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "d4a69ede80323cd7946cc8ae31e42625da267bf4b96bcdcc2ccff51548239466",
+      "statut": "exclu",
+      "motif": "Compte V1 « gestionnaire/dashboard » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "acces.yaml",
+      "cleSource": "passerelle_parc",
+      "cible": "users",
+      "idCible": "-",
+      "empreinte": "3c0729ac36b83545d72534106b6202d3547553142e13babc025d3ffd21d51839",
+      "statut": "exclu",
+      "motif": "Compte V1 « gestionnaire/dashboard » sans email réel ni mot de passe migrable : réinvitation obligatoire dans V2 (2FA à activer)."
+    },
+    {
+      "source": "design.yaml",
+      "cleSource": "sejour",
+      "cible": "apparence_versions",
+      "idCible": "-",
+      "empreinte": "8bc21d03a9ee6329ed88df556d645dc32d3089e785033cdc5485c9a54426d592",
+      "statut": "exclu",
+      "motif": "Thème V1 « sejour » sans configuration sérialisée : la V2 repart de son thème par défaut."
+    }
+  ],
+  "constats": [
+    {
+      "logement": "log1",
+      "prixBase": 110,
+      "prixMin": 75,
+      "prixMax": 290,
+      "commissionPct": 0
+    }
+  ],
+  "anomalies": [],
+  "sourcesIntactes": true
+}
