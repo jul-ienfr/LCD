@@ -9,7 +9,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
 - [ ] URL HTTPS publique stable.
 - [ ] `DATABASE_URL` pointe sur le rôle **`lcd_app`**, pas le owner.
 - [ ] `MIGRATION_DATABASE_URL` (owner) disponible pour migrations/backups.
-- [ ] Migrations `0001` → `0088` appliquées (89 fichiers SQL).
+- [ ] Migrations `0001` → `0103` appliquées (104 fichiers SQL).
 - [ ] `npm run db:test-rls` exécuté sur la base de production :
   `RLS VALIDÉE : isolation tenant effective`.
   Déjà validé en local le 2026-10-26 (owner `lcd`, rôle `lcd_app`) ; les 45
@@ -19,7 +19,7 @@ pas configurés. Les tests locaux déjà faits sont rappelés en fin de document
   (test à faire sur une base de staging vide ou incomplète) ; le compteur
   `migrations` est comparé au journal Drizzle.
   Validé en local le 2026-10-26 sur base vide : 503 `db: up`, sept entrées
-  `manquants` ; rejouer le test avec le journal courant (85 migrations).
+  `manquants` ; rejouer le test avec le journal courant (104 migrations).
 - [ ] `/api/ready` → `200` avec toutes les migrations appliquées.
 
 ## 1. Auth, rôles et sécurité

@@ -1,0 +1,296 @@
+# Déploiement Netlify Free + Neon/Supabase (archivé)
+
+> **Document historique — Netlify n'est plus la cible de production.**
+> Décision ADR-06 du 2026-11-14 : VPS Docker + Caddy + PostgreSQL. La
+> procédure active est `docs/ops/runbook-production.md` et
+> `v2/DEPLOIEMENT-VPS.md`. Ce fichier est conservé pour mémoire ; ne pas
+> l'utiliser pour un déploiement.
+
+Objectif : une URL publique HTTPS, une base Postgres managée, la PWA
+installable, sans payer au démarrage.
+
+## 0. État du déploiement beta (2026-10-25)
+
+- **URL** : <https://lcd-parc.netlify.app>
+- **Site Netlify** : `lcd-parc` (`7eb65dbc-dceb-477e-b89e-4ee1d7989b0b`),
+  plan Free.
+- **Base** : Netlify Database (Postgres managé, région `us-east-2`),
+  cible `DATABASE_URL` = rôle `lcd_app` non-propriétaire ; l’ancien
+  déploiement utilise encore le owner tant que le rôle n’est pas provisionné.
+  `/api/ready` répond `db: up` et `schema: ok` uniquement après application
+  des migrations.
+- **Admin** : `conciergeriefr@outlook.fr` (mot de passe fourni hors dépôt).
+- **Email** : `EMAIL_ENABLED=false` tant qu'aucun SMTP de production
+  (Brevo/OVH/Scaleway) n'est configuré.
+- **Schéma** : bootstrap initial + table `drizzle.__drizzle_migrations`
+  marquée jusqu'à `0025` en production. Les migrations `0026` (commission),
+  `0027`-`0028` (webhooks), `0029`-`0030` (cautions) et `0031`
+  (entité/mandats) seront appliquées au
+  prochain déploiement avec `DATABASE_URL` owner récupéré depuis Netlify.
+- **Limites Free** : variables d'environnement non secrètes (lisibles par
+  l'équipe), base hors UE, pas de backups/PITR, pas de Sentry/Uptime.
+- **Sécurité** : le token Netlify utilisé pour ce bootstrap doit être
+  révoqué/rotaté ; le mot de passe admin a été changé via
+  `/hote/securite` et doit rester privé.
+- **Sauvegardes** : `npm run db:backup` + `npm run db:restore-test` ;
+  workflow quotidien `.github/workflows/v2-backup.yml` à activer avec le
+  secret `DATABASE_URL` (voir `v2/BACKUPS.md`).
+
+La suite du document décrit la procédure cible (Neon/Supabase ou Netlify
+Database) et reste valable pour une installation neuve.
+
+> **Alternative VPS** : si les crédits Netlify sont épuisés, utiliser
+> `v2/DEPLOIEMENT-VPS.md` (Docker + Caddy + PostgreSQL + sauvegardes).
+> **Alternatives gratuites** : `v2/DEPLOIEMENT-GRATUIT.md` (Oracle Always
+> Free, GCP e2-micro + Neon, Render + Neon, home lab + tunnel).
+
+## 1. Base Postgres managée
+
+Créer une base **Neon** ou **Supabase** en région **UE** (Paris/Francfort).
+Récupérer la chaîne **owner** (`MIGRATION_DATABASE_URL`, mode pooler si
+disponible, avec `sslmode=require`).
+
+Appliquer les migrations **depuis le poste**, sur la base distante :
+
+```powershell
+cd v2
+$env:MIGRATION_DATABASE_URL="postgres://owner..."
+$env:BETTER_AUTH_SECRET="<32+ caracteres aleatoires>"
+$env:BETTER_AUTH_URL="https://<site>.netlify.app"
+npm run db:migrate
+```
+
+Créer le premier admin **sur la base distante** :
+
+```powershell
+$env:SEED_ADMIN_EMAIL="admin@votre-domaine.fr"
+$env:SEED_ADMIN_PASSWORD="<mot de passe fort, 12+>"
+$env:SEED_TENANT_SLUG="lcd"
+npm run db:seed
+```
+
+Créer le rôle applicatif non-propriétaire et vérifier RLS :
+
+```powershell
+$env:APP_ROLE_NAME="lcd_app"
+$env:APP_ROLE_PASSWORD="<openssl rand -hex 24>"
+npm run db:role-app
+$env:DATABASE_URL="postgres://lcd_app:<APP_ROLE_PASSWORD>@<host>/<db>"
+npm run db:test-rls
+```
+
+`db:test-rls` doit afficher `RLS VALIDÉE`. `DATABASE_URL` (rôle `lcd_app`)
+est la seule URL utilisée par l’application ; `MIGRATION_DATABASE_URL`
+(owner) reste pour migrations, seed et sauvegardes.
+
+> `seed.ts` charge `.env.local`, mais les variables déjà présentes dans le
+> shell gagnent. Vérifier que `MIGRATION_DATABASE_URL` pointe bien sur la base
+> distante avant le seed.
+
+## 2. Projet Netlify
+
+1. Netlify → **Add new site** → **Import an existing project**.
+2. GitHub → dépôt `jul-ienfr/LCD`, branche `v2`.
+3. **Base directory** : `v2`.
+4. Build command : `npm run build` (déjà dans `netlify.toml`).
+5. Publish directory : `.next` (géré par le plugin Next).
+6. Node : `24` (déjà dans `netlify.toml`).
+
+Netlify détecte Next.js et installe `@netlify/plugin-nextjs` au build.
+`next.config.ts` désactive `output: "standalone"` quand `NETLIFY=true`.
+
+## 3. Variables d'environnement Netlify
+
+À mettre dans **Site configuration → Environment variables** :
+
+| Variable | Valeur |
+|---|---|
+| `DATABASE_URL` | URL Postgres du rôle **`lcd_app`** (non-propriétaire, RLS) |
+| `BETTER_AUTH_SECRET` | secret aléatoire ≥ 32 caractères |
+| `BETTER_AUTH_URL` | `https://<site>.netlify.app` |
+| `BETTER_AUTH_TRUSTED_ORIGINS` | URLs de preview, séparées par virgules (optionnel) |
+| `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | si stockage fichiers activé |
+| `SMTP_URL` / `EMAIL_FROM` | si emails activés |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | si paiement en ligne activé |
+| `CRON_SECRET` | si synchronisation OTA par cron HTTP activée |
+| `MESSAGES_AUTO_ENABLED` | `true` pour autoriser `/api/cron/messages-auto` (brouillons seulement, `false` par défaut) |
+| `PRICING_IMPORT_ENABLED` | `true` pour autoriser `/api/cron/pricing` (recommandations seulement, `false` par défaut) |
+| `PRICELABS_API_KEY` / `PRICELABS_API_BASE` | si revenue management partenaire activé (sinon recommandation locale) |
+| `NUKI_API_TOKEN` | optionnel : pousse les codes d'accès vers Nuki Web ; sans token, les codes sont générés en mode manuel |
+| `NUKI_API_BASE` | URL de l'API Nuki (défaut `https://api.nuki.io`) |
+| `ICS_SCHEDULER_ENABLED` | `false` sur Netlify (pas de processus persistant) |
+| `SENTRY_DSN` | si Sentry activé |
+
+**Ne pas** mettre `SEED_*` en production : le seed est une opération locale
+ponctuelle. `MIGRATION_DATABASE_URL` (owner) reste dans le shell local ou le
+secret GitHub de sauvegarde, jamais dans le runtime Netlify.
+
+La synchronisation ICS est déclenchée par
+`.github/workflows/v2-sync-ota.yml` (toutes les 5 min, `?force=1`) ou par un
+cron externe équivalent. La découverte cross-tenant passe par la fonction SQL
+`SECURITY DEFINER` `lister_flux_ics_a_synchroniser`, donc le runtime Netlify
+n’a besoin que de `DATABASE_URL` (`lcd_app`). Le channel manager
+(`/hote/planning/canaux`) et les exports iCal par canal fonctionnent de la même
+façon ; seule la boucle automatique change de déclencheur.
+
+> Netlify Free ne chiffre pas les variables : l’URL du rôle `lcd_app` limite
+> les dégâts si elle fuite, car RLS reste appliquée.
+
+## 4. Déployer
+
+```bash
+npx netlify-cli login
+npx netlify-cli init
+npx netlify-cli deploy --build --prod
+```
+
+Ou via l'interface Netlify (recommandé pour la première fois) : **Deploy
+site**.
+
+Après le premier déploiement :
+
+1. ouvrir `https://<site>.netlify.app/api/health` → `{ ok: true }` ;
+2. ouvrir `https://<site>.netlify.app/api/ready` → `{ ok: true, db: "up",
+   schema: "ok" }` ; si `schema: "pending"`, appliquer les migrations ;
+3. ouvrir `/login` et se connecter avec l'admin seedé ;
+4. ouvrir `/voyageur` et vérifier le formulaire sans JS ;
+5. installer la PWA (menu navigateur → « Installer ») ;
+6. couper le réseau et recharger `/voyageur` → cache/offline ;
+7. configurer Uptime Kuma sur `/api/health` et `/api/ready`.
+
+## 4bis. Paiement Stripe (optionnel)
+
+1. Stripe Dashboard → Developers → API keys → récupérer la clé secrète
+   (`sk_test_…` puis `sk_live_…`).
+2. Ajouter `STRIPE_SECRET_KEY` dans Netlify.
+3. Créer un endpoint webhook vers
+   `https://<site>.netlify.app/api/stripe/webhook`, événements
+   `checkout.session.completed`, `checkout.session.async_payment_succeeded`
+   et `charge.dispute.created` / `charge.dispute.updated` /
+   `charge.dispute.closed`.
+4. Copier le signing secret (`whsec_…`) dans `STRIPE_WEBHOOK_SECRET`.
+5. Redéployer, ouvrir une facture publique avec un solde et vérifier le
+   bouton « Payer en ligne ».
+6. Tester en mode test avec la carte `4242 4242 4242 4242`.
+
+Sans ces deux variables, le bouton est masqué et le webhook répond 503.
+
+## 4ter. Cron OTA (optionnel)
+
+1. Générer un secret aléatoire (`openssl rand -hex 32`).
+2. Netlify → Environment variables → `CRON_SECRET`.
+3. GitHub → Settings → Secrets and variables → Actions → `CRON_SECRET`.
+4. Le workflow `.github/workflows/v2-sync-ota.yml` appelle toutes les 5 minutes
+   `POST /api/cron/sync-ota?force=1`.
+5. Tester manuellement : **Actions → v2-sync-ota → Run workflow**.
+
+La synchronisation des fournisseurs API (`/api/cron/sync-fournisseurs`) exige
+la connexion owner `MIGRATION_DATABASE_URL` pour lister les affectations
+cross-tenant. Sur Netlify sans owner, elle répond `503` : garder
+`FOURNISSEUR_SYNC_ENABLED=false` et utiliser un hébergement avec owner (VPS)
+ou ajouter une fonction SQL `SECURITY DEFINER` équivalente. Tout appel POST
+doit envoyer `Content-Type: application/json`, sinon la protection CSRF répond
+`403` avant le contrôle du secret.
+
+L’endpoint renvoie
+`{ total, reussis, erreurs, ignores, verrouille, ownerDisponible, details }` ;
+chaque flux conserve son dernier statut et son message dans
+`/hote/planning/import`.
+
+Le même `CRON_SECRET` protège `POST /api/cron/webhooks`, appelé chaque heure
+par `.github/workflows/v2-webhooks.yml` pour livrer les webhooks HA/Moli.
+
+## 4quater. Monitoring
+
+- `SENTRY_DSN` → erreurs serveur et client (voir `v2/MONITORING.md`) ;
+- `docker compose -f compose.monitoring.yml up -d` pour Uptime Kuma ;
+- monitors `/api/health`, `/api/ready`, `/login` + notification testée.
+
+## 5. Domaine personnalisé
+
+1. Netlify → **Domain management** → ajouter le domaine.
+2. DNS chez OVH/Cloudflare/Infomaniak.
+3. TLS Let's Encrypt automatique.
+4. Mettre à jour `BETTER_AUTH_URL` avec le domaine final, puis redéployer.
+5. Ajouter les URLs de preview dans `BETTER_AUTH_TRUSTED_ORIGINS` si besoin.
+
+## 6. Limites du gratuit
+
+| Ressource | Limite Netlify Free / Neon Free |
+|---|---|
+| Netlify | 300 crédits/mois, fonctions limitées |
+| Neon/Supabase | ~0,5 Go, pause après inactivité |
+| Bande passante | selon offre |
+| PITR / backups | souvent absent en gratuit |
+
+**Dès le premier client payant**, passer à un VPS 4 Go ou Netlify Pro +
+Postgres managé avec PITR. Voir `docs/78-plan-stack-deploiement.md` §8.
+
+## 7. Vérification locale avant déploiement
+
+```bash
+cd v2
+NETLIFY=true npm run build
+npm run lint
+npm run typecheck
+npm test
+npm run db:check
+```
+
+Le build Netlify ne doit pas produire de dossier `standalone` ; le build
+Docker/VPS, lui, le produit.
+
+## 8. Nettoyage des données de recette (après déploiement)
+
+**Quand :** après le déploiement, jamais avant. Les faux comptes et les faux
+logements sont **nécessaires pour tester** : recettes e2e, parcours voyageur,
+démonstration commerciale. On les supprime quand la recette n'a plus besoin de la
+base de démonstration, pas avant.
+
+**Quoi.** Inventaire mesuré le 2026-11-13 sur `lcd_demo` (tenant `lcd`,
+rôle de migration, donc hors RLS) — lecture seule, rien n'a été supprimé :
+
+| Donnée de recette | Volume | Marqueur |
+| --- | --- | --- |
+| Comptes | **120**, tous en `@lcd.test` | domaine `lcd.test` |
+| Logements | **617**, dont 3 seulement de vitrine | tout sauf Villa Santa Severa, Le Mas des Oliviers, Le Loft du Port |
+| Fixtures e2e nommées | 473 « …E2E… » + 13 « Onboarding <horodatage> » | préfixes `E2E`, `Onboarding` |
+| Autres fixtures | « Logement plan/dérivé/Archive/Recherche », « Relevé », « Import », « Proprio A/B », « Diag… » | nom + horodatage |
+| Dépendances | 444 réservations, 549 tarifs, 65 factures, 41 paiements, 36 restrictions, 57 incidents, 22 avis, 20 extras, 13 blocages | rattachées aux logements et comptes ci-dessus |
+
+Un seul tenant existe dans cette base : `lcd`. Rien n'est à nettoyer dans une
+base de production neuve — ce nettoyage concerne les bases de démonstration et de
+recette.
+
+**Procédure** — outil dédié, **en lecture seule par défaut** :
+
+```bash
+cd v2
+# 1. Voir le plan (aucune écriture) : volumes par table et éléments conservés
+MIGRATION_DATABASE_URL=… npm run db:nettoyer-recette
+
+# 2. Sauvegarder la base (v2/BACKUPS.md), puis exécuter
+NETTOYAGE_CONFIRME=1 MIGRATION_DATABASE_URL=… npm run db:nettoyer-recette -- --appliquer
+```
+
+Trois verrous avant toute écriture : le drapeau `--appliquer`, la variable
+`NETTOYAGE_CONFIRME=1`, et un nom de base qui ressemble à une base de recette
+(`demo`, `test`, `recette`…) — sinon il faut `NETTOYAGE_FORCER=1`. La purge
+passe par des rôles qui voient toutes les lignes (`MIGRATION_DATABASE_URL`), se
+fait en une transaction, et conserve les 3 logements de vitrine ainsi qu'un
+compte administrateur (`NETTOYAGE_CONSERVER_EMAIL`, `super@lcd.test` par défaut).
+Les règles de reconnaissance des données de recette vivent dans
+`scripts/lib/donnees-recette.mjs` et sont testées
+(`tests/nettoyage-donnees-recette.test.ts`).
+
+**Plan mesuré le 2026-11-13** (lecture seule, rien n'a été supprimé) :
+41 paiements, 65 factures, 444 réservations, 13 dispatchs, 26 missions,
+119 comptes, 614 logements. Après purge : 3 logements, 1 compte.
+
+**Effet de bord connu et accepté d'ici là.** Tant que les fixtures sont là,
+l'accueil public n'affiche que trois cartes de logement tirées d'un vivier de 64
+publiés, majoritairement des fixtures sans tarif, et deux tests e2e du tunnel de
+réservation peuvent échouer (`confiance.spec.ts`,
+`ergonomie-reservation.spec.ts`). Échec data-dépendant, diagnostiqué et tracé :
+friction **R-11** (`.artifacts/ergonomie/frictions.md`), décision **A27**.
+

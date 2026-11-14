@@ -18,12 +18,26 @@ jobs:
             exit 1
           fi
 
+      - name: Vérifier l'URL de l'application
+        env:
+          APP_URL: ${{ vars.LCD_APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "::error::La variable LCD_APP_URL n'est pas configurée (Settings → Variables)."
+            exit 1
+          fi
+          case "$APP_URL" in
+            https://*) ;;
+            *) echo "::error::LCD_APP_URL doit commencer par https://"; exit 1 ;;
+          esac
+
       - name: Relancer les factures échues
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APP_URL: ${{ vars.LCD_APP_URL }}
         run: |
           curl --fail-with-body --silent --show-error \
             -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $CRON_SECRET" \
-            "https://lcd-parc.netlify.app/api/cron/relances"
+            "$APP_URL/api/cron/relances"

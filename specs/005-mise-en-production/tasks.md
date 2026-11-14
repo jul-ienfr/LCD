@@ -17,18 +17,30 @@ explicitement écrit.
 **But**: sauvegarder, trancher l'hébergement et préparer les documents
 d'exécution. Aucun provisionnement avant l'ADR-06.
 
-- [ ] T001 Committer les 460 fichiers en trois lots (specs/docs, code, tests), vérifier `git status --porcelain` vide et poser le tag `v2.0.0-rc1`
-- [ ] T002 [P] Inventorier les variables de `v2/.env.example` et de `v2/DEPLOIEMENT.md`, marquer celles qui sont obligatoires, optionnelles ou interdites en production, dans `docs/ops/runbook-production.md` §1
-- [ ] T003 [P] Écrire et signer `docs/decisions/ADR-06-hebergement-production.md` : VPS recommandé, Netlify payant, Render ou Oracle Free ; critères coût, région UE, disque, cron, sauvegarde
-- [ ] T004 [P] Choisir la base de production (PostgreSQL auto-hébergé ou managé UE), la région, le RPO 24 h et le RTO 30 min, dans l'ADR-06 §2
-- [ ] T005 [P] Choisir le domaine public, les sous-domaines et le titulaire DNS, dans `docs/ops/runbook-production.md` §2
-- [ ] T006 [P] Choisir le fournisseur SMTP, configurer SPF/DKIM/DMARC et noter les enregistrements dans le runbook §3
-- [ ] T007 [P] Choisir la supervision (Uptime Kuma auto-hébergé et/ou Sentry) et la destination des alertes, dans le runbook §4
+- [x] T001 Committer les 460 fichiers en trois lots (specs/docs, code, tests), vérifier `git status --porcelain` vide et poser le tag `v2.0.0-rc1`
+  — fait le 2026-11-14 : commits `4271ece`, `4e2b89a`, `d8ff261` ; arbre propre ; tag annoté `v2.0.0-rc1`.
+- [x] T002 [P] Inventorier les variables de `v2/.env.example` et de `v2/DEPLOIEMENT.md`, marquer celles qui sont obligatoires, optionnelles ou interdites en production, dans `docs/ops/runbook-production.md` §1
+  — fait : 70 variables classées O/F/I/S, secrets et rotation documentés.
+- [~] T003 [P] Écrire et signer `docs/decisions/ADR-06-hebergement-production.md` : VPS recommandé, Netlify payant, Render ou Oracle Free ; critères coût, région UE, disque, cron, sauvegarde
+  — écrit le 2026-11-14 ; **signature exploitant en attente** (case §Signature).
+- [~] T004 [P] Choisir la base de production (PostgreSQL auto-hébergé ou managé UE), la région, le RPO 24 h et le RTO 30 min, dans l'ADR-06 §2
+  — PostgreSQL 18 auto-hébergé, UE, RPO 24 h / RTO 30 min retenus par défaut ; à contresigner.
+- [~] T005 [P] Choisir le domaine public, les sous-domaines et le titulaire DNS, dans `docs/ops/runbook-production.md` §2
+  — procédure et emplacement écrits ; nom de domaine et titulaire à confirmer.
+- [~] T006 [P] Choisir le fournisseur SMTP, configurer SPF/DKIM/DMARC et noter les enregistrements dans le runbook §3
+  — procédure et contrôles écrits ; fournisseur et enregistrements à créer.
+- [~] T007 [P] Choisir la supervision (Uptime Kuma auto-hébergé et/ou Sentry) et la destination des alertes, dans le runbook §4
+  — Uptime Kuma retenu, Sentry optionnel ; destinataire des alertes à confirmer.
 - [ ] T008 Révoquer le token Netlify exposé, changer le mot de passe admin, générer `BETTER_AUTH_SECRET`, `CRON_SECRET`, `BACKUP_ENCRYPTION_KEY` et les stocker hors dépôt
-- [ ] T009 Trancher `v2/netlify.toml` : corriger pour `adapter-node` ou le marquer obsolète et retirer Netlify de la cible, dans l'ADR-06 §3
-- [ ] T010 [P] Créer `docs/ops/runbook-production.md` : prérequis, installation, déploiement, migration, sauvegarde, restauration, incident, retour arrière
-- [ ] T011 [P] Créer `docs/ops/recette-2026-11/journal.md` avec une ligne par case des 161 tests et des 21 parcours (id, date, opérateur, résultat, preuve, défaut)
-- [ ] T012 [P] Créer `docs/plans/PLAN-MIGRATION-V1-V2.md` : sources, matrice, ordre d'import, réconciliation, données personnelles, retour arrière
+  — commandes documentées (runbook §1.7) ; action réelle impossible sans serveur et sans accès au compte.
+- [x] T009 Trancher `v2/netlify.toml` : corriger pour `adapter-node` ou le marquer obsolète et retirer Netlify de la cible, dans l'ADR-06 §3
+  — `v2/netlify.toml` supprimé ; workflows cron passés à `vars.LCD_APP_URL` ; ancien guide archivé.
+- [x] T010 [P] Créer `docs/ops/runbook-production.md` : prérequis, installation, déploiement, migration, sauvegarde, restauration, incident, retour arrière
+  — fait : 12 sections, matrice cron, procédures et checklist go-live.
+- [x] T011 [P] Créer `docs/ops/recette-2026-11/journal.md` avec une ligne par case des 161 tests et des 21 parcours (id, date, opérateur, résultat, preuve, défaut)
+  — fait : 155 cases `REC-001…155` + 21 parcours `QA-001…021`, colonnes de preuve et signature.
+- [x] T012 [P] Créer `docs/plans/PLAN-MIGRATION-V1-V2.md` : sources, matrice, ordre d'import, réconciliation, données personnelles, retour arrière
+  — fait : inventaire V1 réel, matrice, journal `migration_v1`, décisions et retour arrière.
 
 **Gate G0**: arborescence propre, tag posé, ADR-06 signé, runbook et journal
 de recette créés.

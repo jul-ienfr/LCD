@@ -1,5 +1,10 @@
 # Roadmap d'exécution — parité Lodgify
 
+> **Document historique — remplacé le 2026-11-14.**
+> Le développement a dépassé ce calendrier : la roadmap active est
+> `docs/plans/ROADMAP-GO-LIVE-2026-11-14.md`. Ce fichier est conservé pour
+> tracer les hypothèses initiales, pas pour piloter l'exécution.
+
 **Date** : 2026-11-06
 **Périmètre** : `specs/002-parite-lodgify` (L0 → L7)
 **Hypothèse** : une personne à temps partiel, 3-4 jours/semaine
