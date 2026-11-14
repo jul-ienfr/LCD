@@ -5,7 +5,7 @@ Statut : ACTIF
 Propriétaire : fondateur
 Dernière vérification : 2026-11-14
 Remplace / remplacé par : —
-Source de vérité : git (tag v2.0.0-rc1) + docs/registres/etat-reel.md
+Source de vérité : git (tag v2.0.0-rc2) + docs/registres/etat-reel.md
 ```
 
 Application de conciergerie locative saisonnière. La **V2** (SvelteKit 3,
@@ -15,7 +15,7 @@ PostgreSQL, Docker) remplace la V1 (Next.js, gelée et archivée).
 
 | Sujet | État |
 |---|---|
-| Code V2 | complet, tagué `v2.0.0-rc1`, arbre propre |
+| Code V2 | complet, tagué `v2.0.0-rc2`, arbre propre |
 | Vérifications locales | typecheck 3 119 fichiers / 0 erreur ; Vitest 259 fichiers / 1 627 réussis ; build OK |
 | Base | 104 migrations, RLS testée, rôle applicatif `lcd_app` |
 | Production publique | **pas encore** — phases 3 à 6 de la spec 005 dépendent de l'infrastructure |
