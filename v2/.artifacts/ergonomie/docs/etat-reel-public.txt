@@ -1,0 +1,10 @@
+- **ROUTES PUBLIQUES 2026-11-13 (suite, plan 004 — contrat 320 px et axe hors P1)**
+  : les **21 pages publiques** hors staff sont désormais mesurées (`--public` sur
+  les deux scripts, routes dérivées du disque, `/login` et `/two-factor` exclues
+  avec motif). Trois défauts réels corrigés : `/journal` **188** cibles
+  (`<summary>Voir</summary>` à 30 × 24 px), `/tarifs` 2, `/mot-de-passe-oublie` 1.
+  État final : **0 cible, 0 débordement, 0 champ sans étiquette, 0 violation
+  axe** sur 21 routes ; gates staff inchangés (70 routes, 0/0/0/0). Garde-fou
+  ajouté : un fichier `baseline*` n'est plus écrasé sans `AUDIT_ECRASER=1` — la
+  référence 320 px avait été écrasée par une variable d'environnement mal nommée
+  et a été reconstituée (friction R-10).

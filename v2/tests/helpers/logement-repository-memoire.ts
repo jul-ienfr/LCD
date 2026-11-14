@@ -62,6 +62,8 @@ export class LogementRepositoryMemoire implements LogementRepository {
       regles: string | null;
       urgenceTel: string | null;
       guideTexte: string | null;
+      guidePartenaireNom: string | null;
+      guidePartenaireUrl: string | null;
     },
   ): Promise<Logement | null> {
     const logement = await this.trouverParId(tenantId, id);
@@ -74,6 +76,8 @@ export class LogementRepositoryMemoire implements LogementRepository {
       regles: data.regles ?? undefined,
       urgenceTel: data.urgenceTel ?? undefined,
       guideTexte: data.guideTexte ?? undefined,
+      guidePartenaireNom: data.guidePartenaireNom ?? undefined,
+      guidePartenaireUrl: data.guidePartenaireUrl ?? undefined,
       updatedAt: new Date(),
     });
     return logement;

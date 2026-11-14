@@ -11,7 +11,12 @@ test.describe("pages publiques sans JavaScript", () => {
     await expect(
       page.getByRole("cell", { name: "Administrateur", exact: true }).first(),
     ).toBeVisible();
-    await expect(page.getByRole("link", { name: "Mentions légales" })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Mentions légales", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Mentions légales & CGV" }),
+    ).toBeVisible();
     await expect(
       page.getByText(/Aucun encaissement de carte bancaire/),
     ).toBeVisible();

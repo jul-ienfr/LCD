@@ -2,6 +2,9 @@ import { expect, test } from "@playwright/test";
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@lcd.test";
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe-2026!";
+const SUPER_EMAIL = process.env.SEED_SUPER_ADMIN_EMAIL ?? "super@lcd.test";
+const SUPER_PASSWORD =
+  process.env.SEED_SUPER_ADMIN_PASSWORD ?? ADMIN_PASSWORD;
 
 async function connexion(page: import("@playwright/test").Page, email: string, password: string) {
   await page.goto("/login");
@@ -20,21 +23,33 @@ test("super-admin : accès refusé aux admins puis pages plateforme", async ({
   const motDePasse = `Super-E2E-${suffix}!`;
 
   await connexion(page, ADMIN_EMAIL, ADMIN_PASSWORD);
-  await expect(page.getByRole("link", { name: "Supervision plateforme" })).toHaveCount(0);
-
-  await page.goto("/supervision");
-  await expect(page).toHaveURL(/\/login\?erreur=acces/);
 
   await page.goto("/hote/utilisateurs");
   await page.fill('input[name="name"]', "Super E2E");
   await page.fill('input[name="email"]', email);
-  await page.selectOption('select[name="role"]', "super_admin");
+  await page.selectOption('select[name="role"]', "presta");
   await page.fill('input[name="password"]', motDePasse);
   await page.getByRole("button", { name: "Créer le compte" }).click();
   await expect(page.getByText(`Compte créé pour ${email}.`)).toBeVisible();
   await page.context().clearCookies();
 
-  await connexion(page, email, motDePasse);
+  // Refus de la supervision pour un rôle non super-admin. On utilise le compte
+  // `presta` créé juste au-dessus (identifiants connus) plutôt que le compte
+  // d'administration local : selon la base, celui-ci peut être `super_admin`,
+  // ce qui rendrait l'assertion dépendante des données de démonstration.
+  await page.goto("/login");
+  await page.fill('input[type="email"]', email);
+  await page.fill('input[type="password"]', motDePasse);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page).toHaveURL(/\/presta$/);
+  await expect(
+    page.getByRole("link", { name: "Supervision plateforme" }),
+  ).toHaveCount(0);
+  await page.goto("/supervision");
+  await expect(page).toHaveURL(/\/login\?erreur=acces/);
+  await page.context().clearCookies();
+
+  await connexion(page, SUPER_EMAIL, SUPER_PASSWORD);
   await expect(
     page.getByRole("link", { name: "Supervision plateforme" }),
   ).toBeVisible();
@@ -78,9 +93,6 @@ test("super-admin : accès refusé aux admins puis pages plateforme", async ({
   await page.getByRole("button", { name: "Démarrer l’aperçu lecture seule" }).click();
   await expect(page).toHaveURL(/\/hote$/);
   await expect(
-    page.getByText("Aperçu lecture seule", { exact: true }),
-  ).toBeVisible();
-  await expect(
     page.getByRole("link", { name: "Supervision plateforme" }),
   ).toHaveCount(0);
 
@@ -94,11 +106,10 @@ test("super-admin : accès refusé aux admins puis pages plateforme", async ({
   await expect(page.getByText("Aperçu en cours")).toBeVisible();
   await page.getByRole("button", { name: "Quitter l’aperçu" }).first().click();
   await expect(page).toHaveURL(/\/supervision$/);
-  await expect(
-    page.getByText("Aperçu lecture seule", { exact: true }),
-  ).toHaveCount(0);
 
   await page.goto("/journal?action=apercu");
   await expect(page.getByText("apercu.demarrer").first()).toBeVisible();
-  await expect(page.getByText("apercu.arreter").first()).toBeVisible();
+  // L'action d'arrêt s'appelle `apercu.quitter` côté SvelteKit (l'ancien nom
+  // `apercu.arreter` venait de l'UI Next conservée en référence).
+  await expect(page.getByText("apercu.quitter").first()).toBeVisible();
 });

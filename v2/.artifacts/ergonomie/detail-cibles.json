@@ -1,0 +1,275 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "routes": [
+    "/hote/annonce",
+    "/hote/cautions",
+    "/hote/compta/rapprochement",
+    "/hote/design",
+    "/hote/missions",
+    "/hote/objets-trouves",
+    "/hote/onboarding",
+    "/hote/phrases",
+    "/hote/prix",
+    "/hote/rgpd",
+    "/hote/sinistres",
+    "/supervision/apparence",
+    "/supervision/apparence/apercu-composants"
+  ],
+  "results": [
+    {
+      "route": "/hote/annonce",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/cautions",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/compta/rapprochement",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/design",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 1
+    },
+    {
+      "route": "/hote/missions",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/objets-trouves",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/onboarding",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/phrases",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/prix",
+      "status": 200,
+      "overflowPx": 14,
+      "smallTargets": [
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "joursSemaine",
+          "classe": "",
+          "libelleHtml": "<input type=\"checkbox\" name=\"joursSemaine\" value=\"1\" checked=\"\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "joursSemaine",
+          "classe": "",
+          "libelleHtml": "<input type=\"checkbox\" name=\"joursSemaine\" value=\"4\" checked=\"\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "joursSemaine",
+          "classe": "",
+          "libelleHtml": "<input type=\"checkbox\" name=\"joursSemaine\" value=\"1\" checked=\"\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "joursSemaine",
+          "classe": "",
+          "libelleHtml": "<input type=\"checkbox\" name=\"joursSemaine\" value=\"4\" checked=\"\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/rgpd",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "actif-reservations",
+          "classe": "",
+          "libelleHtml": "<input checked=\"\" name=\"actif-reservations\" type=\"checkbox\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "actif-facturation",
+          "classe": "",
+          "libelleHtml": "<input checked=\"\" name=\"actif-facturation\" type=\"checkbox\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "actif-support",
+          "classe": "",
+          "libelleHtml": "<input checked=\"\" name=\"actif-support\" type=\"checkbox\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "actif-avis",
+          "classe": "",
+          "libelleHtml": "<input checked=\"\" name=\"actif-avis\" type=\"checkbox\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "actif-memoire",
+          "classe": "",
+          "libelleHtml": "<input checked=\"\" name=\"actif-memoire\" type=\"checkbox\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "actif-objets_trouves",
+          "classe": "",
+          "libelleHtml": "<input checked=\"\" name=\"actif-objets_trouves\" type=\"checkbox\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "name": "actif-tranquillite",
+          "classe": "",
+          "libelleHtml": "<input checked=\"\" name=\"actif-tranquillite\" type=\"checkbox\">",
+          "text": "",
+          "width": 13,
+          "height": 13
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 14
+    },
+    {
+      "route": "/hote/sinistres",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/supervision/apparence",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 1
+    },
+    {
+      "route": "/supervision/apparence/apercu-composants",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    }
+  ]
+}

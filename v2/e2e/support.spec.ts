@@ -36,6 +36,29 @@ test("support : ticket propriétaire, réponse et résolution admin", async ({
   await pageAdmin.getByRole("button", { name: "Se connecter" }).click();
   await expect(pageAdmin).toHaveURL(/\/hote$/);
 
+  // Le compte d'administration local peut être `super_admin` selon la base,
+  // rôle que la page `/support` ne considère pas comme staff (elle teste
+  // `admin`/`hote`). On crée donc un compte `hote` dédié pour la vue staff :
+  // l'assertion ne dépend plus des données de démonstration.
+  const emailHote = `support-hote-${suffix}@lcd.test`;
+  const motDePasseHote = `Support-Hote-${suffix}!`;
+  await pageAdmin.goto("/hote/utilisateurs");
+  await pageAdmin.fill('input[name="name"]', "Support Hôte E2E");
+  await pageAdmin.fill('input[name="email"]', emailHote);
+  await pageAdmin.selectOption('select[name="role"]', "hote");
+  await pageAdmin.fill('input[name="password"]', motDePasseHote);
+  await pageAdmin.getByRole("button", { name: "Créer le compte" }).click();
+  await expect(
+    pageAdmin.getByText(`Compte créé pour ${emailHote}.`),
+  ).toBeVisible();
+  await ctxAdmin.clearCookies();
+
+  await pageAdmin.goto("/login");
+  await pageAdmin.fill('input[type="email"]', emailHote);
+  await pageAdmin.fill('input[type="password"]', motDePasseHote);
+  await pageAdmin.getByRole("button", { name: "Se connecter" }).click();
+  await expect(pageAdmin).toHaveURL(/\/hote$/);
+
   await pageAdmin.goto("/support");
   await pageAdmin.getByRole("link", { name: sujet }).first().click();
   await expect(pageAdmin.getByText(message).first()).toBeVisible();

@@ -1,0 +1,151 @@
+﻿
+> lcd-v2@0.1.0 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: c:\Users\julie\Desktop\Location courte duree\v2
+Getting Svelte diagnostics...
+
+c:\Users\julie\Desktop\Location courte duree\v2\src\lib\components\voyageur\bandeau-synchro.svelte:30:25
+Warn: This reference only captures the initial value of `iso`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+  const date = new Date(iso);
+
+c:\Users\julie\Desktop\Location courte duree\v2\src\lib\components\voyageur\barre-action-mobile-voyageur.svelte:35:19
+Error: Cannot use `await` in deriveds and template expressions, or at the top level of a component, unless the `experimental.async` compiler option is `true`
+https://svelte.dev/e/experimental_async (svelte)
+  // n'existe pas encore, le repli local prend le relais.
+  const partage = await import("@/lib/components/ui/barre-action-mobile.svelte")
+    .then((module) => module.default)
+    .catch(() => null);
+
+c:\Users\julie\Desktop\Location courte duree\v2\src\lib\components\voyageur\barre-action-mobile-voyageur.svelte:35:32
+Error: Cannot find module '@/lib/components/ui/barre-action-mobile.svelte' or its corresponding type declarations. (ts)
+  // n'existe pas encore, le repli local prend le relais.
+  const partage = await import("@/lib/components/ui/barre-action-mobile.svelte")
+    .then((module) => module.default)
+
+c:\Users\julie\Desktop\Location courte duree\v2\src\lib\components\voyageur\carte-essentielle.svelte:38:28
+Warn: This reference only captures the initial value of `id`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+  const titreId = `carte-${id ?? titre.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+</script>
+
+c:\Users\julie\Desktop\Location courte duree\v2\src\lib\components\voyageur\carte-essentielle.svelte:38:34
+Warn: This reference only captures the initial value of `titre`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+  const titreId = `carte-${id ?? titre.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+</script>
+
+c:\Users\julie\Desktop\Location courte duree\v2\src\routes\voyageur\+page.svelte:39:52
+Error: 'data.extras.length' is possibly 'undefined'. (ts)
+      { id: "incident", libelle: tv.signalerIncident, present: true },
+      { id: "extras", libelle: tv.extras, present: data?.extras?.length > 0 },
+      { id: "adresses", libelle: tv.adresses, present: data?.lieux?.length > 0 },
+
+c:\Users\julie\Desktop\Location courte duree\v2\src\routes\voyageur\+page.svelte:40:56
+Error: 'data.lieux.length' is possibly 'undefined'. (ts)
+      { id: "extras", libelle: tv.extras, present: data?.extras?.length > 0 },
+      { id: "adresses", libelle: tv.adresses, present: data?.lieux?.length > 0 },
+      { id: "preferences", libelle: tv.preferencesSejour, present: true },
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:32:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("rend un repère nav nommé contenant une liste ordonnée", () => {
+    const html = htmlDe(FilAriane, { elements });
+    expect(html).toContain("<nav");
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:40:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("marque uniquement le dernier élément comme page courante", () => {
+    const html = htmlDe(FilAriane, { elements });
+    expect(occurrences(html, 'aria-current="page"')).toBe(1);
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:46:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("rend les éléments intermédiaires comme des liens", () => {
+    const html = htmlDe(FilAriane, { elements });
+    expect(html).toContain('href="/hote"');
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:54:19
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("accepte un libellé de repère personnalisé et reste robuste à vide", () => {
+    expect(htmlDe(FilAriane, { elements, libelle: "Vous êtes ici" })).toContain(
+      'aria-label="Vous êtes ici"',
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:57:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+    );
+    const vide = htmlDe(FilAriane, { elements: [] });
+    expect(vide).toContain("<nav");
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:66:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("rend un formulaire GET natif vers /hote/recherche", () => {
+    const html = htmlDe(RechercheGlobale);
+    expect(html).toContain("<form");
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:75:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("expose un champ nommé q associé à un libellé visible", () => {
+    const html = htmlDe(RechercheGlobale, { valeur: "RES-1042" });
+    expect(html).toContain('name="q"');
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:86:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("propose un bouton de soumission d'au moins 44 px, nommé", () => {
+    const html = htmlDe(RechercheGlobale);
+    expect(html).toContain('type="submit"');
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:95:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("honore une action et un libellé personnalisés", () => {
+    const html = htmlDe(RechercheGlobale, {
+      action: "/recherche",
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:106:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("rend une alerte annonçable en ton erreur (défaut)", () => {
+    const html = htmlDe(ChampErreur, {
+      id: "email-erreur",
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:118:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("reste annonçable sans message (région live préexistante)", () => {
+    const html = htmlDe(ChampErreur, { id: "telephone-erreur" });
+    expect(html).toContain('role="alert"');
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:124:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("distingue le ton aide (statut poli, pas d'alerte)", () => {
+    const html = htmlDe(ChampErreur, {
+      id: "date-aide",
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:137:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("expose aria-busy et un libellé annoncé", () => {
+    const html = htmlDe(EtatChargement, { libelle: "Chargement des factures" });
+    expect(html).toContain('aria-busy="true"');
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:146:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("rend le nombre de lignes demandé dans un squelette décoratif", () => {
+    const html = htmlDe(EtatChargement, { lignes: 4 });
+    expect(occurrences(html, "animate-pulse")).toBe(4);
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:153:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("emploie le libellé par défaut et le nombre de lignes par défaut", () => {
+    const html = htmlDe(EtatChargement);
+    expect(html).toContain("Chargement...");
+
+c:\Users\julie\Desktop\Location courte duree\v2\tests\ergonomie\primitives.test.ts:160:25
+Error: Argument of type 'Component<$$ComponentProps, {}, "">' is not assignable to parameter of type 'never'. 
+  it("accepte aria-busy=false et reste sans JavaScript", () => {
+    const html = htmlDe(EtatChargement, { ariaBusy: "false", lignes: 1 });
+    expect(html).toContain('aria-busy="false"');
+
+====================================
+svelte-check found 20 errors and 3 warnings in 5 files

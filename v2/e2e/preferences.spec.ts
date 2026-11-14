@@ -52,7 +52,10 @@ test("préférences séjour : formulaire no-JS, enregistrement et relecture", as
   });
   const noJsPage = await noJs.newPage();
   await noJsPage.goto(href ?? "/voyageur");
-  await expect(noJsPage.getByText("Préférences de séjour")).toBeVisible();
+  // Le libellé apparaît aussi dans le sommaire ancré : on cible le titre.
+  await expect(
+    noJsPage.getByRole("heading", { name: "Préférences de séjour" }),
+  ).toBeVisible();
 
   await noJsPage.fill('input[name="menageFrequenceJ"]', "7");
   await noJsPage.fill('input[name="heureArrivee"]', "18:30");

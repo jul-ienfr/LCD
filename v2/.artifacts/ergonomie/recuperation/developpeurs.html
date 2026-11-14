@@ -1,0 +1,54 @@
+<meta content="Documentation de l'API LCD v1 : clés API, scopes, endpoints, pagination, erreurs et webhooks signés." name="description"/>
+
+<!-- ===== fragment ===== -->
+
+<main id="contenu" class="mx-auto max-w-4xl space-y-10 px-6 py-12"><header class="space-y-3"><p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Développeurs</p>
+<h1 class="text-3xl font-semibold tracking-tight">API LCD v1</h1>
+<p class="text-encre-douce">Une API de lecture pour connecter votre reporting, votre outil
+      d'automatisation ou votre guide voyageur. Toutes les réponses sont en
+      JSON et restent limitées au compte qui a créé la clé.</p>
+<p class="text-sm"><a class="inline-flex min-h-11 items-center underline" href="/api/v1/openapi">Spécification OpenAPI 3.1</a> · <a class="inline-flex min-h-11 items-center underline" href="/hote/integrations/api">Gérer mes clés</a></p></header>
+<section class="space-y-3"><h2 class="text-xl font-semibold">Authentification</h2>
+<p class="text-encre-douce">Créez une clé depuis l'espace hôte. Elle est affichée une seule fois et
+      commence par <code>lcd_</code>. Envoyez-la dans l'en-tête <code>Authorization</code> ; seules les empreintes SHA-256 sont stockées.</p>
+<pre class="overflow-x-auto rounded-xl bg-surface-2 p-4 text-sm"><code>curl -H "Authorization: Bearer lcd_votre_cle" \\
+  https://votre-domaine.fr/api/v1/logements</code></pre></section>
+<section class="space-y-3"><h2 class="text-xl font-semibold">Scopes</h2>
+<p class="text-encre-douce">Une clé ne peut lire que les ressources couvertes par ses scopes. Un scope
+      manquant renvoie <code>403</code>.</p>
+<div class="overflow-x-auto rounded-2xl border border-bordure"><table class="ui-tableau min-w-[420px]"><thead><tr><th>Scope</th><th>Ressource</th></tr></thead><tbody><tr><td><code>logements:lire</code></td><td>Logements</td></tr><tr><td><code>reservations:lire</code></td><td>Réservations</td></tr><tr><td><code>disponibilites:lire</code></td><td>Disponibilités</td></tr><tr><td><code>prix:lire</code></td><td>Tarifs par nuit</td></tr><tr><td><code>proprietaires:lire</code></td><td>Propriétaires</td></tr><tr><td><code>releves:lire</code></td><td>Relevés propriétaires</td></tr></tbody></table></div></section>
+<section class="space-y-3"><h2 class="text-xl font-semibold">Endpoints</h2>
+<div class="overflow-x-auto rounded-2xl border border-bordure"><table class="ui-tableau min-w-[620px]"><thead><tr><th>Méthode</th><th>Chemin</th><th>Paramètres</th></tr></thead><tbody><tr><td>GET</td><td><code>/api/v1/logements</code></td><td><code>page</code>, <code>limite</code></td></tr><tr><td>GET</td><td><code>/api/v1/reservations</code></td><td><code>logementId</code>, <code>debut</code>, <code>fin</code>, pagination</td></tr><tr><td>GET</td><td><code>/api/v1/disponibilites</code></td><td><code>logementId</code>, <code>debut</code>, <code>fin</code> (requis)</td></tr><tr><td>GET</td><td><code>/api/v1/prix</code></td><td><code>logementId</code>, <code>debut</code>, <code>fin</code> (requis)</td></tr><tr><td>GET</td><td><code>/api/v1/proprietaires</code></td><td><code>page</code>, <code>limite</code></td></tr><tr><td>GET</td><td><code>/api/v1/releves</code></td><td><code>moisDebut</code>, <code>moisFin</code>, pagination</td></tr></tbody></table></div></section>
+<section class="space-y-3"><h2 class="text-xl font-semibold">Pagination</h2>
+<p class="text-encre-douce"><code>page</code> commence à 1 ; <code>limite</code> vaut 50 par défaut et
+      est plafonnée à 200. Chaque liste renvoie ses métadonnées :</p>
+<pre class="overflow-x-auto rounded-xl bg-surface-2 p-4 text-sm"><code>{
+  "data": [ … ],
+  "pagination": { "page": 1, "limite": 50, "total": 120, "pages": 3 }
+}</code></pre></section>
+<section class="space-y-3"><h2 class="text-xl font-semibold">Erreurs et limites</h2>
+<p class="text-encre-douce">Toute erreur a la forme <code>{ "erreur": { "code", "message" }, "requestId" }</code>. <code>X-Request-Id</code> est repris s'il est fourni, sinon généré.
+      Une clé est limitée à 120 requêtes par minute ; au-delà, la réponse <code>429</code> porte <code>Retry-After</code>.</p>
+<ul class="list-disc space-y-1 pl-5 text-sm text-encre-douce"><li><code>400</code> paramètre invalide (date, identifiant, fenêtre).</li>
+<li><code>401</code> clé absente, inconnue, expirée ou révoquée.</li>
+<li><code>403</code> scope manquant.</li>
+<li><code>404</code> logement introuvable dans votre compte.</li>
+<li><code>429</code> trop de requêtes.</li></ul></section>
+<section class="space-y-3"><h2 class="text-xl font-semibold">Serveur MCP lecture</h2>
+<p class="text-encre-douce">Un serveur MCP local expose les six lectures aux assistants compatibles
+      (Claude Desktop, IDE, agents). Il parle JSON-RPC sur l'entrée/sortie
+      standard et réutilise la même clé et les mêmes scopes que l'API ; aucun
+      outil d'écriture n'est exposé.</p>
+<pre class="overflow-x-auto rounded-xl bg-surface-2 p-4 text-sm"><code>LCD_API_URL=https://votre-domaine.fr \\
+LCD_API_KEY=lcd_votre_cle \\
+npm run mcp:lecture</code></pre>
+<p class="text-sm text-encre-douce">Outils : <code>lister_logements</code>, <code>lister_reservations</code>, <code>lister_disponibilites</code>, <code>lister_prix</code>, <code>lister_proprietaires</code>, <code>lister_releves</code>. Les filtres et la pagination sont ceux de
+      l'API.</p></section>
+<section class="space-y-3"><h2 class="text-xl font-semibold">Webhooks signés</h2>
+<p class="text-encre-douce">Les webhooks sortants sont signés en HMAC-SHA256 : <code>X-LCD-Signature: sha256=…</code>. Vérifiez la signature sur le corps
+      brut avant de lire le JSON, puis répondez <code>2xx</code>. En cas
+      d'échec, cinq tentatives sont espacées de 1, 5, 15 puis 60 minutes.
+      Configurez-les depuis <a class="inline-flex min-h-11 items-center underline" href="/hote/integrations">Intégrations</a>.</p></section>
+<footer class="border-t border-bordure pt-6 text-sm text-encre-faine"><p>Besoin d'un scope supplémentaire ou d'un endpoint d'écriture ?
+      Contactez votre conciergerie : l'API v1 est volontairement en lecture
+      seule.</p></footer></main>

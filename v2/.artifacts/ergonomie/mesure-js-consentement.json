@@ -1,0 +1,14 @@
+﻿{
+  "base": "http://127.0.0.1:4173",
+  "path": "/consentement",
+  "count": 1,
+  "totalGzip": 134,
+  "totalGzipKo": 0.1,
+  "rows": [
+    {
+      "src": "register-sw.js",
+      "raw": 150,
+      "gzip": 134
+    }
+  ]
+}

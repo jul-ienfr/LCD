@@ -1,0 +1,669 @@
+{
+  "tache": "T032/T093",
+  "base": "http://127.0.0.1:4173",
+  "seuilPx": 44,
+  "routesP1": [
+    "/",
+    "/reserver",
+    "/voyageur",
+    "/login",
+    "/hote"
+  ],
+  "genereLe": "2026-11-13T09:05:20.035Z",
+  "lighthouse": {
+    "etat": "absent",
+    "source": null,
+    "commande": "npx --yes lighthouse@13 http://127.0.0.1:4173/ --preset=desktop --chrome-flags=\"--headless=new\" --output=json --output-path=.artifacts/ergonomie/apres-lighthouse.json"
+  },
+  "sources": [
+    {
+      "fichier": "baseline-axe.json",
+      "etat": "lu"
+    },
+    {
+      "fichier": "apres-axe.json",
+      "etat": "lu"
+    },
+    {
+      "fichier": "baseline-320.json",
+      "etat": "lu"
+    },
+    {
+      "fichier": "apres-320.json",
+      "etat": "lu"
+    },
+    {
+      "fichier": "baseline-js.json",
+      "etat": "absent (ignoré)"
+    },
+    {
+      "fichier": "apres-js.json",
+      "etat": "lu"
+    }
+  ],
+  "sourcesSupplementaires": [
+    "baseline-js-accueil.json",
+    "baseline-js-login.json",
+    "baseline-js-reserver.json",
+    "baseline-js-voyageur.json",
+    "apres-320-staff.json",
+    "apres-axe-staff.json",
+    "apres-public.json",
+    "apres-roles-redirections.json",
+    "check-design.json",
+    "check-public.json",
+    "cibles-staff.json",
+    "cibles.json",
+    "contrastes.json",
+    "lighthouse-resume.json",
+    "mesure-js-accueil.json",
+    "mesure-js-aide.json",
+    "mesure-js-consentement.json",
+    "mesure-js-design.json",
+    "mesure-js-legales.json",
+    "mesure-js-login.json",
+    "mesure-js-reserver.json",
+    "mesure-js-retour.json",
+    "mesure-js-voyageur.json",
+    "navigation-roles.json",
+    "session-staff.json",
+    "staff-axe.json"
+  ],
+  "synthese": [
+    {
+      "metrique": "Violations axe bloquantes+courantes (nœuds)",
+      "avant": 0,
+      "apres": 0,
+      "cible": "0"
+    },
+    {
+      "metrique": "Routes en débordement horizontal à 320 px",
+      "avant": 0,
+      "apres": 0,
+      "cible": "0 route"
+    },
+    {
+      "metrique": "Cibles tactiles < 44 px (total)",
+      "avant": 2,
+      "apres": 0,
+      "cible": "0 cible"
+    },
+    {
+      "metrique": "Budget JS mesuré (Ko gzip cumulés)",
+      "avant": 1.4,
+      "apres": 1.8,
+      "cible": "voyageur < 50, staff < 200"
+    },
+    {
+      "metrique": "Échecs de contraste (six thèmes)",
+      "avant": null,
+      "apres": 0,
+      "cible": "0"
+    }
+  ],
+  "routes": [
+    {
+      "route": "/",
+      "axe": {
+        "avant": 0,
+        "apres": 0,
+        "delta": 0
+      },
+      "overflow": {
+        "avant": 0,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": 0,
+        "apres": 0
+      },
+      "h1": {
+        "avant": 1,
+        "apres": 1
+      },
+      "lang": {
+        "avant": "fr",
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": true,
+        "apres": true
+      },
+      "p1": true
+    },
+    {
+      "route": "/aide",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false
+    },
+    {
+      "route": "/consentement",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false
+    },
+    {
+      "route": "/design",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false
+    },
+    {
+      "route": "/hote",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": true,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/factures",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/logements",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/menage",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/messages",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/messages/fils",
+      "axe": {
+        "avant": null,
+        "apres": null,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": null
+      },
+      "lang": {
+        "avant": null,
+        "apres": null
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": null
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/planning",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/rapports",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/recherche",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/hote/utilisateurs",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false,
+      "ciblesSource": "cibles-staff.json"
+    },
+    {
+      "route": "/legales",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false
+    },
+    {
+      "route": "/login",
+      "axe": {
+        "avant": 0,
+        "apres": 0,
+        "delta": 0
+      },
+      "overflow": {
+        "avant": 0,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": 0,
+        "apres": 0
+      },
+      "h1": {
+        "avant": 1,
+        "apres": 1
+      },
+      "lang": {
+        "avant": "fr",
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": true,
+        "apres": true
+      },
+      "p1": true
+    },
+    {
+      "route": "/reserver",
+      "axe": {
+        "avant": 0,
+        "apres": 0,
+        "delta": 0
+      },
+      "overflow": {
+        "avant": 0,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": 1,
+        "apres": 0
+      },
+      "h1": {
+        "avant": 1,
+        "apres": 1
+      },
+      "lang": {
+        "avant": "fr",
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": true,
+        "apres": true
+      },
+      "p1": true
+    },
+    {
+      "route": "/retour",
+      "axe": {
+        "avant": null,
+        "apres": 0,
+        "delta": null
+      },
+      "overflow": {
+        "avant": null,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": null,
+        "apres": 0
+      },
+      "h1": {
+        "avant": null,
+        "apres": 1
+      },
+      "lang": {
+        "avant": null,
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": null,
+        "apres": true
+      },
+      "p1": false
+    },
+    {
+      "route": "/voyageur",
+      "axe": {
+        "avant": 0,
+        "apres": 0,
+        "delta": 0
+      },
+      "overflow": {
+        "avant": 0,
+        "apres": 0
+      },
+      "cibles": {
+        "avant": 1,
+        "apres": 0
+      },
+      "h1": {
+        "avant": 1,
+        "apres": 1
+      },
+      "lang": {
+        "avant": "fr",
+        "apres": "fr"
+      },
+      "skipLink": {
+        "avant": true,
+        "apres": true
+      },
+      "p1": true
+    }
+  ],
+  "regressions": [],
+  "verdict": "ok"
+}

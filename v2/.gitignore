@@ -28,3 +28,16 @@ npm-debug.log*
 backups/
 
 !.env.prod.example
+
+# Artefacts de mesure runtime (profils navigateur, traces, captures, logs) :
+# preuves reproductibles = rapports .md et scripts ; le brut reste hors git.
+/.artifacts/profil-chrome-hote/
+/.artifacts/pw-iso/
+/.artifacts/pw-iso2/
+/.artifacts/trace-*/
+/.artifacts/**/*.log
+/.artifacts/*.log
+/.artifacts/**/*.pid
+/.artifacts/*.pid
+/.artifacts/**/*.png
+/.artifacts/*.png

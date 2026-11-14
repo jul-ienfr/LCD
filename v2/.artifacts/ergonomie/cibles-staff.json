@@ -1,0 +1,151 @@
+{
+  "tache": "T031",
+  "base": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "seuilPx": 44,
+  "liensInlineExclus": true,
+  "mesureLe": "2026-11-13T02:20:26.931Z",
+  "routes": [
+    "/hote",
+    "/hote/planning",
+    "/hote/logements",
+    "/hote/messages",
+    "/hote/factures",
+    "/hote/rapports",
+    "/hote/recherche",
+    "/hote/menage",
+    "/hote/utilisateurs",
+    "/hote/messages/fils"
+  ],
+  "resume": {
+    "routes": 10,
+    "ciblesSousSeuil": 0,
+    "routesEnDebordement": [],
+    "ok": true
+  },
+  "results": [
+    {
+      "route": "/hote",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 20,
+      "smallTargets": [],
+      "exclusionsLiensInline": 52,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/planning",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 29,
+      "smallTargets": [],
+      "exclusionsLiensInline": 51,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/logements",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 17,
+      "smallTargets": [],
+      "exclusionsLiensInline": 269,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/messages",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 131,
+      "smallTargets": [],
+      "exclusionsLiensInline": 49,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/factures",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 33,
+      "smallTargets": [],
+      "exclusionsLiensInline": 49,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/rapports",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 20,
+      "smallTargets": [],
+      "exclusionsLiensInline": 49,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/recherche",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 16,
+      "smallTargets": [],
+      "exclusionsLiensInline": 49,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/menage",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 126,
+      "smallTargets": [],
+      "exclusionsLiensInline": 49,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/utilisateurs",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 55,
+      "smallTargets": [],
+      "exclusionsLiensInline": 49,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/hote/messages/fils",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 19,
+      "smallTargets": [],
+      "exclusionsLiensInline": 50,
+      "exceptionsControlesNatifs": 0
+    }
+  ]
+}

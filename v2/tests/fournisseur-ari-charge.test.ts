@@ -73,6 +73,9 @@ class FauxFournisseurCanal implements FournisseurCanal {
     lectureReservations: true,
     webhooks: false,
     marqueBlanche: false,
+    messaging: false,
+    multiUnite: false,
+    googleVr: false,
   };
 
   poussees: {

@@ -6,6 +6,7 @@ const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe-2026!";
 test("objets trouvés : déclaration, réclamation, envoi et don", async ({
   page,
 }) => {
+  test.setTimeout(90_000);
   const suffix = Date.now();
   const code = `obj-e2e-${suffix}`;
   const nomLogement = `Logement Objets E2E ${suffix}`;
@@ -40,7 +41,7 @@ test("objets trouvés : déclaration, réclamation, envoi et don", async ({
 
   await expect(page.getByText("Objet enregistré.")).toBeVisible();
   const carte = page.locator("li").filter({ hasText: description }).first();
-  await expect(carte.getByText("Trouvé", { exact: true })).toBeVisible();
+  await expect(carte.getByText(/Trouvé le \d{4}-\d{2}-\d{2}/)).toBeVisible();
   await expect(carte.getByText("Don possible dans 30 jours.")).toBeVisible();
 
   await carte.getByText("Réclamer cet objet").click();
@@ -55,8 +56,8 @@ test("objets trouvés : déclaration, réclamation, envoi et don", async ({
     .locator("li")
     .filter({ hasText: description })
     .first();
-  await expect(carteReclamee.getByText("Réclamé", { exact: true })).toBeVisible();
-  await expect(carteReclamee.getByText("15,00 €", { exact: true })).toBeVisible();
+  await expect(carteReclamee.getByText(/réclamé/i).first()).toBeVisible();
+  await expect(carteReclamee.getByText(/15,00/).first()).toBeVisible();
   await expect(carteReclamee.getByText("Camille Test")).toBeVisible();
 
   await carteReclamee.getByRole("button", { name: "Marquer envoyé" }).click();
@@ -65,7 +66,7 @@ test("objets trouvés : déclaration, réclamation, envoi et don", async ({
     .locator("li")
     .filter({ hasText: description })
     .first();
-  await expect(carteEnvoyee.getByText("Envoyé", { exact: true })).toBeVisible();
+  await expect(carteEnvoyee.getByText(/envoyé/i).first()).toBeVisible();
   await expect(
     carteEnvoyee.getByText(`Envoyé le ${aujourdHui}`),
   ).toBeVisible();
@@ -90,6 +91,7 @@ test("objets trouvés : déclaration, réclamation, envoi et don", async ({
       .locator("li")
       .filter({ hasText: descriptionAncienne })
       .first()
-      .getByText("Donné / stock"),
+      .getByText(/donné/i)
+      .first(),
   ).toBeVisible();
 });

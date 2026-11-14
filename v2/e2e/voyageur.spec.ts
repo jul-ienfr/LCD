@@ -7,6 +7,8 @@ test("voyageur : lien signé, incident sans JS, idempotence et outbox", async ({
   page,
   browser,
 }) => {
+  // Parcours long (création, réservation, dépôt sans JS, outbox).
+  test.setTimeout(120_000);
   const suffix = Date.now();
   const code = `voy-e2e-${suffix}`;
   const nom = `Voyageur E2E ${suffix}`;
@@ -59,8 +61,8 @@ test("voyageur : lien signé, incident sans JS, idempotence et outbox", async ({
   await noJsPage.goto(href ?? "/voyageur");
   await expect(noJsPage.getByText(nom)).toBeVisible();
   await expect(noJsPage.getByText(refResa)).toBeVisible();
-  await expect(noJsPage.getByText("2026-12-01")).toBeVisible();
-  await expect(noJsPage.getByText("2026-12-05")).toBeVisible();
+  // Les deux bornes du séjour sont annoncées ensemble (carte « Dates du séjour »).
+  await expect(noJsPage.getByText("2026-12-01 → 2026-12-05")).toBeVisible();
 
   const message = `Fuite sous l'évier ${suffix}`;
   await noJsPage.fill('textarea[name="message"]', message);
@@ -79,9 +81,13 @@ test("voyageur : lien signé, incident sans JS, idempotence et outbox", async ({
   await expect(
     pageEn.getByRole("heading", { name: "Your stay" }),
   ).toBeVisible();
-  await expect(pageEn.getByText("Accommodation guide")).toBeVisible();
+  // Le titre de section est un `h2` ; le sommaire ancré réutilise le même libellé
+  // dans un lien, d'où le ciblage par niveau.
   await expect(
-    pageEn.getByRole("heading", { name: "Report an issue" }),
+    pageEn.getByRole("heading", { name: "Accommodation guide", level: 2 }),
+  ).toBeVisible();
+  await expect(
+    pageEn.getByRole("heading", { name: "Report an issue", level: 2 }),
   ).toBeVisible();
   await pageEn.getByRole("link", { name: "FR" }).click();
   await expect(

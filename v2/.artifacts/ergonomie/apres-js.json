@@ -1,0 +1,50 @@
+﻿{
+    "base":  "http://127.0.0.1:4173",
+    "comparaison":  "mêmes 4 routes que les fichiers baseline-js-*.json (accueil, login, reserver, voyageur)",
+    "pages":  [
+                  {
+                      "fichier":  "mesure-js-accueil.json",
+                      "path":  "/",
+                      "count":  1,
+                      "totalGzip":  134,
+                      "totalGzipKo":  0.1,
+                      "scripts":  [
+                                      "register-sw.js 134"
+                                  ]
+                  },
+                  {
+                      "fichier":  "mesure-js-login.json",
+                      "path":  "/login",
+                      "count":  1,
+                      "totalGzip":  134,
+                      "totalGzipKo":  0.1,
+                      "scripts":  [
+                                      "register-sw.js 134"
+                                  ]
+                  },
+                  {
+                      "fichier":  "mesure-js-reserver.json",
+                      "path":  "/reserver",
+                      "count":  1,
+                      "totalGzip":  134,
+                      "totalGzipKo":  0.1,
+                      "scripts":  [
+                                      "register-sw.js 134"
+                                  ]
+                  },
+                  {
+                      "fichier":  "mesure-js-voyageur.json",
+                      "path":  "/voyageur",
+                      "count":  2,
+                      "totalGzip":  1395,
+                      "totalGzipKo":  1.4,
+                      "scripts":  [
+                                      "outbox.js 1261",
+                                      "register-sw.js 134"
+                                  ]
+                  }
+              ],
+    "count":  5,
+    "totalGzip":  1797,
+    "totalGzipKo":  1.8
+}

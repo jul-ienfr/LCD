@@ -1,0 +1,10 @@
+﻿{
+    "date":  "2026-11-13 04:27",
+    "base":  "http://127.0.0.1:4173",
+    "sonde":  "redirection par surface depuis /hote (layout) et acces securite personnelle",
+    "lignes":  [
+                   "prestataire : connexion ok | /hote → http://127.0.0.1:4173/presta | /hote/audit → http://127.0.0.1:4173/presta | /hote/securite → http://127.0.0.1:4173/hote/securite (h1 « Sécurité »)",
+                   "propriétaire : connexion ok | /hote → http://127.0.0.1:4173/proprio | /hote/audit → http://127.0.0.1:4173/proprio | /hote/securite → http://127.0.0.1:4173/hote/securite (h1 « Sécurité »)",
+                   "commercial : connexion ok | /hote → http://127.0.0.1:4173/commercial | /hote/audit → http://127.0.0.1:4173/commercial | /hote/securite → http://127.0.0.1:4173/hote/securite (h1 « Sécurité »)"
+               ]
+}

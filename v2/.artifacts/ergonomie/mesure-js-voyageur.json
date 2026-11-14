@@ -1,0 +1,19 @@
+﻿{
+  "base": "http://127.0.0.1:4173",
+  "path": "/voyageur",
+  "count": 2,
+  "totalGzip": 1395,
+  "totalGzipKo": 1.4,
+  "rows": [
+    {
+      "src": "outbox.js",
+      "raw": 3091,
+      "gzip": 1261
+    },
+    {
+      "src": "register-sw.js",
+      "raw": 150,
+      "gzip": 134
+    }
+  ]
+}

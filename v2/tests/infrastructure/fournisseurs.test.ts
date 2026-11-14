@@ -89,6 +89,61 @@ describe("Beds24Fournisseur", () => {
     expect(corps[0]?.calendar[0]?.numAvail).toBe(0);
   });
 
+  it("lit le calendrier distant pour le push par différence", async () => {
+    fetchMock.mockImplementation(async () =>
+      reponseJson({
+        data: [
+          {
+            roomId: 20,
+            date: "2027-01-01",
+            numAvail: 0,
+            price1: 99.5,
+            minStay: 2,
+            override: "noCheckInOrCheckOut",
+          },
+        ],
+      }),
+    );
+    const { Beds24Fournisseur } = await import(
+      "@/infrastructure/adapters/fournisseurs/beds24"
+    );
+    const fournisseur = new Beds24Fournisseur();
+    const dispos = await fournisseur.lireDisponibilites(
+      "2027-01-01",
+      "2027-01-02",
+      "10",
+    );
+    const tarifs = await fournisseur.lireTarifs(
+      "2027-01-01",
+      "2027-01-02",
+      "10",
+    );
+    const restrictions = await fournisseur.lireRestrictions(
+      "2027-01-01",
+      "2027-01-02",
+      "10",
+    );
+
+    expect(dispos).toEqual([
+      {
+        externalPropertyId: "10",
+        externalRoomTypeId: "20",
+        date: "2027-01-01",
+        disponible: false,
+      },
+    ]);
+    expect(tarifs[0]?.prixCentimes).toBe(9_950);
+    expect(restrictions[0]).toMatchObject({
+      sejourMin: 2,
+      arriveeAutorisee: false,
+      departAutorisee: false,
+    });
+    const url = new URL(String(fetchMock.mock.calls[0]?.[0]));
+    expect(url.pathname).toContain("inventory/rooms/calendar");
+    expect(url.searchParams.get("startDate")).toBe("2027-01-01");
+    expect(url.searchParams.get("propertyId")).toBe("10");
+  });
+
   it("vérifie le secret partagé du webhook", async () => {
     const { Beds24Fournisseur } = await import(
       "@/infrastructure/adapters/fournisseurs/beds24"

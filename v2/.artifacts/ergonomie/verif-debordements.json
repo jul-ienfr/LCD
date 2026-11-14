@@ -1,0 +1,93 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "routes": [
+    "/hote/rgpd",
+    "/hote/prix/recommandations",
+    "/hote/compta/rapprochement"
+  ],
+  "results": [
+    {
+      "route": "/hote/rgpd",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [
+        {
+          "tag": "input",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 13,
+          "height": 13
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 13,
+          "height": 13
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 14
+    },
+    {
+      "route": "/hote/prix/recommandations",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/hote/compta/rapprochement",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [
+        {
+          "tag": "input",
+          "text": "",
+          "width": 222,
+          "height": 38
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    }
+  ]
+}

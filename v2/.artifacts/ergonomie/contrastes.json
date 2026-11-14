@@ -1,0 +1,849 @@
+{
+  "tache": "T101",
+  "seuilContraste": 4.5,
+  "seuilCiblePx": 44,
+  "genereLe": "2026-11-14T21:08:59.836Z",
+  "resume": {
+    "themes": 6,
+    "paires": 144,
+    "echecs": 0,
+    "ok": true
+  },
+  "themes": [
+    {
+      "themeId": "sejour",
+      "themeNom": "Séjour",
+      "hauteurPx": 44,
+      "modes": [
+        {
+          "mode": "clair",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 16.41,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 17.9,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 16.24,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 8.57,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 9.35,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 4.56,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 4.97,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 4.68,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 5.1,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 7.58,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 6.49,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 5.1,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        },
+        {
+          "mode": "sombre",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 17.07,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 15.65,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 14.2,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 11.71,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 10.73,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 6.33,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 5.8,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 10.21,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 9.35,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 11.62,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 9.91,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 10.21,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        }
+      ]
+    },
+    {
+      "themeId": "ocean",
+      "themeNom": "Océan",
+      "hauteurPx": 44,
+      "modes": [
+        {
+          "mode": "clair",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 16.03,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 17.39,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 14.9,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 9.82,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 10.65,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 5.05,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 5.48,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 6.18,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 6.7,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 8.72,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 7.01,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 6.7,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        },
+        {
+          "mode": "sombre",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 17.24,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 15.97,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 14.41,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 11.63,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 10.77,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 6.55,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 6.07,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 7.71,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 7.14,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 10.07,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 8.67,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 7.6,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        }
+      ]
+    },
+    {
+      "themeId": "sable",
+      "themeNom": "Sable",
+      "hauteurPx": 48,
+      "modes": [
+        {
+          "mode": "clair",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 14.67,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 15.55,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 13.21,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 8.21,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 8.7,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 5.5,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 5.83,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 5.63,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 5.97,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 6.97,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 5.61,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 6.07,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        },
+        {
+          "mode": "sombre",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 16.58,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 15.44,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 14.03,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 11.68,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 10.87,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 6.9,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 6.43,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 11.35,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 10.56,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 12.23,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 10.69,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 11.57,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        }
+      ]
+    },
+    {
+      "themeId": "nuit",
+      "themeNom": "Nuit",
+      "hauteurPx": 44,
+      "modes": [
+        {
+          "mode": "clair",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 16.44,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 17.94,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 14.82,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 9.9,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 10.8,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 5.71,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 6.23,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 6.51,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 7.1,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 8.98,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 6.91,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 7.1,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        },
+        {
+          "mode": "sombre",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 16.88,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 15.97,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 14.68,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 11.97,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 11.32,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 6.47,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 6.12,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 7.29,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 6.9,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 10.17,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 8.79,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 7.1,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        }
+      ]
+    },
+    {
+      "themeId": "foret",
+      "themeNom": "Forêt",
+      "hauteurPx": 44,
+      "modes": [
+        {
+          "mode": "clair",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 15.56,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 16.85,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 14.31,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 9.09,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 9.84,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 5.36,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 5.8,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 6.59,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 7.13,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 9.11,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 8.3,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 7.13,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        },
+        {
+          "mode": "sombre",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 16.89,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 15.27,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 13.38,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 12.19,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 11.02,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 7.8,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 7.06,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 10.87,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 9.83,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 12.2,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 11,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 11.09,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        }
+      ]
+    },
+    {
+      "themeId": "ardoise",
+      "themeNom": "Ardoise",
+      "hauteurPx": 44,
+      "modes": [
+        {
+          "mode": "clair",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 17.08,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 18.48,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 15.89,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 9.4,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 10.17,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 5.38,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 5.82,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 13.57,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 14.68,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 17.74,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 14.33,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 14.68,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        },
+        {
+          "mode": "sombre",
+          "mesures": [
+            {
+              "libelle": "Texte principal sur le fond",
+              "ratio": 17.46,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface",
+              "ratio": 16.21,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte principal sur surface 2",
+              "ratio": 14.66,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur le fond",
+              "ratio": 11.72,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte secondaire sur surface",
+              "ratio": 10.88,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur le fond",
+              "ratio": 7.03,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte tertiaire sur surface",
+              "ratio": 6.52,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur le fond",
+              "ratio": 15.82,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent sur surface",
+              "ratio": 14.69,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Accent foncé sur surface",
+              "ratio": 17.41,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte de marque sur accent doux",
+              "ratio": 13.35,
+              "seuil": 4.5
+            },
+            {
+              "libelle": "Texte du bouton primaire sur l'accent",
+              "ratio": 15.6,
+              "seuil": 4.5
+            }
+          ],
+          "echecs": []
+        }
+      ]
+    }
+  ],
+  "echecs": []
+}

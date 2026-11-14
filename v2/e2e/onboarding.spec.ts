@@ -23,9 +23,17 @@ test("onboarding : la copropriété non vérifiée bloque la mise en ligne", asy
   await expect(page.getByText(`Logement « ${code} » créé.`)).toBeVisible();
 
   await page.goto("/hote/onboarding");
-  await page.getByRole("link", { name: nom, exact: true }).click();
+  await page.waitForLoadState("networkidle");
+  const lien = page.getByRole("link", { name: nom, exact: true });
+  await expect(lien).toBeVisible();
+  const href = await lien.getAttribute("href");
+  expect(href).toBeTruthy();
+  await page.goto(href!);
   await expect(page).toHaveURL(/\/hote\/onboarding\?logement=/);
   await expect(page.getByText("Non publiable")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Chrono d’onboarding" }),
+  ).toBeVisible();
 
   const avant = await page.request.get("/reserver?tenant=lcd");
   expect(await avant.text()).not.toContain(nom);

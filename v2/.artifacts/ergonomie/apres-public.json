@@ -1,0 +1,85 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "routes": [
+    "/",
+    "/voyageur",
+    "/reserver",
+    "/aide",
+    "/design",
+    "/legales",
+    "/consentement",
+    "/retour",
+    "/login"
+  ],
+  "authentifie": false,
+  "entetes": [],
+  "results": [
+    {
+      "route": "/",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/voyageur",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/voyageur",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/reserver",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/reserver",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/aide",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/aide",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/design",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/design",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/legales",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/legales",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/consentement",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/consentement",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/retour",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/retour",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/login",
+      "violations": [],
+      "seriousOrCritical": 0
+    }
+  ]
+}

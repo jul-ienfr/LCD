@@ -1,0 +1,50 @@
+﻿/**
+ * Gate staff : les routes mesurÃ©es doivent rÃ©pondre, ne pas dÃ©border, ne
+ * contenir aucune cible sous le seuil et aucun champ sans Ã©tiquette. Sert de
+ * contrat rejouable (`npm run audit:ergonomie:staff`) aprÃ¨s toute retouche
+ * d'interface.
+ */
+if (staff && !ecrire && !verifier) {
+  const fichier = path.join(outDir, process.env.AUDIT_FICHIER ?? "apres-320-staff.json");
+  const donnees = JSON.parse(await readFile(fichier, "utf8"));
+  const enErreur = donnees.results.filter((r) => r.status !== 200);
+  const enDebordement = donnees.results.filter((r) => (r.overflowPx ?? 0) > 0);
+  const avecCibles = donnees.results.filter(
+    (r) => (r.smallTargets ?? []).length > 0,
+  );
+  const sansEtiquette = donnees.results.filter((r) => (r.unlabeledFields ?? 0) > 0);
+  const total = donnees.results.reduce(
+    (n, r) => n + (r.smallTargets ?? []).length,
+    0,
+  );
+  const totalSansEtiquette = donnees.results.reduce(
+    (n, r) => n + (r.unlabeledFields ?? 0),
+    0,
+  );
+  console.log(
+    `\nBilan staff 320 px : ${donnees.results.length} routes, ${total} cible(s) < ${seuilPx} px, ${enDebordement.length} dÃ©bordement(s), ${enErreur.length} erreur(s), ${totalSansEtiquette} champ(s) sans Ã©tiquette.`,
+  );
+  for (const route of enErreur) console.error(`  ${route.route} â†’ HTTP ${route.status}`);
+  for (const route of enDebordement)
+    console.error(`  ${route.route} â†’ dÃ©bordement ${route.overflowPx} px`);
+  for (const route of avecCibles)
+    console.error(
+      `  ${route.route} â†’ ${(route.smallTargets ?? []).length} cible(s) sous ${seuilPx} px`,
+    );
+  for (const route of sansEtiquette)
+    console.error(
+      `  ${route.route} â†’ ${route.unlabeledFields} champ(s) sans Ã©tiquette`,
+    );
+  if (
+    enErreur.length +
+      enDebordement.length +
+      avecCibles.length +
+      sansEtiquette.length >
+    0
+  ) {
+    console.error("Gate staff : Ã‰CHEC (code de sortie 1).");
+    process.exit(1);
+  }
+  console.log("Gate staff : OK (0 cible, 0 dÃ©bordement, 0 erreur, 0 champ sans Ã©tiquette).");
+  process.exit(0);
+}

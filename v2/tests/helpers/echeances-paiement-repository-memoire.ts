@@ -49,6 +49,18 @@ export class EcheancesPaiementRepositoryMemoire
     );
   }
 
+  async listerEnRetard(
+    tenantId: string,
+    date: string,
+  ): Promise<EcheancePaiement[]> {
+    return this.rows.filter(
+      (row) =>
+        row.tenantId === tenantId &&
+        row.statut === "a_payer" &&
+        row.exigibleLe < date,
+    );
+  }
+
   async trouverParId(
     tenantId: string,
     echeanceId: string,

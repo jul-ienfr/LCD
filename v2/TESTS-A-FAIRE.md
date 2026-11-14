@@ -262,6 +262,138 @@ Configuration requise : `SMTP_URL`, `EMAIL_FROM`, `EMAIL_ENABLED=true`.
 - [ ] `pg_dump`/restore chronométré (RTO < 30 min).
 - [ ] Aucun 5xx dans Sentry après 24 h de pilote.
 
+### 7.1 Ergonomie et accessibilité (plan 004, restant à faire)
+
+Automatisé et déjà rejouable localement : `npm run audit:a11y:verifier`,
+`npm run audit:a11y:staff`, `npm run audit:a11y:public`, `npm run audit:cibles`,
+`npm run audit:ergonomie:ecrire`, `npm run audit:ergonomie:verifier`,
+`npm run audit:ergonomie:staff`, `npm run audit:ergonomie:public`,
+`npx vitest run tests/ergonomie/`.
+
+Les deux déclinaisons `:staff` dérivent la liste des routes du disque
+(`src/routes/{hote,supervision,support,presta}`) : une page staff créée demain
+est auditée sans retoucher le script. Les deux déclinaisons `:public` font de
+même pour **tout le reste du dépôt** (21 routes), en écartant `/login`
+(redirige vers `/hote` avec une session) et `/two-factor` (atteignable
+seulement en cours de 2FA, parcourue par `e2e/deux-facteurs.spec.ts`). Les
+quatre modes exigent une session (`AUDIT_EMAIL`/`AUDIT_MOT_DE_PASSE` ou
+`AUDIT_STORAGE`) et sortent en code 1 si le contrat casse, donc utilisables en
+vérification. `npm run audit:a11y:verifier` est le mode P1 (quatre routes
+mesurées sans risque, `apres-axe.json`), et le relevé de référence
+(`baseline-320.json`, `baseline-axe.json`) n'est jamais écrasé sans
+`AUDIT_ECRASER=1` (friction R-10).
+
+- [x] **Lighthouse ≥ 90 sur les 6 routes** — SC-004, **fait le 2026-11-13** :
+  mesuré sur le build de production (`npm run build` puis `node build`, port
+  4180, en-têtes de proxy `PROTOCOL_HEADER`/`HOST_HEADER`) par
+  `node .artifacts/ergonomie/mesurer-lighthouse.mjs les-deux`. Mobile 100 partout
+  sauf `/reserver` **93** au dernier relevé (93–95 selon la passe) ; desktop 100
+  partout ; CLS **0** sur onze routes et
+  0,03 sur `/reserver`. Résultats dans
+  `v2/.artifacts/ergonomie/lighthouse-resume.md` (+ un JSON par route).
+- [x] **Cibles tactiles 44 px et scripts tiers non bloquants** — **fait le
+  2026-11-13** : `npm run audit:ergonomie:ecrire` donne `smallTargets = 0` et
+  `overflow = 0` sur les quatre routes P1 à 320 px (le thème « souligné » laissait
+  « Aide » à 31 px de large : `min-width: 44 px` ajouté), et
+  `npx vitest run tests/lib/suivi.test.ts` refuse tout `<script src=…>` tiers en
+  `defer` (Plausible et les autres tiers sont injectés après `load`). Le CLS de police (0,289 mesuré sur
+  `/voyageur`) est verrouillé par la police de repli métrique d'`app.css`.
+- [x] **Les 70 routes staff au même contrat 320 px** — **fait le 2026-11-13** :
+  `npm run audit:ergonomie:staff` (routes dérivées de `src/routes`, session
+  `AUDIT_EMAIL`/`AUDIT_STORAGE`) donne **0 cible sous 44 px, 0 débordement,
+  0 erreur, 0 champ sans étiquette** sur **70 routes** — premier relevé :
+  96 cibles, 3 débordements, 1 erreur, puis 32 champs sans étiquette. Relevé dans
+  `v2/.artifacts/ergonomie/apres-320-staff.json` ; la recette manuelle
+  correspondante (parcourir ces routes au doigt, sur un téléphone réel) reste à
+  faire ci-dessous.
+- [x] **axe sur les 70 routes staff (WCAG 2.0/2.1 A+AA, 320 px)** — **fait le
+  2026-11-13** : `npm run audit:a11y:staff` donne **0 violation** (premier
+  relevé : 10 routes en échec sur `scrollable-region-focusable`, corrigées en
+  rendant chaque zone à défilement horizontal focusable et nommée). Rapport :
+  `v2/.artifacts/ergonomie/apres-axe-staff.json`.
+- [x] **Les 21 routes publiques au même contrat 320 px et axe** — **fait le
+  2026-11-13** : `npm run audit:ergonomie:public` et `npm run audit:a11y:public`
+  dérivent les routes hors staff du disque et donnent **0 cible sous 44 px,
+  0 débordement, 0 champ sans étiquette, 0 violation axe** (premier relevé :
+  `/journal` 188 cibles, `/tarifs` 2, `/mot-de-passe-oublie` 1). `/login` et
+  `/two-factor` sont exclues avec motif (session ou 2FA en cours) ; test négatif
+  au seuil 60 px : 216 cibles, sortie 1. Les trois défauts ont aussi été
+  contre-vérifiés sur le **build de production** (`node build`, port 4180) :
+  0 cible, 0 débordement. Relevé :
+  `v2/.artifacts/ergonomie/apres-320-public.json`.
+- [x] **Gate axe P1 rejouable** — `npm run audit:a11y:verifier`
+  mesure `/`, `/reserver`, `/login`, `/voyageur` et sort en code 1 en cas de
+  violation : **4 routes, 0 violation** (2026-11-13). Le relevé de référence
+  axe n'est plus écrasable par cette commande.
+
+- [ ] **Lighthouse rejoué après tout changement d'images, de police ou de CSS** :
+  la première mesure avait révélé deux régressions invisibles à l'œil (image LCP en
+  `loading="lazy"`, photos de 1000 px dans une vignette de 360 px), la seconde un
+  CLS de 0,289 déclenché par la simple largeur des liens de navigation. Relancer
+  `npm run assets:photos` après avoir changé une photo, puis la commande
+  ci-dessus : le protocole exact est dans
+  `specs/004-ergonomie-experience-client/quickstart.md` § 10.7.
+- [ ] **Test utilisateurs n° 2 (5 personnes)** : demande de réservation sans aide
+  en < 3 min (SC-001), 80 % de réussite, SUS ≥ 80 ou SEQ ≥ 5,5/7 (SC-010).
+- [ ] **Test voyageur** : trouver Wi-Fi, accès et heure de départ en < 10 s sur
+  `/voyageur` (SC-003).
+- [ ] **Lecteur d'écran réel** (NVDA ou VoiceOver) sur les trois parcours P1 :
+  `/` → `/reserver` → confirmation, `/voyageur`, `/hote` → `/hote/planning`.
+  axe ne remplace pas une navigation réelle au lecteur d'écran.
+- [ ] **Thème non conforme** : tenter de publier un thème échouant au contraste
+  AA et tenter un thème échouant aux cibles 44 px ; vérifier les deux refus
+  (SC-012, `/supervision/apparence`).
+- [ ] **Recette super-admin ergonomie** : brouillon, aperçu, blocage,
+  correction, publication sur un thème réel (T103).
+- [ ] **Parcours mesurés en conditions réelles** : après quelques jours
+  d'usage, relire `suivi_evenements` (P-RESA, P-SEJOUR, P-RECHERCHE, P-HOTE-5)
+  et confirmer qu'aucune donnée personnelle n'y apparaît ; vérifier la purge
+  (`npm run db:purge-suivi`).
+- [ ] **Appareil mobile réel 320 px** : confirmer l'absence de défilement
+  horizontal et le confort des cibles tactiles sur un téléphone étroit.
+- [ ] **Rejouer la suite e2e sur un serveur provisionné** : le serveur de
+  démonstration lancé à la main n'a pas `ENQUIRY_ENABLED`, ce qui fait échouer à
+  tort les 10 tests de `demande-sejour.spec.ts` (`?/demande` n'est rendu que si le
+  drapeau est actif). Pour une passe complète et verte :
+  `ENQUIRY_ENABLED=true`, `APP_URL`/`BETTER_AUTH_URL` sur le port du serveur, plus
+  `DATABASE_URL`/`MIGRATION_DATABASE_URL` exportés depuis `.env.demo.local` (base
+  `lcd_demo`) avant `npx playwright test`. Résultat attendu : 260 tests, 0 échec
+  (voir `specs/004-ergonomie-experience-client/resultats.md` § 2.1).
+- [ ] **Incohérence de rôle à instruire** : `admin@lcd.test` est `admin` dans la
+  base `lcd` mais `super_admin` dans `lcd_demo`, et `/support` ne reconnaît comme
+  staff que `admin`/`hote` alors que `requireRole` laisse tout faire à
+  `super_admin` (`src/routes/support/+page.server.ts:18`). Décider si
+  `super_admin` doit être staff partout, puis aligner les deux bases de
+  démonstration.
+
+### 7.2 Rejouer la suite e2e sans pollution
+
+La base de démonstration `lcd_demo` **accumule les fixtures** des passes
+précédentes : au 2026-11-13 elle contient 617 logements (dont 64 publiés : 48
+fixtures « …E2E… », 13 « Onboarding <horodatage> », 3 vrais logements de
+démonstration) et seuls 3 logements publiés non-fixtures ont des tarifs.
+L'accueil public n'affichant que **trois** cartes, le tunnel de réservation peut
+tomber sur trois fixtures sans tarif et échouer six fois de suite : c'est la
+friction **R-11** (`.artifacts/ergonomie/frictions.md`), pas un défaut produit.
+
+- [ ] **Au déploiement, après le déploiement** (décision du 2026-11-13) :
+  supprimer les **faux comptes et faux logements créés pour tester** — 120 comptes
+  `@lcd.test`, 614 logements sur 617 (fixtures `E2E…`, `Onboarding…`,
+  `Logement plan/dérivé/Archive/Recherche…`, `Relevé…`, `Import…`,
+  `Proprio A/B…`, `Diag…`) et leurs dépendances — en gardant Villa Santa Severa,
+  Le Mas des Oliviers, Le Loft du Port. Ces données sont nécessaires pour tester :
+  on ne les supprime pas maintenant. Procédure complète et outil dédié (lecture
+  seule par défaut, trois verrous avant écriture) : `DEPLOIEMENT.md` § 8 et
+  `npm run db:nettoyer-recette`.
+  Tant que ce n'est pas fait, deux tests au moins (`confiance.spec.ts`,
+  `ergonomie-reservation.spec.ts`) peuvent échouer sur « le tunnel de réservation
+  n'a abouti sur aucune des six tentatives » : échec connu, accepté et tracé
+  (friction R-11).
+- [ ] Correctif de fond à instruire : que chaque spec qui crée un logement le
+  supprime en fin de test (ou travaille dans un tenant dédié). Élargir le vivier
+  du tunnel au sélecteur des 64 logements a été mesuré **contre-productif**
+  (2 → 5 échecs) : 61 candidats sur 64 n'ont pas de tarif.
+
 ## 8. Conformité et facturation
 
 - [ ] Mentions légales, RGPD, politique de confidentialité, DPA.

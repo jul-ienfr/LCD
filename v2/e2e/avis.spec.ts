@@ -7,6 +7,8 @@ test("avis : dépôt voyageur sans JS, unicité et modération hôte", async ({
   page,
   browser,
 }) => {
+  // Parcours long : création, onboarding, réservation, dépôt sans JS, modération.
+  test.setTimeout(120_000);
   const suffix = Date.now();
   const code = `avis-e2e-${suffix}`;
   const nomLogement = `Logement Avis E2E ${suffix}`;

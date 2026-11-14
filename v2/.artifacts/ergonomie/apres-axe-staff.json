@@ -1,0 +1,573 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "routes": [
+    "/hote",
+    "/hote/acces",
+    "/hote/annonce",
+    "/hote/assistant",
+    "/hote/audit",
+    "/hote/automatisations",
+    "/hote/avis",
+    "/hote/avis-voyageur",
+    "/hote/cautions",
+    "/hote/compta",
+    "/hote/compta/parametres",
+    "/hote/compta/rapprochement",
+    "/hote/compta/simulateur",
+    "/hote/demandes",
+    "/hote/demandes-extra",
+    "/hote/design",
+    "/hote/design/domaine",
+    "/hote/dispatch",
+    "/hote/entite",
+    "/hote/entretien",
+    "/hote/etats-des-lieux",
+    "/hote/extras",
+    "/hote/factures",
+    "/hote/fils",
+    "/hote/formation",
+    "/hote/import",
+    "/hote/installation",
+    "/hote/integrations",
+    "/hote/integrations/api",
+    "/hote/integrations/nuki",
+    "/hote/inventaire",
+    "/hote/logements",
+    "/hote/menage",
+    "/hote/messages",
+    "/hote/messages/fils",
+    "/hote/missions",
+    "/hote/notifications",
+    "/hote/objets-trouves",
+    "/hote/onboarding",
+    "/hote/onboarding/reservation-test",
+    "/hote/phrases",
+    "/hote/planning",
+    "/hote/planning/canaux",
+    "/hote/planning/import",
+    "/hote/police",
+    "/hote/prix",
+    "/hote/prix/recommandations",
+    "/hote/promotions",
+    "/hote/proprietaires",
+    "/hote/questionnaires",
+    "/hote/rapports",
+    "/hote/recherche",
+    "/hote/reglages-groupe",
+    "/hote/rgpd",
+    "/hote/securite",
+    "/hote/sinistres",
+    "/hote/sorties",
+    "/hote/stocks",
+    "/hote/suivi",
+    "/hote/tourisme",
+    "/hote/tranquillite",
+    "/hote/utilisateurs",
+    "/presta",
+    "/supervision",
+    "/supervision/apparence",
+    "/supervision/apparence/apercu-composants",
+    "/supervision/assistant",
+    "/supervision/fournisseurs",
+    "/supervision/voir-comme",
+    "/support"
+  ],
+  "authentifie": true,
+  "entetes": [],
+  "results": [
+    {
+      "route": "/hote",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/acces",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/acces",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/annonce",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/annonce",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/assistant",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/assistant",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/audit",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/audit",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/automatisations",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/automatisations",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/avis",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/avis",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/avis-voyageur",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/avis-voyageur",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/cautions",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/cautions",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/compta",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/compta",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/compta/parametres",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/compta/parametres",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/compta/rapprochement",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/compta/rapprochement",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/compta/simulateur",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/compta/simulateur",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/demandes",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/demandes",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/demandes-extra",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/demandes-extra",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/design",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/supervision/apparence",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/design/domaine",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/design/domaine",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/dispatch",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/dispatch",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/entite",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/entite",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/entretien",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/entretien",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/etats-des-lieux",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/etats-des-lieux",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/extras",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/extras",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/factures",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/factures",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/fils",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/fils",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/formation",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/formation",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/import",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/import",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/installation",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/installation",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/integrations",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/integrations",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/integrations/api",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/integrations/api",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/integrations/nuki",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/integrations/nuki",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/inventaire",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/inventaire",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/logements",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/logements",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/menage",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/menage",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/messages",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/messages",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/messages/fils",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/messages/fils",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/missions",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/missions",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/notifications",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/notifications",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/objets-trouves",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/objets-trouves",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/onboarding",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/onboarding",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/onboarding/reservation-test",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/onboarding/reservation-test",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/phrases",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/phrases",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/planning",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/planning",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/planning/canaux",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/planning/canaux",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/planning/import",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/planning/import",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/police",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/police",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/prix",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/prix",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/prix/recommandations",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/prix/recommandations",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/promotions",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/promotions",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/proprietaires",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/proprietaires",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/questionnaires",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/questionnaires",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/rapports",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/rapports",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/recherche",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/recherche",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/reglages-groupe",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/reglages-groupe",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/rgpd",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/rgpd",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/securite",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/securite",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/sinistres",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/sinistres",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/sorties",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/sorties",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/stocks",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/stocks",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/suivi",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/suivi",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/tourisme",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/tourisme",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/tranquillite",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/tranquillite",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/utilisateurs",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/utilisateurs",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/presta",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/presta",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/supervision",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/supervision",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/supervision/apparence",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/supervision/apparence",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/supervision/apparence/apercu-composants",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/supervision/apparence/apercu-composants",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/supervision/assistant",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/supervision/assistant",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/supervision/fournisseurs",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/supervision/fournisseurs",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/supervision/voir-comme",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/supervision/voir-comme",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/support",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/support",
+      "violations": [],
+      "seriousOrCritical": 0
+    }
+  ]
+}

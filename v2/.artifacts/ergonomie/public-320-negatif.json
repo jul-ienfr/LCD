@@ -1,0 +1,2206 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "routes": [
+    "/tarifs",
+    "/journal",
+    "/mot-de-passe-oublie"
+  ],
+  "results": [
+    {
+      "route": "/tarifs",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [
+        {
+          "tag": "button",
+          "type": "submit",
+          "name": null,
+          "classe": "ui-bouton ui-bouton--primaire",
+          "libelleHtml": "<button class=\"ui-bouton ui-bouton--primaire\" type=\"submit\">Calculer</button>",
+          "text": "Calculer",
+          "width": 95,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "lien-evitement",
+          "libelleHtml": "<a class=\"lien-evitement\" href=\"#contenu\">Aller au contenu</a>",
+          "text": "Aller au contenu",
+          "width": 158.3,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-bouton ui-bouton--secondaire",
+          "libelleHtml": "<a class=\"ui-bouton ui-bouton--secondaire\" href=\"/reserver?offre=full\">Demander un devis</a>",
+          "text": "Demander un devis",
+          "width": 206,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-bouton ui-bouton--secondaire",
+          "libelleHtml": "<a class=\"ui-bouton ui-bouton--secondaire\" href=\"/reserver?offre=pilotage\">Demander un devis</a>",
+          "text": "Demander un devis",
+          "width": 206,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-bouton ui-bouton--secondaire",
+          "libelleHtml": "<a class=\"ui-bouton ui-bouton--secondaire\" href=\"/reserver?offre=kit\">Demander un devis</a>",
+          "text": "Demander un devis",
+          "width": 206,
+          "height": 48
+        },
+        {
+          "tag": "input",
+          "type": "number",
+          "name": "logements",
+          "classe": "ui-champ",
+          "libelleHtml": "<input class=\"ui-champ\" max=\"50\" min=\"1\" name=\"logements\" type=\"number\" value=\"1\">",
+          "text": "",
+          "width": 206,
+          "height": 48
+        },
+        {
+          "tag": "input",
+          "type": "number",
+          "name": "ca",
+          "classe": "ui-champ",
+          "libelleHtml": "<input class=\"ui-champ\" min=\"0\" name=\"ca\" step=\"100\" type=\"number\" value=\"2500\">",
+          "text": "",
+          "width": 206,
+          "height": 48
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 cursor-pointer items-center font-medium",
+          "libelleHtml": "<summary class=\"flex min-h-11 cursor-pointer items-center font-medium\">Puis-je changer d'offre ?</summary>",
+          "text": "Puis-je changer d'offre ?",
+          "width": 238,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 cursor-pointer items-center font-medium",
+          "libelleHtml": "<summary class=\"flex min-h-11 cursor-pointer items-center font-medium\">Y a-t-il un engagement ?</summary>",
+          "text": "Y a-t-il un engagement ?",
+          "width": 238,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 cursor-pointer items-center font-medium",
+          "libelleHtml": "<summary class=\"flex min-h-11 cursor-pointer items-center font-medium\">Quelle différence entre FULL et PILOTAGE ?</summary>",
+          "text": "Quelle différence entre FULL et PILOTAGE ?",
+          "width": 238,
+          "height": 48
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 cursor-pointer items-center font-medium",
+          "libelleHtml": "<summary class=\"flex min-h-11 cursor-pointer items-center font-medium\">Le ménage est-il compris dans les 25 % ?</summary>",
+          "text": "Le ménage est-il compris dans les 25 % ?",
+          "width": 238,
+          "height": 48
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/journal",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/hote/audit\">Audit</a>",
+          "text": "Audit",
+          "width": 48,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/secrets\">Secrets</a>",
+          "text": "Secrets",
+          "width": 51.6,
+          "height": 48
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "summary",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce",
+          "libelleHtml": "<summary class=\"flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce\">Voir</summary>",
+          "text": "Voir",
+          "width": 61.4,
+          "height": 44
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/systeme\">Système</a>",
+          "text": "Système",
+          "width": 59,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/supervision/apparence\">Apparence</a>",
+          "text": "Apparence",
+          "width": 74.4,
+          "height": 48
+        },
+        {
+          "tag": "button",
+          "type": "submit",
+          "name": null,
+          "classe": "ui-bouton ui-bouton--primaire",
+          "libelleHtml": "<button class=\"ui-bouton ui-bouton--primaire\" type=\"submit\">Filtrer</button>",
+          "text": "Filtrer",
+          "width": 78.6,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/supervision/voir-comme\">Voir comme</a>",
+          "text": "Voir comme",
+          "width": 80.8,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/hote\">Espace hôte</a>",
+          "text": "Espace hôte",
+          "width": 83.2,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/supervision/fournisseurs\">Fournisseurs</a>",
+          "text": "Fournisseurs",
+          "width": 88.3,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/journal\">Journal global</a>",
+          "text": "Journal global",
+          "width": 96.2,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "ui-nav-lien",
+          "libelleHtml": "<a class=\"ui-nav-lien\" href=\"/supervision\">Vue d’ensemble</a>",
+          "text": "Vue d’ensemble",
+          "width": 108.6,
+          "height": 48
+        },
+        {
+          "tag": "select",
+          "type": null,
+          "name": "tenant",
+          "classe": "ui-champ",
+          "libelleHtml": "<select class=\"ui-champ\" name=\"tenant\"><option value=\"\" selected=\"\">Tous</option><!--[--><option value=\"a56b5bcf-11cc-429d-a63f-a766613ac66d\">LCD Parc (lcd)</op",
+          "text": "TousLCD Parc (lcd)",
+          "width": 142,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "lien-evitement",
+          "libelleHtml": "<a class=\"lien-evitement\" href=\"#contenu\">Aller au contenu</a>",
+          "text": "Aller au contenu",
+          "width": 158.3,
+          "height": 48
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "name": "action",
+          "classe": "ui-champ",
+          "libelleHtml": "<input class=\"ui-champ\" maxlength=\"80\" name=\"action\" placeholder=\"reservation, facture, auth…\" value=\"\">",
+          "text": "",
+          "width": 238,
+          "height": 48
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/mot-de-passe-oublie",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "lien-evitement",
+          "libelleHtml": "<a class=\"lien-evitement\" href=\"#contenu\">Aller au contenu</a>",
+          "text": "Aller au contenu",
+          "width": 158.3,
+          "height": 48
+        },
+        {
+          "tag": "a",
+          "type": null,
+          "name": null,
+          "classe": "flex min-h-11 items-center justify-center text-center text-sm ui-lien",
+          "libelleHtml": "<a class=\"flex min-h-11 items-center justify-center text-center text-sm ui-lien\" href=\"/login\">← Retour à la connexion</a>",
+          "text": "← Retour à la connexion",
+          "width": 206,
+          "height": 44
+        },
+        {
+          "tag": "input",
+          "type": "email",
+          "name": "email",
+          "classe": "ui-champ",
+          "libelleHtml": "<input class=\"ui-champ\" type=\"email\" name=\"email\" autocomplete=\"username\" required=\"\">",
+          "text": "",
+          "width": 206,
+          "height": 48
+        },
+        {
+          "tag": "button",
+          "type": "submit",
+          "name": null,
+          "classe": "ui-bouton ui-bouton--primaire w-full",
+          "libelleHtml": "<button class=\"ui-bouton ui-bouton--primaire w-full\" type=\"submit\">Envoyer le lien</button>",
+          "text": "Envoyer le lien",
+          "width": 206,
+          "height": 48
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    }
+  ]
+}

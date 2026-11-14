@@ -51,6 +51,7 @@ async function contexte(input: {
     ventesSuspendues: false,
     ventesSuspenduesMotif: null,
     ventesSuspenduesLe: null,
+    lectureSeule: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   });

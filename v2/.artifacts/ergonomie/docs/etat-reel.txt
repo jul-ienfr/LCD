@@ -1,0 +1,10 @@
+- **ACCESSIBILITÉ STAFF 2026-11-13 (suite, plan 004 — axe sur les 70 routes staff)**
+  : axe (WCAG 2.0/2.1 A+AA) lancé sur les 70 routes staff dérivées du disque
+  donne **0 violation** après correction de 10 routes (`scrollable-region-focusable`)
+  et de **32 champs sans étiquette** : les zones à défilement horizontal sont
+  désormais focusables et nommées (56 zones, décision A22), les champs répétés de
+  tableau portent un `aria-label` contextuel (A23). Deux gates rejouables :
+  `npm run audit:ergonomie:staff` (tactile + débordement + étiquettes) et
+  `npm run audit:a11y:staff` (axe), tous deux à routes dérivées de `src/routes`
+  et code de sortie 1 en cas d'échec (A24). Vérifications : typecheck 0/0, build
+  0 erreur, `npm test` 1 596 réussis, e2e ciblé 42/42.

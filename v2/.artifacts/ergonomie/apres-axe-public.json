@@ -1,0 +1,181 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "routes": [
+    "/",
+    "/aide",
+    "/commercial",
+    "/consentement",
+    "/design",
+    "/developpeurs",
+    "/journal",
+    "/legales",
+    "/mot-de-passe-oublie",
+    "/offline",
+    "/preview/lecture-seule",
+    "/proprio",
+    "/proprio/releves",
+    "/reinitialiser-mot-de-passe",
+    "/reserver",
+    "/retour",
+    "/secrets",
+    "/systeme",
+    "/tarifs",
+    "/voyageur",
+    "/voyageur/police"
+  ],
+  "authentifie": true,
+  "entetes": [],
+  "results": [
+    {
+      "route": "/",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/aide",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/aide",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/commercial",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/commercial",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/consentement",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/consentement",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/design",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/design",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/developpeurs",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/developpeurs",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/journal",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/journal",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/legales",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/legales",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/mot-de-passe-oublie",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/mot-de-passe-oublie",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/offline",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/offline",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/preview/lecture-seule",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/preview/lecture-seule",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/proprio",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/proprio",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/proprio/releves",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/proprio/releves",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/reinitialiser-mot-de-passe",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/reinitialiser-mot-de-passe",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/reserver",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/reserver",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/retour",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/retour",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/secrets",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/secrets",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/systeme",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/systeme",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/tarifs",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/tarifs",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/voyageur",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/voyageur",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/voyageur/police",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/voyageur/police",
+      "violations": [],
+      "seriousOrCritical": 0
+    }
+  ]
+}

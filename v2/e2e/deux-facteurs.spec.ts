@@ -60,7 +60,13 @@ test("2FA : activation TOTP, connexion en deux étapes et désactivation", async
 
   // Déconnexion puis reconnexion : le code TOTP est exigé.
   await page2.goto("/hote");
-  await page2.getByRole("button", { name: "Se déconnecter" }).click();
+  // Le compte et sa déconnexion vivent dans un `<details>` natif (utilisable
+  // sans JavaScript) : il faut ouvrir le menu avant de cliquer.
+  const menuCompte = page2
+    .locator("details")
+    .filter({ has: page2.locator('form[action="/logout"]') });
+  await menuCompte.locator("summary").click();
+  await menuCompte.getByRole("button", { name: "Quitter" }).click();
   await expect(page2).toHaveURL(/\/login$/);
 
   await page2.fill('input[type="email"]', email);
@@ -95,6 +101,8 @@ test("2FA : activation TOTP, connexion en deux étapes et désactivation", async
   const ligne = page.locator("li").filter({ hasText: email });
   await ligne.getByRole("button", { name: "Désactiver le compte" }).click();
   await expect(
-    ligne.getByText(`Compte de ${email} désactivé. Ses sessions sont fermées.`),
+    page.getByText(
+      `Compte de ${email} désactivé. Ses sessions sont fermées.`,
+    ),
   ).toBeVisible();
 });

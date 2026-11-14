@@ -1,0 +1,138 @@
+{
+  "tache": "T031",
+  "base": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "seuilPx": 44,
+  "liensInlineExclus": true,
+  "mesureLe": "2026-11-13T02:09:29.290Z",
+  "routes": [
+    "/",
+    "/voyageur",
+    "/reserver",
+    "/aide",
+    "/design",
+    "/legales",
+    "/consentement",
+    "/retour",
+    "/login"
+  ],
+  "resume": {
+    "routes": 9,
+    "ciblesSousSeuil": 0,
+    "routesEnDebordement": [],
+    "ok": true
+  },
+  "results": [
+    {
+      "route": "/",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 30,
+      "smallTargets": [],
+      "exclusionsLiensInline": 9,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/voyageur",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 11,
+      "smallTargets": [],
+      "exclusionsLiensInline": 0,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/reserver",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 14,
+      "smallTargets": [],
+      "exclusionsLiensInline": 21,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/aide",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 16,
+      "smallTargets": [],
+      "exclusionsLiensInline": 1,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/design",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 24,
+      "smallTargets": [],
+      "exclusionsLiensInline": 6,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/legales",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 3,
+      "smallTargets": [],
+      "exclusionsLiensInline": 1,
+      "exceptionsControlesNatifs": 0
+    },
+    {
+      "route": "/consentement",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 7,
+      "smallTargets": [],
+      "exclusionsLiensInline": 1,
+      "exceptionsControlesNatifs": 2
+    },
+    {
+      "route": "/retour",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 22,
+      "smallTargets": [],
+      "exclusionsLiensInline": 0,
+      "exceptionsControlesNatifs": 18
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "erreur": null,
+      "overflowPx": 0,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "controleCount": 11,
+      "smallTargets": [],
+      "exclusionsLiensInline": 0,
+      "exceptionsControlesNatifs": 0
+    }
+  ]
+}

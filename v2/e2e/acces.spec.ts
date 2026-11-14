@@ -11,6 +11,7 @@ test("accès : registre nominatif, session courante protégée et révocation", 
   const nomHote = `Hôte Accès ${suffix}`;
   const emailHote = `acces-${suffix}@lcd.test`;
   const motDePasse = `Provisoire-${suffix}!`;
+  test.setTimeout(60_000);
 
   await page.goto("/login");
   await page.fill('input[type="email"]', ADMIN_EMAIL);

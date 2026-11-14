@@ -12,6 +12,7 @@ test("import ICS : réservation, blocage, idempotence et conflit", async ({
   const uid = `resa-ics-${suffix}@airbnb.com`;
   const uidBloc = `block-ics-${suffix}@airbnb.com`;
   const uidConflit = `conflit-ics-${suffix}@airbnb.com`;
+  const urlFlux = `https://www.airbnb.fr/calendar/ical/${suffix}.ics`;
 
   await page.goto("/login");
   await page.fill('input[type="email"]', ADMIN_EMAIL);
@@ -42,14 +43,14 @@ test("import ICS : réservation, blocage, idempotence et conflit", async ({
   await expect(page.getByText("URL ICS invalide", { exact: false })).toBeVisible();
   await page.fill(
     'input[name="url"]',
-    "https://www.airbnb.fr/calendar/ical/123.ics",
+    urlFlux,
   );
   await page.getByRole("button", { name: "Enregistrer le flux" }).click();
   await expect(
     page.getByText("Flux « Airbnb » enregistré."),
   ).toBeVisible();
   await expect(
-    page.getByText("https://www.airbnb.fr/calendar/ical/123.ics"),
+    page.getByText(urlFlux),
   ).toBeVisible();
 
   const ics = `BEGIN:VCALENDAR

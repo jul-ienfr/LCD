@@ -1,0 +1,55 @@
+{
+  "cookies": [
+    {
+      "name": "lcd_consentement",
+      "value": "v1.m1.p0",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "lcd_langue",
+      "value": "fr",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "better-auth.session_token",
+      "value": "7YmLVXoQb2W3934i7xHAQDUvxdY2aoRw.+PdEC/FA0N0Z+p+gUfYPozhKXgukVO/FWFK5O1fbgAg=",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1795171783.024621,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "lcd_visiteur",
+      "value": "cee027a4-d84e-4611-aba1-90eea0ca0fbf",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1828781383.179248,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "lcd_suivi_session",
+      "value": "cdec8caa-b6a5-43d0-8908-0e1ced899f35",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1794568783.179338,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

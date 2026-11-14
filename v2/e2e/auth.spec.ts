@@ -111,12 +111,15 @@ test("prestataire : tableau de bord hôte refusé, sécurité personnelle access
   await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page).toHaveURL(/\/presta$/);
 
+  // Un rôle qui a sa propre surface n'est pas renvoyé vers une erreur de
+  // connexion (il EST connecté) : il atterrit sur son accueil naturel.
   await page.goto("/hote");
-  await expect(page).toHaveURL(/\/login\?erreur=acces$/);
+  await expect(page).toHaveURL(/\/presta$/);
 
   await page.goto("/hote/audit");
-  await expect(page).toHaveURL(/\/login\?erreur=acces$/);
+  await expect(page).toHaveURL(/\/presta$/);
 
+  // Sa sécurité personnelle reste accessible depuis `/hote`.
   await page.goto("/hote/securite");
   await expect(page.getByRole("heading", { name: "Sécurité" })).toBeVisible();
   await expect(page.getByText("Authentification à deux facteurs")).toBeVisible();

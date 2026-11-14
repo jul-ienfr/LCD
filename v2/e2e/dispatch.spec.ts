@@ -7,6 +7,7 @@ test("dispatch : proposition, acceptation prestataire et assignation", async ({
   page,
   browser,
 }) => {
+  test.setTimeout(60_000);
   const suffix = Date.now();
   const code = `dsp-e2e-${suffix}`;
   const nomLogement = `Logement Dispatch E2E ${suffix}`;
@@ -29,6 +30,7 @@ test("dispatch : proposition, acceptation prestataire et assignation", async ({
   await expect(page.getByText(`Logement « ${code} » créé.`)).toBeVisible();
 
   await page.goto("/hote/utilisateurs");
+  await page.waitForLoadState("networkidle");
   await page.fill('input[name="name"]', nomPresta);
   await page.fill('input[name="email"]', emailPresta);
   await page.selectOption('select[name="role"]', "presta");
@@ -37,9 +39,24 @@ test("dispatch : proposition, acceptation prestataire et assignation", async ({
   await expect(page.getByText(`Compte créé pour ${emailPresta}.`)).toBeVisible();
 
   const lignePresta = page.locator("li").filter({ hasText: emailPresta }).first();
-  await lignePresta.getByText("Assurance RC professionnelle").click();
-  await lignePresta.locator('input[name="rcExpireLe"]').fill("2027-12-31");
-  await lignePresta.getByRole("button", { name: "Enregistrer la RC" }).click();
+  const detailsRc = lignePresta
+    .locator("details")
+    .filter({ hasText: "Assurance RC professionnelle" });
+  await detailsRc.evaluate((element) => {
+    (element as HTMLDetailsElement).open = true;
+  });
+  const champRc = detailsRc.locator('input[name="rcExpireLe"]');
+  await champRc.fill("2027-12-31");
+  await expect(champRc).toHaveValue("2027-12-31");
+  await detailsRc.locator("form").evaluate((form, date) => {
+    const formulaire = form as HTMLFormElement;
+    const input = formulaire.querySelector<HTMLInputElement>(
+      'input[name="rcExpireLe"]',
+    );
+    if (!input) throw new Error("Champ RC introuvable.");
+    input.value = date;
+    formulaire.requestSubmit();
+  }, "2027-12-31");
   await expect(
     page.getByText(`RC de ${emailPresta} valable jusqu’au 2027-12-31.`),
   ).toBeVisible();

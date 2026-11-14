@@ -1,0 +1,75 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "routes": [
+    "/",
+    "/login",
+    "/reserver",
+    "/voyageur"
+  ],
+  "reconstruit": true,
+  "source": "reconstruit le 2026-11-13 après écrasement accidentel du relevé d'origine ; valeurs avant reprises de rapport-ergonomie.json (généré le 2026-11-13T09:05:20.035Z à partir du JSON d'origine) et de specs/004-ergonomie-experience-client/baseline/baseline-2026-11-13.md ; le détail par cible (tag, classe, dimensions) n'est pas récupérable",
+  "results": [
+    {
+      "route": "/",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "violationsAxe": 0
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "violationsAxe": 0
+    },
+    {
+      "route": "/reserver",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [
+        {
+          "tag": "reconstruit",
+          "type": "reconstruit",
+          "name": null,
+          "classe": null,
+          "libelleHtml": "cible 1 (détail non récupérable)",
+          "text": null,
+          "width": null,
+          "height": null
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "violationsAxe": 0
+    },
+    {
+      "route": "/voyageur",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [
+        {
+          "tag": "reconstruit",
+          "type": "reconstruit",
+          "name": null,
+          "classe": null,
+          "libelleHtml": "cible 1 (détail non récupérable)",
+          "text": null,
+          "width": null,
+          "height": null
+        }
+      ],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "violationsAxe": 0
+    }
+  ]
+}

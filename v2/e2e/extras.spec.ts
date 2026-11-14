@@ -79,8 +79,11 @@ test("guide logement + extra commandé par le voyageur", async ({
   });
   const noJsPage = await noJs.newPage();
   await noJsPage.goto(href ?? "/voyageur");
-  await expect(noJsPage.getByText(wifi)).toBeVisible();
-  await expect(noJsPage.getByText("15:00")).toBeVisible();
+  // Le Wi-Fi et l'horaire figurent aussi sur le premier écran (essentiel) :
+  // on cible la section du guide pour lever l'ambiguïté.
+  const sectionGuide = noJsPage.locator("#guide");
+  await expect(sectionGuide.getByText(wifi)).toBeVisible();
+  await expect(sectionGuide.getByText("15:00")).toBeVisible();
 
   const sectionExtras = noJsPage
     .locator("section")

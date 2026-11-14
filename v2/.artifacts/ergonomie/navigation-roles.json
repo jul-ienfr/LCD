@@ -1,0 +1,96 @@
+{
+  "roles": [
+    {
+      "role": "super_admin",
+      "principal": 7,
+      "secondaires": 41,
+      "principalHrefs": [
+        "/hote",
+        "/hote/planning",
+        "/hote/logements",
+        "/hote/messages",
+        "/hote/menage",
+        "/hote/factures",
+        "/hote/rapports"
+      ],
+      "horsPerimetre": []
+    },
+    {
+      "role": "admin",
+      "principal": 7,
+      "secondaires": 40,
+      "principalHrefs": [
+        "/hote",
+        "/hote/planning",
+        "/hote/logements",
+        "/hote/messages",
+        "/hote/menage",
+        "/hote/factures",
+        "/hote/rapports"
+      ],
+      "horsPerimetre": []
+    },
+    {
+      "role": "hote",
+      "principal": 7,
+      "secondaires": 34,
+      "principalHrefs": [
+        "/hote",
+        "/hote/planning",
+        "/hote/logements",
+        "/hote/messages",
+        "/hote/menage",
+        "/hote/factures",
+        "/hote/rapports"
+      ],
+      "horsPerimetre": []
+    },
+    {
+      "role": "operateur",
+      "principal": 6,
+      "secondaires": 31,
+      "principalHrefs": [
+        "/hote",
+        "/hote/planning",
+        "/hote/logements",
+        "/hote/messages",
+        "/hote/menage",
+        "/hote/factures"
+      ],
+      "horsPerimetre": []
+    },
+    {
+      "role": "comptable",
+      "principal": 3,
+      "secondaires": 3,
+      "principalHrefs": [
+        "/hote",
+        "/hote/factures",
+        "/hote/rapports"
+      ],
+      "horsPerimetre": []
+    },
+    {
+      "role": "presta",
+      "principal": 0,
+      "secondaires": 0,
+      "principalHrefs": [],
+      "horsPerimetre": []
+    },
+    {
+      "role": "proprietaire",
+      "principal": 0,
+      "secondaires": 0,
+      "principalHrefs": [],
+      "horsPerimetre": []
+    },
+    {
+      "role": "commercial",
+      "principal": 0,
+      "secondaires": 0,
+      "principalHrefs": [],
+      "horsPerimetre": []
+    }
+  ],
+  "liensTotal": 48
+}

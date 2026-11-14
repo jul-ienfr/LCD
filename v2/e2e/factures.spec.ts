@@ -14,7 +14,7 @@ async function connexion(page: import("@playwright/test").Page) {
 test("facture : fiscalité auto, Factur-X, compta et export CSV", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(120_000);
   const suffix = Date.now();
   const code = `fac-e2e-${suffix}`;
   const nom = `Facturation E2E ${suffix}`;

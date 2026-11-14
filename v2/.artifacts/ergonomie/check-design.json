@@ -1,0 +1,46 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "routes": [
+    "/design",
+    "/aide"
+  ],
+  "authentifie": false,
+  "entetes": [],
+  "results": [
+    {
+      "route": "/design",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/design",
+      "violations": [
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "help": "Scrollable region must have keyboard access",
+          "nodes": 1,
+          "targets": [
+            ".space-y-4:nth-child(10) > .overflow-x-auto"
+          ],
+          "details": [
+            {
+              "target": ".space-y-4:nth-child(10) > .overflow-x-auto",
+              "html": "<div class=\"overflow-x-auto\">",
+              "data": null
+            }
+          ]
+        }
+      ],
+      "seriousOrCritical": 1
+    },
+    {
+      "route": "/aide",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/aide",
+      "violations": [],
+      "seriousOrCritical": 0
+    }
+  ]
+}

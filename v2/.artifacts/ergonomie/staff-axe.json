@@ -1,0 +1,62 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "resultats": [
+    {
+      "route": "/hote",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    },
+    {
+      "route": "/hote/planning",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    },
+    {
+      "route": "/hote/logements",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    },
+    {
+      "route": "/hote/messages",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    },
+    {
+      "route": "/hote/utilisateurs",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    },
+    {
+      "route": "/hote/factures",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    },
+    {
+      "route": "/hote/rapports",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    },
+    {
+      "route": "/hote/recherche",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    },
+    {
+      "route": "/hote/menage",
+      "statut": 200,
+      "debordement": false,
+      "violations": []
+    }
+  ]
+}

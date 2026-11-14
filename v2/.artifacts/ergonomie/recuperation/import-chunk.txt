@@ -1,0 +1,35 @@
+﻿import{A as e,B as t,G as n,J as r,K as i,M as a,P as o,S as s,X as c,Z as l,_ as u,at as d,b as f,ft as p,ht as m,m as h,ot as g,q as _,st as v,w as y,x as b}from"../chunks/GN-5ZlzG.js";T[m]=`src/routes/hote/import/+page.svelte`;var x=y(o(`<li> </li>`),T[m],[[31,10]]),S=y(o(`<section class="ui-alerte ui-alerte--danger space-y-2" data-rapport-import="">
+<p class="font-medium"> </p> <ul class="max-h-64 space-y-1 overflow-y-auto text-sm">
+</ul>
+</section>`),T[m],[[27,4,[[28,6],[29,6]]]]),C=y(o(`<p class="ui-alerte ui-alerte--ok" data-rapport-import=""> </p>`),T[m],[[36,4]]),w=y(o(`<main id="contenu" class="mx-auto max-w-4xl space-y-8 px-6 py-12">
+<header class="space-y-2">
+<p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Espace hôte · Mise en route</p> <h1 class="text-3xl font-semibold tracking-tight">Import CSV</h1> <p class="text-encre-douce">Reprenez vos logements et vos réservations existants. Les lignes
+      valides sont importées, les autres sont listées avec leur numéro de ligne.</p> <p class="text-sm">
+<a class="inline-flex min-h-11 items-center underline" href="/hote/onboarding">← Mise en route</a>
+</p>
+</header> <!> <section class="ui-carte space-y-4">
+<div>
+<h2 class="text-lg font-semibold">Logements</h2> <p class="mt-1 text-sm text-encre-douce">Colonnes : <code>code</code>, <code>nom</code>, <code>adresse</code> (facultative). Le code doit être en minuscules, sans espace.</p>
+</div> <pre class="overflow-x-auto rounded-xl bg-surface-2 p-3 text-xs">
+<code>code,nom,adresse
+appart-1,Studio centre,12 rue des Lilas
+appart-2,Duplex gare,</code>
+</pre> <form enctype="multipart/form-data" method="POST" action="?/logements">
+<label class="block space-y-2">
+<span class="ui-label">Fichier CSV des logements</span> <input accept=".csv,text/csv" class="ui-champ min-h-11" name="fichier" required="" type="file"/>
+</label> <button class="ui-bouton ui-bouton--primaire mt-4" type="submit">Importer les logements</button>
+</form>
+</section> <section class="ui-carte space-y-4">
+<div>
+<h2 class="text-lg font-semibold">Réservations</h2> <p class="mt-1 text-sm text-encre-douce">Colonnes : <code>ref</code>, <code>logement</code> (code existant), <code>debut</code>, <code>fin</code>, puis facultativement <code>client_nom</code>, <code>voyageurs</code> et <code>montant_centimes</code>. Les chevauchements sont refusés.</p>
+</div> <pre class="overflow-x-auto rounded-xl bg-surface-2 p-3 text-xs">
+<code>ref,logement,debut,fin,client_nom,voyageurs,montant_centimes
+R-2026-001,appart-1,2026-12-01,2026-12-05,Ada,2,45000</code>
+</pre> <form enctype="multipart/form-data" method="POST" action="?/reservations">
+<label class="block space-y-2">
+<span class="ui-label">Fichier CSV des réservations</span> <input accept=".csv,text/csv" class="ui-champ min-h-11" name="fichier" required="" type="file"/>
+</label> <button class="ui-bouton ui-bouton--primaire mt-4" type="submit">Importer les réservations</button>
+</form> <p class="text-xs text-encre-faine"> </p>
+</section>
+</main>`),T[m],[[11,0,[[12,2,[[13,4],[16,4],[17,4],[21,4,[[22,6]]]]],[39,2,[[40,4,[[41,6],[42,6,[[43,19],[43,38],[43,56]]]]],[47,4,[[47,69]]],[50,4,[[51,6,[[52,8],[53,8]]],[55,6]]]]],[61,2,[[62,4,[[63,6],[64,6,[[65,19],[65,37],[66,8],[66,28],[67,8],[67,33],[68,8]]]]],[71,4,[[71,69]]],[73,4,[[74,6,[[75,8],[76,8]]],[78,6]]],[82,4]]]]]]);function T(o,m){b(new.target),v(m,!0,T);var y={...s()},E=w();h(`14e66sx`,e=>{n(()=>{_.title=`Import CSV — LCD`})});var D=l(r(E),2),O=n=>{var o=S(),s=r(o),f=c(s,!0),h=l(s,2);d(()=>u(h,21,()=>m.form.erreurs,e=>e.ligne+e.message,(n,r)=>{var o=x(),s=c(o);i(()=>e(s,`Ligne ${t(r).ligne??``} : ${t(r).message??``}`)),a(n,o)}),`each`,T,30,8),p(h),p(o),i(()=>e(f,m.form.message)),a(n,o)},k=t=>{var n=C(),r=c(n,!0);i(()=>e(r,m.form.message)),a(t,n)};d(()=>f(D,e=>{m.form?.erreurs.length?e(O):m.form?.message&&e(k,1)}),`if`,T,26,2);var A=l(D,4),j=l(r(A),6),M=c(j);return p(A),p(E),i(t=>e(M,`${m.data.logements.length??``} logement(s) disponible(s) pour la correspondance
+      des codes : ${t??``}.`),[()=>m.data.logements.map(e=>e.code).join(`, `)||`aucun`]),a(o,E),g(y)}export{T as component};

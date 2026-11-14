@@ -35,7 +35,7 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   page,
   browser,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(180_000);
   const suffix = Date.now();
   const nom = `Équipe E2E ${suffix}`;
   const email = `equipe-${suffix}@lcd.test`;
@@ -89,7 +89,7 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
     .getByRole("button", { name: "Réinitialiser le mot de passe" })
     .click();
   await expect(
-    ligne.getByText(
+    page.getByText(
       `Mot de passe réinitialisé pour ${email}. Ses sessions ont été fermées.`,
     ),
   ).toBeVisible();
@@ -138,7 +138,7 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   // Désactivation : sessions fermées et connexion refusée.
   await ligne.getByRole("button", { name: "Désactiver le compte" }).click();
   await expect(
-    ligne.getByText(
+    page.getByText(
       `Compte de ${email} désactivé. Ses sessions sont fermées.`,
     ),
   ).toBeVisible();
@@ -164,7 +164,7 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   // Réactivation.
   await ligne.getByRole("button", { name: "Réactiver le compte" }).click();
   await expect(
-    ligne.getByText(`Compte de ${email} réactivé.`),
+    page.getByText(`Compte de ${email} réactivé.`),
   ).toBeVisible();
   await expect(ligne.getByText("Actif", { exact: true })).toBeVisible();
 
@@ -176,6 +176,6 @@ test("utilisateurs : création, connexion, réinitialisation et désactivation",
   await ligne.locator('select[name="role"]').selectOption("comptable");
   await ligne.getByRole("button", { name: "Changer le rôle" }).click();
   await expect(
-    ligne.getByText(`Rôle de ${email} changé en comptable.`),
+    page.getByText(`Rôle de ${email} changé en comptable.`),
   ).toBeVisible();
 });

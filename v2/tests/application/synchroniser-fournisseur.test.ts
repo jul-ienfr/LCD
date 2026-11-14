@@ -72,6 +72,23 @@ class FournisseurEspion implements FournisseurCanal {
   }
 }
 
+class FournisseurDeltaEspion extends FournisseurEspion {
+  distantesDisponibilites: DisponibiliteJour[] = [];
+  distantsTarifs: TarifJour[] = [];
+
+  async lireDisponibilites(): Promise<DisponibiliteJour[]> {
+    return this.distantesDisponibilites;
+  }
+
+  async lireTarifs(): Promise<TarifJour[]> {
+    return this.distantsTarifs;
+  }
+
+  async lireRestrictions(): Promise<RestrictionJour[]> {
+    return [];
+  }
+}
+
 describe("SynchroniserFournisseur", () => {
   let fournisseurs: FournisseurRepositoryMemoire;
   let reservations: ReservationRepositoryMemoire;
@@ -112,6 +129,7 @@ describe("SynchroniserFournisseur", () => {
       ventesSuspendues: false,
       ventesSuspenduesMotif: null,
       ventesSuspenduesLe: null,
+      lectureSeule: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -312,6 +330,71 @@ describe("SynchroniserFournisseur", () => {
       lot.some((restriction) => restriction.externalRatePlanId === "rate-derive"),
     );
     expect(planRestrictions?.[0]?.sejourMin).toBe(2);
+  });
+
+  it("ne pousse que les différences ARI quand l’état distant est lisible", async () => {
+    const delta = new FournisseurDeltaEspion("beds24");
+    delta.reservations = fournisseur.reservations;
+    delta.distantesDisponibilites = [
+      {
+        externalPropertyId: "prop-1",
+        externalRoomTypeId: "123",
+        date: "2027-01-01",
+        disponible: false,
+      },
+      {
+        externalPropertyId: "prop-1",
+        externalRoomTypeId: "123",
+        date: "2027-01-02",
+        disponible: false,
+      },
+      {
+        externalPropertyId: "prop-1",
+        externalRoomTypeId: "123",
+        date: "2027-01-03",
+        disponible: false,
+      },
+    ];
+    delta.distantsTarifs = [
+      {
+        externalPropertyId: "prop-1",
+        externalRoomTypeId: "123",
+        externalRatePlanId: null,
+        date: "2027-01-01",
+        prixCentimes: 9000,
+        devise: "EUR",
+      },
+      {
+        externalPropertyId: "prop-1",
+        externalRoomTypeId: "123",
+        externalRatePlanId: null,
+        date: "2027-01-02",
+        prixCentimes: 12000,
+        devise: "EUR",
+      },
+    ];
+    synchroniser = new SynchroniserFournisseur(
+      fournisseurs,
+      reservations,
+      blocages,
+      tarifs,
+      restrictions,
+      new ImporterReservationsFournisseur(reservations, blocages),
+      () => delta,
+      undefined,
+      undefined,
+      tenants,
+    );
+
+    const resultat = await executer();
+
+    expect(resultat.statut).toBe("ok");
+    expect(delta.disponibilites[0]).toEqual([
+      expect.objectContaining({ date: "2027-01-01", disponible: true }),
+    ]);
+    expect(delta.tarifs[0]).toEqual([
+      expect.objectContaining({ date: "2027-01-01", prixCentimes: 10000 }),
+    ]);
   });
 
   it("ferme la nuit de préparation après un départ", async () => {

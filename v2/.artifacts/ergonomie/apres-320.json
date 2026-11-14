@@ -1,0 +1,55 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "routes": [
+    "/",
+    "/reserver",
+    "/login",
+    "/voyageur"
+  ],
+  "results": [
+    {
+      "route": "/",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/reserver",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/voyageur",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    }
+  ]
+}

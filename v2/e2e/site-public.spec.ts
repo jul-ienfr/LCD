@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import postgres from "postgres";
 
 const SLUG = "demo-e2e";
+const DOMAINE = "demo-e2e.localhost";
 const seo = {
   title: "Villa E2E — LCD",
   description:
@@ -60,12 +61,28 @@ test.describe("site public sans JavaScript", () => {
         (${tenant.id}, ${page.id}, 'equipements', 1,
          ${JSON.stringify({ titre: "Équipements", items: ["Terrasse", "Wi-Fi"] })}::jsonb, true)
     `;
+    await sql`
+      insert into domaines (tenant_id, domaine, statut, certificat_at)
+      values (${tenant.id}, ${DOMAINE}, 'actif', now())
+    `;
   });
 
   test.afterAll(async () => {
     if (!sql) return;
     await sql`delete from tenants where slug = ${SLUG}`;
     await sql.end();
+  });
+
+  test("sert le site public sur un domaine personnalisé actif", async ({
+    request,
+  }) => {
+    const reponse = await request.get("/", {
+      headers: { host: DOMAINE },
+    });
+    expect(reponse.status()).toBe(200);
+    const html = await reponse.text();
+    expect(html).toContain("Villa E2E");
+    expect(html).toContain("Terrasse");
   });
 
   test("rend le contenu, le SEO et le JSON-LD sans hydratation", async ({

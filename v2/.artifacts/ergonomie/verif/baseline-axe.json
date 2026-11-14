@@ -1,0 +1,45 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "routes": [
+    "/",
+    "/reserver",
+    "/login",
+    "/voyageur"
+  ],
+  "authentifie": false,
+  "entetes": [],
+  "results": [
+    {
+      "route": "/",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/reserver",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/reserver",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/login",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/voyageur",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/voyageur",
+      "violations": [],
+      "seriousOrCritical": 0
+    }
+  ]
+}

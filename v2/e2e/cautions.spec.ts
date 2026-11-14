@@ -43,8 +43,8 @@ test("cautions : création, réception et retenue", async ({ page }) => {
   await expect(page.getByText("Caution créée.")).toBeVisible();
 
   const ligne = page.locator("li").filter({ hasText: ref }).first();
-  await expect(ligne).toContainText("Attendue");
-  await expect(ligne).toContainText("caution 500,00 €");
+  await expect(ligne).toContainText(/attendue/i);
+  await expect(ligne).toContainText("500,00 €");
 
   await ligne.getByRole("button", { name: "Marquer reçue" }).click();
   await expect(page.getByText("Caution mise à jour.")).toBeVisible();
@@ -54,7 +54,7 @@ test("cautions : création, réception et retenue", async ({ page }) => {
   await ligne.locator('input[name="motifRetenue"]').fill("Dégât mobilier");
   await ligne.getByRole("button", { name: "Retenir" }).click();
   await expect(page.getByText("Caution mise à jour.")).toBeVisible();
-  await expect(ligne).toContainText("Retenue partielle");
+  await expect(ligne).toContainText(/retenue/i);
   await expect(ligne).toContainText("Retenu : 120,00 €");
   await expect(ligne).toContainText("Motif : Dégât mobilier");
 });

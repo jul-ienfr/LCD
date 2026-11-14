@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { logementPubliable, peutPublierLogement } from "@/domain/logement";
+import {
+  logementPubliable,
+  peutPublierLogement,
+  urlGuidePartenaireValide,
+} from "@/domain/logement";
 
 describe("publiabilité d’un logement", () => {
   it("exige un logement actif, une copropriété vérifiée et une publication", () => {
@@ -43,5 +47,15 @@ describe("publiabilité d’un logement", () => {
     expect(
       peutPublierLogement({ statut: "archive", coproVerifiee: true }),
     ).toBe(false);
+  });
+
+  it("accepte uniquement un guide partenaire HTTPS sans identifiants", () => {
+    expect(urlGuidePartenaireValide("https://guide.touchstay.com/abc")).toBe(
+      true,
+    );
+    expect(urlGuidePartenaireValide("http://guide.example.fr")).toBe(false);
+    expect(urlGuidePartenaireValide("javascript:alert(1)")).toBe(false);
+    expect(urlGuidePartenaireValide("https://user:pass@guide.fr")).toBe(false);
+    expect(urlGuidePartenaireValide("pas une url")).toBe(false);
   });
 });

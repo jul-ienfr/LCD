@@ -1,0 +1,93 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "routes": [
+    "/",
+    "/reserver",
+    "/login",
+    "/voyageur",
+    "/developpeurs",
+    "/aide",
+    "/tarifs",
+    "/journal",
+    "/hote/import",
+    "/hote"
+  ],
+  "authentifie": true,
+  "entetes": [],
+  "results": [
+    {
+      "route": "/",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/reserver",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/reserver",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/voyageur",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/voyageur",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/developpeurs",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/developpeurs",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/aide",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/aide",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/tarifs",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/tarifs",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/journal",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/journal",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote/import",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote/import",
+      "violations": [],
+      "seriousOrCritical": 0
+    },
+    {
+      "route": "/hote",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:4173/hote",
+      "violations": [],
+      "seriousOrCritical": 0
+    }
+  ]
+}
