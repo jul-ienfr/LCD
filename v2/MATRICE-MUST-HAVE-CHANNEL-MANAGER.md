@@ -1,7 +1,15 @@
 # Matrice « must-have V2 » vs channel managers
 
-**Vérification au 25 octobre 2026.** Objectif : décider sur des faits, pas sur
-les promesses marketing.
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : v2/src (adapters fournisseurs), PLAN-LEVER-LIMITES-OTA.md
+```
+
+**Vérification initiale au 25 octobre 2026**, corrigée le 14 novembre 2026.
+Objectif : décider sur des faits, pas sur les promesses marketing.
 
 Statuts :
 
@@ -44,8 +52,11 @@ webhooks non documentés).
 
 **Dans la V2 :** les règles de séjour sont saisies par date dans **Hôte → Prix**
 et poussées selon le tableau ci-dessus : Beds24/Channex reçoivent min/max,
-CTA/CTD et stop-sell, Smoobu seulement min/max. Le cut-off n’est pas encore
-modélisé.
+CTA/CTD et stop-sell, Smoobu seulement min/max. **Depuis le 2026-11-08, le
+cut-off, le buffer et les restrictions sont modélisés et implémentés**
+(`/hote/planning/canaux`, `src/domain/`, `PLAN-LEVER-LIMITES-OTA.md` §4.2) :
+la phrase « le cut-off n'est pas encore modélisé » de la version du
+2026-11-01 est corrigée le 2026-11-14.
 
 ## 2. Couverture des plateformes
 

@@ -1,10 +1,37 @@
 # Écarts V1 → V2
 
-État au 2026-11-01, vérifié dans le code (`v2/src`, `v2/tests`). Objectif :
-porter dans `v2/` toutes les fonctionnalités logicielles de la V1 (`web/`,
-`deploy/`, `lab/`, `custom/`) et les exigences fonctionnelles des plans/docs.
-Le matériel, la box, Home Assistant, les rendez-vous terrain et les contrats
-externes restent hors périmètre logiciel.
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : docs/archive/v1/AUDIT-COMPLET-PLANS-VS-V2.md (pour l'audit)
+Source de vérité : v2/src, v2/tests, docs/registres/etat-reel.md
+```
+
+État au 2026-11-01, reverifié le 2026-11-14 dans le code (`v2/src`,
+`v2/tests`). Objectif : porter dans `v2/` toutes les fonctionnalités
+logicielles de la V1 (`web/`, `deploy/`, `lab/`, `custom/`) et les exigences
+fonctionnelles des plans/docs. Le matériel, la box, Home Assistant, les
+rendez-vous terrain et les contrats externes restent hors périmètre logiciel.
+
+## Mise à jour du 2026-11-14
+
+Corrections apportées après l'audit documentaire :
+
+| Sujet | État au 2026-11-01 | État vérifié au 2026-11-14 |
+|---|---|---|
+| Lighthouse | « non mesuré, absent du dépôt » | **mesuré le 2026-11-13** via `npx lighthouse` (13.6.0, sans dépendance ajoutée) : mobile 100 partout sauf `/reserver` 93–95, desktop 100 partout |
+| Accessibilité | 18 routes mesurées | **21 pages publiques + 70 routes staff** : 0 violation axe, 0 cible < 44 px, 0 débordement 320 px |
+| Site public | non couvert par ce document | `/`, `/reserver` (2 étapes), `/reserver/[ref]`, `/tarifs`, `/logement` absent (écart assumé), 5 langues, sans JS |
+| Channel manager | cut-off « pas encore modélisé » (voir `MATRICE`) | **cut-off, buffer et restrictions implémentés** (`/hote/planning/canaux`, `PLAN-LEVER-LIMITES-OTA.md` §4.2) |
+| L4 pricing | absent | `/hote/prix`, stratégies remplissage/équilibre/revenu, saisons, événements, last-minute |
+| L5 reporting | absent | relevé propriétaire mensuel (brut, charges, net), exports CSV et PDF |
+| L6 API | absent | `/api/v1/*`, clés à scopes, webhooks HMAC, OpenAPI 3.1 |
+| L7 onboarding | absent | `/hote/onboarding`, réservation test, import CSV |
+| Migrations | 94 | **104** (`npm run db:test-migrations`) |
+
+Les sections ci-dessous restent la référence détaillée ; les lignes corrigées
+portent la date du 2026-11-14.
 
 Légende : **Fait** · **Partiel** · **Absent** · **Exclu** (matériel, contrat ou
 infra V1).
@@ -149,12 +176,12 @@ infra V1).
 | Confirmation rassurante | Fait | `/reserver/[ref]` : référence sélectionnable, récapitulatif, échéances si présentes, prochaine étape, délai, contact, aide (T084). |
 | Fiche logement publique | Écart assumé | `/logement/[slug]` n'existe pas en V2 : les inclusions, la taxe et le délai sont publiés sur le tunnel et la confirmation. |
 | Espace voyageur hiérarchisé | Fait | `/voyageur` : essentiel en premier écran, sommaire, sections `<details>` ouvertes par défaut, offline/outbox (T047–T053). |
-| Accessibilité WCAG 2.2 AA | Fait | 0 violation axe sérieuse sur 18 routes (9 publiques + 9 staff), lien d'évitement, zones défilantes focusables, contrastes vérifiés. |
-| Cibles tactiles ≥ 44 px / 320 px | Fait | 0 cible < 44 px et 0 px de débordement sur 18 routes (`apres-320*.json`). |
+| Accessibilité WCAG 2.2 AA | Fait | 0 violation axe sur **21 pages publiques et 70 routes staff** (mesure 2026-11-13), lien d'évitement, zones défilantes focusables, contrastes vérifiés. |
+| Cibles tactiles ≥ 44 px / 320 px | Fait | 0 cible < 44 px et 0 px de débordement sur **21 pages publiques et 70 routes staff** (mesure 2026-11-13, `baseline-320*.json`). |
 | Budget JS | Fait | 4 routes P1 : 1,8 Ko gzip cumulés (voyageur 1,4 Ko), 0 Ko obligatoire sur public/voyageur. |
 | Thèmes super-admin sous garde-fous | Fait | `/supervision/apparence` : publication bloquée si contraste AA ou cible 44 px échoue, aperçu, journal (T097–T101). |
 | Mesure first-party des parcours | Fait | Événements serveur anonymes (P-RESA, P-SEJOUR, P-RECHERCHE, P-HOTE-5), consentement `mesure`, aucun texte saisi, échec de mesure non bloquant (T089–T092). |
-| Lighthouse mobile (SC-004) | Non mesuré | Lighthouse absent du dépôt, non installé : à installer et exécuter explicitement (T003/T075). |
+| Lighthouse mobile (SC-004) | Fait | Mesuré le 2026-11-13 via `npx lighthouse` (13.6.0) : mobile 100 partout sauf `/reserver` 93–95, desktop 100 partout. Aucune dépendance ajoutée au projet ; voir `v2/README.md`. |
 | Tests utilisateurs et SUS/SEQ (SC-001, SC-003, SC-010) | À faire | Second round de 5 personnes (T107) ; pas de substitut automatisable. |
 
 ## Prochaines priorités

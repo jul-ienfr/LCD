@@ -1,5 +1,13 @@
 # Déploiement — LCD V2
 
+```text
+Statut : ACTIF
+Propriétaire : exploitation
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : v2/scripts/deployer.sh
+```
+
 - **Cible retenue** : VPS Docker + Caddy + PostgreSQL (ADR-06, 2026-11-14)
 - **Procédure complète** : `docs/ops/runbook-production.md`
 - **Guide VPS détaillé** : `v2/DEPLOIEMENT-VPS.md`
@@ -35,11 +43,22 @@ docker compose --env-file .env.prod -f compose.prod.yml up -d
 curl -fsS https://$DOMAIN/api/health
 curl -fsS https://$DOMAIN/api/ready
 docker compose --env-file .env.prod -f compose.prod.yml ps
+docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run preflight
 ```
 
 Attendu : `ok: true`, `db: up`, `schema: ok`, `rls: ok`, `version` = tag
 déployé. Un `503 schema: pending` signifie qu'une migration manque ; ne pas
-ouvrir l'accès.
+ouvrir l'accès. Le préflight vérifie aussi la version de Node, l'absence de
+secrets de développement, le rôle `lcd_app`, l'espace disque et l'écriture dans
+le volume photos.
+
+## 3bis. Déploiement et retour arrière
+
+```bash
+cd /opt/lcd/v2
+./scripts/deployer.sh --tag v2.0.0-rc1   # sauvegarde, build, migrations, smoke
+./scripts/revenir.sh                     # retour au tag précédent
+```
 
 ## 4. Après le premier démarrage
 

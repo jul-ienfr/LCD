@@ -1,5 +1,13 @@
 # Sauvegardes et restauration
 
+```text
+Statut : ACTIF
+Propriétaire : exploitation
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : v2/scripts/ et runbook-production.md §9
+```
+
 ## Principe
 
 - dump PostgreSQL **logique** (`pg_dump`), compressé gzip, checksum SHA-256 ;
@@ -62,8 +70,10 @@ Variables utiles :
 
 ## Production
 
-Récupérer l’URL **owner** (`MIGRATION_DATABASE_URL`) depuis Netlify, jamais
-l’URL du rôle applicatif : `pg_dump` doit voir toutes les lignes malgré RLS.
+Utiliser l’URL **owner** (`MIGRATION_DATABASE_URL`), jamais l’URL du rôle
+applicatif : `pg_dump` doit voir toutes les lignes malgré RLS. Sur VPS, la
+connexion owner n’est lue que par le conteneur `tools` et les scripts de
+sauvegarde ; le service `web` la reçoit vide.
 
 ```powershell
 cd v2
@@ -73,8 +83,8 @@ npm run db:restore-test
 ```
 
 Le dump distant est produit par un conteneur `postgres:18-alpine` qui se
-connecte à la base managée. La restauration de contrôle se fait dans le
-Postgres local : elle ne touche jamais la production.
+connecte à la base. La restauration de contrôle se fait dans une base jetable
+sur le même serveur : elle ne touche jamais la production.
 
 ### VPS Docker
 
@@ -93,6 +103,14 @@ Cron quotidien :
 
 ```cron
 15 3 * * * cd /opt/lcd/v2 && ./scripts/backup-vps.sh >> /var/log/lcd-backup.log 2>&1
+```
+
+Restauration de contrôle sur le VPS (base jetable, aucune écriture en
+production) :
+
+```bash
+cd /opt/lcd/v2
+BACKUP_DIR=backups PG_CONTAINER=lcd-postgres npm run db:restore-test
 ```
 
 Voir `v2/DEPLOIEMENT-VPS.md` pour la restauration de contrôle et la copie

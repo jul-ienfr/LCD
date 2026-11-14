@@ -1,5 +1,13 @@
 # Runbook OTA — exploitation et astreinte
 
+```text
+Statut : ACTIF
+Propriétaire : exploitation
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : v2/src (sync OTA)
+```
+
 Ce runbook couvre la phase 4 (déploiement progressif) décrite dans
 `PLAN-LEVER-LIMITES-OTA.md`. Il suppose un fournisseur certifié activé et au
 moins un logement affecté. Tant que le pilote n’a pas eu lieu, le flux iCal

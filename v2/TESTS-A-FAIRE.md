@@ -1,5 +1,13 @@
 # Tests restant à faire après déploiement
 
+```text
+Statut : ACTIF
+Propriétaire : recette
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : code et environnement de recette
+```
+
 Ce document liste ce qui ne peut pas être validé tant que l’application n’est
 pas déployée sur l’hébergement réel, ou tant que les services externes ne sont
 pas configurés. Les tests locaux déjà faits sont rappelés en fin de document.
@@ -417,7 +425,7 @@ friction **R-11** (`.artifacts/ergonomie/frictions.md`), pas un défaut produit.
   thème au public, au voyageur et au staff, smoke de toutes les routes
   publiques et staff avec et sans JS).
 - Migrations depuis zéro : `npm run db:test-migrations` à rejouer ; le journal
-  courant contient 85 migrations (`0001` → `0084`).
+  courant contient 104 migrations (`0001` → `0103`).
 - Playwright : **47/47** sur `next build` + `next start`, y compris une passe
   complète avec `DATABASE_URL`
   sur le rôle applicatif `lcd_app` (RLS active), et une passe complète sur la

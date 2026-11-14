@@ -1,5 +1,13 @@
 # LCD v2 — SvelteKit 3, HTML-first
 
+```text
+Statut : ACTIF
+Propriétaire : équipe produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : web/ (V1, gelée)
+Source de vérité : v2/src, v2/package.json
+```
+
 Application de conciergerie locative saisonnière. La v2 est une bascule **dans
 ce dossier** (pas de v3) : SvelteKit 3 + Svelte 5 + Vite 8 + Tailwind CSS 4,
 rendue par `@sveltejs/adapter-node`, avec PostgreSQL, Drizzle, Better Auth,
@@ -73,9 +81,10 @@ Rapports produits :
 - `v2/.artifacts/ergonomie/contrastes.json` (six thèmes, clair et sombre) ;
 - `specs/004-ergonomie-experience-client/baseline/rapport-agrege.md`.
 
-Lighthouse n’est pas installé (aucune dépendance ajoutée au projet) : le
-rapport indique `lighthouse: absent` et rappelle la commande exacte à lancer
-plus tard. La CI
+Lighthouse n’est **pas ajouté aux dépendances** du projet : il est mesuré par
+`npx lighthouse` (13.6.0). Dernière mesure le 2026-11-13 sur le build final :
+mobile 100 partout sauf `/reserver` (93–95 selon la passe, LCP simulé 3,12 s,
+CLS 0,03), desktop 100 partout. La CI
 `.github/workflows/qualite-ergonomie.yml` exécute axe, les cibles 320 px et le
 gate de non-régression, avec Lighthouse en `continue-on-error`.
 

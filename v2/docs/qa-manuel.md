@@ -1,57 +1,63 @@
-# QA manuel — refonte V2 (checklist)
+# QA manuel — 21 parcours V2
 
-Ordre conseillé : public → voyageur → staff. À faire sur une instance propre
-(`npm run db:seed && npm run db:seed-demo`, apparence publiée `sejour`).
+```text
+Statut : ACTIF
+Propriétaire : recette
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : version du 2026-11-06 (UI d'avant refonte)
+Source de vérité : docs/ops/recette-2026-11/journal.md (QA-001 → QA-021)
+```
 
-## 1. Public (sans JavaScript)
+Ce document décrit les 21 parcours à exécuter **sur l'environnement public**
+avant ouverture. Le journal de recette porte les colonnes de preuve (date,
+opérateur, résultat, capture) ; c'est lui qui fait foi.
 
-- [ ] `/` : héros photo plein écran, H1 rendu, thème `sejour` appliqué
-      (`--accent:#0e7c6b` en inline style), aucun écran blanc sans JS.
-- [ ] `/reserver` : les 3 logements de démo s'affichent avec tarif.
-- [ ] `/login` : formulaire visible, POST natif fonctionne (mode dégradé),
-      erreurs en français.
-- [ ] `/design` : galerie « Design system » lisible (couleurs, typo, composants).
-- [ ] `/aide`, `/legales`, `/offline` : 200 et contenu rendu.
+Ordre conseillé : public → voyageur → staff → environnement. Instance propre :
+`npm run db:seed && npm run db:seed-demo`, apparence publiée `sejour`.
 
-## 2. Voyageur (HTML-first, `csr=false`)
+## 1. Public, sans JavaScript
 
-- [ ] Lien voyageur HMAC : ouvrir un lien `/voyageur?token=…` depuis une
-      réservation ; vérifier en-tête séjour + accordéons.
-- [ ] Préférences : remplir ménage/horaire/consignes, enregistrer, recharger —
-      **les valeurs doivent être relues depuis la base** (regression textarea).
-- [ ] Formulaire incident et avis : dépôt sans JS (navigateur désactivé),
-      message de confirmation, unicité.
-- [ ] Lien facture `/facture/{token}` : facture lisible, aucun lien interne
-      cassé (origine de requête, pas `APP_URL` codé en dur).
+| # | Route | Attendu |
+|---|---|---|
+| QA-001 | `/` | H1 rendu, thème publié appliqué, aucun écran blanc, navigation complète sans JS |
+| QA-002 | `/reserver` | 3 logements de démonstration avec tarif, sélection de dates en GET, URL partageable |
+| QA-003 | `/login` | POST natif fonctionnel sans JS, erreurs localisées, redirection par rôle |
+| QA-004 | `/supervision/apparence` | réservé super-admin : thèmes, aperçu composants, publication bloquée si contraste ou cible 44 px échoue |
+| QA-005 | `/aide`, `/legales`, `/tarifs`, `/offline` | 200, contenu rendu, liens internes valides |
 
-## 3. Staff (JS, forms natifs)
+## 2. Voyageur, HTML-first
 
-- [ ] Connexion `admin@lcd.test` → `/hote` ; chaque rôle route correctement
-      (`presta`→`/presta`, `proprietaire`→`/proprio`, `commercial`→`/commercial`).
-- [ ] Assistant : générer un brouillon, vérifier que les **détails saisis
-      apparaissent dans le prompt** (regression textarea) puis enregistrer.
-- [ ] Inventaire : « Utilisé + lavé », puis changer l'état — le tableau doit
-      afficher le **nouvel** état (regression `select` + `selected=`).
-- [ ] Factures : créer, envoyer (visible dans Mailpit :8025), relancer,
-      message « N facture(s) échue(s) à relancer ».
-- [ ] Phrases : installer les modèles, modifier un titre + message avec
-      variables `{voyageur}`/`{logement}`, vérifier l'aperçu substitué.
-- [ ] Annonce : DPE/GES sélectionnés, publication, mentions.
-- [ ] Audit : période par défaut « 90 derniers jours », filtre famille,
-      export CSV.
-- [ ] Design (super admin) : choisir un thème, publier, vérifier application
-      immédiate sur `/` et changement global pour tous les utilisateurs.
+| # | Route | Attendu |
+|---|---|---|
+| QA-006 | `/voyageur?token=…` | en-tête de séjour, accordéons, données du bon tenant |
+| QA-007 | `/voyageur` → préférences | valeurs enregistrées puis **relues depuis la base** après rechargement |
+| QA-008 | `/voyageur` → incident et avis | dépôt sans JS, confirmation, unicité respectée |
+| QA-009 | `/facture/{token}` | facture lisible, liens construits depuis l'origine de la requête |
 
-## 4. Environnement & pièges connus
+## 3. Staff
 
-- [ ] Quota assistant : 100 brouillons/mois ; une journée intensive de tests
-      l'épuise. Réinitialiser avec
-      `DELETE FROM assistant_consommations;` (table RLS, requête en superuser
-      `lcd`).
-- [ ] Seed démo : `npm run db:seed` (tenant + comptes) puis
-      `npm run db:seed-demo` (3 logements + 120 jours de tarifs, idempotent).
-- [ ] Nettoyage post-suites : `UPDATE logements SET statut='archive' WHERE
-      statut='actif' AND code ~ '^(pro-[ab]-|wp-|dbg-|tmp-manual-|.*e2e.*)';`
-      puis republier `sejour` dans `apparence_versions` si un test l'a changé.
-- [ ] Ne jamais lancer la pile V1 (`deploy/demarrer.ps1`) ni `lab-run.ps1`
-      (voir AGENTS.md racine).
+| # | Route | Attendu |
+|---|---|---|
+| QA-010 | `/login` → `/hote` | chaque rôle arrive sur son espace (`presta`, `proprio`, `commercial`), 2FA appliquée |
+| QA-011 | `/hote/assistant` | brouillon généré avec les détails saisis dans le prompt, enregistrement |
+| QA-012 | `/hote/inventaire` | « Utilisé + lavé » puis changement d'état : le tableau affiche le nouvel état |
+| QA-013 | `/hote/factures` | création, envoi (Mailpit en local), relance, message des échéances |
+| QA-014 | `/hote/phrases` | modèles installés, variables `{voyageur}` / `{logement}` substituées dans l'aperçu |
+| QA-015 | `/hote/annonce` | DPE/GES, mentions obligatoires, publication et retour brouillon |
+| QA-016 | `/hote/audit` | période par défaut 90 jours, filtre famille, export CSV |
+| QA-017 | `/supervision/apparence` | publication d'un thème, application immédiate sur `/` pour tous |
+
+## 4. Environnement
+
+| # | Sujet | Attendu |
+|---|---|---|
+| QA-018 | quota assistant | 100 brouillons/mois ; remise à zéro contrôlée sur une base de recette uniquement |
+| QA-019 | seeds | `db:seed` puis `db:seed-demo` idempotents |
+| QA-020 | nettoyage | `npm run db:nettoyer-recette` en dry-run, puis `--appliquer` avec confirmation |
+| QA-021 | piles V1 | ne jamais lancer `deploy/demarrer.ps1` ni `lab-run.ps1` (AGENTS.md) |
+
+## Preuve
+
+Chaque case reçoit dans le journal : date, opérateur, résultat
+(`OK` / `KO` / `N/A`), capture ou journal, et pour un `KO` une sévérité
+S1–S4 et un propriétaire.

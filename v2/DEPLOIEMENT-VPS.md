@@ -1,5 +1,13 @@
 # Déploiement VPS (Docker + Caddy + PostgreSQL)
 
+```text
+Statut : ACTIF
+Propriétaire : exploitation
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : docs/ops/runbook-production.md
+```
+
 Alternative à Netlify quand les crédits Free sont épuisés ou quand on veut
 tout maîtriser. Cible : un VPS 2 à 4 Go, Ubuntu 24.04, un nom de domaine.
 
@@ -64,16 +72,22 @@ Renseigner au minimum :
 
 ```bash
 docker compose --env-file .env.prod -f compose.prod.yml build
+docker compose --env-file .env.prod -f compose.prod.yml up -d postgres
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:migrate
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:seed
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:role-app
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:test-rls
+docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run preflight
 ```
 
 `db:role-app` crée `lcd_app` sans aucun privilège owner et accorde les droits
 CRUD + privilèges par défaut. `db:test-rls` doit afficher
 `RLS VALIDÉE : isolation tenant effective` (0 sans tenant / total avec tenant
 / 0 avec un autre tenant).
+
+`npm run preflight` refuse le déploiement si Node, les secrets, la connexion
+`lcd_app`, les 104 migrations, l'espace disque ou le volume photos ne sont pas
+conformes. Il s'arrête au premier contrôle en échec.
 
 Retirer ensuite `SEED_ADMIN_EMAIL` et `SEED_ADMIN_PASSWORD` de `.env.prod`.
 
@@ -265,6 +279,13 @@ Cron quotidien après la sauvegarde, avec `MIGRATION_DATABASE_URL` dans
 Restauration de contrôle (archive chiffrée) :
 
 ```bash
+BACKUP_DIR=backups PG_CONTAINER=lcd-postgres npm run db:restore-test
+```
+
+Le script vérifie le SHA-256, déchiffre si nécessaire, restaure dans une base
+jetable, compare les compteurs et supprime la base. Manuellement :
+
+```bash
 docker compose --env-file .env.prod -f compose.prod.yml exec -T postgres \
   sh -c 'createdb -U "$POSTGRES_USER" lcd_restore_test'
 docker compose --env-file .env.prod -f compose.prod.yml --profile tools \
@@ -284,20 +305,42 @@ Pour une archive non chiffrée, utiliser directement
 `gunzip -c backups/lcd-AAAA.sql.gz | ...`. Vérifier le SHA-256 avant toute
 restauration.
 
-## 8. Mise à jour
+## 8. Mise à jour et retour arrière
+
+Le chemin normal est le script, qui sauvegarde, construit, migre, démarre et
+vérifie `/api/health`, `/api/ready` puis l'accès HTTPS :
+
+```bash
+cd /opt/lcd/v2
+./scripts/deployer.sh --tag v2.0.0-rc2
+```
+
+Retour arrière :
+
+```bash
+cd /opt/lcd/v2
+./scripts/revenir.sh                    # tag précédent enregistré
+./scripts/revenir.sh --tag v2.0.0-rc1   # tag explicite
+```
+
+Équivalent manuel :
 
 ```bash
 cd /opt/lcd
-git pull --ff-only
+git fetch --tags
+git checkout v2.0.0-rc2
 cd v2
 docker compose --env-file .env.prod -f compose.prod.yml build web
-docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:migrate
+docker compose --env-file .env.prod -f compose.prod.yml --profile tools \
+  run --rm tools npm run db:migrate
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:role-app
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:test-rls
 docker compose --env-file .env.prod -f compose.prod.yml up -d web caddy
 ```
 
 Faire une sauvegarde avant chaque migration. Tester `/api/ready` et un login.
+Une migration n'est pas annulée par un retour de code : si le schéma est
+incompatible, restaurer la sauvegarde d'avant déploiement.
 
 ## 9. Sécurité
 
