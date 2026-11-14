@@ -7,7 +7,7 @@ import {
   type EtatSchema,
 } from "@/domain/readiness";
 import { sql } from "@/infrastructure/db/client";
-import { APP_VERSION } from "@/lib/version";
+import { versionDeployee } from "@/lib/server/version-deployee";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async () => {
@@ -49,7 +49,7 @@ export const GET: RequestHandler = async () => {
         {
           ok: false,
           service: "lcd-v2",
-          version: APP_VERSION,
+          version: versionDeployee(),
           db: "up",
           schema: "pending",
           manquants,
@@ -78,7 +78,7 @@ export const GET: RequestHandler = async () => {
         {
           ok: false,
           service: "lcd-v2",
-          version: APP_VERSION,
+          version: versionDeployee(),
           db: "up",
           schema: "ok",
           rls: "unsafe",
@@ -93,7 +93,7 @@ export const GET: RequestHandler = async () => {
     return json({
       ok: true,
       service: "lcd-v2",
-      version: APP_VERSION,
+      version: versionDeployee(),
       db: "up",
       schema: "ok",
       rls: "ok",
@@ -103,7 +103,7 @@ export const GET: RequestHandler = async () => {
     });
   } catch {
     return json(
-      { ok: false, service: "lcd-v2", version: APP_VERSION, db: "down", date: new Date().toISOString() },
+      { ok: false, service: "lcd-v2", version: versionDeployee(), db: "down", date: new Date().toISOString() },
       { status: 503 },
     );
   }

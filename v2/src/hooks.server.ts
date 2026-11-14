@@ -4,6 +4,11 @@ import type { Handle } from "@sveltejs/kit/hooks";
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { auth } from "@/lib/server/auth";
 import { lireApercu } from "@/lib/server/apercu";
+import {
+  doitValiderEnProduction,
+  resumeConstats,
+  validerEnvironnementProduction,
+} from "@/lib/server/env-production";
 import { demarrerPlanificateurFournisseurs } from "@/lib/server/fournisseur-scheduler";
 import { demarrerPlanificateurIcs } from "@/lib/server/ics-scheduler";
 import { langueRequete } from "@/lib/server/langue";
@@ -57,6 +62,22 @@ const entetesSecurite = (chemin: string): Record<string, string> => {
 };
 
 export const init = async () => {
+  // Un déploiement réel (production + HTTPS) refuse de démarrer sur un secret
+  // de développement, une URL non sécurisée ou un stockage non persistant.
+  if (doitValiderEnProduction(process.env)) {
+    const constats = validerEnvironnementProduction(process.env);
+    const erreurs = constats.filter((constat) => constat.niveau === "erreur");
+    if (erreurs.length > 0) {
+      throw new Error(
+        `Environnement de production invalide :\n${resumeConstats(constats)}`,
+      );
+    }
+    for (const constat of constats) {
+      if (constat.niveau === "avertissement") {
+        console.warn(`[env] ${constat.variable} : ${constat.message}`);
+      }
+    }
+  }
   demarrerPlanificateurIcs();
   demarrerPlanificateurFournisseurs();
 };

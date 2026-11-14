@@ -2,15 +2,50 @@ name: v2-ci
 
 on:
   push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
     paths:
       - "v2/**"
+      - "docs/**"
+      - "specs/**"
+      - "deploy/**"
+      - "README.md"
       - ".github/workflows/v2-ci.yml"
+      - ".gitleaks.toml"
   pull_request:
     paths:
       - "v2/**"
+      - "docs/**"
+      - "specs/**"
+      - "deploy/**"
+      - "README.md"
       - ".github/workflows/v2-ci.yml"
+      - ".gitleaks.toml"
 
 jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Détection de secrets (gitleaks)
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" \
+            ghcr.io/gitleaks/gitleaks:v8.24.0 detect \
+            --source=/repo \
+            --config=/repo/.gitleaks.toml \
+            --redact --no-banner --verbose
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contrôle de fraîcheur documentaire
+        run: pwsh ./deploy/test-docs.ps1
+
   web:
     runs-on: ubuntu-latest
     defaults:
@@ -50,3 +85,133 @@ jobs:
       - run: npm run db:role-app
       - run: npm run db:test-migrations
       - run: npm run build
+
+  # Recette de release : déclenchée uniquement par un tag `v*`.
+  # Reproduit, depuis zéro, l'environnement complet (migrations, rôles, seeds),
+  # rejoue la suite e2e contre le build de production et publie les preuves.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: v2
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: lcd
+          POSTGRES_PASSWORD: lcd
+          POSTGRES_DB: lcd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lcd -d lcd"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+      MIGRATION_DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+      APP_ROLE_PASSWORD: release-app-role-password-24-chars
+      BETTER_AUTH_SECRET: ci-only-change-me-please-32chars-min
+      BETTER_AUTH_URL: http://127.0.0.1:4173
+      SEED_ADMIN_EMAIL: admin@lcd.test
+      SEED_ADMIN_PASSWORD: ChangeMe-2026!
+      SEED_TENANT_SLUG: lcd
+      SEED_PRESTA_EMAIL: presta@lcd.test
+      SEED_PRESTA_PASSWORD: ChangeMe-2026!
+      SEED_PROPRIO_EMAIL: proprio@lcd.test
+      SEED_PROPRIO_PASSWORD: ChangeMe-2026!
+      SEED_COMMERCIAL_EMAIL: commercial@lcd.test
+      SEED_COMMERCIAL_PASSWORD: ChangeMe-2026!
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+
+      - name: Dépendances
+        run: npm ci
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Tests unitaires
+        run: npm test
+
+      - name: Cohérence du schéma
+        run: npm run db:check
+
+      - name: Migrations
+        run: npm run db:migrate
+
+      - name: Seed admin et rôles
+        run: npm run db:seed
+
+      - name: Seed logements de démonstration
+        run: npm run db:seed-demo
+
+      - name: Rôle applicatif
+        run: npm run db:role-app
+
+      - name: RLS
+        env:
+          DATABASE_URL: postgres://lcd_app:release-app-role-password-24-chars@127.0.0.1:5432/lcd
+        run: npm run db:test-rls
+
+      - name: Build production
+        run: npm run build
+
+      - name: Préflight production
+        env:
+          NODE_ENV: production
+          APP_URL: https://ci.lcd.test
+          BETTER_AUTH_URL: https://ci.lcd.test
+          BETTER_AUTH_SECRET: release-only-change-me-please-32chars-min
+          CRON_SECRET: release-only-cron-secret-32-characters-min
+          BACKUP_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          SUIVI_HASH_SECRET: release-only-suivi-secret-32-characters-min
+          AUTH_2FA_REQUIRED: "true"
+          EMAIL_ENABLED: "false"
+          STOCKAGE_LOCAL_DIR: /tmp/lcd-photos
+          DATABASE_URL: postgres://lcd_app:release-app-role-password-24-chars@127.0.0.1:5432/lcd
+          MIGRATION_DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+          PREFLIGHT_ENV_FILE: .env.ci
+        run: npm run preflight
+
+      - name: Navigateur Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Suite e2e (build de production)
+        env:
+          CI: "true"
+          PW_SERVEUR: prod
+          PW_PORT: "4173"
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
+          APP_URL: http://127.0.0.1:4173
+          BETTER_AUTH_URL: http://127.0.0.1:4173
+          ENQUIRY_ENABLED: "true"
+          DATABASE_URL: postgres://lcd_app:release-app-role-password-24-chars@127.0.0.1:5432/lcd
+          MIGRATION_DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+        run: npm run test:e2e
+
+      - name: Publier le rapport e2e
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ github.ref_name }}
+          path: |
+            v2/playwright-report
+            v2/test-results
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Publier le build
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcd-build-${{ github.ref_name }}
+          path: v2/build
+          retention-days: 30

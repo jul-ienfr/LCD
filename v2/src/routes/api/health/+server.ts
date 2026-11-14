@@ -1,8 +1,8 @@
-import { APP_VERSION } from "@/lib/version";
+import { versionDeployee } from "@/lib/server/version-deployee";
 
 export const GET = () =>
   new Response(
-    JSON.stringify({ ok: true, stack: "sveltekit-3", version: APP_VERSION }),
+    JSON.stringify({ ok: true, stack: "sveltekit-3", version: versionDeployee() }),
     {
       headers: { "content-type": "application/json" },
     },

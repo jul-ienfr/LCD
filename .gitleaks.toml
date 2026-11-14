@@ -1,0 +1,29 @@
+title = "LCD — détection de secrets"
+
+# Règles par défaut de gitleaks, plus les placeholders documentés du dépôt.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders de configuration et fixtures de test"
+regexes = [
+  '''change-me[a-zA-Z0-9._-]*''',
+  '''dev-only-change-me[a-zA-Z0-9._-]*''',
+  '''ci-only-change-me[a-zA-Z0-9._-]*''',
+  '''release-only-[a-zA-Z0-9._-]+''',
+  '''sk_test_[A-Za-z0-9]+''',
+  '''ChangeMe-2026!''',
+  '''AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=''',
+  '''lcd_votre_cle''',
+]
+paths = [
+  '''docs/archive/.*''',
+  '''v2/docs/archive/.*''',
+  '''v2/tests/.*''',
+  '''v2/e2e/.*''',
+  '''v2/\.artifacts/.*''',
+  '''\.artifacts/.*''',
+  '''v2/package-lock\.json''',
+  '''package-lock\.json''',
+  '''.*\.example''',
+]

@@ -54,6 +54,9 @@ docs/strategie-famille/
 .data/
 v2/.data/
 
+# Rapports d'outils à la racine (gitleaks, etc.)
+/.artifacts/
+
 # V2 — artefacts de build et rapports de tests (jamais versionnés)
 v2/.svelte-kit/
 v2/build/

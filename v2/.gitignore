@@ -41,3 +41,6 @@ backups/
 /.artifacts/*.pid
 /.artifacts/**/*.png
 /.artifacts/*.png
+
+# État local des déploiements (tag courant, précédent) :
+.deploiement/

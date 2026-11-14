@@ -1,10 +1,19 @@
 name: lcd-prod
 
+# Rotation des journaux Docker : 7 × 20 Mo par service, pour éviter qu'un
+# disque de 40 Go soit saturé par les logs.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "7"
+
 services:
   postgres:
     image: postgres:18-alpine
     container_name: lcd-postgres
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -26,11 +35,17 @@ services:
       target: runner
     container_name: lcd-web
     restart: unless-stopped
+    logging: *default-logging
     env_file:
       - .env.prod
     environment:
       NODE_ENV: production
       BODY_SIZE_LIMIT: 12M
+      # Le runtime n'a jamais la connexion owner : migrations, seed et
+      # sauvegardes passent par le conteneur `tools` éphémère.
+      MIGRATION_DATABASE_URL: ""
+      # Tag git réellement déployé, injecté par scripts/deployer.sh.
+      LCD_VERSION: ${LCD_VERSION:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,6 +58,7 @@ services:
     image: caddy:2-alpine
     container_name: lcd-caddy
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "80:80"
       - "443:443"
@@ -78,6 +94,7 @@ services:
     image: louislam/uptime-kuma:1
     container_name: lcd-uptime-kuma
     restart: unless-stopped
+    logging: *default-logging
     profiles: ["monitoring"]
     ports:
       - "127.0.0.1:3001:3001"

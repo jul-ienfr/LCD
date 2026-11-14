@@ -36,6 +36,7 @@
     "db:test-mappings": "node scripts/verifier-mappings-fournisseurs.mjs",
     "db:test-ics": "tsx --env-file-if-exists=.env.local scripts/test-sync-ics.ts",
     "db:test-migrations": "node scripts/test-migrations.mjs",
+    "preflight": "tsx scripts/preflight.ts",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
