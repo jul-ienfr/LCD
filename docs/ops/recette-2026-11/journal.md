@@ -1,5 +1,13 @@
 # Journal de recette — novembre 2026
 
+```text
+Statut : ACTIF
+Propriétaire : recette
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : v2/TESTS-A-FAIRE.md et v2/docs/qa-manuel.md
+```
+
 - **Version testée** : `v2.0.0-rc1` (commit `d8ff261`)
 - **Environnement** : à renseigner (URL publique, base, date de déploiement)
 - **Référentiel** : `v2/TESTS-A-FAIRE.md` (155 cases) et `v2/docs/qa-manuel.md` (21 parcours)
@@ -179,7 +187,9 @@ Total : **155** cases.
 
 ## B. Parcours manuels (`qa-manuel.md`)
 
-Total : **21** parcours.
+Total : **21** parcours. Les intitulés et attendus font foi dans
+`v2/docs/qa-manuel.md` (réécrit le 2026-11-14) ; la colonne « Parcours »
+ci-dessous est conservée pour la saisie des preuves et peut être abrégée.
 
 | ID | Section | Parcours | Date | Opérateur | Résultat | Preuve | Défaut |
 | --- | --- | --- | --- | --- | --- | --- | --- |

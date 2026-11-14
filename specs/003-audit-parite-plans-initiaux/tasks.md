@@ -1,5 +1,13 @@
 # Tasks: Audit & Exécution — Parité Plans Initiaux vs V2
 
+```text
+Statut : REMPLACÉ
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : specs/002-parite-lodgify/
+Source de vérité : specs/002-parite-lodgify/tasks.md
+```
+
 **Input**: Design documents from `/specs/003-audit-parite-plans-initiaux/`
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories)

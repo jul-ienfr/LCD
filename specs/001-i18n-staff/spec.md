@@ -1,10 +1,18 @@
 # Feature Specification: i18n staff cinq langues
 
+```text
+Statut : TERMINÉ
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/001-i18n-staff/tasks.md
+```
+
 **Feature Branch**: `001-i18n-staff`
 
 **Created**: 2026-11-04
 
-**Status**: Draft
+**Status**: Complete — 34/34 tâches (2026-11-14)
 
 **Input**: User description: "Internationaliser les pages métier staff en cinq langues, après la connexion, le tableau de bord et les menus déjà traduits."
 

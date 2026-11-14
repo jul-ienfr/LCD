@@ -1,5 +1,13 @@
 # Runbook de production — LCD V2
 
+```text
+Statut : ACTIF
+Propriétaire : exploitation
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/005-mise-en-production/spec.md (FR-001 à FR-014)
+```
+
 - **Version** : 1.0 — 2026-11-14
 - **Cible** : VPS Docker + Caddy + PostgreSQL (ADR-06)
 - **Feature** : `specs/005-mise-en-production` (T002, T005-T007, T010, T029)
@@ -237,8 +245,13 @@ docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run d
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:seed
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:role-app
 docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:test-rls
+docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run preflight
 docker compose --env-file .env.prod -f compose.prod.yml up -d
 ```
+
+`npm run preflight` refuse le démarrage tant que Node, les secrets, la
+connexion `lcd_app`, les migrations, l'espace disque ou le volume photos ne
+sont pas conformes. Il sort en erreur au premier contrôle en échec.
 
 Puis :
 
@@ -249,13 +262,30 @@ Puis :
 
 ## 8. Migrations
 
-Toujours avec le rôle owner, jamais `lcd_app`.
+Les migrations sont une tâche séparée, dans un conteneur `tools` éphémère, avec
+la seule connexion **owner** (`MIGRATION_DATABASE_URL`). Le service `web` ne
+reçoit que `DATABASE_URL` sur le rôle `lcd_app` : il ne peut ni modifier le
+schéma ni contourner la RLS.
 
 ```bash
-docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:check
-docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:migrate
-docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:test-migrations
+# Vérifier que le runtime n'a pas la connexion owner.
+docker compose --env-file .env.prod -f compose.prod.yml exec web \
+  sh -c 'test -z "$MIGRATION_DATABASE_URL" && echo "runtime sans owner : OK"'
+
+# Tâche de migration isolée.
+docker compose --env-file .env.prod -f compose.prod.yml --profile tools \
+  run --rm -e NODE_ENV=production tools npm run db:check
+docker compose --env-file .env.prod -f compose.prod.yml --profile tools \
+  run --rm -e NODE_ENV=production tools npm run db:migrate
+docker compose --env-file .env.prod -f compose.prod.yml --profile tools \
+  run --rm -e NODE_ENV=production tools npm run db:test-migrations
 ```
+
+Si `.env.prod` contient `MIGRATION_DATABASE_URL`, le conteneur `tools` la lit.
+Le service `web` la force à vide (`compose.prod.yml`) : le runtime ne peut donc
+pas migrer ni contourner la RLS, même si la variable existe dans le fichier.
+Le préflight n'exige pas la connexion owner et se contente de vérifier que
+`DATABASE_URL` utilise bien `lcd_app`.
 
 Règles :
 
@@ -270,7 +300,7 @@ Règles :
 ```bash
 cd /opt/lcd/v2
 ./scripts/backup-vps.sh          # dump + chiffrement + checksum
-./scripts/restore-test.sh        # restauration sur base jetable
+BACKUP_DIR=backups PG_CONTAINER=lcd-postgres npm run db:restore-test
 ```
 
 Vérifications quotidiennes :
@@ -292,30 +322,42 @@ procédure avant la bascule.
 
 ## 10. Déploiement courant et rollback
 
+Le script `deployer.sh` enchaîne verrou, sauvegarde, build, migrations,
+démarrage, `/api/health`, `/api/ready` et contrôle HTTPS public :
+
+```bash
+cd /opt/lcd/v2
+./scripts/deployer.sh --tag v2.0.0-rc2
+```
+
+En cas d'échec, il s'arrête sans redémarrer silencieusement et indique le tag
+précédent. Retour arrière :
+
+```bash
+cd /opt/lcd/v2
+./scripts/revenir.sh                      # tag précédent enregistré
+./scripts/revenir.sh --tag v2.0.0-rc1     # tag explicite
+```
+
+Équivalent manuel :
+
 ```bash
 cd /opt/lcd
 git fetch --tags
 git checkout v2.0.0-rc2
 cd v2
 docker compose --env-file .env.prod -f compose.prod.yml build web
-docker compose --env-file .env.prod -f compose.prod.yml run --rm tools npm run db:migrate
-docker compose --env-file .env.prod -f compose.prod.yml up -d web
-curl -fsS https://$DOMAIN/api/ready
-```
-
-Rollback applicatif :
-
-```bash
-cd /opt/lcd && git checkout v2.0.0-rc1
-cd v2
-docker compose --env-file .env.prod -f compose.prod.yml build web
+docker compose --env-file .env.prod -f compose.prod.yml --profile tools \
+  run --rm tools npm run db:migrate
 docker compose --env-file .env.prod -f compose.prod.yml up -d web
 curl -fsS https://$DOMAIN/api/ready
 ```
 
 **Une migration de base n'est pas annulée par un rollback applicatif.** Si la
-migration est incompatible, restaurer la sauvegarde d'avant déploiement. Toute
-migration doit donc être additive ou accompagnée d'un plan de retour.
+migration est incompatible, restaurer la sauvegarde d'avant déploiement
+(`./scripts/revenir.sh --restaurer backups/<fichier>.sql.gz.enc` avec
+`RESTAURATION_CONFIRMEE=1`). Toute migration doit donc être additive ou
+accompagnée d'un plan de retour.
 
 ## 11. Incidents
 

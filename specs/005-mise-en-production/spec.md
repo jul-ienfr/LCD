@@ -1,10 +1,18 @@
 # Feature Specification: Mise en production, recette et bascule V1 → V2
 
+```text
+Statut : ACTIF
+Propriétaire : exploitation
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/005-mise-en-production/tasks.md
+```
+
 **Feature Branch**: `005-mise-en-production`
 
 **Created**: 2026-11-14
 
-**Status**: Draft
+**Status**: In progress — phases 1–2 faites (17 tâches `[x]`, 7 `[~]`) ; phases 3–6 externes
 
 **Input**: Audit du 14/11 (`docs/analyses/AUDIT-ET-PLAN-DOCUMENTATION-2026-11-14.md`) :
 « Le produit est construit, mais il n'est ni sauvegardé, ni prouvé, ni exploité.
@@ -63,12 +71,12 @@ recevoir un email, restaurer une sauvegarde et simuler un retour arrière.
 
 ### User Story 2 - Prouver que les parcours critiques fonctionnent (Priority: P1)
 
-L'exploitant exécute la recette complète sur l'environnement public : les 161
+L'exploitant exécute la recette complète sur l'environnement public : les 155
 cases de `TESTS-A-FAIRE.md` et les 21 parcours de `qa-manuel.md`. Chaque case
 laisse une preuve datée. Les défauts sont classés, corrigés ou acceptés, et la
 recette est signée avant l'ouverture.
 
-**Why this priority**: 6 cases sur 161 et 0 parcours sur 21 ont été exécutés.
+**Why this priority**: 6 cases sur 155 et 0 parcours sur 21 ont été exécutés.
 Sans recette, les tests unitaires et e2e ne prouvent ni les emails réels, ni les
 paiements, ni les crons, ni les sauvegardes.
 
@@ -78,7 +86,7 @@ ne reste ouvert.
 
 **Acceptance Scenarios**:
 
-1. **Given** l'environnement public, **When** les 161 cases sont exécutées,
+1. **Given** l'environnement public, **When** les 155 cases sont exécutées,
    **Then** chacune porte une date, un opérateur, un résultat et une preuve.
 2. **Given** un défaut constaté, **When** il est enregistré, **Then** il reçoit
    une sévérité S1 à S4 et un propriétaire.
@@ -214,7 +222,7 @@ trafic sans perte.
 
 **Recette**
 
-- **FR-015**: Les 161 cases de `TESTS-A-FAIRE.md` MUST être exécutées sur
+- **FR-015**: Les 155 cases de `TESTS-A-FAIRE.md` MUST être exécutées sur
   l'environnement public.
 - **FR-016**: Chaque case MUST produire une preuve datée : opérateur, résultat,
   capture ou journal.
@@ -289,7 +297,7 @@ trafic sans perte.
   cinq minutes.
 - **SC-004**: Une sauvegarde est restaurée en moins de trente minutes, avec des
   comptes identiques au manifeste.
-- **SC-005**: 161 cases sur 161 et 21 parcours sur 21 sont exécutés ; aucun
+- **SC-005**: 155 cases sur 155 et 21 parcours sur 21 sont exécutés ; aucun
   défaut S1 ou S2 n'est ouvert à l'ouverture.
 - **SC-006**: La migration réconcilie 100 % des objets retenus et 100 % des
   totaux disponibles ; un second import crée zéro doublon.

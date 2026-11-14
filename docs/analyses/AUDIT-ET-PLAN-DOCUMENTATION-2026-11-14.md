@@ -1,5 +1,13 @@
 # Audit complet et plan documentaire — LCD
 
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : docs/archive/v1/AUDIT-COMPLET-PLANS-VS-V2.md
+Source de vérité : lecture du dépôt au 2026-11-14
+```
+
 **Date** : 2026-11-14
 **Périmètre** : `v2/` (SvelteKit), `specs/` (Spec Kit 001 à 004), les 264 documents projet, l'état du dépôt Git et les dépendances externes.
 **Méthode** : lecture seule. Aucun code, aucun document existant n'a été modifié. Les compteurs de tâches ont été recalculés sur les `tasks.md` réels ; les résultats de tests sont ceux publiés dans `docs/registres/etat-reel.md` au 2026-11-13 et n'ont pas été rejoués ici.

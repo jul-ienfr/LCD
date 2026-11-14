@@ -1,5 +1,13 @@
 # Tasks: Parité fonctionnelle Lodgify — intégration LCD V2
 
+```text
+Statut : ACTIF
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/002-parite-lodgify/spec.md
+```
+
 **Input**: `specs/002-parite-lodgify/spec.md`, `plan.md`, `research.md`,
 `data-model.md`, `contracts/`
 

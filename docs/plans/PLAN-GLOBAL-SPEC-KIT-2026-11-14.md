@@ -1,5 +1,13 @@
 # Plan global Spec Kit — ce qu'il reste à faire
 
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/005-mise-en-production/spec.md
+```
+
 **Date** : 2026-11-14
 **Sources** : `docs/analyses/AUDIT-ET-PLAN-DOCUMENTATION-2026-11-14.md`,
 `specs/001` à `004`, `docs/registres/etat-reel.md`, `v2/ECARTS-V1.md`,
@@ -23,7 +31,7 @@ Le reste à faire se répartit ainsi :
 |---|---:|---|
 | Décisions L0 | 5 ADR à signer, 7 critères | spec 002, phase 1 |
 | Preuves externes | 19 gates (clés, contrats, données réelles) | spec 002 |
-| Recette | 155 cases sur 161 + 21 parcours QA | **spec 005, US2** |
+| Recette | 155 cases sur 155 + 21 parcours QA | **spec 005, US2** |
 | Environnement public | 19 tâches US1 + 25 fondations | **spec 005, US1** |
 | Migration V1 → V2 | ~15 tâches | **spec 005, US3** |
 | Bascule et extinction V1 | ~18 tâches | **spec 005, US4** |
@@ -121,7 +129,7 @@ Quatre histoires, dans cet ordre :
 | Histoire | Priorité | Résultat démontrable |
 |---|---|---|
 | US1 Environnement public sain | P1 | URL HTTPS, schéma à jour, email, sauvegarde, monitoring, rollback |
-| US2 Recette complète | P1 | 161 cases + 21 QA exécutées, 0 S1/S2, preuves signées |
+| US2 Recette complète | P1 | 155 cases + 21 QA exécutées, 0 S1/S2, preuves signées |
 | US3 Migration V1 → V2 | P2 | données utiles reprises, réconciliées, import rejouable |
 | US4 Bascule et extinction V1 | P3 | trafic sur V2, V1 archivée, retour arrière testé |
 
@@ -159,7 +167,7 @@ specs/005-mise-en-production/
 |---|---|---|
 | **14-16 nov** | Sauvegarde Git, décision L0, démarrage 005 | dépôt sauvegardé, cible d'hébergement choisie |
 | **17-30 nov** | 005 US1 : serveur, base, migrations, TLS, SMTP, sauvegardes, monitoring | `/api/ready` vert sur une URL publique |
-| **1-15 déc** | 005 US2 : recette 161 + 21, corrections | recette signée, 0 S1/S2 |
+| **1-15 déc** | 005 US2 : recette 155 + 21, corrections | recette signée, 0 S1/S2 |
 | **8-19 déc** | 005 US3 : inventaire, mapping, import à blanc, réconciliation | migration rejouable sur copie |
 | **15-31 déc** | Répétition de bascule, rollback, preuves | fenêtre de bascule validée |
 | **janv. 2027** | 002 gates M1-M2 : double-run, réservation payée | 0 surbooking, 1 paiement réel |

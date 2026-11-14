@@ -1,5 +1,13 @@
 # Feature Specification: Parité fonctionnelle Lodgify — intégration dans LCD V2
 
+```text
+Statut : ACTIF
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/002-parite-lodgify/matrice-fr.md
+```
+
 **Feature Branch**: `002-parite-lodgify`
 
 **Created**: 2026-11-06

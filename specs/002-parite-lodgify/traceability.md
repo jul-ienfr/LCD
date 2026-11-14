@@ -1,9 +1,20 @@
 # Traçabilité — 69 écarts de `replica/features.csv`
 
+```text
+Statut : ACTIF
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : replica/features.csv, specs/002-parite-lodgify/spec.md
+```
+
 **Feature**: 002-parite-lodgify
 **Source**: `replica/features.csv` (30 absentes, 39 partielles)
 **But**: montrer que chaque écart est couvert, partiellement couvert, reporté
 ou explicitement hors périmètre. Aucune fonctionnalité n'est ignorée.
+
+> La matrice **FR → tâches → route → preuve** des 72 exigences se trouve dans
+> [`matrice-fr.md`](matrice-fr.md) (créée le 2026-11-14).
 
 ## Distribution (17)
 

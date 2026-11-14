@@ -1,9 +1,17 @@
 # 00 — Vision + portée + gouvernance docs-as-code (v2, plan-only, SaaS parfait 2026-10-15)
 
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : docs/archive/v1/10-socle-v2.md
+Source de vérité : specs/002-parite-lodgify/spec.md
+```
+
 > Statut : v2 du 2026-10-15. Remplace les v4/v5 comme normatif (R1-R6 actives).
 > Fiches vues SaaS : §S3.5 seul fait foi. Contrats : §20 (+ §20.7 plugins).
 > Plan-only : 0 touche à `lab/`, `web/`, `custom/*/gateway.py`, moteurs.
-> Exigences : `docs/registres/exigences.csv` (REQ-S-003-V1..V8 + §20.7 incluses).
+> Exigences : `docs/archive/v1/exigences.csv` (REQ-S-003-V1..V8 + §20.7 incluses).
 
 ## 00.1 Vision (inchangée, rappel §S0)
 
@@ -40,7 +48,7 @@ Gel = tag `plan-v2.0-saas` à poser à ta validation.
 R1. Socle DRY : forfaits/archi/tenant/hébergement/intangibles/bornes/SLA =
   `§S*` seuls. Toute copie en cahier = remplacée par renvoi.
 R2. REQ-IDs : toute exigence = `REQ-[S|P|T|L|E]-NNN` dans
-  `docs/registres/exigences.csv`. Sans ID = non exigible en recette.
+  `docs/archive/v1/exigences.csv`. Sans ID = non exigible en recette.
 R3. 1 feature = 1 flag `logements.yaml` + 1 dossier + 1 batterie +
   1 ligne CSV. CI bloque si batterie rouge.
 R4. §20 l'emporte sur les contrats : en cas de divergence

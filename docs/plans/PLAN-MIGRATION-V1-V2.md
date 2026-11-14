@@ -1,5 +1,13 @@
 # Plan de migration V1 → V2
 
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/005-mise-en-production/spec.md (US3)
+```
+
 - **Version** : 1.0 — 2026-11-14
 - **Feature** : `specs/005-mise-en-production` (T012, US3)
 - **Périmètre** : registres YAML de la passerelle V1, mémoires voyageurs,

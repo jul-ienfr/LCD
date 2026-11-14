@@ -1,5 +1,13 @@
 # Tasks: i18n staff cinq langues
 
+```text
+Statut : TERMINÉ
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/001-i18n-staff/spec.md
+```
+
 **Input**: `specs/001-i18n-staff/spec.md`, `plan.md`
 
 **Tests**: obligatoires (dictionnaires, repli, complétude).

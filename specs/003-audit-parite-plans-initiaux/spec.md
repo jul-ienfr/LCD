@@ -1,10 +1,18 @@
 # Feature Specification: Audit & Exécution — Parité Plans Initiaux vs V2
 
+```text
+Statut : REMPLACÉ
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : specs/002-parite-lodgify/
+Source de vérité : specs/002-parite-lodgify/spec.md
+```
+
 **Feature Branch**: `003-audit-parite-plans-initiaux`
 
 **Created**: 2026-11-09
 
-**Status**: Active
+**Status**: Absorbed by 002 — conservée pour l'audit, tâches non suivies ici
 
 **Input**: User description: "Audit complet de toutes les documentations, plans et specs initiaux vs l'état réel de la V2, avec plan d'exécution détaillé du reste à faire"
 

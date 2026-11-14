@@ -1,6 +1,20 @@
 # Checklist — 55 tâches restantes terrain/box/externe (base 60-execution-v6 §60.2 v6)
 
-> Sources : `docs/60-execution-v6.md` §60.2/60.3/60.4 + `docs/10-socle-v2.md` §S8 + fonds 30/40/50.
+```text
+Statut : ACTIF — périmètre V1 terrain uniquement
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : docs/archive/v1/60-execution-v6.md
+```
+
+> **Cette checklist ne suit que les tâches terrain/box/externe de la V1.**
+> Les tâches logicielles de la V2 vivent dans `specs/002-parite-lodgify/`,
+> `specs/004-ergonomie-experience-client/` et
+> `specs/005-mise-en-production/`. Le compteur « 90/144 » ne mesure donc pas
+> l'avancement de la V2.
+
+> Sources : `docs/archive/v1/60-execution-v6.md` §60.2/60.3/60.4 + `docs/archive/v1/10-socle-v2.md` §S8 + fonds 30/40/50 archivés.
 > Progression : `90 / 144` (63 %, +P8-9 clos + P9-14 self-hosted 2026-10-16). Lab fait (batterie verte + run global 0-5/5 exit 0). Reste = terrain/box + réel + externe.
 > Recomptage : P0 8 + P1-box 10 + P3 8 + P4 10 + P5 10 + P8 2 + P9-réel 1 + P10 6 = **55 items** (54 dans le compteur 144 + P9-réel hors compteur : VM réelle sur comptes humains, comme P10-9b veille hors compteur).
 > Règle : 1 phase terminée = commit + tag + ligne `registres/changelog.md`. Phase non close si DoD incomplet (§60.4).
@@ -9,7 +23,7 @@
 > DoD (5 items) : doc MAJ + changelog ; batterie verte + CI ; runbook daté + tableau tests ; test offline/rotation ; tag git.
 > Gates §60.1 : G0 lab vert → G1 P1 0 € (:8443 + outbox vide + restore) → G2 box réelle (copro verifiee:true + n° + DPE + RC, séjour témoin zéro-touch + drill 3 h, 1 mois vitrine) → G2bis compta → G3 2e box → G4 1er mandat (P10-8 clos) → G5 parc. Copro `verifiee:false` = BLOQUÉE (REQ-L-001).
 >
-> **Cadre en vigueur depuis 2026-10-19 : `docs/71-production-locale.md`** —
+> **Cadre en vigueur depuis 2026-10-19 : `docs/archive/v1/71-production-locale.md`** —
 > l'étape « lab socle » est close ; la barre est « production locale intégrale »
 > (rien de simulé, box réelles complètes en local, déployable LAN puis
 > Internet). Les 55 items ci-dessous restent valides comme travail

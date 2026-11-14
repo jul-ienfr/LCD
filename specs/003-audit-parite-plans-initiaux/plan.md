@@ -1,5 +1,13 @@
 # Implementation Plan: Audit & Exécution — Parité Plans Initiaux vs V2
 
+```text
+Statut : REMPLACÉ
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : specs/002-parite-lodgify/
+Source de vérité : specs/002-parite-lodgify/spec.md
+```
+
 **Branch**: `003-audit-parite-plans-initiaux` | **Date**: 2026-11-09 | **Spec**: [spec.md](./spec.md)
 
 **Input**: Feature specification from `/specs/003-audit-parite-plans-initiaux/spec.md`

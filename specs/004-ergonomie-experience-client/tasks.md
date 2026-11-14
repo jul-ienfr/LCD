@@ -1,5 +1,13 @@
 # Tasks: Ergonomie globale et expérience client
 
+```text
+Statut : ACTIF
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/004-ergonomie-experience-client/spec.md
+```
+
 **Input**: Design documents from `/specs/004-ergonomie-experience-client/`
 
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`,

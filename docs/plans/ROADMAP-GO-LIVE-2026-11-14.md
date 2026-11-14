@@ -1,5 +1,13 @@
 # Roadmap active — mise en production et preuves (révisée le 2026-11-14)
 
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/005-mise-en-production/tasks.md
+```
+
 - **Statut** : active, se substitue à `ROADMAP-PARITE-2026-11.md`
 - **Périmètre** : `specs/002` (preuves restantes), `specs/004` (validations
   humaines), `specs/005` (production, recette, migration, bascule)

@@ -1,9 +1,17 @@
 # Registre — État réel (séparé du normatif, v2 plan-only)
 
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : code et tests (commandes citées)
+```
+
 > R5 : l'état réel vit ICI, jamais mélangé aux cahiers normatifs.
 > Relevé du 2026-10-15, sans toucher au code.
 
-- **DOCTRINE 2026-10-19 — production locale intégrale (`docs/71-production-locale.md`)** :
+- **DOCTRINE 2026-10-19 — production locale intégrale (`docs/archive/v1/71-production-locale.md`)** :
   l'étape « lab socle » est close et remplacée comme cadre de référence. Règles
   opposables : R1 rien n'est simulé ; R2 les box sont de vraies box complètes
   exécutées en local (le matériel est la seule pièce non locale) ; R3 local
@@ -489,3 +497,7 @@
   paiements, 65 factures, 444 réservations, 13 dispatchs, 26 missions, 119
   comptes, 614 logements → après purge, 3 logements de vitrine et 1 compte.
   Règles testées : `tests/nettoyage-donnees-recette.test.ts`.
+
+- **PRODUCTION V2 — PHASES 1 ET 2 EXÉCUTÉES 2026-11-14 (plan 005)** : dépôt sauvé (462 entrées en trois commits `4271ece`, `4e2b89a`, `d8ff261`, arbre propre, tag annoté `v2.0.0-rc1`), ADR-06 écrit (VPS Debian/Ubuntu 2 vCPU/4 Go, Docker Compose, PostgreSQL 18 auto-hébergé, RPO 24 h/RTO 30 min, Netlify écarté ; **signature exploitant en attente**), roadmap re-datée (`docs/plans/ROADMAP-GO-LIVE-2026-11-14.md`, R0 fait, R1 21/11, R2 30/11, recette 20/12, bascule 31/01/2027), runbook production en 12 sections, journal de recette 155 cases + 21 parcours, plan de migration V1→V2 sur l'inventaire réel. Côté code : `scripts/preflight.ts` (`npm run preflight`) vérifie Node, secrets, connexion `lcd_app`, migrations, disque et volume photos — mesuré sur la base locale **104/104 migrations, RLS appliquée, 18 Go libres, volume inscriptible** ; `src/lib/server/env-production.ts` + 17 tests et refus de démarrage en HTTPS si un secret de développement, une URL non sûre, un SMTP local ou un stockage non persistant subsiste (vérifié : build HTTP local non bloqué, démarrage HTTPS sans `BACKUP_ENCRYPTION_KEY` refusé) ; `scripts/deployer.sh` et `scripts/revenir.sh` (verrou, sauvegarde, build, migrations, smoke `/api/health` + `/api/ready` + HTTPS, tag précédent, restauration confirmée) ; `LCD_VERSION` injecté au déploiement et renvoyé par `/api/health` et `/api/ready` (`v2.0.0-rc1` vérifié sur un build local) ; `compose.prod.yml` vide `MIGRATION_DATABASE_URL` dans `web`, rotate les logs (7 × 20 Mo) et conserve la connexion owner dans `tools` ; CI : job `secrets` (gitleaks, **397 commits, 0 fuite**) et job `release` sur tag `v*` (typecheck, tests, migrations, seeds, RLS, build, preflight, e2e, artefacts 30 j). Vérifications : `npm run typecheck` **3119 fichiers, 0 erreur** ; `npm test` **259 fichiers / 1627 réussis / 2 ignorés** ; `npm run build` OK. Reste : signatures et choix externes (domaine, SMTP, alertes), provisionnement R2, recette réelle, migration et bascule.
+
+- **DOCUMENTATION — LOTS D1 À D7 EXÉCUTÉS 2026-11-14** : (D1) `README.md` racine (état, prochaine action, 5 liens) et `docs/INDEX.md` refondu ; en-tête de statut sur 32 documents structurants. (D2) corpus V1 déplacé dans `docs/archive/v1/` (41 entrées : plans racine, docs 10→78, `decisions-parc`, préparations R-*, `exigences.csv`) avec README d'archive ; nouveaux actifs `docs/10-exigences-produit.md`, `docs/20-architecture-v2.md`, `docs/72-runbooks.md`. (D3) statuts Spec Kit alignés. (D5) `ECARTS-V1.md`, `MATRICE-MUST-HAVE-CHANNEL-MANAGER.md`, `v2/README.md`, `qa-manuel.md` (21 parcours réécrits), `checklist-taches-restantes.md`, compteurs 155 cases + 21 parcours. (D6) `runbook-bascule.md` et `specs/002-parite-lodgify/matrice-fr.md` (72 FR). (D7) `deploy/test-docs.ps1` réécrit — **13/13 checks OK** (40 documents, fraîcheur 90 j, liens, index, archives, compteurs) — et job CI `docs`. Vérifications : `deploy/test-docs.ps1` 13/13, YAML CI valide. Limites : la scission `etat-reel-v1/v2` n'est pas faite (registre unique, entrées datées) ; les documents non structurants restent hors contrôle automatique.

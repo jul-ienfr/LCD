@@ -1,5 +1,14 @@
 # Index des documents du SAS
 
+> **Index V1 historique (généré le 2026-10-24).** Il ne couvre pas les plans,
+> l'exploitation ni les specs de la V2. La carte à jour est `docs/INDEX.md` ;
+> l'inventaire complet (306 documents) est
+> `docs/analyses/inventaire-documentation-2026-11-14.csv`.
+>
+> **Les documents listés ci-dessous ont été déplacés le 2026-11-14** dans
+> `docs/archive/v1/` (lot D2). Les noms de fichiers restent identiques ;
+> seul le dossier change. Voir `docs/archive/v1/README.md`.
+
 **Genere le** : 2026-10-24 16:54 par `deploy/index-docs.ps1`.
 **Ne pas editer a la main** : relancer l'outil (`-Verifier` dit si l'index est a jour).
 

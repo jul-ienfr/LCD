@@ -1,5 +1,13 @@
 # ADR 008 — Stack frontend v2 : SvelteKit 3
 
+```text
+Statut : ACTIF
+Propriétaire : fondateur
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : Next.js 16 pour la couche UI
+Source de vérité : v2/package.json
+```
+
 - Statut : accepté
 - Date : 2026-10-25
 - Portée : la v2 elle-même, **sans v3 séparée**

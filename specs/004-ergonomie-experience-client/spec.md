@@ -1,10 +1,18 @@
 # Feature Specification: Ergonomie globale et expérience client
 
+```text
+Statut : ACTIF
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/004-ergonomie-experience-client/tasks.md
+```
+
 **Feature Branch**: `004-ergonomie-experience-client`
 
 **Created**: 2026-11-12
 
-**Status**: Draft
+**Status**: Implemented — 99/112 tâches ; 13 restantes humaines ou gelées (`resultats.md` § 6)
 
 **Input**: User description: « Ça manque encore d'ergonomie ; je veux que ce soit ergonomique au maximum. Je trouve que ça manque. Peux-tu me faire un plan avec SpecKit pour refaire toute l'ergonomie du site, afin qu'il soit le plus ergonomique possible, tout en respectant les conditions des plans que j'avais définis à la base, pour offrir une meilleure expérience client ? »
 
@@ -59,10 +67,10 @@ automatisé, recette manuelle ou retour utilisateur documenté.
 |---|---|---|
 | `Socle Commun LCD - Conciergerie v1.md` | Un seul système, multi-tenant, 1 login = 1 dashboard, rôles et périmètres stricts | La navigation et les actions restent filtrées par rôle ; aucune fuite de périmètre |
 | `Plan Technique LCD - Pipeline automatisation complet v4.md` | Sans JavaScript en lecture, thème par marque, mobile-first, a11y | Toute refonte publique/voyageur reste utilisable sans JS |
-| `docs/70-front-v1.md` §F0 | Serveur d'abord, JS = amélioration, 0 dépendance UI superflue, 0 CDN | Aucune librairie UI ajoutée ; composants natifs et CSS |
-| `docs/70-front-v1.md` §F7 | 320 px sans défilement horizontal, cibles ≥ 44 px, L0-L3 | Recette obligatoire à 320 px et sur les contrôles tactiles |
-| `docs/70-front-v1.md` §F9 | LCP < 2,5 s, JS < 200 Ko/page, offline, images < 150 Ko | Budgets conservés ; mesure avant/après |
-| `docs/10-socle-v2.md` | Zéro friction, 1-clic, SAV < 15 min, PWA séjour | Le parcours voyageur doit tenir en quelques actions claires |
+| `docs/archive/v1/70-front-v1.md` §F0 | Serveur d'abord, JS = amélioration, 0 dépendance UI superflue, 0 CDN | Aucune librairie UI ajoutée ; composants natifs et CSS |
+| `docs/archive/v1/70-front-v1.md` §F7 | 320 px sans défilement horizontal, cibles ≥ 44 px, L0-L3 | Recette obligatoire à 320 px et sur les contrôles tactiles |
+| `docs/archive/v1/70-front-v1.md` §F9 | LCP < 2,5 s, JS < 200 Ko/page, offline, images < 150 Ko | Budgets conservés ; mesure avant/après |
+| `docs/archive/v1/10-socle-v2.md` | Zéro friction, 1-clic, SAV < 15 min, PWA séjour | Le parcours voyageur doit tenir en quelques actions claires |
 | `v2/docs/80-stack-sveltekit.md` | Public/voyageur `csr = false`, staff SSR + îlots, thème global unique | Pas de JS obligatoire sur le public/voyageur ; pas de thème par utilisateur |
 | `.specify/memory/constitution.md` | HTML-first, domaine pur, RLS, i18n 5 langues, qualité vérifiable | Tests et preuves obligatoires ; 5 langues (fr, en, es, it, de) |
 | `specs/002-parite-lodgify/contracts/site-public.md` | Site public sans JS, Lighthouse mobile ≥ 90, SEO | Les gains ergonomiques ne dégradent ni le SEO ni la performance |

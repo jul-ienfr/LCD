@@ -1,5 +1,13 @@
 # Tasks: Mise en production, recette et bascule V1 → V2
 
+```text
+Statut : ACTIF
+Propriétaire : exploitation
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/005-mise-en-production/spec.md
+```
+
 **Input**: `specs/005-mise-en-production/spec.md`, `plan.md`,
 `contracts/exploitation.md`
 
@@ -37,7 +45,7 @@ d'exécution. Aucun provisionnement avant l'ADR-06.
   — `v2/netlify.toml` supprimé ; workflows cron passés à `vars.LCD_APP_URL` ; ancien guide archivé.
 - [x] T010 [P] Créer `docs/ops/runbook-production.md` : prérequis, installation, déploiement, migration, sauvegarde, restauration, incident, retour arrière
   — fait : 12 sections, matrice cron, procédures et checklist go-live.
-- [x] T011 [P] Créer `docs/ops/recette-2026-11/journal.md` avec une ligne par case des 161 tests et des 21 parcours (id, date, opérateur, résultat, preuve, défaut)
+- [x] T011 [P] Créer `docs/ops/recette-2026-11/journal.md` avec une ligne par case des 155 tests et des 21 parcours (id, date, opérateur, résultat, preuve, défaut)
   — fait : 155 cases `REC-001…155` + 21 parcours `QA-001…021`, colonnes de preuve et signature.
 - [x] T012 [P] Créer `docs/plans/PLAN-MIGRATION-V1-V2.md` : sources, matrice, ordre d'import, réconciliation, données personnelles, retour arrière
   — fait : inventaire V1 réel, matrice, journal `migration_v1`, décisions et retour arrière.
@@ -52,19 +60,19 @@ de recette créés.
 **But**: outiller le déploiement, la migration, la sauvegarde, la supervision
 et le retour arrière avant de toucher à la production.
 
-- [ ] T020 Créer `v2/scripts/preflight.mjs` : version Node, variables obligatoires, connexion base, migrations attendues, espace disque, écriture du volume photos ; sortie non nulle au premier échec
-- [ ] T021 Créer la validation d'environnement de production dans `v2/src/lib/server/env-production.ts` et ses tests : refus des secrets de développement, `EMAIL_ENABLED` cohérent, URL HTTPS
-- [ ] T022 Ajouter au workflow CI un job déclenché sur tag : `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run test:e2e` et publication de l'artefact
-- [ ] T023 Exposer la version déployée dans `/api/health` ou `/systeme` et la comparer au tag attendu par le preflight
-- [ ] T024 Documenter et script le job de migration séparé : conteneur `tools`, `MIGRATION_DATABASE_URL` owner, `npm run db:migrate`, `npm run db:check`, arrêt au premier échec
-- [ ] T025 Créer le rôle `lcd_app` non-propriétaire, vérifier `npm run db:test-rls`, et documenter la rotation du mot de passe
-- [ ] T026 Activer `.github/workflows/v2-backup.yml` ou un cron équivalent : `db:backup`, chiffrement, checksum, copie hors serveur, rétention 30 jours
-- [ ] T027 Répéter `db:restore-test` sur une copie de production et consigner durée, comptes, totaux et éventuelles anomalies
-- [ ] T028 Configurer les journaux : niveau, rotation, rétention 30 jours, absence de secret et de donnée personnelle inutile
-- [ ] T029 Écrire la matrice des tâches planifiées (ICS, fournisseurs, messages, pricing, webhooks, relances) avec un seul déclencheur par tâche, dans le runbook §5
-- [ ] T030 Créer `v2/scripts/deployer.sh` et `v2/scripts/revenir.sh` : sauvegarde, migration, démarrage, smoke, rollback, verrou anti-double exécution
-- [ ] T031 Ajouter un scan de secrets (gitleaks ou équivalent) à la CI et vérifier l'historique du dépôt
-- [ ] T032 Mettre à jour `v2/DEPLOIEMENT.md`, `v2/DEPLOIEMENT-VPS.md`, `v2/BACKUPS.md` et `v2/MONITORING.md` avec les commandes et chemins réels de la cible
+- [x] T020 Créer `v2/scripts/preflight.mjs` : version Node, variables obligatoires, connexion base, migrations attendues, espace disque, écriture du volume photos ; sortie non nulle au premier échec — **fait** : `v2/scripts/preflight.ts` (exécuté par `tsx`, importe la validation de `env-production.ts`), `npm run preflight`. Validé sur la base locale : `lcd_app`, RLS, 104/104 migrations, 18 Go libres, volume inscriptible ; échec immédiat si un contrôle casse.
+- [x] T021 Créer la validation d'environnement de production dans `v2/src/lib/server/env-production.ts` et ses tests : refus des secrets de développement, `EMAIL_ENABLED` cohérent, URL HTTPS — **fait** : 17 tests (`tests/lib/server/env-production.test.ts`), branchée dans `hooks.server.ts` (`init`) uniquement si `NODE_ENV=production` **et** `APP_URL` HTTPS. Vérifié : build local HTTP non bloqué ; démarrage HTTPS sans `BACKUP_ENCRYPTION_KEY` refusé avec la liste des erreurs.
+- [x] T022 Ajouter au workflow CI un job déclenché sur tag : `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run test:e2e` et publication de l'artefact — **fait** : job `release` dans `v2-ci.yml` (`tags: v*`) : typecheck, tests, `db:check`, migrations, seeds, rôle/RLS, build, preflight, e2e sur build de production, artefacts `playwright-*` et `lcd-build-*` (30 j). Non encore exécuté sur GitHub.
+- [x] T023 Exposer la version déployée dans `/api/health` ou `/systeme` et la comparer au tag attendu par le preflight — **fait** : `versionDeployee()` lit `LCD_VERSION`, injecté par `scripts/deployer.sh` (`export LCD_VERSION=<tag>` → compose). Vérifié en local : `/api/health` et `/api/ready` renvoient `v2.0.0-rc1`. Le preflight avertit si `LCD_VERSION` est absente.
+- [x] T024 Documenter et script le job de migration séparé : conteneur `tools`, `MIGRATION_DATABASE_URL` owner, `npm run db:migrate`, `npm run db:check`, arrêt au premier échec — **fait** : runbook §8 ; `compose.prod.yml` force `MIGRATION_DATABASE_URL: ""` dans `web`, le conteneur `tools` garde la connexion owner. Preflight exécuté dans `tools`.
+- [x] T025 Créer le rôle `lcd_app` non-propriétaire, vérifier `npm run db:test-rls`, et documenter la rotation du mot de passe — **fait** : `db:role-app` + `db:test-rls` verts en local (`RLS VALIDÉE`) et dans le job `release` ; rotation documentée runbook §1.7 (redémarrage `web`/`postgres`, vérification `/api/ready`). À rejouer sur la base de production (R2).
+- [~] T026 Activer `.github/workflows/v2-backup.yml` ou un cron équivalent : `db:backup`, chiffrement, checksum, copie hors serveur, rétention 30 jours — **workflow prêt** (quotidien 02:00 UTC, artefact 30 j, chiffrement si `BACKUP_ENCRYPTION_KEY`) ; secrets `MIGRATION_DATABASE_URL` et `BACKUP_ENCRYPTION_KEY` à poser, copie hors GitHub à confirmer.
+- [~] T027 Répéter `db:restore-test` sur une copie de production et consigner durée, comptes, totaux et éventuelles anomalies — **local validé** (2026-10-26, `RESTAURATION VALIDÉE`, 57 migrations) ; la copie de production n'existe pas encore (R2).
+- [x] T028 Configurer les journaux : niveau, rotation, rétention 30 jours, absence de secret et de donnée personnelle inutile — **fait** : rotation Docker 7 × 20 Mo par service (`compose.prod.yml`), logs JSON stdout, purge `db:purge-suivi`, `v2/MONITORING.md` réécrit pour la cible VPS (commandes, monitors, checklist). La rétention 30 j des événements reste réglée par la purge applicative.
+- [x] T029 Écrire la matrice des tâches planifiées (ICS, fournisseurs, messages, pricing, webhooks, relances) avec un seul déclencheur par tâche, dans le runbook §5 — **fait** : runbook §5 + `v2/DEPLOIEMENT.md` §5 ; workflows GitHub sur `vars.LCD_APP_URL`.
+- [x] T030 Créer `v2/scripts/deployer.sh` et `v2/scripts/revenir.sh` : sauvegarde, migration, démarrage, smoke, rollback, verrou anti-double exécution — **fait** : verrou `flock`, sauvegarde, checkout du tag, build, migrations, `up`, contrôles `/api/health` + `/api/ready` + HTTPS, enregistrement du tag précédent, restauration optionnelle confirmée. Syntaxe `bash -n` vérifiée ; exécution réelle à faire au premier déploiement.
+- [x] T031 Ajouter un scan de secrets (gitleaks ou équivalent) à la CI et vérifier l'historique du dépôt — **fait** : job `secrets` (gitleaks v8.24.0) + `.gitleaks.toml` avec allowlist des placeholders/fixtures. Scan local de 397 commits : **0 fuite**.
+- [x] T032 Mettre à jour `v2/DEPLOIEMENT.md`, `v2/DEPLOIEMENT-VPS.md`, `v2/BACKUPS.md` et `v2/MONITORING.md` avec les commandes et chemins réels de la cible — **fait** : preflight, `deployer.sh`/`revenir.sh`, `PG_CONTAINER=lcd-postgres`, restauration chiffrée, logs et monitors VPS. `netlify.toml` supprimé, guide Netlify archivé.
 
 **Gate G1**: preflight, CI, migration, sauvegarde, restauration et rollback
 sont exécutables sur une machine de test.
@@ -111,7 +119,7 @@ supervisé et réversible.
 
 ## Phase 4 — US2 Recette complète (P1)
 
-**Goal**: 161 cases et 21 parcours exécutés, défauts triés, recette signée.
+**Goal**: 155 cases et 21 parcours exécutés, défauts triés, recette signée.
 
 **Independent Test**: journal complet, 0 S1/S2 ouvert, preuves archivées.
 
@@ -137,7 +145,7 @@ supervisé et réversible.
 - [ ] T084 [US2] Trier les défauts : sévérité S1-S4, propriétaire, échéance, contournement, dans le journal de recette
 - [ ] T085 [US2] Corriger tous les défauts S1 et S2, rejouer les cases concernées et ajouter un test de non-régression quand c'est automatisable
 - [ ] T086 [US2] Vérifier les preuves minimales : un email réel, un paiement test, une sauvegarde restaurée, un cron exécuté, un parcours sans JavaScript
-- [ ] T087 [US2] Signer la recette : 161/161 et 21/21 exécutés, 0 S1/S2, S3 acceptés avec contournement et signataire
+- [ ] T087 [US2] Signer la recette : 155/155 et 21/21 exécutés, 0 S1/S2, S3 acceptés avec contournement et signataire
 - [ ] T088 [US2] Archiver le journal et les preuves sous `docs/ops/recette-2026-11/` et mettre à jour `docs/registres/etat-reel.md`
 
 **Checkpoint US2**: la recette est prouvée et signée ; l'ouverture peut être

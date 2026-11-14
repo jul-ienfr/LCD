@@ -1,5 +1,13 @@
 # Implementation Plan: Ergonomie globale et expérience client
 
+```text
+Statut : ACTIF
+Propriétaire : produit
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/004-ergonomie-experience-client/spec.md
+```
+
 **Branch**: `004-ergonomie-experience-client` | **Date**: 2026-11-12 | **Spec**: [spec.md](./spec.md)
 
 **Input**: Feature specification from `/specs/004-ergonomie-experience-client/spec.md`

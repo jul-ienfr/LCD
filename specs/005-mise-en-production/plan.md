@@ -1,5 +1,13 @@
 # Implementation Plan: Mise en production, recette et bascule V1 → V2
 
+```text
+Statut : ACTIF
+Propriétaire : exploitation
+Dernière vérification : 2026-11-14
+Remplace / remplacé par : —
+Source de vérité : specs/005-mise-en-production/spec.md
+```
+
 **Branch**: `005-mise-en-production` | **Date**: 2026-11-14 | **Spec**: [spec.md](./spec.md)
 
 **Input**: Feature specification from `specs/005-mise-en-production/spec.md`
@@ -45,7 +53,7 @@ d'objets V1, 104 migrations, 112 pages, 61 endpoints
 | I. Périmètre V2 | OUI | uniquement `v2/`, `specs/`, `docs/` ; la V1 est lue, jamais modifiée |
 | II. HTML-first / domaine pur | OUI | parcours public et voyageur sans JS ; aucun import d'infra dans `src/domain` |
 | III. Sécurité tenant | OUI | rôle `lcd_app` non-propriétaire, `withTenant()`, RLS testée en production |
-| IV. Qualité vérifiable | OUI | recette 161 + 21, preuves datées, tests, retour arrière répété |
+| IV. Qualité vérifiable | OUI | recette 155 + 21, preuves datées, tests, retour arrière répété |
 | V. i18n | OUI | 6 langues déjà livrées ; aucune régression attendue |
 
 **Violations**: aucune. La seule complexité ajoutée est l'exploitation d'un
@@ -83,7 +91,7 @@ Le serveur exécute aussi :
 | Environnement | Base | Usage | Données |
 |---|---|---|---|
 | Local | Docker `compose.dev.yml` | développement, tests | seed + démo |
-| Recette | Copie de production ou base dédiée | recette 161 + 21, migration à blanc | données anonymisées |
+| Recette | Copie de production ou base dédiée | recette 155 + 21, migration à blanc | données anonymisées |
 | Production | PostgreSQL dédié, région UE | trafic réel | données réelles |
 
 La recette ne doit jamais écrire dans la production. Les tests destructifs
