@@ -29,9 +29,12 @@ const demos = [
   },
 ];
 
-const [tenant] = await sql`select id from tenants where slug = 'lcd' limit 1`;
+const tenantSlug = process.env.SEED_DEMO_TENANT_SLUG ?? "lcd";
+const [tenant] = await sql`select id from tenants where slug = ${tenantSlug} limit 1`;
 if (!tenant) {
-  console.error("Tenant 'lcd' introuvable. Lancez d’abord npm run db:seed.");
+  console.error(
+    `Tenant '${tenantSlug}' introuvable. Lancez d’abord npm run db:seed (ou créez le tenant demo).`,
+  );
   await sql.end();
   process.exit(1);
 }

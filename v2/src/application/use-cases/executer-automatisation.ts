@@ -23,6 +23,10 @@ export interface ContexteReservationMessage {
   nuits: number;
   statutReservation: string;
   langue?: string;
+  /** Lien signé vers le guide voyageur du logement (T605), injecté par le planificateur. */
+  lienGuide?: string;
+  /** Lien signé vers la page d'avis voyageur (T609), injecté à J+1. */
+  lienAvis?: string;
 }
 
 export interface ExecuterAutomatisationInput {
@@ -61,6 +65,8 @@ export function variablesAutomatisation(
     depart: contexte.depart,
     nuits: String(contexte.nuits),
     reference: contexte.reference,
+    guide: contexte.lienGuide ?? "",
+    avis: contexte.lienAvis ?? "",
   };
 }
 

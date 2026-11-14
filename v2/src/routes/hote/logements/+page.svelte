@@ -11,14 +11,14 @@
   <title>{t.titre} — LCD Parc</title>
 </svelte:head>
 
-<main class="mx-auto max-w-4xl space-y-8 px-6 py-10">
+<main id="contenu" class="mx-auto max-w-4xl space-y-8 px-6 py-10">
   <header class="ui-entete space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
       {t.espace}
     </p>
     <div class="flex flex-wrap items-end justify-between gap-3">
       <h1 class="text-3xl font-semibold tracking-tight">{t.titre}</h1>
-      <a class="ui-lien text-sm" href={data.tous ? "/hote/logements" : "/hote/logements?tous=1"}>
+      <a class="ui-lien-action inline-flex min-h-11 items-center text-sm" href={data.tous ? "/hote/logements" : "/hote/logements?tous=1"}>
         {data.tous ? t.masquerArchives : t.afficherArchives}
       </a>
     </div>

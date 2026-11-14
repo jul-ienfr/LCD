@@ -26,8 +26,37 @@ export interface MettreAJourFilData {
   voyageurTelephone?: string | null;
   langue?: string;
   statut?: StatutFil;
+  assigneA?: string | null;
   consentements?: ConsentementsFil;
   dernierMessageAt?: Date | null;
+}
+
+export interface MettreAJourMessageData {
+  statut?: string;
+  envoyeAt?: Date | null;
+  externalId?: string | null;
+  luAt?: Date | null;
+  contenu?: string;
+}
+
+export interface CreerPieceJointeData {
+  tenantId: string;
+  messageId: string;
+  nomFichier: string;
+  typeMime: string;
+  tailleOctets: number;
+  cleStockage: string;
+}
+
+export interface PieceJointeMessage {
+  id: string;
+  tenantId: string;
+  messageId: string;
+  nomFichier: string;
+  typeMime: string;
+  tailleOctets: number;
+  cleStockage: string;
+  createdAt: Date;
 }
 
 export interface CreerMessageFilData {
@@ -57,6 +86,7 @@ export interface MessageFil {
   externalId: string | null;
   statut: string;
   envoyeAt: Date | null;
+  luAt: Date | null;
   createdAt: Date;
 }
 
@@ -78,7 +108,12 @@ export interface FilsVoyageurRepository {
   ): Promise<FilVoyageur | null>;
   listerParTenant(
     tenantId: string,
-    filtre?: { statut?: StatutFil; logementId?: string; recherche?: string },
+    filtre?: {
+      statut?: StatutFil;
+      logementId?: string;
+      recherche?: string;
+      assigneA?: string | null;
+    },
   ): Promise<FilVoyageur[]>;
   mettreAJour(
     tenantId: string,
@@ -91,6 +126,10 @@ export interface FilsVoyageurRepository {
     tenantId: string,
     ref: string,
   ): Promise<MessageFil | null>;
+  trouverMessageParId(
+    tenantId: string,
+    id: string,
+  ): Promise<MessageFil | null>;
   listerMessages(tenantId: string, filId: string): Promise<MessageFil[]>;
   marquerMessagesLus(tenantId: string, filId: string): Promise<number>;
   trouverMessageParExternalId(
@@ -98,4 +137,19 @@ export interface FilsVoyageurRepository {
     canal: CanalFil,
     externalId: string,
   ): Promise<MessageFil | null>;
+  creerPieceJointe(data: CreerPieceJointeData): Promise<PieceJointeMessage>;
+  mettreAJourMessage(
+    tenantId: string,
+    messageId: string,
+    data: MettreAJourMessageData,
+  ): Promise<MessageFil | null>;
+  listerPiecesJointes(
+    tenantId: string,
+    messageId: string,
+  ): Promise<PieceJointeMessage[]>;
+  trouverPieceJointe(
+    tenantId: string,
+    id: string,
+  ): Promise<PieceJointeMessage | null>;
+  supprimerPieceJointe(tenantId: string, id: string): Promise<boolean>;
 }

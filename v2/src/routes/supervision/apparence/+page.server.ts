@@ -7,8 +7,10 @@ import {
 import { THEMES, estThemeValide, themeParId } from "@/domain/apparence/registre";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { withTenant } from "@/infrastructure/db/client";
+import { avecAccent } from "@/lib/apparence";
 import { marque } from "@/lib/branding";
 import { logErreur } from "@/lib/logger";
+import { validerThemePourPublication } from "@/lib/theme/validation";
 import {
   apparencePourRequete,
   enregistrerBrouillonApparence,
@@ -164,8 +166,34 @@ export const actions = {
       return fail(400, { message: "Aucun brouillon à publier." });
     }
     try {
+      const apparencePubliee = normaliserApparence(brouillon.configuration);
+      const themeId = apparencePubliee.themeId;
+      const theme = themeParId(themeId);
+      if (!theme) {
+        return fail(400, {
+          message: `Thème inconnu « ${themeId} » : publication refusée.`,
+          problemes: [],
+        });
+      }
+
+      // T098/T099 — garde-fous de contraste et de cible tactile : rien n'est
+      // publié si le thème n'atteint pas 4,5:1 sur les paires de texte ou si
+      // les contrôles descendent sous 44 px.
+      // L'accent personnalisé change les paires de contraste : on valide le
+      // thème tel qu'il sera réellement affiché (sans dépendre du port serveur
+      // pour rester testable hors ligne).
+      const rapport = validerThemePourPublication(
+        avecAccent(theme, apparencePubliee.accent),
+      );
+      if (!rapport.ok) {
+        return fail(400, {
+          message: rapport.message ?? "Publication refusée par les garde-fous.",
+          problemes: rapport.problemes,
+        });
+      }
+
       const version = await publierApparence(
-        normaliserApparence(brouillon.configuration),
+        apparencePubliee,
         session.user.email,
         motif,
       );

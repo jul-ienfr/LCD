@@ -11,7 +11,7 @@
   <title>{t.avisTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-5xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-5xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
@@ -19,6 +19,9 @@
       </p>
       <h1 class="text-3xl font-semibold tracking-tight">{t.avisTitre}</h1>
       <p class="text-encre-douce">{t.avisResume(data.total, data.publies, data.moyenne === null ? null : String(data.moyenne))}</p>
+      <a class="ui-lien-action text-sm" href="/hote/avis-voyageur">
+        Modération des avis vérifiés →
+      </a>
     </div>
   </header>
 

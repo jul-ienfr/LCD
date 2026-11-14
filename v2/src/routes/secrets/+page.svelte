@@ -16,7 +16,7 @@
   <title>Secrets et connecteurs — Supervision</title>
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+<main id="contenu" class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
   <NavSuperAdmin actif="/secrets" />
 
   <header class="space-y-2">
@@ -45,7 +45,8 @@
     </p>
   {/if}
 
-  <div class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
     <table class="ui-tableau min-w-[680px]">
       <thead>
         <tr>
@@ -72,7 +73,7 @@
       Les secrets se modifient dans l’environnement d’hébergement, jamais dans
       l’interface. Après rotation : redémarrer l’application, vérifier
       <code>/api/ready</code> puis se reconnecter. Les sessions Better Auth peuvent
-      être révoquées depuis <a class="ui-lien" href="/hote/securite">Sécurité</a>.
+      être révoquées depuis <a class="ui-lien-action" href="/hote/securite">Sécurité</a>.
     </p>
     <p class="mt-2">
       <code>MIGRATION_DATABASE_URL</code> donne un accès owner : le restreindre au

@@ -17,6 +17,12 @@ export interface CapacitesFournisseur {
   lectureReservations: boolean;
   webhooks: boolean;
   marqueBlanche: boolean;
+  /** Messagerie OTA via le fournisseur (inbox intégrée). */
+  messaging: boolean;
+  /** Gestion multi-unités (appartements dans un immeuble). */
+  multiUnite: boolean;
+  /** Diffusion Google Vacation Rentals. */
+  googleVr: boolean;
 }
 
 export interface FicheFournisseur {
@@ -46,6 +52,9 @@ export const CATALOGUE_FOURNISSEURS: readonly FicheFournisseur[] = [
       lectureReservations: true,
       webhooks: true,
       marqueBlanche: false,
+      messaging: false,
+      multiUnite: true,
+      googleVr: true,
     },
     prix: "Dès 17,15 €/mois (1 logement, 3 canaux)",
     site: "https://www.beds24.com/",
@@ -73,6 +82,9 @@ export const CATALOGUE_FOURNISSEURS: readonly FicheFournisseur[] = [
       lectureReservations: true,
       webhooks: true,
       marqueBlanche: true,
+      messaging: false,
+      multiUnite: true,
+      googleVr: true,
     },
     prix: "130 $/mois + 0,50 $/unité",
     site: "https://channex.io/",
@@ -100,6 +112,9 @@ export const CATALOGUE_FOURNISSEURS: readonly FicheFournisseur[] = [
       lectureReservations: true,
       webhooks: true,
       marqueBlanche: false,
+      messaging: false,
+      multiUnite: false,
+      googleVr: false,
     },
     prix: "35 €/mois Prepaid (0 %) ou 29 €/mois + 0,9 %",
     site: "https://www.smoobu.com/",
@@ -128,6 +143,9 @@ export const CATALOGUE_FOURNISSEURS: readonly FicheFournisseur[] = [
       lectureReservations: true,
       webhooks: true,
       marqueBlanche: false,
+      messaging: false,
+      multiUnite: false,
+      googleVr: false,
     },
     prix: "0 € en iCal ; 9 €/logement/mois en Pro",
     site: "https://hostport.co/",
@@ -155,6 +173,9 @@ export const CATALOGUE_FOURNISSEURS: readonly FicheFournisseur[] = [
       lectureReservations: true,
       webhooks: false,
       marqueBlanche: true,
+      messaging: false,
+      multiUnite: false,
+      googleVr: false,
     },
     prix: "99 $/mois API, jusqu’à 1 000 propriétés",
     site: "https://nobeds.com/",

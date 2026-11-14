@@ -1,10 +1,14 @@
 import { building } from "$app/env";
 import type { RequestEvent } from "@sveltejs/kit";
+import type { Handle } from "@sveltejs/kit/hooks";
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { auth } from "@/lib/server/auth";
 import { lireApercu } from "@/lib/server/apercu";
 import { demarrerPlanificateurFournisseurs } from "@/lib/server/fournisseur-scheduler";
 import { demarrerPlanificateurIcs } from "@/lib/server/ics-scheduler";
+import { langueRequete } from "@/lib/server/langue";
+import { tenantEnLectureSeule } from "@/lib/server/lecture-seule";
+import { doitBloquerEcriture } from "@/domain/lecture-seule";
 
 const estRessource = (chemin: string): boolean =>
   chemin.startsWith("/_app/") ||
@@ -57,13 +61,7 @@ export const init = async () => {
   demarrerPlanificateurFournisseurs();
 };
 
-export const handle = async ({
-  event,
-  resolve,
-}: {
-  event: RequestEvent;
-  resolve: (event: RequestEvent) => Response | Promise<Response>;
-}): Promise<Response> => {
+export const handle: Handle = async ({ event, resolve }) => {
   if (!building && !estRessource(event.url.pathname)) {
     const session = await auth.api.getSession({
       headers: event.request.headers,
@@ -86,7 +84,52 @@ export const handle = async ({
     }
   }
 
-  const reponse = await svelteKitHandler({ auth, event, resolve, building });
+  if (event.locals.session) {
+    const bloque = doitBloquerEcriture({
+      methode: event.request.method,
+      chemin: event.url.pathname,
+      lectureSeule: await tenantEnLectureSeule(
+        event.locals.session.user.tenantId,
+      ),
+    });
+    if (bloque) {
+      if (event.url.pathname.startsWith("/api/")) {
+        return new Response(
+          JSON.stringify({
+            error: {
+              code: "LECTURE_SEULE",
+              message:
+                "Ce tenant de démonstration est en lecture seule : aucune écriture n'est autorisée.",
+            },
+          }),
+          {
+            status: 403,
+            headers: { "content-type": "application/json; charset=utf-8" },
+          },
+        );
+      }
+      return new Response(null, {
+        status: 303,
+        headers: { location: "/hote?lectureSeule=1" },
+      });
+    }
+  }
+
+  const resolveAvecLangue = (requestEvent: RequestEvent) =>
+    resolve(requestEvent, {
+      transformPageChunk: ({ html }) =>
+        html.replace(
+          '<html lang="fr"',
+          `<html lang="${langueRequete(requestEvent)}"`,
+        ),
+    });
+
+  const reponse = await svelteKitHandler({
+    auth,
+    event,
+    resolve: resolveAvecLangue,
+    building,
+  });
   const entetes = new Headers(reponse.headers);
   for (const [cle, valeur] of Object.entries(entetesSecurite(event.url.pathname))) {
     entetes.set(cle, valeur);

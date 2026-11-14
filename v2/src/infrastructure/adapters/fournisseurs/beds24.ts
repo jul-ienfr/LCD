@@ -9,9 +9,12 @@ import type {
   ResultatTestFournisseur,
   TarifJour,
 } from "@/application/ports/fournisseur-canal";
+import type { SanteConnexion } from "@/domain/canal";
+import { santeConnexionInitiale } from "@/domain/canal";
 import { CATALOGUE_FOURNISSEURS } from "@/domain/fournisseur";
 import { ErreurMetier } from "@/domain/erreurs";
 import { env } from "@/lib/env";
+import { creerRateLimiter, type RateLimiter } from "@/lib/server/rate-limit";
 import {
   centimes,
   exigerCle,
@@ -105,6 +108,15 @@ async function jeton(): Promise<string> {
   }
 }
 
+// Protection anti-burst : un emballement local ne doit pas saturer l'API
+// Beds24 ni déclencher un bannissement côté fournisseur. Le plafond est très
+// large (600 appels/min) ; au-delà, on refuse localement avec une erreur
+// explicite plutôt que de envoyer des requêtes qui seront rejetées.
+const limiteur: RateLimiter = creerRateLimiter({
+  max: 600,
+  fenetreMs: 60_000,
+});
+
 async function appel<T>(
   chemin: string,
   options: {
@@ -113,12 +125,21 @@ async function appel<T>(
     corps?: unknown;
   } = {},
 ): Promise<T> {
+  if (!limiteur.autoriser("beds24")) {
+    throw new ErreurMetier(
+      "FOURNISSEUR_RATE_LIMIT",
+      "Limite locale d'appels Beds24 atteinte (protection anti-burst).",
+    );
+  }
   return requeteFournisseur<T>({
     url: urlAvecParametres(base(), chemin, options.parametres ?? {}),
     methode: options.methode ?? "GET",
     entetes: { token: await jeton() },
     ...(options.corps === undefined ? {} : { corps: options.corps }),
     timeoutMs: env.FOURNISSEUR_HTTP_TIMEOUT_MS,
+    // Erreurs transitoires (429, 5xx, timeout) : deux tentatives de plus,
+    // backoff exponentiel. Un 409 (conflit métier) n'est jamais rejoué.
+    reessais: 2,
   });
 }
 
@@ -141,6 +162,16 @@ function roomId(changement: {
     );
   }
   return id;
+}
+
+interface LigneCalendrierBeds24 {
+  roomId?: number;
+  date?: string;
+  numAvail?: number;
+  price1?: number;
+  minStay?: number;
+  maxStay?: number;
+  override?: string;
 }
 
 async function ecrireCalendrier(
@@ -170,6 +201,90 @@ export class Beds24Fournisseur implements FournisseurCanal {
   readonly mode = fiche().mode;
   readonly capacites = fiche().capacites;
 
+  private async lireCalendrier(
+    debut: string,
+    fin: string,
+    externalPropertyId?: string,
+  ): Promise<LigneCalendrierBeds24[]> {
+    const donnees = await appel<ReponseBeds24<LigneCalendrierBeds24>>(
+      "inventory/rooms/calendar",
+      {
+        parametres: {
+          startDate: debut,
+          endDate: fin,
+          includePrices: true,
+          ...(externalPropertyId ? { propertyId: externalPropertyId } : {}),
+        },
+      },
+    );
+    return (donnees.data ?? []).filter(
+      (ligne) =>
+        typeof ligne.roomId === "number" &&
+        typeof ligne.date === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(ligne.date),
+    );
+  }
+
+  async lireDisponibilites(
+    debut: string,
+    fin: string,
+    externalPropertyId?: string,
+  ): Promise<DisponibiliteJour[]> {
+    const lignes = await this.lireCalendrier(debut, fin, externalPropertyId);
+    return lignes.map((ligne) => ({
+      externalPropertyId: externalPropertyId ?? "",
+      externalRoomTypeId: String(ligne.roomId),
+      date: ligne.date!,
+      disponible: ligne.numAvail !== 0,
+    }));
+  }
+
+  async lireTarifs(
+    debut: string,
+    fin: string,
+    externalPropertyId?: string,
+  ): Promise<TarifJour[]> {
+    const lignes = await this.lireCalendrier(debut, fin, externalPropertyId);
+    return lignes
+      .filter(
+        (ligne) =>
+          typeof ligne.price1 === "number" &&
+          Number.isFinite(ligne.price1) &&
+          ligne.price1 > 0,
+      )
+      .map((ligne) => ({
+        externalPropertyId: externalPropertyId ?? "",
+        externalRoomTypeId: String(ligne.roomId),
+        date: ligne.date!,
+        prixCentimes: Math.round(ligne.price1! * 100),
+        devise: "EUR",
+      }));
+  }
+
+  async lireRestrictions(
+    debut: string,
+    fin: string,
+    externalPropertyId?: string,
+  ): Promise<RestrictionJour[]> {
+    const lignes = await this.lireCalendrier(debut, fin, externalPropertyId);
+    return lignes.map((ligne) => {
+      const restriction: RestrictionJour = {
+        externalPropertyId: externalPropertyId ?? "",
+        externalRoomTypeId: String(ligne.roomId),
+        date: ligne.date!,
+      };
+      if (typeof ligne.minStay === "number") restriction.sejourMin = ligne.minStay;
+      if (typeof ligne.maxStay === "number") restriction.sejourMax = ligne.maxStay;
+      if (ligne.override === "noCheckIn" || ligne.override === "noCheckInOrCheckOut") {
+        restriction.arriveeAutorisee = false;
+      }
+      if (ligne.override === "noCheckOut" || ligne.override === "noCheckInOrCheckOut") {
+        restriction.departAutorisee = false;
+      }
+      return restriction;
+    });
+  }
+
   async testerConnexion(): Promise<ResultatTestFournisseur> {
     const donnees = await appel<{
       validToken?: boolean;
@@ -187,6 +302,50 @@ export class Beds24Fournisseur implements FournisseurCanal {
       message: `Beds24 joignable (compte ${donnees.token?.ownerId ?? "?"}).`,
       details: { scopes: donnees.token?.scopes ?? [] },
     };
+  }
+
+  /**
+   * Santé de connexion côté fournisseur (T112). Sonde légère sans effet de
+   * bord : `authentication/details`. Retourne toujours une santé (jamais
+   * d'exception) pour que l'appelant puisse l'enregistrer et alerter.
+   *
+   * Le messaging OTA n'est PAS implémenté ici : `capacites.messaging` est
+   * faux tant que le compte sandbox n'a pas prouvé le contraire (ADR-01).
+   */
+  async lireSante(
+    _externalPropertyId?: string,
+  ): Promise<SanteConnexion | null> {
+    const debut = Date.now();
+    try {
+      const donnees = await appel<{ validToken?: boolean }>(
+        "authentication/details",
+      );
+      const neutre = santeConnexionInitiale();
+      if (donnees.validToken) {
+        return {
+          ...neutre,
+          statut: "ok",
+          dernierPullAt: new Date().toISOString(),
+          latenceMs: Date.now() - debut,
+        };
+      }
+      return {
+        ...neutre,
+        statut: "erreur",
+        derniereErreur: "Beds24 refuse le jeton (invalide ou expiré).",
+        erreursConsecutives: 1,
+        latenceMs: Date.now() - debut,
+      };
+    } catch (erreur) {
+      return {
+        ...santeConnexionInitiale(),
+        statut: "erreur",
+        derniereErreur:
+          erreur instanceof Error ? erreur.message : String(erreur),
+        erreursConsecutives: 1,
+        latenceMs: Date.now() - debut,
+      };
+    }
   }
 
   async listerLogements(): Promise<LogementExterne[]> {

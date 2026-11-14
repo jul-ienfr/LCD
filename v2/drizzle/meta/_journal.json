@@ -638,6 +638,97 @@
       "when": 1794256000000,
       "tag": "0090_fils_voyageur_messagerie",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1794342400000,
+      "tag": "0091_fils_voyageur_assignation",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1794428800000,
+      "tag": "0092_backfill_fils_voyageur",
+      "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1794515200000,
+      "tag": "0093_recommandations_prix",
+      "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1794601600000,
+      "tag": "0094_releves_proprietaires",
+      "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1794688000000,
+      "tag": "0095_paiements_proprietaires",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1794774400000,
+      "tag": "0096_guide_contenus_acces_serrure",
+      "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1794860800000,
+      "tag": "0097_acces_serrure_idempotence",
+      "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1794947200000,
+      "tag": "0098_demandes_extra_avis_voyageur",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1795033600000,
+      "tag": "0099_cles_api_integrations_tenant",
+      "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1795120000000,
+      "tag": "0100_tenant_lecture_seule",
+      "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1795206400000,
+      "tag": "0101_suivi_audience_publicite",
+      "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1795292800000,
+      "tag": "0102_guide_partenaire",
+      "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1795379200000,
+      "tag": "0103_domaine_public",
+      "breakpoints": true
     }
   ]
 }

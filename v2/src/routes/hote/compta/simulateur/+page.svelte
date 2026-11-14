@@ -13,7 +13,7 @@
   <title>{t.simTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-4xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-4xl space-y-8 px-6 py-12">
   <PageEntete
     surtitre={t.simSurtitre}
     titre={t.simTitre}
@@ -21,8 +21,8 @@
   />
 
   <div class="flex flex-wrap gap-3">
-    <a class="ui-lien text-sm" href="/hote/compta">{t.retourCompta}</a>
-    <a class="ui-lien text-sm" href="/hote/compta/parametres">{t.parametresFiscaux}</a>
+    <a class="ui-lien-action text-sm" href="/hote/compta">{t.retourCompta}</a>
+    <a class="ui-lien-action text-sm" href="/hote/compta/parametres">{t.parametresFiscaux}</a>
   </div>
 
   <section class="ui-carte space-y-4">

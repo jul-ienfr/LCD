@@ -31,7 +31,7 @@
   <title>{t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
@@ -40,7 +40,7 @@
       <h1 class="text-3xl font-semibold tracking-tight">{t.titre}</h1>
       <p class="text-encre-douce">{t.description}</p>
     </div>
-    <a class="text-sm underline" href="/hote">{t.retour}</a>
+    <a class="inline-flex min-h-11 items-center text-sm underline" href="/hote">{t.retour}</a>
   </header>
 
   {#if data.vide}
@@ -179,7 +179,7 @@
                 </span>
                 <div class="flex gap-3 text-sm">
                   <a
-                    class="underline"
+                    class="inline-flex min-h-11 items-center underline"
                     href={`/hote/phrases?logement=${logement.id}&phrase=${phrase.id}`}
                   >
                     {t.modifier}
@@ -208,7 +208,7 @@
     </section>
 
     <nav class="flex flex-wrap gap-4 text-sm">
-      <a class="underline" href="/hote">{t.tableau}</a>
+      <a class="inline-flex min-h-11 items-center underline" href="/hote">{t.tableau}</a>
     </nav>
   {/if}
 </main>

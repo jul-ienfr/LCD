@@ -1,6 +1,8 @@
 import { isRedirect, redirect } from "@sveltejs/kit";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { conformiteAnnonce } from "@/domain/annonce";
 import { joursDuMois } from "@/domain/calendrier";
+import { construireChrono } from "@/domain/chrono-onboarding";
 import { peutPublierLogement } from "@/domain/logement";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleAnnoncesConformiteRepository } from "@/infrastructure/db/repositories/annonces-conformite-repository";
@@ -29,6 +31,31 @@ export const load: PageServerLoad = async (event) => {
       (entree) => entree.id === event.url.searchParams.get("logement"),
     ) ?? logements[0];
   const tenant = await new DrizzleTenantRepository().trouver(tenantId);
+  const evenementsChrono = await withTenant(tenantId, (tx) =>
+    tx
+      .select({
+        action: auditLogs.action,
+        createdAt: auditLogs.createdAt,
+        payload: auditLogs.payload,
+      })
+      .from(auditLogs)
+      .where(
+        and(
+          eq(auditLogs.tenantId, tenantId),
+          inArray(auditLogs.action, [
+            "logement.creer",
+            "logement.copro",
+            "logement.publication",
+            "reservation.test_creer",
+          ]),
+        ),
+      )
+      .orderBy(asc(auditLogs.createdAt)),
+  );
+  const chrono = construireChrono(
+    tenant?.createdAt ?? new Date(),
+    evenementsChrono,
+  );
 
   if (!logement) {
     return {
@@ -41,6 +68,10 @@ export const load: PageServerLoad = async (event) => {
       pret: false,
       peutPublier: false,
       tenantSlug: tenant?.slug ?? "lcd",
+      avancementTexte: "",
+      progressionTexte: "",
+      pretNoteTexte: "",
+      chrono,
       copro: event.url.searchParams.get("copro"),
       publication: event.url.searchParams.get("publication"),
       erreur: event.url.searchParams.get("erreur"),
@@ -177,6 +208,24 @@ export const load: PageServerLoad = async (event) => {
     pret,
     peutPublier: peutPublierLogement(logement),
     tenantSlug: tenant?.slug ?? "lcd",
+    // Les fonctions de `t` ne traversent pas la frontière serveur/client :
+    // on pré-formate les phrases dynamiques pour que l'hydratation reste sûre.
+    avancementTexte: traductionsAdministration(
+      event.cookies.get("lcd_langue") ?? "fr",
+    ).avancement(logement.nom),
+    progressionTexte: traductionsAdministration(
+      event.cookies.get("lcd_langue") ?? "fr",
+    ).progression(
+      etapes.filter((etape) => etape.fait).length,
+      etapes.length,
+      Math.round(
+        (etapes.filter((etape) => etape.fait).length / etapes.length) * 100,
+      ),
+    ),
+    pretNoteTexte: traductionsAdministration(
+      event.cookies.get("lcd_langue") ?? "fr",
+    ).pretNote(tenant?.slug ?? "lcd"),
+    chrono,
     copro: event.url.searchParams.get("copro"),
     publication: event.url.searchParams.get("publication"),
     erreur: event.url.searchParams.get("erreur"),

@@ -1,9 +1,19 @@
 <script lang="ts">
+  import type { AvisPublieSite } from "./utils";
   import { objet, tableau, texte, texteDe } from "./utils";
 
-  let { contenu }: { contenu: Record<string, unknown> } = $props();
+  let {
+    contenu,
+    avisPublies = [],
+  }: {
+    contenu: Record<string, unknown>;
+    avisPublies?: readonly AvisPublieSite[];
+  } = $props();
+
   const titre = $derived(texte(contenu, "titre", "Ils ont séjourné ici"));
-  const avis = $derived(
+
+  // Avis saisis manuellement dans le bloc (contenu éditorial historique).
+  const avisManuels = $derived(
     tableau(contenu, "avis")
       .map((entree) => {
         const record = objet(entree);
@@ -19,13 +29,26 @@
           entree !== null && entree.texte.length > 0,
       ),
   );
+
+  // Avis réellement publiés par la modération (T609).
+  const avisVerifies = $derived(
+    avisPublies
+      .filter((entree) => (entree.commentaire ?? "").trim().length > 0)
+      .map((entree) => ({
+        auteur: "Voyageur vérifié",
+        note: entree.note ? String(entree.note) : "",
+        texte: entree.commentaire ?? "",
+      })),
+  );
+
+  const avis = $derived([...avisVerifies, ...avisManuels]);
 </script>
 
 {#if avis.length > 0}
   <section class="mx-auto max-w-4xl px-6 py-12">
     <h2 class="text-2xl font-semibold tracking-tight">{titre}</h2>
     <div class="mt-4 grid gap-4 md:grid-cols-2">
-      {#each avis as entree (entree.auteur + entree.texte)}
+      {#each avis as entree, index (entree.auteur + index)}
         <blockquote class="rounded-2xl border border-black/10 p-5">
           <p class="text-sm leading-relaxed">« {entree.texte} »</p>
           <footer class="mt-3 text-xs font-medium opacity-70">

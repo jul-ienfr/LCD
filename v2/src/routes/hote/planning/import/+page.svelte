@@ -10,7 +10,7 @@
   <title>{t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-5xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-5xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
@@ -20,8 +20,8 @@
       <p class="text-encre-douce">{t.description}</p>
     </div>
     <div class="flex flex-wrap gap-4 text-sm">
-      <a class="ui-lien" href="/hote/planning">{t.retourPlanning}</a>
-      <a class="ui-lien" href={`/hote/planning/canaux?logement=${data.logement?.id ?? ""}`}>
+      <a class="ui-lien-action" href="/hote/planning">{t.retourPlanning}</a>
+      <a class="ui-lien-action" href={`/hote/planning/canaux?logement=${data.logement?.id ?? ""}`}>
         {t.channelManager}
       </a>
     </div>
@@ -124,7 +124,7 @@
         <input class="ui-champ font-mono text-xs" readonly value={data.abonnement ?? ""} />
       </label>
       <div class="flex flex-wrap gap-3 text-sm">
-        <a class="ui-lien" href={data.abonnement ?? "#"}>{t.telecharger}</a>
+        <a class="ui-lien-action" href={data.abonnement ?? "#"}>{t.telecharger}</a>
         <span class="text-encre-faine">{t.rafraichissement}</span>
       </div>
     </section>
@@ -160,7 +160,7 @@
         <label class="ui-champ-groupe">
           <span class="ui-label">{t.fichierIcs}</span>
           <input
-            class="ui-champ"
+            class="ui-champ min-h-11"
             type="file"
             name="fichier"
             accept=".ics,text/calendar,text/plain"
@@ -200,7 +200,8 @@
           </div>
 
           {#if resultat.lignes.length > 0}
-            <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+            <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
               <table class="ui-tableau min-w-[640px]">
                 <thead>
                   <tr>
@@ -356,10 +357,10 @@
     </section>
 
     <nav class="flex flex-wrap gap-4 text-sm">
-      <a class="ui-lien" href={`/hote/planning?logement=${data.logement.id}`}>
+      <a class="ui-lien-action" href={`/hote/planning?logement=${data.logement.id}`}>
         {t.planningLogement}
       </a>
-      <a class="ui-lien" href="/hote/logements">{t.logements}</a>
+      <a class="ui-lien-action" href="/hote/logements">{t.logements}</a>
     </nav>
   {/if}
 </main>

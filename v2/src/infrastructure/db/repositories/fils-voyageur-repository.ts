@@ -1,10 +1,13 @@
-import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import type {
   CreerFilData,
   CreerMessageFilData,
+  CreerPieceJointeData,
   FilsVoyageurRepository,
   MessageFil,
   MettreAJourFilData,
+  MettreAJourMessageData,
+  PieceJointeMessage,
 } from "@/application/ports/fils-voyageur-repository";
 import type {
   CanalFil,
@@ -14,7 +17,22 @@ import type {
   StatutFil,
 } from "@/domain/fil-voyageur";
 import { withTenant } from "../client";
-import { filsVoyageur, messagesVoyageur } from "../schema";
+import { filsVoyageur, messagesVoyageur, piecesJointesMessage } from "../schema";
+
+function versPieceJointe(
+  row: typeof piecesJointesMessage.$inferSelect,
+): PieceJointeMessage {
+  return {
+    id: row.id,
+    tenantId: row.tenantId,
+    messageId: row.messageId,
+    nomFichier: row.nomFichier,
+    typeMime: row.typeMime,
+    tailleOctets: row.tailleOctets,
+    cleStockage: row.cleStockage,
+    createdAt: row.createdAt,
+  };
+}
 
 function versDomaine(row: typeof filsVoyageur.$inferSelect): FilVoyageur {
   return {
@@ -29,14 +47,14 @@ function versDomaine(row: typeof filsVoyageur.$inferSelect): FilVoyageur {
     cleRegroupement: row.cleRegroupement,
     consentements: row.consentements as ConsentementsFil,
     statut: row.statut as StatutFil,
+    assigneA: row.assigneA,
     dernierMessageAt: row.dernierMessageAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
 }
 
-function versMessage(row: typeof messagesVoyageur.$inferSelect): MessageFil {
-  return {
+function versMessage(row: typeof messagesVoyageur.$inferSelect): MessageFil {  return {
     id: row.id,
     tenantId: row.tenantId,
     filId: row.filId ?? "",
@@ -49,6 +67,7 @@ function versMessage(row: typeof messagesVoyageur.$inferSelect): MessageFil {
     externalId: row.externalId,
     statut: row.statut,
     envoyeAt: row.envoyeAt,
+    luAt: row.luAt,
     createdAt: row.createdAt,
   };
 }
@@ -152,7 +171,12 @@ export class DrizzleFilsVoyageurRepository implements FilsVoyageurRepository {
 
   async listerParTenant(
     tenantId: string,
-    filtre?: { statut?: StatutFil; logementId?: string; recherche?: string },
+    filtre?: {
+      statut?: StatutFil;
+      logementId?: string;
+      recherche?: string;
+      assigneA?: string | null;
+    },
   ): Promise<FilVoyageur[]> {
     return withTenant(tenantId, async (tx) => {
       const conditions = [eq(filsVoyageur.tenantId, tenantId)];
@@ -161,6 +185,11 @@ export class DrizzleFilsVoyageurRepository implements FilsVoyageurRepository {
       }
       if (filtre?.logementId) {
         conditions.push(eq(filsVoyageur.logementId, filtre.logementId));
+      }
+      if (filtre?.assigneA === null) {
+        conditions.push(isNull(filsVoyageur.assigneA));
+      } else if (filtre?.assigneA) {
+        conditions.push(eq(filsVoyageur.assigneA, filtre.assigneA));
       }
       const recherche = filtre?.recherche?.trim() ?? "";
       if (recherche) {
@@ -199,6 +228,7 @@ export class DrizzleFilsVoyageurRepository implements FilsVoyageurRepository {
     }
     if (data.langue !== undefined) valeurs.langue = data.langue;
     if (data.statut !== undefined) valeurs.statut = data.statut;
+    if (data.assigneA !== undefined) valeurs.assigneA = data.assigneA;
     if (data.consentements !== undefined) valeurs.consentements = data.consentements;
     if (data.dernierMessageAt !== undefined) {
       valeurs.dernierMessageAt = data.dernierMessageAt;
@@ -274,6 +304,22 @@ export class DrizzleFilsVoyageurRepository implements FilsVoyageurRepository {
     });
   }
 
+  async trouverMessageParId(
+    tenantId: string,
+    id: string,
+  ): Promise<MessageFil | null> {
+    return withTenant(tenantId, async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(messagesVoyageur)
+        .where(
+          and(eq(messagesVoyageur.tenantId, tenantId), eq(messagesVoyageur.id, id)),
+        )
+        .limit(1);
+      return row ? versMessage(row) : null;
+    });
+  }
+
   async trouverMessageParExternalId(
     tenantId: string,
     canal: CanalFil,
@@ -326,6 +372,107 @@ export class DrizzleFilsVoyageurRepository implements FilsVoyageurRepository {
         )
         .returning({ id: messagesVoyageur.id });
       return rows.length;
+    });
+  }
+
+  async mettreAJourMessage(
+    tenantId: string,
+    messageId: string,
+    data: MettreAJourMessageData,
+  ): Promise<MessageFil | null> {
+    return withTenant(tenantId, async (tx) => {
+      const valeurs: Partial<typeof messagesVoyageur.$inferInsert> = {};
+      if (data.statut !== undefined) valeurs.statut = data.statut;
+      if (data.envoyeAt !== undefined) valeurs.envoyeAt = data.envoyeAt;
+      if (data.externalId !== undefined) valeurs.externalId = data.externalId;
+      if (data.luAt !== undefined) valeurs.luAt = data.luAt;
+      if (data.contenu !== undefined) valeurs.contenu = data.contenu;
+      if (Object.keys(valeurs).length === 0) {
+        return this.trouverMessageParId(tenantId, messageId);
+      }
+      const [row] = await tx
+        .update(messagesVoyageur)
+        .set(valeurs)
+        .where(
+          and(
+            eq(messagesVoyageur.tenantId, tenantId),
+            eq(messagesVoyageur.id, messageId),
+          ),
+        )
+        .returning();
+      return row ? versMessage(row) : null;
+    });
+  }
+
+  async creerPieceJointe(data: CreerPieceJointeData): Promise<PieceJointeMessage> {
+    return withTenant(data.tenantId, async (tx) => {
+      const [row] = await tx
+        .insert(piecesJointesMessage)
+        .values({
+          tenantId: data.tenantId,
+          messageId: data.messageId,
+          nomFichier: data.nomFichier,
+          typeMime: data.typeMime,
+          tailleOctets: data.tailleOctets,
+          cleStockage: data.cleStockage,
+        })
+        .returning();
+      if (!row) throw new Error("Pièce jointe : aucune ligne retournée.");
+      return versPieceJointe(row);
+    });
+  }
+
+  async listerPiecesJointes(
+    tenantId: string,
+    messageId: string,
+  ): Promise<PieceJointeMessage[]> {
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(piecesJointesMessage)
+        .where(
+          and(
+            eq(piecesJointesMessage.tenantId, tenantId),
+            eq(piecesJointesMessage.messageId, messageId),
+          ),
+        )
+        .orderBy(asc(piecesJointesMessage.createdAt))
+        .limit(100);
+      return rows.map(versPieceJointe);
+    });
+  }
+
+  async trouverPieceJointe(
+    tenantId: string,
+    id: string,
+  ): Promise<PieceJointeMessage | null> {
+    return withTenant(tenantId, async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(piecesJointesMessage)
+        .where(
+          and(
+            eq(piecesJointesMessage.tenantId, tenantId),
+            eq(piecesJointesMessage.id, id),
+          ),
+        )
+        .limit(1);
+      return row ? versPieceJointe(row) : null;
+    });
+  }
+
+  async supprimerPieceJointe(tenantId: string, id: string): Promise<boolean> {
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .delete(piecesJointesMessage)
+        .where(
+          and(
+            eq(piecesJointesMessage.tenantId, tenantId),
+            eq(piecesJointesMessage.id, id),
+          ),
+        )
+        .returning({ id: piecesJointesMessage.id });
+      return rows.length > 0;
     });
   }
 }

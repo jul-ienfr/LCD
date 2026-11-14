@@ -3,6 +3,7 @@ import { error, fail } from "@sveltejs/kit";
 import { CreerDemandeSejour } from "@/application/use-cases/creer-demande-sejour";
 import { normaliserAttribution } from "@/domain/attribution";
 import { ErreurMetier } from "@/domain/erreurs";
+import { DrizzleAvisVoyageurRepository } from "@/infrastructure/db/repositories/avis-voyageur-repository";
 import { DrizzleDemandeSejourRepository } from "@/infrastructure/db/repositories/demande-sejour-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzlePagesSiteRepository } from "@/infrastructure/db/repositories/pages-site-repository";
@@ -10,6 +11,11 @@ import { DrizzleSitesTenantsRepository } from "@/infrastructure/db/repositories/
 import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
 import { choisirLangue } from "@/domain/page-publique";
 import { env } from "@/lib/env";
+import {
+  enregistrerEvenementSuivi,
+  lireConsentementRequete,
+  suiviActifPourTenant,
+} from "@/lib/server/suivi";
 import { templateDefinition } from "@/lib/site/templates";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -55,6 +61,17 @@ export const load: PageServerLoad = async (event) => {
   const template = templateDefinition(site.template);
   const canonical = new URL(event.url.pathname, event.url.origin).toString();
 
+  // T609 — avis réellement publiés par la modération, jamais les avis reçus
+  // ou masqués. Un avis négatif publié reste affiché (transparence).
+  const avisPublies = page.logementId
+    ? await new DrizzleAvisVoyageurRepository().listerPublies(
+        tenant.id,
+        page.logementId,
+      )
+    : await new DrizzleAvisVoyageurRepository().lister(tenant.id, {
+        statut: "publie",
+      });
+
   return {
     tenant: {
       nom: tenant.nom,
@@ -66,6 +83,12 @@ export const load: PageServerLoad = async (event) => {
     page,
     pages,
     blocs: blocs.filter((bloc) => bloc.visible),
+    avisPublies: avisPublies.slice(0, 20).map((avis) => ({
+      id: avis.id,
+      note: avis.note,
+      commentaire: avis.commentaire,
+      publieLe: avis.publieLe,
+    })),
     langue,
     template,
     canonical,
@@ -139,6 +162,16 @@ export const actions: Actions = {
         logementId,
         source: texte("source") || "site",
       });
+      const consentement = lireConsentementRequete(event);
+      if (consentement && (await suiviActifPourTenant(tenant.id))) {
+        await enregistrerEvenementSuivi(event, tenant.id, consentement, {
+          type: "conversion",
+          nom: "demande_sejour",
+          page: event.url.pathname,
+          referrer: event.request.headers.get("referer"),
+          metadata: { ref: demande.ref, dejaEnregistree },
+        });
+      }
       return {
         ok: true,
         dejaEnregistree,

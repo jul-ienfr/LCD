@@ -3,6 +3,8 @@ import { ErreurMetier } from "./erreurs";
 import type { CanalFil } from "./fil-voyageur";
 import { canalValide } from "./fil-voyageur";
 
+export type { CanalFil };
+
 export type DeclencheurAutomatisation =
   | "reservation_creee"
   | "paiement_recu"

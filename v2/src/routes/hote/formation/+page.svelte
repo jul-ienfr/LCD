@@ -1,48 +1,50 @@
 <script lang="ts">
+  import { traductionsConformite } from "@/lib/i18n-conformite";
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
+  const t = $derived(traductionsConformite((data as { langue?: string }).langue ?? "fr"));
 </script>
 
 <svelte:head>
-  <title>{data.t.fTitrePage}</title>
+  <title>{t.fTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-5xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-5xl space-y-8 px-6 py-12">
   <PageEntete
-    surtitre={data.t.fSurtitre}
-    titre={data.t.fTitre}
-    description={data.t.fDescription}
+    surtitre={t.fSurtitre}
+    titre={t.fTitre}
+    description={t.fDescription}
   />
 
   <section class="ui-carte">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h2 class="text-lg font-semibold">{data.t.fProgression}</h2>
+      <h2 class="text-lg font-semibold">{t.fProgression}</h2>
       <p class="text-sm font-medium" aria-live="polite">
-        {data.t.fResume(data.globale.faites, data.globale.total, data.globale.pourcentage)}
+        {t.fResume(data.globale.faites, data.globale.total, data.globale.pourcentage)}
       </p>
     </div>
     <div aria-hidden="true" class="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-2">
       <div class="h-full rounded-full bg-accent" style={`width: ${data.globale.pourcentage}%`}></div>
     </div>
     {#if data.globale.total > 0 && data.globale.faites === data.globale.total}
-      <p class="mt-3 text-sm font-medium text-accent">{data.t.fComplet}</p>
+      <p class="mt-3 text-sm font-medium text-accent">{t.fComplet}</p>
     {:else}
       <p class="mt-3 text-sm text-encre-douce">
-        {data.t.fAide}
+        {t.fAide}
       </p>
     {/if}
   </section>
 
   {#if data.ok}
     <p class="ui-alerte ui-alerte--ok">
-      {data.t.fOk(data.module, data.pourcentage)}
+      {t.fOk(data.module, data.pourcentage)}
     </p>
   {/if}
   {#if data.erreur}
     <p class="ui-alerte ui-alerte--danger">
-      {data.erreur === "inattendu" ? data.t.erreurInattendue : data.erreur}
+      {data.erreur === "inattendu" ? t.erreurInattendue : data.erreur}
     </p>
   {/if}
 
@@ -55,7 +57,7 @@
             <p class="mt-1 max-w-2xl text-sm text-encre-douce">{module.description}</p>
           </div>
           <span class={module.avancement.termine ? "ui-badge ui-badge--accent" : "ui-badge"}>
-            {module.avancement.termine ? data.t.termine : `${module.avancement.faites} / ${module.avancement.total}`}
+            {module.avancement.termine ? t.termine : `${module.avancement.faites} / ${module.avancement.total}`}
           </span>
         </div>
 
@@ -68,7 +70,7 @@
           <ul class="grid gap-2 sm:grid-cols-2">
             {#each module.etapes as etape (etape.code)}
               <li>
-                <label class="flex cursor-pointer gap-3 rounded-xl border border-bordure p-3 text-sm">
+                <label class="flex min-h-11 min-w-11 cursor-pointer gap-3 rounded-xl border border-bordure p-3 text-sm">
                   <input defaultChecked={etape.fait} class="mt-1" name={`etape-${etape.code}`} type="checkbox" />
                   <span>
                     <span class="font-medium">{etape.titre}</span>
@@ -79,8 +81,8 @@
             {/each}
           </ul>
           <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p class="text-xs text-encre-faine">{data.t.pourcentageModule(module.avancement.pourcentage)}</p>
-            <button class="ui-bouton ui-bouton--secondaire" type="submit">{data.t.enregistrerProgression}</button>
+            <p class="text-xs text-encre-faine">{t.pourcentageModule(module.avancement.pourcentage)}</p>
+            <button class="ui-bouton ui-bouton--secondaire" type="submit">{t.enregistrerProgression}</button>
           </div>
         </form>
       </section>

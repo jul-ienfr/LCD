@@ -11,7 +11,7 @@
   <title>{t.titrePageListe}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-10">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-10">
   <header class="ui-entete space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
       {t.espaceExploitation}
@@ -140,7 +140,8 @@
           {t.aucunMenage}
         </p>
       {:else}
-        <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
           <table class="ui-tableau min-w-[720px]">
             <thead>
               <tr>
@@ -166,7 +167,7 @@
                   <td>{menage.score}</td>
                   <td>{menage.cout}</td>
                   <td>{menage.duree}</td>
-                  <td><a class="ui-lien text-xs" href={`/hote/menage/${menage.id}`}>{t.ouvrir}</a></td>
+                  <td><a class="ui-lien-action text-xs" href={`/hote/menage/${menage.id}`}>{t.ouvrir}</a></td>
                 </tr>
               {/each}
             </tbody>

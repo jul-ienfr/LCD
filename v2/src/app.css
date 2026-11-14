@@ -1,5 +1,31 @@
 @import "tailwindcss";
 
+/**
+ * Police de repli à métriques Inter.
+ *
+ * Les thèmes chargent `Inter Variable` avec `font-display: swap` : pendant le
+ * téléchargement, le navigateur rend le texte avec la police système, dont les
+ * métriques diffèrent d'environ 7 %. Au basculement, les libellés de la
+ * navigation changent de largeur — et si l'en-tête est à la limite d'un retour
+ * à la ligne, il gagne une ligne, ce qui décale tout le contenu (CLS 0,29
+ * mesuré sur `/voyageur` en mobile le 2026-11-13). `size-adjust` et les
+ * overrides de métriques rendent le repli quasi identique à Inter : le
+ * basculement ne déplace plus rien (CLS 0,001 après correction).
+ */
+@font-face {
+  font-family: "Inter repli";
+  src:
+    local("Arial"),
+    local("Helvetica"),
+    local("Liberation Sans"),
+    local("Segoe UI");
+  size-adjust: 107%;
+  ascent-override: 90%;
+  descent-override: 22.43%;
+  line-gap-override: 0%;
+  font-display: swap;
+}
+
 @theme inline {
   --color-fond: var(--fond);
   --color-surface: var(--surface);
@@ -44,14 +70,14 @@
   --bordure: #e2e5ec;
   --encre: #131722;
   --encre-douce: #3f4756;
-  --encre-faine: #69707f;
+  --encre-faine: #5f6673;
   --accent: #0e7c6b;
   --accent-fonce: #0a5f52;
   --accent-douce: #ddf2ec;
   --sur-accent: #ffffff;
-  --ok: #15803d;
+  --ok: #127334;
   --ok-douce: #dcf2e4;
-  --alerte: #b45309;
+  --alerte: #92400e;
   --alerte-douce: #fdefd8;
   --danger: #b91c1c;
   --danger-douce: #fbe3e3;
@@ -76,6 +102,21 @@
   --espace-section: 2rem;
   --espace-carte: 1.5rem;
   --hauteur-controle: 2.75rem;
+  --largeur-lecture: 68ch;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --bordure-largeur: 2px;
+  }
+
+  .ui-carte,
+  .ui-champ,
+  .ui-bouton,
+  .ui-alerte,
+  .ui-badge {
+    border-color: currentColor;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -220,6 +261,32 @@ samp {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 0.5rem;
+}
+
+.lien-evitement {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  border-radius: 0 0 0.75rem 0;
+  background: var(--accent);
+  color: var(--sur-accent);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-120%);
+  transition: transform 150ms ease;
+}
+
+.lien-evitement:focus,
+.lien-evitement:focus-visible {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lien-evitement {
+    transition: none;
+  }
 }
 
 @layer components {
@@ -390,7 +457,7 @@ samp {
   }
 
   .ui-bouton--petit {
-    min-height: 2.25rem;
+    min-height: var(--hauteur-controle);
     padding: 0.35rem 0.8rem;
     font-size: 0.8125rem;
   }
@@ -441,7 +508,7 @@ samp {
 
   .ui-badge--accent {
     background: var(--accent-douce);
-    color: var(--accent);
+    color: var(--accent-fonce);
   }
 
   .ui-badge--ok {
@@ -503,7 +570,7 @@ samp {
 
   .ui-etiquette-ui:hover {
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--accent-fonce);
   }
 
   .ui-champ-groupe {
@@ -512,7 +579,8 @@ samp {
     gap: 0.4rem;
   }
 
-  .ui-alerte--alerte {
+  .ui-alerte--alerte,
+  .ui-alerte--attention {
     background: var(--alerte-douce);
     border-color: var(--alerte);
     color: var(--alerte);
@@ -522,6 +590,48 @@ samp {
     background: var(--danger-douce);
     border-color: var(--danger);
     color: var(--danger);
+  }
+
+  /* --- Échelle typographique, lecture et cibles (plan 004, T025) --- */
+
+  .ui-titre-1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .ui-titre-2 {
+    font-size: clamp(1.5rem, 3.2vw, 2rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .ui-titre-3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .ui-lecture {
+    max-width: var(--largeur-lecture);
+  }
+
+  .ui-cible {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--hauteur-controle);
+    min-height: var(--hauteur-controle);
+  }
+
+  .ui-safe-bas {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .ui-safe-haut {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
   }
 
   .ui-nav {
@@ -538,7 +648,7 @@ samp {
   .ui-nav-lien {
     display: inline-flex;
     align-items: center;
-    min-height: 2.25rem;
+    min-height: var(--hauteur-controle);
     padding: 0.35rem 0.9rem;
     border-radius: var(--rayon-bouton);
     color: var(--encre-douce);
@@ -573,6 +683,12 @@ samp {
     border-radius: 0;
     padding: 0.65rem 0;
     border-bottom: 2px solid transparent;
+    /* Le thème « souligné » retire le rembourrage horizontal : sans largeur
+       minimale, « Aide » ne fait plus que 31 px de large et passe sous la
+       cible tactile de 44 px (constat de l'audit à 320 px). La largeur est
+       sûre depuis que la police de repli a les métriques d'Inter. */
+    min-width: var(--hauteur-controle);
+    justify-content: center;
   }
 
   [data-nav="souligne"] .ui-nav-lien:hover {
@@ -747,6 +863,9 @@ samp {
   }
 
   .ui-menu-lien {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--hauteur-controle);
     padding: 0.45rem 0.6rem;
     border-radius: 0.5rem;
     color: var(--encre-douce);
@@ -769,6 +888,46 @@ samp {
 
   .ui-lien:hover {
     color: var(--accent-fonce);
+  }
+
+  /**
+   * Lien d'action isolé dans une ligne de tableau ou une liste (et non lien
+   * inline au fil d'une phrase, que WCAG 2.2 dispense de la cible minimale).
+   *
+   * Mesuré le 2026-11-13 sur `/supervision` : `.ui-lien` donnait une cible de
+   * 64 × 17 px, très en dessous des 44 px du projet — et sous les 24 × 24 px du
+   * critère WCAG 2.2 AA « Target Size (Minimum) ». Le contrôle prend donc la
+   * hauteur de contrôle commune, sans changer la densité des tableaux.
+   */
+  .ui-lien-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--hauteur-controle);
+    min-height: var(--hauteur-controle);
+    padding-inline: 0.75rem;
+    border-radius: var(--rayon-controle);
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .ui-lien-action:hover {
+    color: var(--accent-fonce);
+    background: var(--surface-2);
+  }
+
+  /**
+   * Résumé de `<details>` : c'est un contrôle (ouvrir/fermer), pas un lien au
+   * fil d'une phrase. Mesuré le 2026-11-13 : 238 × 16 px sur `/hote/audit`,
+   * loin des 44 px du projet et sous les 24 px du critère WCAG 2.2 AA.
+   */
+  .ui-details {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: var(--hauteur-controle);
+    cursor: pointer;
   }
 }
 
@@ -844,4 +1003,103 @@ samp {
 
 .cookies-bandeau p {
   max-width: 60ch;
+}
+
+/*
+ * Hors couche (prime sur les utilitaires Tailwind) : le texte d'une puce ou
+ * d'un filtre actif utilise `--accent-fonce`, seul jeton garanti au-dessus de
+ * 4,5:1 sur `--accent-douce`. Corrige les violations `color-contrast` d'axe
+ * relevées en T080 (`text-accent` sur `bg-accent-douce`).
+ */
+.ui-etiquette.bg-accent-douce,
+.ui-puce-active {
+  border-color: var(--accent);
+  background: var(--accent-douce);
+  color: var(--accent-fonce);
+}
+
+.ui-puce-active {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--hauteur-controle);
+  padding: 0.25rem 1rem;
+  border: var(--bordure-largeur) solid var(--accent);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Puce de filtre inactive : même cible de 44 px, style neutre. */
+.ui-puce {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--hauteur-controle);
+  padding: 0.25rem 1rem;
+  border: var(--bordure-largeur) solid var(--bordure);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--encre-douce);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.ui-puce:hover {
+  border-color: var(--accent);
+  color: var(--accent-fonce);
+}
+
+/* --- Garde-fous de débordement -------------------------------------------
+   Un jeton technique (chemin de fichier, commande, URL) ne doit jamais
+   provoquer de défilement horizontal à 320 px : la coupure est autorisée, et
+   les blocs de code peuvent défiler dans leur propre cadre. La règle est
+   volontairement hors de @layer components (les utilitaires Tailwind
+   gardent la priorité). */
+code,
+samp,
+kbd {
+  overflow-wrap: anywhere;
+}
+
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  max-width: 100%;
+}
+
+/* --- Cibles tactiles des étiquettes cliquables ---------------------------
+   La même classe sert de badge non interactif (span.ui-etiquette) et de
+   filtre/choix cliquable (.ui-etiquette-ui). Seuls les éléments
+   réellement interactifs reçoivent la taille de cible de 44 px : un badge
+   reste compact, un filtre ne se rate jamais au doigt. Hors @layer pour
+   primer sur les utilitaires. */
+a.ui-etiquette,
+a.ui-etiquette-ui,
+button.ui-etiquette,
+button.ui-etiquette-ui,
+summary.ui-etiquette,
+summary.ui-etiquette-ui {
+  min-height: var(--hauteur-controle);
+  min-width: var(--hauteur-controle);
+  padding-inline: 0.75rem;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Liens de navigation : cibles de 44 px -------------------------------
+   Un lien enfant direct d'un <nav> est un contrôle de navigation (pied de
+   page d'écran, raccourcis), pas une phrase : il doit être atteignable au
+   doigt. Les liens dans un paragraphe, une liste ou un fil d'Ariane restent
+   des liens de texte et gardent leur hauteur naturelle (exception
+   « inline » de WCAG 2.5.8). */
+nav > a.ui-lien,
+nav > a.ui-lien:visited {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hauteur-controle);
 }

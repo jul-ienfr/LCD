@@ -1,38 +1,41 @@
 <script lang="ts">
+  import { traductionsConformite } from "@/lib/i18n-conformite";
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import Carte from "@/lib/components/ui/carte.svelte";
   import EtatVide from "@/lib/components/ui/etat-vide.svelte";
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
+  const t = $derived(traductionsConformite((data as { langue?: string }).langue ?? "fr"));
 </script>
 
 <svelte:head>
-  <title>{data.t.pTitrePage}</title>
+  <title>{t.pTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-12">
+<main id="contenu" class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-12">
   <PageEntete
-    surtitre={data.t.pSurtitre}
-    titre={data.t.pTitre}
-    description={data.t.pDescription}
+    surtitre={t.pSurtitre}
+    titre={t.pTitre}
+    description={t.pDescription}
   />
 
-  <Carte titre={data.t.pConservees(data.fiches.length)}>
+  <Carte titre={t.pConservees(data.fiches.length)}>
     {#if data.fiches.length === 0}
-      <EtatVide message={data.t.pAucune} />
+      <EtatVide message={t.pAucune} />
     {:else}
-      <div class="mt-4 overflow-x-auto">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau défilant" class="mt-4 overflow-x-auto">
         <table class="ui-tableau min-w-[720px]">
           <thead>
             <tr>
-              <th>{data.t.colSejour}</th>
-              <th>{data.t.colLogement}</th>
-              <th>{data.t.colPersonne}</th>
-              <th>{data.t.colNaissance}</th>
-              <th>{data.t.colContact}</th>
-              <th>{data.t.colRecue}</th>
-              <th>{data.t.colPurge}</th>
+              <th>{t.colSejour}</th>
+              <th>{t.colLogement}</th>
+              <th>{t.colPersonne}</th>
+              <th>{t.colNaissance}</th>
+              <th>{t.colContact}</th>
+              <th>{t.colRecue}</th>
+              <th>{t.colPurge}</th>
             </tr>
           </thead>
           <tbody>
@@ -61,7 +64,7 @@
       </div>
     {/if}
     <p class="mt-4 text-xs text-encre-faine">
-      {data.t.pNote}
+      {t.pNote}
     </p>
   </Carte>
 </main>

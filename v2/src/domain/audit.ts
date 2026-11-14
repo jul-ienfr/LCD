@@ -8,6 +8,7 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "commande_extra.statut": "Commande extra mise à jour",
   "design.site": "Design du site modifié",
   "extra.creer": "Extra créé",
+  "demande_extra.decider": "Demande d'extra décidée",
   "entite.mettre_a_jour": "Entité juridique mise à jour",
   "facture.creer": "Facture créée",
   "facture.email": "Facture envoyée",
@@ -91,6 +92,11 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "message.envoyer": "Message voyageur envoyé",
   "preferences.enregistrer": "Préférences de séjour enregistrées",
   "acces.revoquer": "Session révoquée",
+  "serrure.code_creer": "Code d'accès Nuki créé",
+  "serrure.code_revoquer": "Code d'accès Nuki révoqué",
+  "api.appel": "Appel API authentifié",
+  "api.cle_creer": "Clé API créée",
+  "api.cle_revoquer": "Clé API révoquée",
   "menage.evaluer": "Rotation de ménage évaluée",
   "assistant.enregistrer": "Brouillon assistant enregistré",
   "tranquillite.preuve": "Preuve de tranquillité enregistrée",
@@ -106,6 +112,11 @@ const LIBELLES_ACTION_AUDIT: Record<string, string> = {
   "utilisateur.role": "Rôle modifié",
   "webhook.enregistrer": "Webhook enregistré",
   "webhook.supprimer": "Webhook supprimé",
+  "integration.nuki_activer": "Intégration Nuki activée",
+  "integration.nuki_desactiver": "Intégration Nuki désactivée",
+  "import.csv": "Import CSV exécuté",
+  "reservation.test_creer": "Réservation test créée",
+  "reservation.test_annuler": "Réservation test annulée",
 };
 
 export function libelleActionAudit(action: string): string {

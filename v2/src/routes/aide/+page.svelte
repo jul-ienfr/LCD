@@ -1,75 +1,161 @@
+<script lang="ts">
+  /**
+   * Centre d'aide public (T042 traduction, T043 SEO).
+   *
+   * Cinq langues, aucun JavaScript (`+page.ts` : `csr = false`), structure
+   * stable : les tableaux des rôles et des espaces gardent le même ordre dans
+   * toutes les langues, seuls les libellés changent.
+   */
+  import type { PageData } from "./$types";
+  import { page } from "$app/state";
+  import { LANGUES } from "@/lib/i18n";
+  import { traductionsAide } from "@/lib/i18n/public/aide";
+  import EntetePublique from "@/lib/components/entete-publique.svelte";
+  import FilAriane from "@/lib/components/ui/fil-ariane.svelte";
+
+  let { data }: { data: PageData } = $props();
+
+  const identite = $derived(data.apparence.identite);
+  const t = $derived(traductionsAide(data.langue));
+
+  const canonique = $derived(
+    new URL(page.url.pathname, page.url.origin).toString(),
+  );
+  const accueil = $derived(new URL("/", page.url.origin).toString());
+  const titre = $derived(t.metaTitre.replace("{nom}", () => identite.nom));
+
+  /** Données structurées : page d'aide + fil d'Ariane, rien d'inventé. */
+  const donneesStructurees = $derived(
+    JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: titre,
+      description: t.metaDescription,
+      url: canonique,
+      inLanguage: data.langue,
+      isPartOf: {
+        "@type": "WebSite",
+        name: identite.nom,
+        url: accueil,
+      },
+      breadcrumb: {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: t.accueil,
+            item: accueil,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: t.aide,
+            item: canonique,
+          },
+        ],
+      },
+    }).replace(/</g, "\\u003c"),
+  );
+</script>
+
 <svelte:head>
-  <title>Aide — LCD Parc</title>
-  <meta
-    name="description"
-    content="Rôles, espaces, fonctionnement hors ligne et limites connues de la plateforme LCD."
-  />
+  <title>{titre}</title>
+  <meta name="description" content={t.metaDescription} />
+  <link rel="canonical" href={canonique} />
+  {#each LANGUES as code (code)}
+    <link rel="alternate" hreflang={code} href={`${canonique}?lang=${code}`} />
+  {/each}
+  <link rel="alternate" hreflang="x-default" href={canonique} />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content={identite.nom} />
+  <meta property="og:title" content={titre} />
+  <meta property="og:description" content={t.metaDescription} />
+  <meta property="og:url" content={canonique} />
+  <meta property="og:locale" content={t.locale.replace("-", "_")} />
+  {@html `<script type="application/ld+json">${donneesStructurees}</script>`}
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-12">
+<EntetePublique
+  nom={identite.nom}
+  logoUrl={identite.logoUrl}
+  langue={data.langue}
+  liens={[{ href: "/reserver", libelle: t.piedReserver }]}
+/>
+
+<main
+  id="contenu"
+  class="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-12"
+>
+  <FilAriane
+    libelle={t.filAriane}
+    elements={[
+      { libelle: t.accueil, href: "/" },
+      { libelle: t.aide },
+    ]}
+  />
+
   <header class="space-y-3">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
-      Centre d’aide
+      {t.surtitre}
     </p>
-    <h1 class="text-3xl font-semibold tracking-tight">
-      Comment fonctionne la plateforme
-    </h1>
-    <p class="max-w-2xl text-encre-douce">
-      Un seul système pour l’hôte, le voyageur, le propriétaire et le
-      prestataire. Les pages publiques et l’espace voyageur restent consultables
-      sans JavaScript ; les formulaires sont de vrais formulaires HTML.
-    </p>
+    <h1 class="text-3xl font-semibold tracking-tight">{t.titre}</h1>
+    <p class="max-w-2xl text-encre-douce">{t.intro}</p>
   </header>
 
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">Les 7 rôles</h2>
-    <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+  <section class="space-y-3" aria-labelledby="tit-roles">
+    <h2 id="tit-roles" class="text-xl font-semibold">{t.rolesTitre}</h2>
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div 
+      class="overflow-x-auto rounded-carte border border-bordure bg-surface"
+      role="region"
+      tabindex="0"
+      aria-labelledby="tit-roles"
+    >
       <table class="ui-tableau">
         <thead>
-          <tr><th>Rôle</th><th>Accès</th></tr>
+          <tr>
+            {#each t.rolesEntetes as entete (entete)}
+              <th>{entete}</th>
+            {/each}
+          </tr>
         </thead>
         <tbody>
-          {#each [
-            ["Super-administrateur", "Apparence globale, supervision de la plateforme et journal d’audit, en plus des droits d’administration."],
-            ["Administrateur", "Paramétrage de l’établissement, utilisateurs, sécurité, intégrations, facturation et pilotage complet."],
-            ["Hôte", "Logements, planning, prix, ménage, messages, avis, états des lieux et opérations du quotidien."],
-            ["Comptable", "Factures, paiements, exports comptables et paramètres fiscaux, sans accès aux autres modules."],
-            ["Prestataire", "Missions assignées, pointage, photos avant/après et clôture des interventions."],
-            ["Propriétaire", "Relevé de ses logements, charges, commissions et documents, en lecture seule."],
-            ["Commercial", "Prospects, pipeline, simulateur de rentabilité et offres, sans accès à l’exploitation."]
-          ] as [role, acces]}
-            <tr><td class="font-medium">{role}</td><td class="text-encre-douce">{acces}</td></tr>
+          {#each t.roles as ligne (ligne.role)}
+            <tr>
+              <td class="font-medium">{ligne.role}</td>
+              <td class="text-encre-douce">{ligne.acces}</td>
+            </tr>
           {/each}
         </tbody>
       </table>
     </div>
-    <p class="text-sm text-encre-douce">
-      Un utilisateur peut cumuler plusieurs rôles. Les droits sont revérifiés à
-      chaque action côté serveur, pas seulement à l’affichage.
-    </p>
+    <p class="text-sm text-encre-douce">{t.rolesNote}</p>
   </section>
 
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">Les espaces</h2>
-    <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+  <section class="space-y-3" aria-labelledby="tit-espaces">
+    <h2 id="tit-espaces" class="text-xl font-semibold">{t.espacesTitre}</h2>
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div 
+      class="overflow-x-auto rounded-carte border border-bordure bg-surface"
+      role="region"
+      tabindex="0"
+      aria-labelledby="tit-espaces"
+    >
       <table class="ui-tableau">
         <thead>
-          <tr><th>Adresse</th><th>Rôles</th><th>Contenu</th></tr>
+          <tr>
+            {#each t.espacesEntetes as entete (entete)}
+              <th>{entete}</th>
+            {/each}
+          </tr>
         </thead>
         <tbody>
-          {#each [
-            ["/hote", "Administrateur, hôte", "Tableau de bord : indicateurs, arrivées et départs, tâches du jour, raccourcis."],
-            ["/hote/logements", "Administrateur, hôte", "Fiches logements, équipements, accès, propriétaires et conformité des annonces."],
-            ["/hote/planning", "Administrateur, hôte", "Calendrier des séjours, blocages, imports ICS et résolution des conflits."],
-            ["/hote/menage", "Administrateur, hôte, prestataire", "Ménages à faire, checklists, preuves photo, temps pointé et clôture."],
-            ["/reserver", "Public", "Demande de réservation directe, devis et disponibilités."],
-            ["/voyageur", "Voyageur (lien signé)", "Guide du séjour, accès, messages, incidents et questionnaire de départ, sans compte."],
-            ["/supervision/apparence", "Super-administrateur", "Thème global unique, identité, aperçu signé, publication et retour arrière."]
-          ] as [chemin, roles, contenu]}
+          {#each t.espaces as ligne (ligne.chemin)}
             <tr>
-              <td class="font-mono text-xs">{chemin}</td>
-              <td class="text-encre-douce">{roles}</td>
-              <td class="text-encre-douce">{contenu}</td>
+              <td class="font-mono text-xs">{ligne.chemin}</td>
+              <td class="text-encre-douce">{ligne.roles}</td>
+              <td class="text-encre-douce">{ligne.contenu}</td>
             </tr>
           {/each}
         </tbody>
@@ -77,53 +163,41 @@
     </div>
   </section>
 
-  <section class="ui-carte space-y-3">
-    <h2 class="text-xl font-semibold">Hors ligne et vieux téléphones</h2>
-    <p class="text-sm text-encre-douce">
-      L’espace voyageur et les pages publiques sont rendus côté serveur : ils
-      s’affichent sans JavaScript et sans installation. Une fois la page ouverte,
-      le contenu déjà chargé reste consultable si le réseau tombe ; les écritures
-      rejouables sont mises en file avec une référence stable pour éviter les
-      doublons au retour du réseau.
-    </p>
-    <p class="text-sm text-encre-douce">
-      Les documents sensibles (contrats, factures, liens voyageur) reposent sur
-      des liens signés à durée limitée : ne les transférez pas à des tiers.
-    </p>
+  <section class="ui-carte space-y-3" aria-labelledby="tit-hors-ligne">
+    <h2 id="tit-hors-ligne" class="text-xl font-semibold">
+      {t.horsLigneTitre}
+    </h2>
+    <p class="text-sm text-encre-douce">{t.horsLigneTexte1}</p>
+    <p class="text-sm text-encre-douce">{t.horsLigneTexte2}</p>
   </section>
 
-  <section class="ui-carte space-y-3">
-    <h2 class="text-xl font-semibold">Ce qui est réel — et les limites</h2>
+  <section class="ui-carte space-y-3" aria-labelledby="tit-limites">
+    <h2 id="tit-limites" class="text-xl font-semibold">{t.limitesTitre}</h2>
     <ul class="list-disc space-y-1 pl-5 text-sm text-encre-douce">
-      <li>
-        Les réservations, contrats, factures, paiements, ménages et incidents sont
-        enregistrés en base et tracés dans le journal d’audit.
-      </li>
-      <li>
-        Aucune écriture n’est envoyée automatiquement aux plateformes de
-        réservation : les calendriers ICS sont importés en lecture seule et les
-        conflits sont signalés.
-      </li>
-      <li>
-        Aucun encaissement de carte bancaire n’est réalisé par la plateforme : les
-        cautions et paiements sont suivis, pas débités.
-      </li>
-      <li>
-        L’envoi d’e-mails dépend de la configuration de l’établissement ; il peut
-        être désactivé.
-      </li>
-      <li>
-        L’instance est mono-établissement et n’utilise pas encore de canal de
-        synchronisation bidirectionnel avec les OTA.
-      </li>
+      {#each t.limites as limite (limite)}
+        <li>{limite}</li>
+      {/each}
     </ul>
   </section>
 
-  <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-bordure pt-4 text-sm text-encre-faine">
+  <footer
+    class="flex flex-wrap items-center justify-between gap-3 border-t border-bordure pt-4 text-sm text-encre-faine"
+  >
     <div class="flex flex-wrap gap-4">
-      <a class="ui-lien" href="/legales">Mentions légales &amp; CGV</a>
-      <a class="ui-lien" href="/reserver">Réserver un séjour</a>
+      <a class="ui-lien-action inline-flex min-h-11 items-center" href="/legales"
+        >{t.piedMentions}</a
+      >
+      <a class="ui-lien-action inline-flex min-h-11 items-center" href="/reserver"
+        >{t.piedReserver}</a
+      >
+      <a
+        class="ui-lien-action inline-flex min-h-11 items-center"
+        href="/retour?parcours=P-RESA"
+        >{t.piedAvis}</a
+      >
     </div>
-    <a class="ui-lien" href="/">Retour à l’accueil</a>
+    <a class="ui-lien-action inline-flex min-h-11 items-center" href="/"
+      >{t.retourAccueil}</a
+    >
   </footer>
 </main>

@@ -1,3 +1,11 @@
+/** Avis publié exposé au site public (T609). */
+export interface AvisPublieSite {
+  id: string;
+  note: number | null;
+  commentaire: string | null;
+  publieLe: string | null;
+}
+
 export function texte(
   contenu: Record<string, unknown>,
   cle: string,

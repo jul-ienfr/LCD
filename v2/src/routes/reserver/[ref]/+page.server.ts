@@ -1,12 +1,25 @@
 import { fail, redirect } from "@sveltejs/kit";
+import { ObtenirParametresFiscaux } from "@/application/use-cases/parametres-fiscaux";
+import { dateIsoValide, nuitsEntre } from "@/domain/calendrier";
+import { montantTaxeSejour } from "@/domain/fiscal";
 import { creerPaiementStripe } from "@/infrastructure/adapters/paiement-stripe";
 import { DrizzleEcheancesPaiementRepository } from "@/infrastructure/db/repositories/echeances-paiement-repository";
+import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzleParametresFiscauxRepository } from "@/infrastructure/db/repositories/parametres-fiscaux-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant-repository";
 import { formaterEuros } from "@/lib/format";
 import { env } from "@/lib/env";
 import { logErreur } from "@/lib/logger";
+import {
+  enregistrerEvenementSuivi,
+  lireConsentementRequete,
+  suiviActifPourTenant,
+} from "@/lib/server/suivi";
 import type { Actions, PageServerLoad } from "./$types";
+
+/** Motif d'indisponibilité : la page le traduit, le serveur ne fige pas de texte. */
+export type MotifIntrouvable = "lien" | "site" | "introuvable";
 
 const LIBELLES: Record<string, string> = {
   acompte: "Acompte",
@@ -22,12 +35,12 @@ export const load: PageServerLoad = async ({ params, url }) => {
   const slug = (url.searchParams.get("tenant") ?? "").trim();
   const ref = params.ref?.trim() ?? "";
   if (!slug) {
-    return { introuvable: true as const, ref, message: "Lien incomplet." };
+    return { introuvable: true as const, ref, motif: "lien" as const };
   }
 
   const tenant = await new DrizzleTenantRepository().trouverParSlug(slug);
   if (!tenant || tenant.statut !== "actif") {
-    return { introuvable: true as const, ref, message: "Site indisponible." };
+    return { introuvable: true as const, ref, motif: "site" as const };
   }
 
   const reservation = await new DrizzleReservationRepository().trouverParRef(
@@ -35,15 +48,33 @@ export const load: PageServerLoad = async ({ params, url }) => {
     ref,
   );
   if (!reservation) {
-    return {
-      introuvable: true as const,
-      ref,
-      message: "Cette réservation est introuvable.",
-    };
+    return { introuvable: true as const, ref, motif: "introuvable" as const };
   }
 
   const echeances = await new DrizzleEcheancesPaiementRepository()
     .listerParReservation(tenant.id, reservation.id);
+
+  // Rappel logement et taxe de séjour : uniquement des données du serveur.
+  const logement = await new DrizzleLogementRepository().trouverParId(
+    tenant.id,
+    reservation.logementId,
+  );
+  const nuits =
+    dateIsoValide(reservation.debut) && dateIsoValide(reservation.fin)
+      ? Math.max(0, nuitsEntre(reservation.debut, reservation.fin))
+      : 0;
+  const fiscal = await new ObtenirParametresFiscaux(
+    new DrizzleParametresFiscauxRepository(),
+  ).executer(tenant.id);
+  const taxeCentimes =
+    fiscal.taxeSejourNuitPersonneCentimes > 0 && nuits > 0
+      ? montantTaxeSejour({
+          nuits,
+          voyageurs: reservation.voyageurs,
+          taxeSejourNuitPersonneCentimes: fiscal.taxeSejourNuitPersonneCentimes,
+          taxeSejourPlafondCentimes: fiscal.taxeSejourPlafondCentimes,
+        })
+      : 0;
 
   return {
     introuvable: false as const,
@@ -56,8 +87,20 @@ export const load: PageServerLoad = async ({ params, url }) => {
       debut: reservation.debut,
       fin: reservation.fin,
       voyageurs: reservation.voyageurs,
+      nuits,
       montant: formaterEuros(reservation.montantCentimes),
+      logement: logement?.nom ?? null,
+      adresse: logement?.adresse ?? null,
+      statut: reservation.statut,
+      confirme:
+        reservation.statut === "confirmee" ||
+        reservation.statut === "en_sejour" ||
+        reservation.statut === "terminee",
     },
+    taxe:
+      taxeCentimes > 0
+        ? { montant: formaterEuros(taxeCentimes), montantCentimes: taxeCentimes }
+        : null,
     echeances: echeances.map((echeance) => ({
       id: echeance.id,
       type: echeance.type,
@@ -73,7 +116,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
 };
 
 export const actions = {
-  payer: async ({ params, url, request }) => {
+  payer: async (event) => {
+    const { params, url, request } = event;
     const donnees = await request.formData();
     const slug = String(donnees.get("tenant") ?? "").trim();
     const echeanceId = String(donnees.get("echeance") ?? "").trim();
@@ -118,6 +162,16 @@ export const actions = {
           reservation_id: reservation.id,
         },
       });
+      const consentement = lireConsentementRequete(event);
+      if (consentement && (await suiviActifPourTenant(tenant.id))) {
+        await enregistrerEvenementSuivi(event, tenant.id, consentement, {
+          type: "conversion",
+          nom: "paiement_initie",
+          page: url.pathname,
+          valeurCentimes: echeance.montantCentimes,
+          metadata: { ref, echeance: echeance.type },
+        });
+      }
       redirect(303, session.url);
     } catch (erreur) {
       if (erreur instanceof Response) throw erreur;

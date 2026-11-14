@@ -12,7 +12,7 @@
   <title>{t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-10">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-10">
   <header class="ui-entete space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
       {t.espace}
@@ -191,14 +191,6 @@
             {t.creation(data.creation.ref, data.creation.debut, data.creation.fin)}
           </p>
         {/if}
-        {#if form?.message}
-          <p
-            class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"}
-            role="status"
-          >
-            {form.message}
-          </p>
-        {/if}
 
         <button class="ui-bouton ui-bouton--primaire" type="submit">
           {t.creer}
@@ -206,7 +198,14 @@
       </form>
     </section>
 
-    <section class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+    <!-- `section` nommée = déjà une région : seul `tabindex` est nécessaire
+         pour rendre le défilement horizontal accessible au clavier. -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <section 
+      class="overflow-x-auto rounded-carte border border-bordure bg-surface"
+      tabindex="0"
+      aria-label={t.titre(data.moisLabel)}
+    >
       <table class="w-full min-w-[760px] border-collapse text-sm">
         <thead>
           <tr class="border-b border-bordure bg-fond">
@@ -271,10 +270,10 @@
                 {reservation.debut} → {reservation.fin} · {t.nuits(reservation.nuits)} · {t.voyageurCount(reservation.voyageurs)} · {reservation.montant}
               </p>
               <div class="flex flex-wrap gap-3 text-sm">
-                <a class="ui-lien" href={reservation.lienVoyageur} target="_blank" rel="noreferrer">
+                <a class="ui-lien-action" href={reservation.lienVoyageur} target="_blank" rel="noreferrer">
                   {t.lienVoyageur}
                 </a>
-                <a class="ui-lien" href={reservation.lienContrat} target="_blank" rel="noreferrer">
+                <a class="ui-lien-action" href={reservation.lienContrat} target="_blank" rel="noreferrer">
                   {t.contrat}
                 </a>
               </div>

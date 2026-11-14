@@ -33,7 +33,7 @@
   <title>Système — Supervision</title>
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-12">
+<main id="contenu" class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-12">
   <NavSuperAdmin actif="/systeme" />
 
   <header class="space-y-2">

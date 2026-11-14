@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { formaterDureeChrono } from "@/domain/chrono-onboarding";
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
@@ -8,7 +9,7 @@
   <title>{data.t.oTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-4xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-4xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
@@ -16,8 +17,13 @@
       </p>
       <h1 class="text-3xl font-semibold tracking-tight">{data.t.oTitre}</h1>
       <p class="max-w-2xl text-encre-douce">{data.t.oDescription}</p>
+      <nav class="flex flex-wrap gap-4 text-sm">
+        <a class="inline-flex min-h-11 items-center underline" href="/hote/import">Importer un CSV</a>
+        <a class="inline-flex min-h-11 items-center underline" href="/hote/onboarding/reservation-test">Réservation test</a>
+        <a class="inline-flex min-h-11 items-center underline" href="/aide">Centre d'aide</a>
+      </nav>
     </div>
-    <a class="text-sm underline" href="/hote">{data.t.retour}</a>
+    <a class="inline-flex min-h-11 items-center text-sm underline" href="/hote">{data.t.retour}</a>
   </header>
 
   {#if data.copro}
@@ -69,10 +75,10 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 class="text-lg font-semibold">
-            {data.t.avancement(logement.nom)}
+            {data.avancementTexte}
           </h2>
           <p class="mt-1 text-sm text-encre-douce">
-            {data.t.progression(data.faites, data.etapes.length, data.pourcentage)}
+            {data.progressionTexte}
           </p>
         </div>
         {#if data.pret}
@@ -90,6 +96,40 @@
           style={`width: ${data.pourcentage}%`}
         ></div>
       </div>
+    </section>
+
+    <section class="ui-carte space-y-3">
+      <div>
+        <h2 class="text-lg font-semibold">Chrono d’onboarding</h2>
+        <p class="mt-1 text-sm text-encre-douce">
+          Temps réellement écoulé depuis la création du compte, calculé à partir
+          du journal d’audit. Une étape non franchie n’est pas comptée.
+        </p>
+      </div>
+      <p class="text-sm">
+        <strong>Durée totale :</strong>
+        {formaterDureeChrono(data.chrono.totalMs)}
+        {#if data.chrono.termine}
+          <span class="ui-badge ui-badge--accent ml-2">Terminé</span>
+        {:else}
+          <span class="ui-badge ui-badge--alerte ml-2">En cours</span>
+        {/if}
+      </p>
+      <ol class="divide-y divide-bordure text-sm">
+        {#each data.chrono.etapes as etape (etape.code)}
+          <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+            <span class="font-medium">{etape.libelle}</span>
+            <span class="text-encre-douce">
+              {#if etape.at}
+                {etape.at.toISOString().slice(0, 16).replace("T", " ")} UTC
+                · +{formaterDureeChrono(etape.depuisDebutMs)}
+              {:else}
+                Non franchie
+              {/if}
+            </span>
+          </li>
+        {/each}
+      </ol>
     </section>
 
     <ol class="space-y-3">
@@ -129,7 +169,7 @@
             >
               <input type="hidden" name="logementId" value={logement.id} />
               <label
-                class="flex items-start gap-3 rounded-xl border border-bordure p-3 text-sm"
+                class="flex min-h-11 min-w-11 items-start gap-3 rounded-xl border border-bordure p-3 text-sm"
               >
                 <input
                   class="mt-1"
@@ -202,14 +242,14 @@
 
     <p class="text-sm text-encre-douce">
       {data.pret
-        ? data.t.pretNote(data.tenantSlug)
+        ? data.pretNoteTexte
         : data.t.pasPretNote}
     </p>
   {/if}
 
   <footer class="flex flex-wrap gap-4 border-t border-bordure pt-4 text-sm">
-    <a class="underline" href="/hote/annonce">{data.t.annonce}</a>
-    <a class="underline" href="/hote/logements">{data.t.logements}</a>
-    <a class="underline" href="/hote">{data.t.tableau}</a>
+    <a class="inline-flex min-h-11 items-center underline" href="/hote/annonce">{data.t.annonce}</a>
+    <a class="inline-flex min-h-11 items-center underline" href="/hote/logements">{data.t.logements}</a>
+    <a class="inline-flex min-h-11 items-center underline" href="/hote">{data.t.tableau}</a>
   </footer>
 </main>

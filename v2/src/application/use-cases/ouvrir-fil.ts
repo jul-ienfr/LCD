@@ -45,7 +45,11 @@ export class OuvrirFil {
       }
     }
 
-    const cle = cleRegroupement(input);
+    const cle = cleRegroupement({
+      email: input.voyageurEmail,
+      telephone: input.voyageurTelephone,
+      externalId: input.externalId,
+    });
     const parCle = await this.fils.trouverParCle(input.tenantId, cle);
     if (parCle) {
       const fil = await this.completer(parCle, input);

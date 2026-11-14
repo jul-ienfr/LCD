@@ -22,10 +22,16 @@ export interface TraductionsNavigation {
   menage: string;
   factures: string;
   compta: string;
+  rapports: string;
   messages: string;
+  filsVoyageurs: string;
+  automatisations: string;
+  notifications: string;
+  installation: string;
   prix: string;
   promotions: string;
   demandes: string;
+  demandesExtra: string;
   etatsDesLieux: string;
   entretien: string;
   missions: string;
@@ -37,6 +43,7 @@ export interface TraductionsNavigation {
   guides: string;
   assistant: string;
   avis: string;
+  avisVoyageur: string;
   questionnaires: string;
   objetsTrouves: string;
   sinistres: string;
@@ -81,10 +88,16 @@ const FR: TraductionsNavigation = {
   menage: "Ménage",
   factures: "Factures",
   compta: "Compta",
+  rapports: "Rapports",
   messages: "Messages",
+  filsVoyageurs: "Fils voyageurs",
+  automatisations: "Automatisations",
+  notifications: "Notifications",
+  installation: "Installation (PWA)",
   prix: "Prix",
   promotions: "Promotions",
   demandes: "Demandes",
+  demandesExtra: "Demandes d'extras",
   etatsDesLieux: "États des lieux",
   entretien: "Entretien",
   missions: "Missions",
@@ -96,6 +109,7 @@ const FR: TraductionsNavigation = {
   guides: "Guides logement",
   assistant: "Assistant",
   avis: "Avis",
+  avisVoyageur: "Avis voyageurs",
   questionnaires: "Questionnaires",
   objetsTrouves: "Objets trouvés",
   sinistres: "Sinistres",
@@ -144,10 +158,16 @@ const EN: TraductionsNavigation = {
   menage: "Cleaning",
   factures: "Invoices",
   compta: "Accounting",
+  rapports: "Reports",
   messages: "Messages",
+  filsVoyageurs: "Guest threads",
+  automatisations: "Automations",
+  notifications: "Notifications",
+  installation: "Installation (PWA)",
   prix: "Pricing",
   promotions: "Promotions",
   demandes: "Requests",
+  demandesExtra: "Extra requests",
   etatsDesLieux: "Inventory checks",
   entretien: "Maintenance",
   missions: "Tasks",
@@ -159,6 +179,7 @@ const EN: TraductionsNavigation = {
   guides: "Property guides",
   assistant: "Assistant",
   avis: "Reviews",
+  avisVoyageur: "Guest reviews",
   questionnaires: "Questionnaires",
   objetsTrouves: "Lost property",
   sinistres: "Claims",
@@ -207,10 +228,16 @@ const ES: TraductionsNavigation = {
   menage: "Limpieza",
   factures: "Facturas",
   compta: "Contabilidad",
+  rapports: "Informes",
   messages: "Mensajes",
+  filsVoyageurs: "Hilos de huéspedes",
+  automatisations: "Automatizaciones",
+  notifications: "Notificaciones",
+  installation: "Instalación (PWA)",
   prix: "Precios",
   promotions: "Promociones",
   demandes: "Solicitudes",
+  demandesExtra: "Solicitudes de extras",
   etatsDesLieux: "Inventarios",
   entretien: "Mantenimiento",
   missions: "Misiones",
@@ -222,6 +249,7 @@ const ES: TraductionsNavigation = {
   guides: "Guías del alojamiento",
   assistant: "Asistente",
   avis: "Opiniones",
+  avisVoyageur: "Opiniones de huéspedes",
   questionnaires: "Cuestionarios",
   objetsTrouves: "Objetos perdidos",
   sinistres: "Siniestros",
@@ -270,10 +298,16 @@ const IT: TraductionsNavigation = {
   menage: "Pulizie",
   factures: "Fatture",
   compta: "Contabilità",
+  rapports: "Report",
   messages: "Messaggi",
+  filsVoyageurs: "Conversazioni ospiti",
+  automatisations: "Automazioni",
+  notifications: "Notifiche",
+  installation: "Installazione (PWA)",
   prix: "Prezzi",
   promotions: "Promozioni",
   demandes: "Richieste",
+  demandesExtra: "Richieste extra",
   etatsDesLieux: "Stati dei luoghi",
   entretien: "Manutenzione",
   missions: "Incarichi",
@@ -285,6 +319,7 @@ const IT: TraductionsNavigation = {
   guides: "Guide alloggio",
   assistant: "Assistente",
   avis: "Recensioni",
+  avisVoyageur: "Recensioni ospiti",
   questionnaires: "Questionari",
   objetsTrouves: "Oggetti smarriti",
   sinistres: "Sinistri",
@@ -333,10 +368,16 @@ const DE: TraductionsNavigation = {
   menage: "Reinigung",
   factures: "Rechnungen",
   compta: "Buchhaltung",
+  rapports: "Berichte",
   messages: "Nachrichten",
+  filsVoyageurs: "Gästeverläufe",
+  automatisations: "Automatisierungen",
+  notifications: "Benachrichtigungen",
+  installation: "Installation (PWA)",
   prix: "Preise",
   promotions: "Aktionen",
   demandes: "Anfragen",
+  demandesExtra: "Extra-Anfragen",
   etatsDesLieux: "Zustandsberichte",
   entretien: "Wartung",
   missions: "Aufträge",
@@ -348,6 +389,7 @@ const DE: TraductionsNavigation = {
   guides: "Unterkunftsguides",
   assistant: "Assistent",
   avis: "Bewertungen",
+  avisVoyageur: "Gästebewertungen",
   questionnaires: "Fragebögen",
   objetsTrouves: "Fundsachen",
   sinistres: "Schadensfälle",

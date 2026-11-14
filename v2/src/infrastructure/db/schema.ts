@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { LanguePublique, SeoPage } from "@/domain/page-publique";
 import {
+  bigint,
   boolean,
   date,
   index,
@@ -37,6 +38,7 @@ export const tenants = pgTable(
     ventesSuspenduesLe: timestamp("ventes_suspendues_le", {
       withTimezone: true,
     }),
+    lectureSeule: boolean("lecture_seule").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -98,6 +100,9 @@ export const logements = pgTable(
     regles: text("regles"),
     urgenceTel: text("urgence_tel"),
     guideTexte: text("guide_texte"),
+    guideLangueDefaut: text("guide_langue_defaut").notNull().default("fr"),
+    guidePartenaireNom: text("guide_partenaire_nom"),
+    guidePartenaireUrl: text("guide_partenaire_url"),
     coproVerifiee: boolean("copro_verifiee").notNull().default(false),
     coproVerifieeLe: timestamp("copro_verifiee_le", { withTimezone: true }),
     cutoffJours: integer("cutoff_jours").notNull().default(0),
@@ -994,6 +999,7 @@ export const filsVoyageur = pgTable(
       .notNull()
       .default({ email: true, sms: false, whatsapp: false }),
     statut: text("statut").notNull().default("ouvert"),
+    assigneA: text("assigne_a"),
     dernierMessageAt: timestamp("dernier_message_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -1011,6 +1017,7 @@ export const filsVoyageur = pgTable(
       t.dernierMessageAt,
     ),
     index("fils_voyageur_tenant_logement_idx").on(t.tenantId, t.logementId),
+    index("fils_voyageur_tenant_assigne_idx").on(t.tenantId, t.assigneA),
   ],
 );
 
@@ -1108,6 +1115,54 @@ export const executionsAutomatisation = pgTable(
       t.tenantId,
       t.automatisationId,
       t.createdAt,
+    ),
+  ],
+);
+
+export const recommandationsPrix = pgTable(
+  "recommandations_prix",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    jour: date("jour").notNull(),
+    prixActuelCentimes: integer("prix_actuel_centimes"),
+    prixRecommandeCentimes: integer("prix_recommande_centimes").notNull(),
+    source: text("source").notNull().default("partenaire"),
+    confiance: integer("confiance").notNull().default(0),
+    facteurs: jsonb("facteurs")
+      .$type<{ code: string; libelle: string; impactPourcent: number }[]>()
+      .notNull()
+      .default([]),
+    statut: text("statut").notNull().default("proposee"),
+    importeeLe: timestamp("importee_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    appliqueeLe: timestamp("appliquee_le", { withTimezone: true }),
+    appliqueePar: text("appliquee_par"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("recommandations_prix_tenant_logement_jour_source_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.jour,
+      t.source,
+    ),
+    index("recommandations_prix_tenant_statut_idx").on(
+      t.tenantId,
+      t.statut,
+      t.jour,
     ),
   ],
 );
@@ -2760,6 +2815,461 @@ export const demandesSejour = pgTable(
   ],
 );
 
+// --- US5 Reporting : relevés propriétaires (T503) ---
+
+export const relevesProprietaires = pgTable(
+  "releves_proprietaires",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    proprietaireId: text("proprietaire_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    proprietaireNom: text("proprietaire_nom").notNull(),
+    moisDebut: text("mois_debut").notNull(),
+    moisFin: text("mois_fin").notNull(),
+    periode: text("periode").notNull().default("mensuel"),
+    lignes: jsonb("lignes")
+      .$type<
+        {
+          logementId: string;
+          logementNom: string;
+          sejours: number;
+          caCentimes: number;
+          commissionCentimes: number;
+          chargesCentimes: number;
+          netCentimes: number;
+        }[]
+      >()
+      .notNull()
+      .default([]),
+    totalCaCentimes: integer("total_ca_centimes").notNull(),
+    totalCommissionCentimes: integer("total_commission_centimes").notNull(),
+    totalChargesCentimes: integer("total_charges_centimes").notNull(),
+    totalNetCentimes: integer("total_net_centimes").notNull(),
+    genereAt: timestamp("genere_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("releves_proprietaires_tenant_proprietaire_periode_uq").on(
+      t.tenantId,
+      t.proprietaireId,
+      t.moisDebut,
+      t.periode,
+    ),
+    index("releves_proprietaires_tenant_genere_idx").on(
+      t.tenantId,
+      t.genereAt,
+    ),
+  ],
+);
+
+export const envoisReleves = pgTable(
+  "envois_releves",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    releveId: uuid("releve_id")
+      .notNull()
+      .references(() => relevesProprietaires.id, { onDelete: "cascade" }),
+    proprietaireId: text("proprietaire_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    canal: text("canal").notNull().default("email"),
+    destinataire: text("destinataire").notNull(),
+    envoiRef: text("envoi_ref").notNull(),
+    envoyeAt: timestamp("envoye_at", { withTimezone: true }).notNull(),
+    statut: text("statut").notNull().default("envoye"),
+    erreur: text("erreur"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("envois_releves_tenant_ref_uq").on(t.tenantId, t.envoiRef),
+    index("envois_releves_releve_idx").on(t.tenantId, t.releveId),
+  ],
+);
+
+// --- US5 Reporting : paiements propriétaires / payouts (T515) ---
+export const paiementsProprietaires = pgTable(
+  "paiements_proprietaires",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    proprietaireId: text("proprietaire_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    releveId: uuid("releve_id").references(() => relevesProprietaires.id, {
+      onDelete: "set null",
+    }),
+    ref: text("ref").notNull(),
+    montantAttenduCentimes: integer("montant_attendu_centimes").notNull(),
+    montantPayeCentimes: integer("montant_paye_centimes"),
+    mode: text("mode").notNull().default("virement"),
+    statut: text("statut").notNull().default("en_attente"),
+    datePaiement: date("date_paiement", { mode: "string" }),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("paiements_proprietaires_tenant_ref_uq").on(
+      t.tenantId,
+      t.ref,
+    ),
+    index("paiements_proprietaires_tenant_proprietaire_idx").on(
+      t.tenantId,
+      t.proprietaireId,
+      t.createdAt,
+    ),
+    index("paiements_proprietaires_releve_idx").on(
+      t.tenantId,
+      t.releveId,
+    ),
+    index("paiements_proprietaires_tenant_statut_idx").on(
+      t.tenantId,
+      t.statut,
+      t.createdAt,
+    ),
+  ],
+);
+
+// --- US6 Expérience voyageur : guide structuré + accès serrure (T601) ---
+export const guideContenus = pgTable(
+  "guide_contenus",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    section: text("section").notNull(),
+    langue: text("langue").notNull(),
+    titre: text("titre").notNull(),
+    corps: text("corps").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("guide_contenus_tenant_logement_section_langue_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.section,
+      t.langue,
+    ),
+    index("guide_contenus_tenant_logement_idx").on(
+      t.tenantId,
+      t.logementId,
+    ),
+  ],
+);
+
+export const accesSerrure = pgTable(
+  "acces_serrure",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id").references(() => reservations.id, {
+      onDelete: "set null",
+    }),
+    type: text("type").notNull().default("numerique"),
+    code: text("code"),
+    statut: text("statut").notNull().default("actif"),
+    fournisseur: text("fournisseur"),
+    expireLe: timestamp("expire_le", { withTimezone: true }),
+    note: text("note"),
+    /** Référence stable et rejouable (migration 0097). */
+    ref: text("ref").notNull(),
+    /** Fenêtre d'ouverture du code (migration 0097). */
+    valideDe: timestamp("valide_de", { withTimezone: true }).notNull(),
+    valideA: timestamp("valide_a", { withTimezone: true }).notNull(),
+    revoqueLe: timestamp("revoque_le", { withTimezone: true }),
+    revoquePar: text("revoque_par"),
+    /** Identifiant du code chez la serrure connectée (Nuki). */
+    externalId: text("external_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index("acces_serrure_tenant_logement_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.createdAt,
+    ),
+    index("acces_serrure_tenant_reservation_idx").on(
+      t.tenantId,
+      t.reservationId,
+    ),
+    index("acces_serrure_tenant_statut_idx").on(
+      t.tenantId,
+      t.statut,
+      t.createdAt,
+    ),
+    uniqueIndex("acces_serrure_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("acces_serrure_tenant_logement_statut_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.statut,
+    ),
+  ],
+);
+
+// --- US6 Expérience voyageur : demandes d'extras + avis (T608, T609) ---
+export const demandesExtra = pgTable(
+  "demandes_extra",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    type: text("type").notNull(),
+    prixCentimes: integer("prix_centimes").notNull(),
+    message: text("message"),
+    statut: text("statut").notNull().default("demande"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    decideeLe: timestamp("decidee_le", { withTimezone: true }),
+    decideePar: text("decidee_par"),
+    motifRefus: text("motif_refus"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("demandes_extra_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("demandes_extra_tenant_statut_idx").on(
+      t.tenantId,
+      t.statut,
+      t.creeLe,
+    ),
+  ],
+);
+
+export const avisVoyageur = pgTable(
+  "avis_voyageur",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(),
+    note: integer("note"),
+    commentaire: text("commentaire"),
+    statut: text("statut").notNull().default("invite"),
+    inviteLe: timestamp("invite_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    recuLe: timestamp("recu_le", { withTimezone: true }),
+    publieLe: timestamp("publie_le", { withTimezone: true }),
+    reponseHote: text("reponse_hote"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("avis_voyageur_tenant_ref_uq").on(t.tenantId, t.ref),
+    uniqueIndex("avis_voyageur_tenant_reservation_uq").on(
+      t.tenantId,
+      t.reservationId,
+    ),
+    index("avis_voyageur_tenant_logement_statut_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.statut,
+    ),
+  ],
+);
+
+// --- US7 API et intégrations (T702) ---
+export const clesApi = pgTable(
+  "cles_api",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    nom: text("nom").notNull(),
+    /** `lcd_` + 8 caractères, non secret. */
+    prefixe: text("prefixe").notNull(),
+    /** SHA-256 hexadécimal de la clé complète, unique globalement. */
+    hash: text("hash").notNull(),
+    scopes: jsonb("scopes").$type<string[]>().notNull().default([]),
+    expireLe: timestamp("expire_le", { withTimezone: true }),
+    dernierUsageLe: timestamp("dernier_usage_le", { withTimezone: true }),
+    revoqueLe: timestamp("revoque_le", { withTimezone: true }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("cles_api_hash_uq").on(t.hash),
+    index("cles_api_tenant_cree_idx").on(t.tenantId, t.creeLe),
+  ],
+);
+
+export const integrationsTenant = pgTable(
+  "integrations_tenant",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    fournisseur: text("fournisseur").notNull(),
+    actif: boolean("actif").notNull().default(true),
+    config: jsonb("config")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    majLe: timestamp("maj_le", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("integrations_tenant_fournisseur_uq").on(
+      t.tenantId,
+      t.fournisseur,
+    ),
+  ],
+);
+
+export type ClesApiRow = typeof clesApi.$inferSelect;
+export type NewClesApiRow = typeof clesApi.$inferInsert;
+export type IntegrationsTenantRow = typeof integrationsTenant.$inferSelect;
+export type NewIntegrationsTenantRow = typeof integrationsTenant.$inferInsert;
+
+// --- T720 : suivi d'audience, publicité et événements first-party ---
+export const suiviConfiguration = pgTable("suivi_configuration", {
+  tenantId: uuid("tenant_id")
+    .primaryKey()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  actif: boolean("actif").notNull().default(false),
+  configuration: jsonb("configuration")
+    .$type<Record<string, unknown>>()
+    .notNull()
+    .default({}),
+  majLe: timestamp("maj_le", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const suiviEvenements = pgTable(
+  "suivi_evenements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    visiteurId: text("visiteur_id").notNull(),
+    sessionId: text("session_id").notNull(),
+    type: text("type").notNull(),
+    nom: text("nom").notNull(),
+    page: text("page").notNull(),
+    referrer: text("referrer"),
+    campagne: jsonb("campagne")
+      .$type<Record<string, string>>()
+      .notNull()
+      .default({}),
+    valeurCentimes: bigint("valeur_centimes", { mode: "number" }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, string | number | boolean>>()
+      .notNull()
+      .default({}),
+    consentement: jsonb("consentement")
+      .$type<Record<string, boolean | string>>()
+      .notNull()
+      .default({}),
+    ipHash: text("ip_hash"),
+    userAgent: text("user_agent"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("suivi_evenements_tenant_cree_idx").on(t.tenantId, t.creeLe),
+    index("suivi_evenements_tenant_type_cree_idx").on(
+      t.tenantId,
+      t.type,
+      t.creeLe,
+    ),
+    index("suivi_evenements_tenant_visiteur_idx").on(
+      t.tenantId,
+      t.visiteurId,
+      t.creeLe,
+    ),
+  ],
+);
+
+export type SuiviConfigurationRow = typeof suiviConfiguration.$inferSelect;
+export type NewSuiviConfigurationRow =
+  typeof suiviConfiguration.$inferInsert;
+export type SuiviEvenementRow = typeof suiviEvenements.$inferSelect;
+export type NewSuiviEvenementRow = typeof suiviEvenements.$inferInsert;
+
+export type DemandeExtraRow = typeof demandesExtra.$inferSelect;
+export type NewDemandeExtraRow = typeof demandesExtra.$inferInsert;
+export type AvisVoyageurRow = typeof avisVoyageur.$inferSelect;
+export type NewAvisVoyageurRow = typeof avisVoyageur.$inferInsert;
+
 export type SiteTenantRow = typeof sitesTenants.$inferSelect;
 export type NewSiteTenantRow = typeof sitesTenants.$inferInsert;
 export type PageSiteRow = typeof pagesSite.$inferSelect;
@@ -2771,3 +3281,15 @@ export type NewDomaineRow = typeof domaines.$inferInsert;
 export type PromotionRow = typeof promotions.$inferSelect;
 export type NewPromotionRow = typeof promotions.$inferInsert;
 export type DemandeSejourRow = typeof demandesSejour.$inferSelect;
+export type ReleveProprietaireRow = typeof relevesProprietaires.$inferSelect;
+export type NewReleveProprietaireRow = typeof relevesProprietaires.$inferInsert;
+export type EnvoiReleveRow = typeof envoisReleves.$inferSelect;
+export type NewEnvoiReleveRow = typeof envoisReleves.$inferInsert;
+export type PaiementProprietaireRow =
+  typeof paiementsProprietaires.$inferSelect;
+export type NewPaiementProprietaireRow =
+  typeof paiementsProprietaires.$inferInsert;
+export type GuideContenuRow = typeof guideContenus.$inferSelect;
+export type NewGuideContenuRow = typeof guideContenus.$inferInsert;
+export type AccesSerrureRow = typeof accesSerrure.$inferSelect;
+export type NewAccesSerrureRow = typeof accesSerrure.$inferInsert;

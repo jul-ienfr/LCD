@@ -178,6 +178,9 @@ export const actions = {
     try {
       await new AffecterFournisseur(
         new DrizzleFournisseurRepository(),
+        // T116 : test de connexion actif en production. Le fournisseur non
+        // configuré (clés absentes) retourne null → pas de test, pas de blocage.
+        (code) => (fournisseurConfigure(code) ? creerFournisseur(code) : null),
       ).executer({
         tenantId,
         logementId,

@@ -5,6 +5,7 @@ import {
 } from "@/domain/automatisation-message";
 import { nuitsEntre } from "@/domain/calendrier";
 import type { StatutReservation } from "@/domain/reservation";
+import { creerLienGuide, expirationLienGuide } from "@/domain/guide-voyageur";
 import { dbAdmin, withTenant } from "@/infrastructure/db/client";
 import {
   automatisations,
@@ -15,9 +16,22 @@ import {
 import { DrizzleAutomatisationsRepository } from "@/infrastructure/db/repositories/automatisations-repository";
 import { DrizzleFilsVoyageurRepository } from "@/infrastructure/db/repositories/fils-voyageur-repository";
 import { jourParis } from "@/lib/date-paris";
+import { env } from "@/lib/env";
 import { logErreur, logInfo } from "@/lib/logger";
+import {
+  CreerAccesSerrure,
+  type CreerAccesSerrureInput,
+  type ResultatCreerAccesSerrure,
+} from "@/application/use-cases/creer-acces-serrure";
 import { ExecuterAutomatisation } from "@/application/use-cases/executer-automatisation";
+import { InviterAvisVoyageur } from "@/application/use-cases/gerer-avis-voyageur";
 import { OuvrirFil } from "@/application/use-cases/ouvrir-fil";
+import type { AccesSerrureRepository } from "@/application/ports/guides-repository";
+import type { SerrureConnecteePort } from "@/application/ports/serrure-connectee";
+import { DrizzleAvisVoyageurRepository } from "@/infrastructure/db/repositories/avis-voyageur-repository";
+import { DrizzleAccesSerrureRepository } from "@/infrastructure/db/repositories/guides-repository";
+import { creerSerrureNuki } from "@/infrastructure/adapters/serrures/nuki";
+import { creerTokenVoyageur } from "@/lib/voyageur-token";
 import { eq } from "drizzle-orm";
 
 export interface ReservationPlanifiable {
@@ -80,6 +94,53 @@ export interface ResultatPlanification {
   brouillons: number;
   ignores: number;
   deja: number;
+  /** Codes d'accès préparés (ou retrouvés) à J-7 — T605. */
+  accesSerrure: number;
+}
+
+export interface DependancesAccesArrivee {
+  acces: AccesSerrureRepository;
+  serrure: SerrureConnecteePort;
+}
+
+/**
+ * T605 — Prépare le code d'accès d'un séjour qui arrive à J-7.
+ *
+ * Le code est dérivé d'une référence stable (`refAcces`) : un rejeu du job ne
+ * reprogramme jamais un code déjà posé, il retourne l'accès existant. Si la
+ * serrure connectée est indisponible (ou échoue), `CreerAccesSerrure` bascule
+ * en repli manuel : le voyageur a toujours un code.
+ *
+ * Cette fonction ne bloque **jamais** la préparation du message : toute erreur
+ * est journalisée puis absorbée (`null`). C'est le seul contrat attendu par le
+ * planificateur, qui ne doit pas perdre un message à cause d'une serrure.
+ */
+export async function preparerAccesArrivee(
+  deps: DependancesAccesArrivee,
+  input: CreerAccesSerrureInput,
+): Promise<ResultatCreerAccesSerrure | null> {
+  try {
+    const acces = await new CreerAccesSerrure(deps.acces, deps.serrure).executer(
+      input,
+    );
+    logInfo("messages.planification.serrure", {
+      tenantId: input.tenantId,
+      logementId: input.logementId,
+      reservationId: input.reservationId ?? null,
+      ref: acces.ref,
+      fournisseur: acces.fournisseur,
+      existant: acces.existant,
+      repli: acces.fallback,
+    });
+    return acces;
+  } catch (erreur) {
+    logErreur("messages.planification.serrure", erreur, {
+      tenantId: input.tenantId,
+      logementId: input.logementId,
+      reservationId: input.reservationId ?? null,
+    });
+    return null;
+  }
 }
 
 /**
@@ -88,7 +149,7 @@ export interface ResultatPlanification {
  * attendent une validation humaine dans l'inbox.
  */
 export async function executerPlanificationMessages(
-  options: { date?: string; tenantIds?: string[] } = {},
+  options: { date?: string; tenantIds?: string[]; simulation?: boolean } = {},
 ): Promise<ResultatPlanification> {
   const date = options.date ?? jourParis();
   const resultat: ResultatPlanification = {
@@ -97,7 +158,10 @@ export async function executerPlanificationMessages(
     brouillons: 0,
     ignores: 0,
     deja: 0,
+    accesSerrure: 0,
   };
+  const depotAcces = new DrizzleAccesSerrureRepository();
+  const serrure = creerSerrureNuki();
 
   let cibles: { id: string }[] = [];
   if (options.tenantIds && options.tenantIds.length > 0) {
@@ -162,6 +226,7 @@ export async function executerPlanificationMessages(
       const du = declenchementsDu(date, reservationsDuTenant, automatisationsActives);
       resultat.candidats += du.length;
       if (du.length === 0) continue;
+      if (options.simulation) continue;
 
       const depotFils = new DrizzleFilsVoyageurRepository();
       const executeur = new ExecuterAutomatisation(
@@ -169,9 +234,54 @@ export async function executerPlanificationMessages(
         depotFils,
         new OuvrirFil(depotFils),
       );
+      const avisRepo = new DrizzleAvisVoyageurRepository();
+      const baseUrl = env.APP_URL.replace(/\/+$/, "");
 
       for (const { automatisation, reservation } of du) {
         try {
+          // T605 : à J-7, on prépare le code d'accès du séjour dans le même
+          // tick que les automatisations. Idempotent par `ref` (un rejeu ne
+          // reprogramme pas de code) et jamais bloquant : sans identifiant de
+          // serrure configuré, `choisirFournisseur` bascule en repli manuel et
+          // le voyageur a malgré tout un code à son arrivée.
+          if (automatisation.declencheur === "j-7") {
+            const acces = await preparerAccesArrivee(
+              { acces: depotAcces, serrure },
+              {
+                tenantId: tenant.id,
+                logementId: reservation.logementId,
+                reservationId: reservation.id,
+                arrivee: reservation.debut,
+                depart: reservation.fin,
+              },
+            );
+            if (acces) resultat.accesSerrure += 1;
+          }
+
+          // T609 : l'invitation à laisser un avis est créée à J+1, de façon
+          // idempotente (ref stable + unicité par réservation).
+          if (automatisation.declencheur === "j+1") {
+            try {
+              await new InviterAvisVoyageur(avisRepo).executer({
+                tenantId: tenant.id,
+                reservationId: reservation.id,
+                logementId: reservation.logementId,
+                depart: reservation.fin,
+              });
+            } catch (erreur) {
+              logErreur("messages.planification.avis", erreur, {
+                tenantId: tenant.id,
+                reservation: reservation.ref,
+              });
+            }
+          }
+
+          const jetonVoyageur = creerTokenVoyageur({
+            tenantId: tenant.id,
+            logementId: reservation.logementId,
+            reservationId: reservation.id,
+            exp: expirationLienGuide(reservation.fin),
+          });
           const execution = await executeur.executer({
             tenantId: tenant.id,
             automatisation,
@@ -186,6 +296,13 @@ export async function executerPlanificationMessages(
               depart: reservation.fin,
               nuits: nuitsEntre(reservation.debut, reservation.fin),
               statutReservation: reservation.statut,
+              lienGuide: `${baseUrl}/guide/${creerLienGuide(env.BETTER_AUTH_SECRET, {
+                tenantId: tenant.id,
+                logementId: reservation.logementId,
+                reservationId: reservation.id,
+                exp: expirationLienGuide(reservation.fin),
+              })}`,
+              lienAvis: `${baseUrl}/avis/${jetonVoyageur}`,
             },
           });
           if (!execution || execution.statut === "ignore") resultat.ignores += 1;

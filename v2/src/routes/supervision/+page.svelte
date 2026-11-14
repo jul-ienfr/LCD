@@ -21,7 +21,7 @@
   <title>Supervision — LCD Parc</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-10">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-10">
   <header class="space-y-4">
     <NavSuperAdmin actif="tenants" />
     <div class="ui-entete space-y-2">
@@ -53,7 +53,8 @@
       {/each}
     </dl>
 
-    <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
       <table class="w-full min-w-[760px] text-left text-sm">
         <thead class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine">
           <tr>
@@ -80,7 +81,10 @@
               <td class="p-4 text-right tabular-nums">{ligne.utilisateurs}</td>
               <td class="p-4 text-right tabular-nums">{ligne.audits24h}</td>
               <td class="p-4">
-                <a class="ui-lien" href={`/journal?tenant=${ligne.tenantId}`}>
+                <a
+                  class="ui-lien-action"
+                  href={`/journal?tenant=${ligne.tenantId}`}
+                >
                   Consulter
                 </a>
               </td>

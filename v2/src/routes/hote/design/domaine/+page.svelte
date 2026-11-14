@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { traductionsEntretienDomaine } from "@/lib/i18n-entretien-domaine";
   import type { ActionData, PageData } from "./$types";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+  const t = $derived(traductionsEntretienDomaine((data as { langue?: string }).langue ?? "fr"));
 
   function classe(statut: string): string {
     if (statut === "actif" || statut === "verifie") {
@@ -13,17 +15,17 @@
 </script>
 
 <svelte:head>
-  <title>{data.t.dTitrePage}</title>
+  <title>{t.dTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-4xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-4xl space-y-8 px-6 py-12">
   <header class="space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
-      {data.t.dSurtitre}
+      {t.dSurtitre}
     </p>
-    <h1 class="text-3xl font-semibold tracking-tight">{data.t.dTitre}</h1>
-    <p class="max-w-2xl text-encre-douce">{data.t.dDescription}</p>
-    <a class="ui-lien text-sm" href="/hote/design">{data.t.dRetour}</a>
+    <h1 class="text-3xl font-semibold tracking-tight">{t.dTitre}</h1>
+    <p class="max-w-2xl text-encre-douce">{t.dDescription}</p>
+    <a class="ui-lien-action text-sm" href="/hote/design">{t.dRetour}</a>
   </header>
 
   {#if data.message}
@@ -34,15 +36,15 @@
   {/if}
   {#if !data.sitePublie}
     <p class="ui-alerte ui-alerte--alerte">
-      {data.t.dSiteNonPublie}
+      {t.dSiteNonPublie}
     </p>
   {/if}
 
   <section class="ui-carte space-y-4">
-    <h2 class="text-xl font-semibold">{data.t.dAjouterTitre}</h2>
+    <h2 class="text-xl font-semibold">{t.dAjouterTitre}</h2>
     <form class="flex flex-wrap items-end gap-3" method="POST" action="?/ajouter">
       <label class="min-w-0 flex-1 space-y-2">
-        <span class="ui-label">{data.t.dDomaine}</span>
+        <span class="ui-label">{t.dDomaine}</span>
         <input
           class="ui-champ"
           name="domaine"
@@ -51,21 +53,21 @@
           autocomplete="off"
         />
       </label>
-      <button class="ui-bouton ui-bouton--primaire" type="submit">{data.t.dAjouter}</button>
+      <button class="ui-bouton ui-bouton--primaire" type="submit">{t.dAjouter}</button>
     </form>
     <p class="text-xs text-encre-faine">
-      {data.t.dAide}
+      {t.dAide}
     </p>
   </section>
 
   <section class="space-y-3">
     <h2 class="text-xl font-semibold">
-      {data.t.dCompte(data.domaines.length)}
+      {t.dCompte(data.domaines.length)}
     </h2>
 
     {#if data.domaines.length === 0}
       <p class="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
-        {data.t.dAucun}
+        {t.dAucun}
       </p>
     {:else}
       {#each data.domaines as domaine (domaine.id)}
@@ -73,15 +75,15 @@
           <div class="flex flex-wrap items-center justify-between gap-2">
             <h3 class="text-lg font-semibold">{domaine.domaine}</h3>
             <span class={classe(domaine.statut)}>
-              {data.t.dStatuts[domaine.statut] ?? domaine.statut}
+              {t.dStatuts[domaine.statut] ?? domaine.statut}
             </span>
           </div>
 
           {#if domaine.verificationToken}
             <div class="space-y-1 rounded-xl border border-bordure bg-surface p-3 text-sm">
-              <p class="font-medium">{data.t.dDns}</p>
+              <p class="font-medium">{t.dDns}</p>
               <p class="break-all font-mono text-xs">
-                {data.t.dDnsDetail(domaine.domaine, domaine.verificationToken)}
+                {t.dDnsDetail(domaine.domaine, domaine.verificationToken)}
               </p>
             </div>
           {/if}
@@ -91,7 +93,7 @@
               <form method="POST" action="?/verifier">
                 <input type="hidden" name="id" value={domaine.id} />
                 <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">
-                  {data.t.dVerifierDns}
+                  {t.dVerifierDns}
                 </button>
               </form>
             {/if}
@@ -99,14 +101,14 @@
               <form method="POST" action="?/activer">
                 <input type="hidden" name="id" value={domaine.id} />
                 <button class="ui-bouton ui-bouton--primaire ui-bouton--petit" type="submit">
-                  {data.t.dActiver}
+                  {t.dActiver}
                 </button>
               </form>
             {/if}
             <form method="POST" action="?/supprimer">
               <input type="hidden" name="id" value={domaine.id} />
               <button class="ui-bouton ui-bouton--danger ui-bouton--petit" type="submit">
-                {data.t.dSupprimer}
+                {t.dSupprimer}
               </button>
             </form>
           </div>

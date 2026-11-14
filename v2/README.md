@@ -48,6 +48,42 @@ ICS réelle (création, déplacement, suppression, blocage, conflit, 304,
 historique, bail distribué) dans un tenant jetable supprimé à la fin. `db:test-migrations` et
 `db:test-rls` valident les migrations et l’isolation tenant.
 
+### Qualité et rituel mensuel
+
+Audits ergonomie et accessibilité (plan 004). Ces scripts n’ont pas de script
+npm dédié : les lancer depuis `v2/`, serveur de prévisualisation démarré sur
+`http://127.0.0.1:4173`.
+
+```bash
+node scripts/audit-a11y.mjs          # axe-core, une entrée par route
+node scripts/mesurer-cibles.mjs      # cibles 44 px, débordement 320 px
+node scripts/audit-ergonomie.mjs     # audit 320 px + rapport agrégé
+node scripts/audit-ergonomie.mjs --ecrire --sans-audit   # rapport seul
+node scripts/audit-ergonomie.mjs --verifier              # gate, sort 1 si régression
+npx vitest run tests/ergonomie/      # contrastes des 6 thèmes, mesure, primitives
+```
+
+Variables utiles : `BASE_URL`, `AUDIT_PAGES`, `AUDIT_OUT`, `AUDIT_SEUIL_PX`,
+`AUDIT_STORAGE`, `AUDIT_HEADERS`, `AUDIT_OUT_NAME`, `ERGONOMIE_P1`,
+`ERGONOMIE_VERIFIER=1`.
+
+Rapports produits :
+
+- `v2/.artifacts/ergonomie/rapport-ergonomie.md` et `.json` (avant/après) ;
+- `v2/.artifacts/ergonomie/contrastes.json` (six thèmes, clair et sombre) ;
+- `specs/004-ergonomie-experience-client/baseline/rapport-agrege.md`.
+
+Lighthouse n’est pas installé (aucune dépendance ajoutée au projet) : le
+rapport indique `lighthouse: absent` et rappelle la commande exacte à lancer
+plus tard. La CI
+`.github/workflows/qualite-ergonomie.yml` exécute axe, les cibles 320 px et le
+gate de non-régression, avec Lighthouse en `continue-on-error`.
+
+Le rituel de revue mensuelle (45 min : mesures, décisions, trois corrections
+maximum) est décrit dans
+[`specs/004-ergonomie-experience-client/quickstart.md`](../specs/004-ergonomie-experience-client/quickstart.md)
+section 9 « Rituel de revue mensuelle ».
+
 ## Apparence globale
 
 Un seul thème publié pour tout le site, choisi exclusivement par un
@@ -59,7 +95,31 @@ super-admin dans `/supervision/apparence` :
 - aperçu réservé au super-admin via cookie HMAC signé (30 min, lié au compte) ;
 - publication, historique et retour arrière versionnés, avec audit ;
 - couleurs vérifiées AA (4,5:1) par les tests ;
+- publication bloquée si un contraste descend sous 4,5:1 ou si une cible
+  tactile descend sous 44 px (`src/lib/theme/validation.ts`, message
+  actionnable dans `/supervision/apparence`) ;
+- aperçu des composants critiques (boutons, champs, alertes, badges, tableau,
+  liens) en clair et en sombre, thème par thème :
+  `/supervision/apparence/apercu-composants` ;
 - les e-mails et les PDF reprennent l’accent et l’identité publiés.
+
+### Procédure de publication d’un thème
+
+1. `/supervision/apparence` → choisir un thème et un accent, puis
+   « Enregistrer le brouillon ».
+2. « Aperçu des composants » : vérifier boutons, champs, alertes, badges,
+   tableau et liens en clair **et** en sombre (mode 44 px, contrastes).
+3. « Prévisualiser » : le brouillon est appliqué au site pour le seul
+   super-admin (cookie HMAC signé, 30 min).
+4. « Publier » : la publication est refusée avec le détail des blocages si un
+   contraste est sous 4,5:1 ou si la hauteur de contrôle est sous 44 px.
+   Corriger le thème dans `src/domain/apparence/registre.ts`, réenregistrer le
+   brouillon, puis republier.
+5. Chaque publication est versionnée et réversible : « Revenir » republie une
+   version antérieure, avec audit à chaque étape.
+
+Le catalogue visuel de référence reste `/design`, qui documente les mêmes
+primitives et sert de vitrine publique.
 
 Le thème est résolu côté serveur dans `src/routes/+layout.svelte` : aucune
 requête client, aucun flash, aucun JavaScript requis.
@@ -126,12 +186,17 @@ Le conteneur de production exécute `node build` derrière Caddy. Caddy transmet
 `X-Forwarded-Proto` et `X-Forwarded-Host` ; le `Dockerfile` active
 `PROTOCOL_HEADER=x-forwarded-proto` et `HOST_HEADER=x-forwarded-host` pour que
 SvelteKit calcule la bonne origine et accepte les formulaires natifs. Sans ces
-en-têtes, les POST sont refusés comme « cross-site » (403).
+en-têtes, les POST sont refusés comme « cross-site » (403). Attention, `ORIGIN`
+n'est **pas** lu à l'exécution : sa valeur est figée dans `build/adapter-node.js`
+au moment du `npm run build` (`export const origin = …`), donc servir
+`node build` directement en HTTP sans en-têtes de proxy casse la connexion même
+si `ORIGIN` est exportée dans l'environnement du serveur (vérifié le
+2026-11-13).
 
 ## API et exploitation
 
 - `GET /api/health` (liveness) et `GET /api/ready` (DB, schéma, RLS).
-- `POST /api/cron/{memoire,purge-police,relances,sync-ota,sync-fournisseurs,webhooks}`
+- `POST /api/cron/{memoire,purge-police,relances,sync-ota,sync-fournisseurs,webhooks,messages-auto,pricing}`
   protégés par `Authorization: Bearer $CRON_SECRET`. Envoyer
   `Content-Type: application/json`, sinon la protection CSRF répond `403` avant
   le contrôle du secret.
@@ -150,6 +215,24 @@ en-têtes, les POST sont refusés comme « cross-site » (403).
   Chaque logement affecté pousse son ARI, importe les réservations OTA et
   enregistre une empreinte pour éviter les pushs identiques. Un webhook signé
   déclenche la même synchronisation immédiatement.
+- **Messages automatiques de séjour** : `MESSAGES_AUTO_ENABLED=true` autorise
+  `/api/cron/messages-auto`, qui prépare les brouillons J-7, J-1, arrivée, départ
+  et J+1. Rien n'est jamais envoyé automatiquement : un brouillon devient un
+  envoi quand un humain le valide dans `/hote/messages/fils`. `?simulation=1`
+  liste ce qui serait préparé sans rien écrire.
+- **Recommandations de prix** : `PRICING_IMPORT_ENABLED=true` autorise
+  `/api/cron/pricing`, qui importe 90 jours de recommandations (partenaire
+  `PRICELABS_API_KEY` si la clé est présente, sinon calcul local à partir du
+  catalogue et de l'occupation). Aucun prix n'est appliqué par ce cron : les
+  recommandations attendent une décision sur `/hote/prix/recommandations`, où
+  chaque jour affiche son écart, ses facteurs et sa confiance.
+- **Guide voyageur et codes d'accès** : chaque section du guide (arrivée, WiFi,
+  séjour, départ, urgence) se saisit par langue dans
+  `/hote/logements/[id]/guide` et s'affiche sur le lien signé `/guide/[token]`
+  (HMAC, 60 jours, vérifié avant toute lecture). Les codes d'accès sont générés
+  depuis `/hote/logements/[id]/serrure` : `NUKI_API_TOKEN` pousse le code vers
+  Nuki Web (`NUKI_API_BASE`), sinon un code manuel est affiché et reste
+  révocable. Une serrure injoignable n'empêche jamais une arrivée.
 - `POST /api/stripe/webhook` avec vérification de signature.
 - Exports staff : `/api/exports/{reservations,factures,paiements,factur-x,audit,modele-rapprochement,tenant}`.
 - Calendrier public signé : `/api/calendrier/[logementId]?t=…` (HMAC, lecture

@@ -1,70 +1,90 @@
 <script lang="ts">
+  /**
+   * Vitrine publique (T034 hiérarchie, T035 langue, T043 SEO).
+   *
+   * Hiérarchie : une promesse (h1), des preuves, un prix d'appel issu des
+   * données réelles, puis **un seul parcours principal vers `/reserver`**. Les
+   * autres actions restent secondaires ; la page ne dépend d'aucun JavaScript
+   * (`+page.ts` : `csr = false`).
+   */
   import type { PageData } from "./$types";
+  import { page } from "$app/state";
+  import { LANGUES } from "@/lib/i18n";
+  import { traductionsVitrine } from "@/lib/i18n/public/vitrine";
+  import SelecteurLangue from "@/lib/components/ui/selecteur-langue.svelte";
+  import BarreActionMobile from "@/lib/components/ui/barre-action-mobile.svelte";
+  import { srcsetLogement } from "@/lib/photos-logement";
 
   let { data }: { data: PageData } = $props();
 
   const identite = $derived(data.apparence.identite);
+  const t = $derived(traductionsVitrine(data.langue));
   const aujourdhui = new Date().toISOString().slice(0, 10);
 
-  const qualites = [
-    "Réservation directe",
-    "Arrivée autonome",
-    "Ménage hôtelier",
-    "Linge inclus",
-    "Assistance 7 j/7",
-    "Sans commission",
-  ];
+  /** URL canonique : origine + chemin, sans paramètre de langue. */
+  const canonique = $derived(
+    new URL(page.url.pathname, page.url.origin).toString(),
+  );
+  const imageHero = $derived(
+    new URL("/photos/hero-villa-1800.webp", page.url.origin).toString(),
+  );
+  const titre = $derived(t.metaTitre.replace("{nom}", () => identite.nom));
 
-  const engagements = [
-    {
-      numero: "01",
-      titre: "Une maison préparée",
-      texte: "Lits faits, linge hôtelier, produits d’accueil et climatisation vérifiée avant chaque arrivée.",
-    },
-    {
-      numero: "02",
-      titre: "Une arrivée sans friction",
-      texte: "Instructions claires, boîte à clés sécurisée et assistance joignable jusqu’à minuit.",
-    },
-    {
-      numero: "03",
-      titre: "Un séjour suivi",
-      texte: "Un seul numéro pour la moindre question, du premier petit-déjeuner au départ.",
-    },
-  ];
+  /** Prix d'appel : plus petite valeur publiée par le serveur, si lisible. */
+  function extrairePrixAppel(): string | null {
+    const valeurs = data.adresses
+      .map((adresse) => adresse.prix)
+      .filter((prix): prix is string => typeof prix === "string")
+      .map((prix) => ({
+        texte: prix,
+        nombre: Number(prix.replace(/[^\d.,]/g, "").replace(",", ".")),
+      }))
+      .filter((entree) => Number.isFinite(entree.nombre))
+      .sort((a, b) => a.nombre - b.nombre);
+    return valeurs[0]?.texte ?? null;
+  }
 
-  const formules = [
-    {
-      nom: "Kit",
-      prix: "149",
-      base: "€ / logement / mois",
-      cible: "La boîte à outils pour propriétaire autonome.",
-      points: ["Moteurs installés", "Vente directe", "Support communautaire"],
-    },
-    {
-      nom: "Pilotage",
-      prix: "190",
-      base: "€ / logement / mois",
-      cible: "L’exploitation déléguée, sans perdre la main.",
-      points: ["Tout le Kit", "Ménage et dispatch pilotés", "Relevé mensuel propriétaire"],
-      enAvant: true,
-    },
-    {
-      nom: "Full service",
-      prix: "290",
-      base: "€ / logement / mois",
-      cible: "La gestion complète, clé en main.",
-      points: ["Tout le Pilotage", "Conciergerie et urgences", "Compta et reversement J+5"],
-    },
-  ];
+  const prixAppel = $derived(extrairePrixAppel());
+
+  /** Données structurées : uniquement ce qui est publié, rien d'inventé. */
+  const donneesStructurees = $derived(
+    JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "LodgingBusiness",
+      name: identite.nom,
+      url: canonique,
+      description: t.metaDescription,
+      inLanguage: data.langue,
+      image: imageHero,
+      ...(identite.emailContact ? { email: identite.emailContact } : {}),
+      ...(identite.telephoneContact
+        ? { telephone: identite.telephoneContact }
+        : {}),
+      ...(identite.adresseContact ? { address: identite.adresseContact } : {}),
+    }).replace(/</g, "\\u003c"),
+  );
+
+  /** Lien de navigation courant, pour `aria-current`. */
+  const estActif = (href: string) =>
+    page.url.pathname === href || page.url.pathname.startsWith(`${href}/`);
 </script>
 
 <svelte:head>
-  <title>{identite.nom} — séjours sur la Côte d’Azur</title>
-  <meta
-    name="description"
-    content="Maisons choisies, arrivée autonome, ménage hôtelier et assistance 24/7. Réservez en direct, sans commission."
-  />
+  <title>{titre}</title>
+  <meta name="description" content={t.metaDescription} />
+  <link rel="canonical" href={canonique} />
+  {#each LANGUES as code (code)}
+    <link rel="alternate" hreflang={code} href={`${canonique}?lang=${code}`} />
+  {/each}
+  <link rel="alternate" hreflang="x-default" href={canonique} />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={identite.nom} />
+  <meta property="og:title" content={titre} />
+  <meta property="og:description" content={t.metaDescription} />
+  <meta property="og:url" content={canonique} />
+  <meta property="og:locale" content={t.locale.replace("-", "_")} />
+  <meta property="og:image" content={imageHero} />
+  <meta name="twitter:card" content="summary_large_image" />
   <link
     rel="preload"
     as="image"
@@ -72,19 +92,25 @@
     imagesrcset="/photos/hero-villa-900.webp 900w, /photos/hero-villa-1800.webp 1800w"
     imagesizes="100vw"
   />
+  {@html `<script type="application/ld+json">${donneesStructurees}</script>`}
 </svelte:head>
 
 <div class="bg-fond">
   <header class="absolute inset-x-0 top-0 z-40">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-4 md:px-8 md:py-5">
+    <div
+      class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-4 md:px-8 md:py-5"
+    >
       <a
-        class="flex items-center gap-2.5 rounded-full bg-surface/95 py-2 pl-2 pr-4 text-sm font-bold tracking-tight shadow-lg ui-verre"
+        class="flex min-h-11 items-center gap-2.5 rounded-full bg-surface/95 py-2 pl-2 pr-4 text-sm font-bold tracking-tight shadow-lg ui-verre"
         href="/"
+        aria-current={page.url.pathname === "/" ? "page" : undefined}
       >
         {#if identite.logoUrl}
           <img class="h-8 w-auto" src={identite.logoUrl} alt="" />
         {:else}
-          <span class="grid size-8 place-items-center rounded-full bg-accent text-sm font-black text-sur-accent">
+          <span
+            class="grid size-8 place-items-center rounded-full bg-accent text-sm font-black text-sur-accent"
+          >
             {identite.nom.slice(0, 1)}
           </span>
         {/if}
@@ -93,50 +119,93 @@
 
       <nav
         class="hidden items-center gap-1 rounded-full bg-surface/90 px-2 py-1.5 text-sm font-semibold shadow-lg ui-verre md:flex"
-        aria-label="Navigation principale"
+        aria-label={t.navPrincipale}
       >
-        <a class="rounded-full px-4 py-2 hover:bg-surface-2" href="/reserver">Séjours</a>
-        <a class="rounded-full px-4 py-2 hover:bg-surface-2" href="/aide">Aide</a>
-        <a class="rounded-full px-4 py-2 hover:bg-surface-2" href="/login">Propriétaires</a>
+        <a
+          class="inline-flex min-h-11 items-center rounded-full px-4 hover:bg-surface-2"
+          href="/reserver"
+          aria-current={estActif("/reserver") ? "page" : undefined}>{t.navSejours}</a
+        >
+        <a
+          class="inline-flex min-h-11 items-center rounded-full px-4 hover:bg-surface-2"
+          href="/aide"
+          aria-current={estActif("/aide") ? "page" : undefined}>{t.navAide}</a
+        >
+        <a
+          class="inline-flex min-h-11 items-center rounded-full px-4 hover:bg-surface-2"
+          href="/login"
+          aria-current={estActif("/login") ? "page" : undefined}
+          >{t.navProprietaires}</a
+        >
       </nav>
 
       <div class="flex items-center gap-2">
+        <SelecteurLangue
+          langue={data.langue}
+          libelle={t.choisirLangue}
+          chemin="/"
+          classes="hidden items-center gap-1 rounded-full bg-surface/90 px-2 py-1.5 shadow-lg ui-verre md:flex"
+        />
         <a
-          class="rounded-full bg-surface px-5 py-2.5 text-sm font-semibold shadow-lg ui-verre hover:bg-surface-2"
+          class="flex min-h-11 items-center rounded-full bg-surface px-5 text-sm font-semibold shadow-lg ui-verre hover:bg-surface-2"
           href="/reserver"
         >
-          Réserver
+          {t.ctaReserver}
         </a>
         <details class="relative md:hidden">
           <summary
-            class="grid size-10 cursor-pointer list-none place-items-center rounded-full bg-surface text-sm font-bold shadow-lg ui-verre [&::-webkit-details-marker]:hidden"
-            aria-label="Ouvrir le menu"
+            class="grid size-11 cursor-pointer list-none place-items-center rounded-full bg-surface text-sm font-bold shadow-lg ui-verre [&::-webkit-details-marker]:hidden"
+            aria-label={t.ouvrirMenu}
           >
             ☰
           </summary>
           <div
-            class="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-56 rounded-2xl border border-bordure bg-surface p-2 shadow-elevee"
+            class="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-64 rounded-2xl border border-bordure bg-surface p-2 shadow-elevee"
           >
-            <a class="ui-menu-lien" href="/reserver">Séjours</a>
-            <a class="ui-menu-lien" href="/aide">Aide</a>
-            <a class="ui-menu-lien" href="/login">Propriétaires</a>
-            <a class="ui-menu-lien" href="/login">Se connecter</a>
+            <a
+              class="ui-menu-lien"
+              href="/reserver"
+              aria-current={estActif("/reserver") ? "page" : undefined}
+              >{t.navSejours}</a
+            >
+            <a
+              class="ui-menu-lien"
+              href="/aide"
+              aria-current={estActif("/aide") ? "page" : undefined}>{t.navAide}</a
+            >
+            <a
+              class="ui-menu-lien"
+              href="/login"
+              aria-current={estActif("/login") ? "page" : undefined}
+              >{t.navProprietaires}</a
+            >
+            <a class="ui-menu-lien" href="/login">{t.navSeConnecter}</a>
+            <SelecteurLangue
+              langue={data.langue}
+              libelle={t.choisirLangue}
+              chemin="/"
+              classes="mt-2 flex flex-wrap gap-1 border-t border-bordure pt-2"
+            />
           </div>
         </details>
       </div>
     </div>
   </header>
 
-  <main>
-    <section class="relative flex min-h-[94vh] flex-col justify-end overflow-hidden">
+  <main id="contenu">
+    <section
+      class="relative flex min-h-[94vh] flex-col justify-end overflow-hidden"
+      aria-labelledby="tit-promesse"
+    >
       <picture>
         <source media="(max-width: 767px)" srcset="/photos/hero-villa-900.webp" />
         <img
           class="absolute inset-0 h-full w-full object-cover"
           src="/photos/hero-villa-1800.webp"
-          alt="Maison de vacances avec piscine et terrasse"
+          alt={t.heroImageAlt}
           width="1800"
           height="1100"
+          loading="eager"
           fetchpriority="high"
           decoding="async"
         />
@@ -146,17 +215,41 @@
         aria-hidden="true"
       ></div>
 
-      <div class="relative mx-auto w-full max-w-7xl px-5 pb-10 pt-36 md:px-8 md:pb-16">
-        <p class="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
-          Côte d’Azur · conciergerie indépendante
+      <div
+        class="relative mx-auto w-full max-w-7xl px-5 pb-10 pt-36 md:px-8 md:pb-16"
+      >
+        <p
+          class="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-white/80"
+        >
+          {t.heroSurtitre}
         </p>
-        <h1 class="max-w-4xl text-4xl font-semibold leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl">
-          Des maisons qui donnent envie de rester.
+        <h1
+          id="tit-promesse"
+          class="max-w-4xl text-4xl font-semibold leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl"
+        >
+          {t.heroTitre}
         </h1>
         <p class="mt-5 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
-          Des adresses choisies, préparées et suivies par une équipe locale.
-          Réservez en direct, sans commission de plateforme.
+          {t.heroTexte}
         </p>
+
+        <ul
+          class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-white/80"
+          role="list"
+        >
+          {#each t.etiquettes.slice(0, 4) as etiquette, index (etiquette)}
+            {#if index > 0}<li aria-hidden="true">·</li>{/if}
+            <li>{etiquette}</li>
+          {/each}
+        </ul>
+
+        {#if prixAppel}
+          <p class="mt-4 text-sm text-white/90" data-prix-appel>
+            {t.heroPrixPrefix}
+            <span class="text-base font-bold">{prixAppel}</span>
+            · {t.adressesNuit}
+          </p>
+        {/if}
 
         <form
           class="mt-8 grid gap-2 rounded-[1.75rem] border border-white/25 bg-surface/95 p-2 shadow-2xl ui-verre md:grid-cols-[1.05fr_1fr_1fr_auto]"
@@ -165,29 +258,37 @@
         >
           <input type="hidden" name="tenant" value="lcd" />
           <div class="rounded-2xl px-5 py-3 md:py-2.5">
-            <p class="text-[0.625rem] font-bold uppercase tracking-[0.16em] text-encre-faine">
-              Destination
+            <p
+              class="text-[0.625rem] font-bold uppercase tracking-[0.16em] text-encre-faine"
+            >
+              {t.rechercheDestination}
             </p>
-            <p class="mt-1 text-sm font-semibold">Côte d’Azur</p>
+            <p class="mt-1 text-sm font-semibold">
+              {t.rechercheDestinationValeur}
+            </p>
           </div>
-          <label class="rounded-2xl px-5 py-3 hover:bg-surface-2 md:py-2.5">
-            <span class="block text-[0.625rem] font-bold uppercase tracking-[0.16em] text-encre-faine">
-              Arrivée
+          <label class="min-w-0 rounded-2xl px-5 py-3 hover:bg-surface-2 md:py-2.5">
+            <span
+              class="block text-[0.625rem] font-bold uppercase tracking-[0.16em] text-encre-faine"
+            >
+              {t.rechercheArrivee}
             </span>
             <input
-              class="mt-1 w-full border-0 bg-transparent p-0 text-sm font-semibold text-encre outline-none"
+              class="mt-1 min-h-11 w-full min-w-0 border-0 bg-transparent p-0 text-sm font-semibold text-encre outline-none"
               type="date"
               name="debut"
               min={aujourdhui}
               required
             />
           </label>
-          <label class="rounded-2xl px-5 py-3 hover:bg-surface-2 md:py-2.5">
-            <span class="block text-[0.625rem] font-bold uppercase tracking-[0.16em] text-encre-faine">
-              Départ
+          <label class="min-w-0 rounded-2xl px-5 py-3 hover:bg-surface-2 md:py-2.5">
+            <span
+              class="block text-[0.625rem] font-bold uppercase tracking-[0.16em] text-encre-faine"
+            >
+              {t.rechercheDepart}
             </span>
             <input
-              class="mt-1 w-full border-0 bg-transparent p-0 text-sm font-semibold text-encre outline-none"
+              class="mt-1 min-h-11 w-full min-w-0 border-0 bg-transparent p-0 text-sm font-semibold text-encre outline-none"
               type="date"
               name="fin"
               min={aujourdhui}
@@ -198,37 +299,33 @@
             class="ui-bouton ui-bouton--primaire min-h-14 rounded-2xl px-7 md:min-h-full"
             type="submit"
           >
-            Rechercher
+            {t.rechercheRechercher}
           </button>
         </form>
-
-        <ul class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-white/80" role="list">
-          <li>Réservation directe</li>
-          <li aria-hidden="true">·</li>
-          <li>Sans commission</li>
-          <li aria-hidden="true">·</li>
-          <li>Paiement sécurisé</li>
-          <li aria-hidden="true">·</li>
-          <li>Assistance 24/7</li>
-        </ul>
       </div>
     </section>
 
-    <section class="mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[1.15fr_0.85fr] md:gap-16 md:px-8 md:py-28">
-      <h2 class="max-w-2xl text-3xl font-semibold leading-[1.02] tracking-tight sm:text-4xl md:text-5xl">
-        L’hospitalité d’une maison privée, la précision d’un hôtel.
+    <section
+      class="mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[1.15fr_0.85fr] md:gap-16 md:px-8 md:py-28"
+      aria-labelledby="tit-preuve"
+    >
+      <h2
+        id="tit-preuve"
+        class="max-w-2xl text-3xl font-semibold leading-[1.02] tracking-tight sm:text-4xl md:text-5xl"
+      >
+        {t.preuveTitre}
       </h2>
       <div class="space-y-6">
         <p class="text-base leading-relaxed text-encre-douce md:text-lg">
-          Nous ne listons pas des annonces. Nous préparons des maisons, formons
-          les équipes qui y interviennent et restons joignables pendant tout
-          votre séjour.
+          {t.preuveTexte}
         </p>
         <dl class="grid grid-cols-3 gap-4 border-t border-bordure pt-6">
-          {#each [["0 %", "commission"], ["5", "langues"], ["24/7", "assistance"]] as [valeur, libelle]}
+          {#each t.preuves as preuve (preuve.libelle)}
             <div>
-              <dt class="text-xl font-bold tabular-nums md:text-2xl">{valeur}</dt>
-              <dd class="mt-0.5 text-xs text-encre-faine">{libelle}</dd>
+              <dt class="text-xl font-bold tabular-nums md:text-2xl">
+                {preuve.valeur}
+              </dt>
+              <dd class="mt-0.5 text-xs text-encre-faine">{preuve.libelle}</dd>
             </div>
           {/each}
         </dl>
@@ -236,105 +333,145 @@
     </section>
 
     <section class="border-y border-bordure bg-surface/60">
-      <div class="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 py-4 md:px-8" aria-label="Caractéristiques">
-        {#each qualites as qualite (qualite)}
-          <span class="whitespace-nowrap rounded-full border border-bordure bg-surface px-4 py-2 text-xs font-semibold text-encre-douce">
-            {qualite}
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div
+        class="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 py-4 md:px-8"
+        role="region"
+        tabindex="0"
+        aria-label={t.etiquettesTitre}
+      >
+        {#each t.etiquettes as etiquette (etiquette)}
+          <span
+            class="whitespace-nowrap rounded-full border border-bordure bg-surface px-4 py-2 text-xs font-semibold text-encre-douce"
+          >
+            {etiquette}
           </span>
         {/each}
       </div>
     </section>
 
-    <section class="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28">
+    <section
+      class="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28"
+      aria-labelledby="tit-maisons"
+    >
       <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p class="ui-surtitre">Les maisons</p>
-          <h2 class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
-            Des lieux qui ont une âme.
+          <p class="ui-surtitre">{t.maisonsSurtitre}</p>
+          <h2
+            id="tit-maisons"
+            class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl"
+          >
+            {t.maisonsTitre}
           </h2>
         </div>
         <p class="max-w-sm text-sm leading-relaxed text-encre-douce">
-          Lumière du matin, vue dégagée, vraie cuisine : nous choisissons les
-          maisons comme si nous devions y dormir.
+          {t.maisonsTexte}
         </p>
       </div>
 
-      <div class="grid auto-rows-[14rem] gap-3 md:grid-cols-4 md:auto-rows-[15rem]">
-        <figure class="ui-photo group relative col-span-1 row-span-2 overflow-hidden rounded-3xl md:col-span-2">
+      <div class="grid auto-rows-[14rem] gap-3 md:auto-rows-[15rem] md:grid-cols-4">
+        <figure
+          class="ui-photo group relative col-span-1 row-span-2 overflow-hidden rounded-3xl md:col-span-2"
+        >
           <img
             class="h-full w-full object-cover"
             src="/photos/salon.webp"
-            alt="Salon lumineux ouvert sur une terrasse"
+            srcset={srcsetLogement("/photos/salon.webp")}
+            sizes="(min-width: 768px) 46vw, 92vw"
+            alt={t.maisonsPhotos[0].alt}
             width="1000"
             height="750"
             loading="lazy"
             decoding="async"
           />
-          <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 text-white">
-            <span class="text-xs uppercase tracking-widest text-white/70">Le salon</span>
-            <p class="mt-1 text-lg font-semibold">Ouvert sur la terrasse</p>
+          <figcaption
+            class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 text-white"
+          >
+            <span class="text-xs uppercase tracking-widest text-white/70"
+              >{t.maisonsPhotos[0].surtitre}</span
+            >
+            <p class="mt-1 text-lg font-semibold">{t.maisonsPhotos[0].titre}</p>
           </figcaption>
         </figure>
-        <figure class="ui-photo group relative col-span-1 row-span-1 overflow-hidden rounded-3xl md:col-span-2">
+        <figure
+          class="ui-photo group relative col-span-1 row-span-1 overflow-hidden rounded-3xl md:col-span-2"
+        >
           <img
             class="h-full w-full object-cover"
             src="/photos/piscine.webp"
-            alt="Piscine privée entourée de végétation"
+            srcset={srcsetLogement("/photos/piscine.webp")}
+            sizes="(min-width: 768px) 46vw, 92vw"
+            alt={t.maisonsPhotos[1].alt}
             width="1000"
             height="750"
             loading="lazy"
             decoding="async"
           />
-          <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 text-white">
-            <span class="text-xs uppercase tracking-widest text-white/70">Le matin</span>
-            <p class="mt-1 text-lg font-semibold">Le premier plongeon</p>
+          <figcaption
+            class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 text-white"
+          >
+            <span class="text-xs uppercase tracking-widest text-white/70"
+              >{t.maisonsPhotos[1].surtitre}</span
+            >
+            <p class="mt-1 text-lg font-semibold">{t.maisonsPhotos[1].titre}</p>
           </figcaption>
         </figure>
         <figure class="ui-photo group relative overflow-hidden rounded-3xl">
           <img
             class="h-full w-full object-cover"
             src="/photos/chambre.webp"
-            alt="Chambre préparée avec linge hôtelier"
+            srcset={srcsetLogement("/photos/chambre.webp")}
+            sizes="(min-width: 768px) 23vw, 92vw"
+            alt={t.maisonsPhotos[2].alt}
             width="1000"
             height="750"
             loading="lazy"
             decoding="async"
           />
-          <figcaption class="sr-only">Chambre préparée avec linge hôtelier</figcaption>
+          <figcaption class="sr-only">{t.maisonsPhotos[2].alt}</figcaption>
         </figure>
         <figure class="ui-photo group relative overflow-hidden rounded-3xl">
           <img
             class="h-full w-full object-cover"
             src="/photos/terrasse.webp"
-            alt="Terrasse ombragée pour les repas"
+            srcset={srcsetLogement("/photos/terrasse.webp")}
+            sizes="(min-width: 768px) 23vw, 92vw"
+            alt={t.maisonsPhotos[3].alt}
             width="1000"
             height="750"
             loading="lazy"
             decoding="async"
           />
-          <figcaption class="sr-only">Terrasse ombragée pour les repas</figcaption>
+          <figcaption class="sr-only">{t.maisonsPhotos[3].alt}</figcaption>
         </figure>
       </div>
     </section>
 
-    <section class="mx-auto max-w-7xl px-5 pb-20 md:px-8 md:pb-28" aria-labelledby="tit-adresses">
+    <section
+      class="mx-auto max-w-7xl px-5 pb-20 md:px-8 md:pb-28"
+      aria-labelledby="tit-adresses"
+    >
       <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p class="ui-surtitre">Disponibles maintenant</p>
-          <h2 class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl" id="tit-adresses">
-            Nos adresses.
+          <p class="ui-surtitre">{t.adressesSurtitre}</p>
+          <h2
+            id="tit-adresses"
+            class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl"
+          >
+            {t.adressesTitre}
           </h2>
         </div>
         <a class="ui-bouton ui-bouton--secondaire" href="/reserver">
-          Voir toutes les disponibilités
+          {t.adressesTout}
         </a>
       </div>
 
       {#if data.adresses.length === 0}
         <div class="rounded-3xl border border-bordure bg-surface p-8 text-center">
           <p class="text-encre-douce">
-            Les prochaines disponibilités sont en préparation.
-            <a class="ui-lien" href="/aide">Contactez-nous</a> pour être prévenu.
+            {t.adressesVide}
+            <a class="ui-lien-action" href="/aide">{t.adressesVideCta}</a>
+            {t.adressesVideSuite}
           </p>
         </div>
       {:else}
@@ -345,11 +482,13 @@
                 class="block rounded-3xl focus-visible:outline-offset-4"
                 href={`/reserver?tenant=lcd&logement=${encodeURIComponent(adresse.id)}`}
               >
-                <div class="ui-photo relative aspect-[4/3] overflow-hidden rounded-3xl bg-surface-2">
+                <div
+                  class="ui-photo relative aspect-[4/3] overflow-hidden rounded-3xl bg-surface-2"
+                >
                   <img
                     class="h-full w-full object-cover"
                     src={adresse.photo}
-                    alt={`${adresse.nom}${adresse.adresse ? ` à ${adresse.adresse}` : ""}`}
+                    alt={`${adresse.nom}${adresse.adresse ? ` ${t.adressesLieu} ${adresse.adresse}` : ""}`}
                     width="1000"
                     height="750"
                     loading="lazy"
@@ -358,18 +497,26 @@
                 </div>
                 <div class="mt-3 flex items-start justify-between gap-3">
                   <div>
-                    <h3 class="text-base font-semibold tracking-tight">{adresse.nom}</h3>
-                    <p class="mt-0.5 text-sm text-encre-faine">{adresse.adresse ?? "Côte d’Azur"}</p>
+                    <h3 class="text-base font-semibold tracking-tight">
+                      {adresse.nom}
+                    </h3>
+                    <p class="mt-0.5 text-sm text-encre-faine">
+                      {adresse.adresse ?? t.rechercheDestinationValeur}
+                    </p>
                   </div>
                   {#if adresse.prix}
                     <p class="shrink-0 text-right text-sm">
                       <span class="font-semibold">{adresse.prix}</span>
-                      <span class="block text-xs text-encre-faine">la nuit</span>
+                      <span class="block text-xs text-encre-faine"
+                        >{t.adressesNuit}</span
+                      >
                     </p>
                   {/if}
                 </div>
-                <p class="mt-2 text-sm font-semibold text-accent md:opacity-0 md:transition-opacity md:group-hover:opacity-100 md:group-focus-within:opacity-100">
-                  Voir les disponibilités →
+                <p
+                  class="mt-2 text-sm font-semibold text-accent md:opacity-0 md:transition-opacity md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+                >
+                  {t.adressesVoir}
                 </p>
               </a>
             </article>
@@ -378,26 +525,36 @@
       {/if}
     </section>
 
-    <section class="bg-encre text-fond">
+    <section class="bg-encre text-fond" aria-labelledby="tit-sejour">
       <div class="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28">
         <div class="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
           <div>
-            <p class="text-xs font-bold uppercase tracking-[0.2em] opacity-60">Le séjour</p>
-            <h2 class="mt-4 text-3xl font-semibold leading-tight tracking-tight md:text-5xl">
-              Vous arrivez. Tout est déjà là.
+            <p class="text-xs font-bold uppercase tracking-[0.2em] opacity-60">
+              {t.sejourSurtitre}
+            </p>
+            <h2
+              id="tit-sejour"
+              class="mt-4 text-3xl font-semibold leading-tight tracking-tight md:text-5xl"
+            >
+              {t.sejourTitre}
             </h2>
             <p class="mt-5 max-w-sm text-sm leading-relaxed opacity-70">
-              Pas de boîte à clés introuvable, pas de ménage à refaire, pas de
-              numéro qui sonne dans le vide.
+              {t.sejourTexte}
             </p>
           </div>
           <ol class="grid gap-0" role="list">
-            {#each engagements as engagement (engagement.numero)}
-              <li class="grid gap-4 border-t border-white/15 py-6 sm:grid-cols-[3rem_1fr]">
-                <span class="text-xs font-bold tabular-nums opacity-50">{engagement.numero}</span>
+            {#each t.engagements as engagement (engagement.numero)}
+              <li
+                class="grid gap-4 border-t border-white/15 py-6 sm:grid-cols-[3rem_1fr]"
+              >
+                <span class="text-xs font-bold tabular-nums opacity-50"
+                  >{engagement.numero}</span
+                >
                 <div>
                   <h3 class="text-lg font-semibold">{engagement.titre}</h3>
-                  <p class="mt-1.5 max-w-lg text-sm leading-relaxed opacity-70">{engagement.texte}</p>
+                  <p class="mt-1.5 max-w-lg text-sm leading-relaxed opacity-70">
+                    {engagement.texte}
+                  </p>
                 </div>
               </li>
             {/each}
@@ -406,13 +563,20 @@
       </div>
     </section>
 
-    <section class="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28">
-      <div class="grid overflow-hidden rounded-[2rem] border border-bordure bg-surface shadow-sm md:grid-cols-2">
+    <section
+      class="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28"
+      aria-labelledby="tit-proprietaires"
+    >
+      <div
+        class="grid overflow-hidden rounded-[2rem] border border-bordure bg-surface shadow-sm md:grid-cols-2"
+      >
         <div class="relative min-h-[20rem]">
           <img
             class="absolute inset-0 h-full w-full object-cover"
             src="/photos/maison.webp"
-            alt="Maison contemporaine avec jardin"
+            srcset={srcsetLogement("/photos/maison.webp")}
+            sizes="(min-width: 768px) 46vw, 92vw"
+            alt={t.proprietairesImageAlt}
             width="1000"
             height="750"
             loading="lazy"
@@ -420,38 +584,46 @@
           />
         </div>
         <div class="flex flex-col justify-center gap-5 p-8 md:p-12">
-          <p class="ui-surtitre">Propriétaires</p>
-          <h2 class="text-3xl font-semibold leading-tight tracking-tight md:text-4xl">
-            Votre maison mérite une équipe, pas un logiciel de plus.
+          <p class="ui-surtitre">{t.proprietairesSurtitre}</p>
+          <h2
+            id="tit-proprietaires"
+            class="text-3xl font-semibold leading-tight tracking-tight md:text-4xl"
+          >
+            {t.proprietairesTitre}
           </h2>
           <p class="text-sm leading-relaxed text-encre-douce">
-            Nous prenons en charge les séjours, la relation voyageur et la
-            maintenance pendant que vous gardez la main sur les prix et le
-            calendrier. Un seul interlocuteur, un relevé clair chaque mois.
+            {t.proprietairesTexte}
           </p>
           <div class="flex flex-wrap gap-3">
-            <a class="ui-bouton ui-bouton--primaire" href="/login">Confier mon logement</a>
-            <a class="ui-bouton ui-bouton--secondaire" href="/aide">Comment ça marche</a>
+            <a class="ui-bouton ui-bouton--encre" href="/login"
+              >{t.proprietairesCta}</a
+            >
+            <a class="ui-bouton ui-bouton--secondaire" href="/aide"
+              >{t.proprietairesCtaSecondaire}</a
+            >
           </div>
         </div>
       </div>
     </section>
 
-    <section class="mx-auto max-w-7xl px-5 pb-20 md:px-8 md:pb-28" aria-labelledby="tit-formules">
+    <section
+      class="mx-auto max-w-7xl px-5 pb-20 md:px-8 md:pb-28"
+      aria-labelledby="tit-formules"
+    >
       <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p class="ui-surtitre">Propriétaires</p>
-          <h2 class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl" id="tit-formules">
-            Un prix par logement, pas une commission.
+          <p class="ui-surtitre">{t.formulesSurtitre}</p>
+          <h2
+            id="tit-formules"
+            class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl"
+          >
+            {t.formulesTitre}
           </h2>
         </div>
-        <p class="max-w-sm text-sm text-encre-douce">
-          Indicatif — le devis dépend du nombre de logements et du niveau de
-          service.
-        </p>
+        <p class="max-w-sm text-sm text-encre-douce">{t.formulesNote}</p>
       </div>
       <div class="grid gap-4 md:grid-cols-3">
-        {#each formules as formule (formule.nom)}
+        {#each t.formules as formule (formule.nom)}
           <article
             class="flex flex-col gap-4 rounded-3xl border bg-surface p-7 {formule.enAvant
               ? 'border-accent shadow-elevee'
@@ -460,11 +632,15 @@
             <div class="flex items-center justify-between gap-2">
               <h3 class="text-lg font-semibold">{formule.nom}</h3>
               {#if formule.enAvant}
-                <span class="ui-badge ui-badge--accent">Le plus choisi</span>
+                <span class="ui-badge ui-badge--accent"
+                  >{t.formulePopulaire}</span
+                >
               {/if}
             </div>
             <div>
-              <p class="text-4xl font-extrabold tabular-nums">{formule.prix} €</p>
+              <p class="text-4xl font-extrabold tabular-nums">
+                {formule.prix} €
+              </p>
               <p class="text-xs text-encre-faine">{formule.base}</p>
             </div>
             <p class="text-sm text-encre-douce">{formule.cible}</p>
@@ -476,80 +652,155 @@
                 </li>
               {/each}
             </ul>
-            <a class="ui-bouton ui-bouton--secondaire mt-auto" href="/login">Demander une offre</a>
+            <a class="ui-bouton ui-bouton--secondaire mt-auto" href="/login"
+              >{t.formuleCta}</a
+            >
           </article>
         {/each}
       </div>
     </section>
 
-    <section class="relative overflow-hidden bg-accent text-sur-accent">
-      <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-5 py-16 md:px-8 md:py-20">
+    <section
+      class="relative overflow-hidden bg-accent text-sur-accent"
+      aria-labelledby="tit-final"
+    >
+      <div
+        class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-5 py-16 md:px-8 md:py-20"
+      >
         <div class="max-w-2xl">
-          <p class="text-xs font-bold uppercase tracking-[0.2em] opacity-70">Prêt à partir</p>
-          <h2 class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
-            Votre prochain séjour commence ici.
+          <p class="text-xs font-bold uppercase tracking-[0.2em]">
+            {t.finalSurtitre}
+          </p>
+          <h2
+            id="tit-final"
+            class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl"
+          >
+            {t.finalTitre}
           </h2>
         </div>
         <div class="flex flex-wrap gap-3">
-          <a class="ui-bouton ui-bouton--encre" href="/reserver">Voir les disponibilités</a>
-          <a class="ui-bouton ui-bouton--secondaire" href="/aide">Poser une question</a>
+          <a class="ui-bouton ui-bouton--encre" href="/reserver"
+            >{t.finalCta}</a
+          >
+          <a class="ui-bouton ui-bouton--secondaire" href="/aide"
+            >{t.finalCtaSecondaire}</a
+          >
         </div>
       </div>
     </section>
   </main>
 
   <footer class="border-t border-bordure bg-surface">
-    <div class="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-8">
+    <div
+      class="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-8"
+    >
       <div class="space-y-3">
-        <a class="flex items-center gap-2.5 text-base font-bold tracking-tight" href="/">
+        <a
+          class="flex min-h-11 items-center gap-2.5 text-base font-bold tracking-tight"
+          href="/"
+        >
           {#if identite.logoUrl}
             <img class="h-8 w-auto" src={identite.logoUrl} alt="" />
           {:else}
-            <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-black text-sur-accent">
+            <span
+              class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-black text-sur-accent"
+            >
               {identite.nom.slice(0, 1)}
             </span>
           {/if}
           {identite.nom}
         </a>
         <p class="max-w-xs text-sm leading-relaxed text-encre-douce">
-          Conciergerie indépendante sur la Côte d’Azur. Des maisons préparées,
-          des séjours suivis.
+          {t.piedSlogan}
         </p>
       </div>
       <div>
-        <p class="text-xs font-bold uppercase tracking-widest text-encre-faine">Séjours</p>
+        <p
+          class="text-xs font-bold uppercase tracking-widest text-encre-faine"
+        >
+          {t.piedSejours}
+        </p>
         <ul class="mt-3 space-y-2 text-sm" role="list">
-          <li><a class="ui-lien" href="/reserver">Réserver</a></li>
-          <li><a class="ui-lien" href="/aide">Aide</a></li>
-          <li><a class="ui-lien" href="/design">Design system</a></li>
+          <li>
+            <a class="ui-lien-action inline-flex min-h-11 items-center" href="/reserver">{t.piedReserver}</a>
+          </li>
+          <li><a class="ui-lien-action inline-flex min-h-11 items-center" href="/aide">{t.piedAide}</a></li>
+          <li>
+            <a class="ui-lien-action inline-flex min-h-11 items-center" href="/design">{t.piedDesign}</a>
+          </li>
         </ul>
       </div>
       <div>
-        <p class="text-xs font-bold uppercase tracking-widest text-encre-faine">Propriétaires</p>
+        <p
+          class="text-xs font-bold uppercase tracking-widest text-encre-faine"
+        >
+          {t.piedProprietaires}
+        </p>
         <ul class="mt-3 space-y-2 text-sm" role="list">
-          <li><a class="ui-lien" href="/login">Espace hôte</a></li>
-          <li><a class="ui-lien" href="/login">Confier un logement</a></li>
-          <li><a class="ui-lien" href="/hote">Tableau de bord</a></li>
+          <li>
+            <a class="ui-lien-action inline-flex min-h-11 items-center" href="/login">{t.piedEspaceHote}</a>
+          </li>
+          <li>
+            <a class="ui-lien-action inline-flex min-h-11 items-center" href="/login">{t.piedConfier}</a>
+          </li>
+          <li>
+            <a class="ui-lien-action inline-flex min-h-11 items-center" href="/hote">{t.piedTableauBord}</a>
+          </li>
         </ul>
       </div>
       <div>
-        <p class="text-xs font-bold uppercase tracking-widest text-encre-faine">Informations</p>
+        <p
+          class="text-xs font-bold uppercase tracking-widest text-encre-faine"
+        >
+          {t.piedInformations}
+        </p>
         <ul class="mt-3 space-y-2 text-sm" role="list">
-          <li><a class="ui-lien" href="/legales">Mentions légales</a></li>
-          <li><a class="ui-lien" href="/api/lite?on=1&retour=/">Version légère</a></li>
+          <li>
+            <a class="ui-lien-action inline-flex min-h-11 items-center" href="/legales">{t.piedMentions}</a>
+          </li>
+          <li>
+            <a
+              class="ui-lien-action inline-flex min-h-11 items-center"
+              href="/retour?parcours=P-RESA">{t.piedAvis}</a
+            >
+          </li>
+          <li>
+            <a class="ui-lien-action inline-flex min-h-11 items-center" href="/api/lite?on=1&retour=/"
+              >{t.piedVersionLegere}</a
+            >
+          </li>
           {#if identite.emailContact}
             <li>
-              <a class="ui-lien" href={`mailto:${identite.emailContact}`}>{identite.emailContact}</a>
+              <a class="ui-lien-action inline-flex min-h-11 items-center" href={`mailto:${identite.emailContact}`}
+                >{identite.emailContact}</a
+              >
             </li>
           {/if}
         </ul>
       </div>
     </div>
     <div class="border-t border-bordure">
-      <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-5 py-5 text-xs text-encre-faine md:px-8">
-        <p>© {new Date().getFullYear()} {identite.nom}. Tous droits réservés.</p>
-        <p>Site accessible sans JavaScript · Hébergé en Europe</p>
+      <div
+        class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-5 py-5 text-xs text-encre-faine md:px-8"
+      >
+        <p>© {new Date().getFullYear()} {identite.nom}. {t.piedDroits}</p>
+        <p>{t.piedSansJs}</p>
       </div>
     </div>
   </footer>
+
+  <BarreActionMobile langue={data.langue}>
+    {#snippet actions()}
+      <div class="min-w-0 flex-1">
+        <a class="ui-bouton ui-bouton--primaire w-full" href="/reserver"
+          >{t.ctaReserver}</a
+        >
+      </div>
+      <div class="min-w-0 flex-1">
+        <a class="ui-bouton ui-bouton--secondaire w-full" href="/aide"
+          >{t.navAide}</a
+        >
+      </div>
+    {/snippet}
+  </BarreActionMobile>
 </div>

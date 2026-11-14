@@ -2,7 +2,7 @@
   <title>Aperçu en lecture seule — LCD Parc</title>
 </svelte:head>
 
-<main class="mx-auto max-w-xl space-y-6 px-6 py-16">
+<main id="contenu" class="mx-auto max-w-xl space-y-6 px-6 py-16">
   <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
     Mode aperçu
   </p>

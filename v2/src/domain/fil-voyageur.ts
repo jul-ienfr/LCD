@@ -65,6 +65,8 @@ export interface FilVoyageur {
   cleRegroupement: string;
   consentements: ConsentementsFil;
   statut: StatutFil;
+  /** Membre de l'équipe en charge du fil (email), null = non assigné. */
+  assigneA: string | null;
   dernierMessageAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

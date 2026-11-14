@@ -11,7 +11,7 @@
   <title>{t.titrePageDetail(data.menage.date)}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-3xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-3xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
@@ -22,7 +22,7 @@
         {t.detailResume(data.menage.date, data.menage.statutLabel, data.avancement.faites, data.avancement.total, data.avancement.pourcentage)}
       </p>
     </div>
-    <a class="ui-lien text-sm" href={`/hote/menage?logement=${data.logement.id}`}>
+    <a class="ui-lien-action text-sm" href={`/hote/menage?logement=${data.logement.id}`}>
       {t.tousMenages}
     </a>
   </header>
@@ -60,7 +60,7 @@
           <legend class="text-sm font-semibold">{t.checklist}</legend>
           {#each data.menage.taches as tache, index (index)}
             <label
-              class="flex items-center gap-3 rounded-controle border border-bordure p-3 text-sm"
+              class="flex min-h-11 min-w-11 items-center gap-3 rounded-controle border border-bordure p-3 text-sm"
             >
               <input
                 type="checkbox"
@@ -129,7 +129,7 @@
         <label class="ui-champ-groupe">
           <span class="ui-label">{t.fichier}</span>
           <input
-            class="ui-champ"
+            class="ui-champ min-h-11"
             type="file"
             name="photo"
             accept={data.photoTypes}
@@ -228,15 +228,15 @@
   {/if}
 
   <nav class="flex flex-wrap gap-4 text-sm">
-    <a class="ui-lien" href={`/hote/menage?logement=${data.logement.id}`}>
+    <a class="ui-lien-action" href={`/hote/menage?logement=${data.logement.id}`}>
       {t.tousMenages}
     </a>
-    <a class="ui-lien" href={`/hote/etats-des-lieux?logement=${data.logement.id}`}>
+    <a class="ui-lien-action" href={`/hote/etats-des-lieux?logement=${data.logement.id}`}>
       {t.etatsDesLieux}
     </a>
-    <a class="ui-lien" href={`/hote/entretien?logement=${data.logement.id}`}>
+    <a class="ui-lien-action" href={`/hote/entretien?logement=${data.logement.id}`}>
       {t.entretien}
     </a>
-    <a class="ui-lien" href="/hote">{t.tableauBord}</a>
+    <a class="ui-lien-action" href="/hote">{t.tableauBord}</a>
   </nav>
 </main>

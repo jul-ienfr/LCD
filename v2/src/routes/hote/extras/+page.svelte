@@ -10,7 +10,7 @@
   <title>{t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-5xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-5xl space-y-8 px-6 py-12">
   <header class="space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
       {t.surtitre}

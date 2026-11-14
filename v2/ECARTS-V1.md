@@ -48,6 +48,9 @@ infra V1).
 | Exigence | V2 | Preuve / reste à faire |
 |---|---|---|
 | Onboarding 7 étapes | Partiel | `/hote/onboarding` = état réel des gates ; visite, contrat, pack, installation et go-live restent terrain. |
+| Import CSV logements/réservations | Fait | `/hote/import` : parseur `,`/`;`, guillemets, BOM/CRLF, rapport ligne par ligne, refus des chevauchements, création partielle et audit `import.csv`. |
+| Parcours de réservation test | Fait | `/hote/onboarding/reservation-test` : séjour `TEST-…`, lien guide signé, annulation, audit ; aucun impact sur le CA. |
+| Tenant de démonstration lecture seule | Fait | `tenants.lecture_seule` (migration 0100) + garde `hooks.server.ts` : écritures refusées (303 staff, 403 API), lectures et authentification ouvertes ; seed `SEED_DEMO_PASSWORD`. |
 | Gate copro `copro.verifiee=false` → en ligne bloquée | Fait | `logements.copro_verifiee`, filtre `/reserver`, audit. |
 | Conformité annonce (9 mentions, DPE/GES, Cerfa) | Fait | `/hote/annonce`. |
 | Machine d’état publication | Fait | `brouillon` par défaut, publication explicite auditée ; « prêt » fusionné avec l’onboarding. |
@@ -103,6 +106,18 @@ infra V1).
 | 3 fils internes (proprio / presta / voyageur) | Fait | `/hote/fils` : création par canal, réponses, clôture/réouverture, logement validé tenant, audit. |
 | Relances J+3/J+7/J+15 | Fait | Cron/CRM. |
 
+## API, intégrations, développeurs
+
+| Exigence | V2 | Preuve / reste à faire |
+|---|---|---|
+| Clés API à scopes | Fait | `/hote/integrations/api` : clé `lcd_…` affichée une fois, empreinte SHA-256 seule persistée, six scopes, expiration, révocation idempotente, audit. |
+| API v1 en lecture | Fait | `/api/v1/{logements,reservations,disponibilites,prix,proprietaires,releves}` : Bearer, 120 req/min, pagination, `X-Request-Id`, erreurs homogènes. |
+| Documentation développeurs | Fait | `/developpeurs` et `GET /api/v1/openapi` (OpenAPI 3.1), exemples cURL. |
+| Webhooks signés + rejeu | Fait | `/hote/integrations` : HMAC `X-LCD-Signature`, 5 tentatives `[0,1,5,15,60]` min, cron, historique des livraisons. |
+| Serrure Nuki | Fait (mode manuel sans token) | `/hote/integrations/nuki`, `/hote/logements/[id]/serrure` ; adapter US6 et contrat sandbox opt-in. |
+| Guide partenaire Duve/Touch Stay | Non retenu | Aucun contrat/API partenaire fourni ; le guide natif reste la source. |
+| Swikly | En attente | La caution interne reste opérationnelle ; l'adapter externe exige le contrat Swikly. |
+
 ## IA, notifications, transverse
 
 | Exigence | V2 | Preuve / reste à faire |
@@ -123,9 +138,30 @@ infra V1).
 | Sauvegarde/restauration testées | Fait | `db:backup`, `db:restore-test`. |
 | Alertes (box, disque, certificat) | Fait | `/supervision` santé système, `/api/health/systeme` (503 sous seuil disque/TLS ou box silencieuse) et `POST /api/box/heartbeat` protégé par jeton. |
 
+## Ergonomie et expérience client (plan 004)
+
+| Exigence | V2 | Preuve / reste à faire |
+|---|---|---|
+| Navigation staff par tâches | Fait | Modèle `ModeleNavigation` (domaines, tâches, rôles, priorité), 7 entrées principales au maximum, fil d'Ariane sur les pages profondes (`contracts/navigation.md`, `tests/ergonomie/navigation.test.ts`). |
+| Recherche globale staff | Fait | `/hote/recherche` : référence, logement, voyageur, filtres par rôle, état vide expliqué, cible tactile conforme. |
+| Sélecteur de langue public | Fait | 5 langues (`fr,en,it,es,de`) sans JavaScript, cookie `lcd_langue`, `lang` résolu côté serveur, `hreflang`. |
+| Tunnel de réservation en 2 étapes | Fait | `/reserver` : étape 1 dates/logement (GET, URL partageable), étape 2 coordonnées (POST), erreurs localisées conservant la saisie, récapitulatif collant + barre d'action mobile (T037–T041). |
+| Confirmation rassurante | Fait | `/reserver/[ref]` : référence sélectionnable, récapitulatif, échéances si présentes, prochaine étape, délai, contact, aide (T084). |
+| Fiche logement publique | Écart assumé | `/logement/[slug]` n'existe pas en V2 : les inclusions, la taxe et le délai sont publiés sur le tunnel et la confirmation. |
+| Espace voyageur hiérarchisé | Fait | `/voyageur` : essentiel en premier écran, sommaire, sections `<details>` ouvertes par défaut, offline/outbox (T047–T053). |
+| Accessibilité WCAG 2.2 AA | Fait | 0 violation axe sérieuse sur 18 routes (9 publiques + 9 staff), lien d'évitement, zones défilantes focusables, contrastes vérifiés. |
+| Cibles tactiles ≥ 44 px / 320 px | Fait | 0 cible < 44 px et 0 px de débordement sur 18 routes (`apres-320*.json`). |
+| Budget JS | Fait | 4 routes P1 : 1,8 Ko gzip cumulés (voyageur 1,4 Ko), 0 Ko obligatoire sur public/voyageur. |
+| Thèmes super-admin sous garde-fous | Fait | `/supervision/apparence` : publication bloquée si contraste AA ou cible 44 px échoue, aperçu, journal (T097–T101). |
+| Mesure first-party des parcours | Fait | Événements serveur anonymes (P-RESA, P-SEJOUR, P-RECHERCHE, P-HOTE-5), consentement `mesure`, aucun texte saisi, échec de mesure non bloquant (T089–T092). |
+| Lighthouse mobile (SC-004) | Non mesuré | Lighthouse absent du dépôt, non installé : à installer et exécuter explicitement (T003/T075). |
+| Tests utilisateurs et SUS/SEQ (SC-001, SC-003, SC-010) | À faire | Second round de 5 personnes (T107) ; pas de substitut automatisable. |
+
 ## Prochaines priorités
 
 1. i18n staff : **Fait** (2026-11-08) — plus aucune page métier à traduire.
+2. Intégrations partenaires live : **Partiel** (2026-11-10) — API v1, clés, webhooks et Nuki sont livrés ; Duve/Touch Stay, Swikly, Zapier/Make et MCP restent dépendants de contrats ou de comptes partenaires.
+3. Tarifs publics : **Fait** (2026-11-10) — `/tarifs` FULL/PILOTAGE/KIT avec calculateur HTML-first et FAQ.
 2. Contrat channel manager : comptes, certification et test >10 unités.
    - **Socle logiciel : Fait** (2026-11-08) — adaptateurs 5 fournisseurs, cas d’usage ARI, cron /api/cron/fournisseurs (batch 20, porte FOURNISSEUR_SYNC_ENABLED), registre super-admin, synchronisation manuelle /hote/planning/canaux.
    - **Test >10 unités : Fait** (2026-11-08) — `tests/fournisseur-ari-charge.test.ts` : 12 logements, poussée ARI complète (disponibilités + tarifs + restrictions), détection configuration incomplète. Comptes et certification restent externes.

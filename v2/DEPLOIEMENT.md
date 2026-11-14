@@ -107,6 +107,11 @@ Netlify détecte Next.js et installe `@netlify/plugin-nextjs` au build.
 | `SMTP_URL` / `EMAIL_FROM` | si emails activés |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | si paiement en ligne activé |
 | `CRON_SECRET` | si synchronisation OTA par cron HTTP activée |
+| `MESSAGES_AUTO_ENABLED` | `true` pour autoriser `/api/cron/messages-auto` (brouillons seulement, `false` par défaut) |
+| `PRICING_IMPORT_ENABLED` | `true` pour autoriser `/api/cron/pricing` (recommandations seulement, `false` par défaut) |
+| `PRICELABS_API_KEY` / `PRICELABS_API_BASE` | si revenue management partenaire activé (sinon recommandation locale) |
+| `NUKI_API_TOKEN` | optionnel : pousse les codes d'accès vers Nuki Web ; sans token, les codes sont générés en mode manuel |
+| `NUKI_API_BASE` | URL de l'API Nuki (défaut `https://api.nuki.io`) |
 | `ICS_SCHEDULER_ENABLED` | `false` sur Netlify (pas de processus persistant) |
 | `SENTRY_DSN` | si Sentry activé |
 
@@ -228,3 +233,58 @@ npm run db:check
 
 Le build Netlify ne doit pas produire de dossier `standalone` ; le build
 Docker/VPS, lui, le produit.
+
+## 8. Nettoyage des données de recette (après déploiement)
+
+**Quand :** après le déploiement, jamais avant. Les faux comptes et les faux
+logements sont **nécessaires pour tester** : recettes e2e, parcours voyageur,
+démonstration commerciale. On les supprime quand la recette n'a plus besoin de la
+base de démonstration, pas avant.
+
+**Quoi.** Inventaire mesuré le 2026-11-13 sur `lcd_demo` (tenant `lcd`,
+rôle de migration, donc hors RLS) — lecture seule, rien n'a été supprimé :
+
+| Donnée de recette | Volume | Marqueur |
+| --- | --- | --- |
+| Comptes | **120**, tous en `@lcd.test` | domaine `lcd.test` |
+| Logements | **617**, dont 3 seulement de vitrine | tout sauf Villa Santa Severa, Le Mas des Oliviers, Le Loft du Port |
+| Fixtures e2e nommées | 473 « …E2E… » + 13 « Onboarding <horodatage> » | préfixes `E2E`, `Onboarding` |
+| Autres fixtures | « Logement plan/dérivé/Archive/Recherche », « Relevé », « Import », « Proprio A/B », « Diag… » | nom + horodatage |
+| Dépendances | 444 réservations, 549 tarifs, 65 factures, 41 paiements, 36 restrictions, 57 incidents, 22 avis, 20 extras, 13 blocages | rattachées aux logements et comptes ci-dessus |
+
+Un seul tenant existe dans cette base : `lcd`. Rien n'est à nettoyer dans une
+base de production neuve — ce nettoyage concerne les bases de démonstration et de
+recette.
+
+**Procédure** — outil dédié, **en lecture seule par défaut** :
+
+```bash
+cd v2
+# 1. Voir le plan (aucune écriture) : volumes par table et éléments conservés
+MIGRATION_DATABASE_URL=… npm run db:nettoyer-recette
+
+# 2. Sauvegarder la base (v2/BACKUPS.md), puis exécuter
+NETTOYAGE_CONFIRME=1 MIGRATION_DATABASE_URL=… npm run db:nettoyer-recette -- --appliquer
+```
+
+Trois verrous avant toute écriture : le drapeau `--appliquer`, la variable
+`NETTOYAGE_CONFIRME=1`, et un nom de base qui ressemble à une base de recette
+(`demo`, `test`, `recette`…) — sinon il faut `NETTOYAGE_FORCER=1`. La purge
+passe par des rôles qui voient toutes les lignes (`MIGRATION_DATABASE_URL`), se
+fait en une transaction, et conserve les 3 logements de vitrine ainsi qu'un
+compte administrateur (`NETTOYAGE_CONSERVER_EMAIL`, `super@lcd.test` par défaut).
+Les règles de reconnaissance des données de recette vivent dans
+`scripts/lib/donnees-recette.mjs` et sont testées
+(`tests/nettoyage-donnees-recette.test.ts`).
+
+**Plan mesuré le 2026-11-13** (lecture seule, rien n'a été supprimé) :
+41 paiements, 65 factures, 444 réservations, 13 dispatchs, 26 missions,
+119 comptes, 614 logements. Après purge : 3 logements, 1 compte.
+
+**Effet de bord connu et accepté d'ici là.** Tant que les fixtures sont là,
+l'accueil public n'affiche que trois cartes de logement tirées d'un vivier de 64
+publiés, majoritairement des fixtures sans tarif, et deux tests e2e du tunnel de
+réservation peuvent échouer (`confiance.spec.ts`,
+`ergonomie-reservation.spec.ts`). Échec data-dépendant, diagnostiqué et tracé :
+friction **R-11** (`.artifacts/ergonomie/frictions.md`), décision **A27**.
+

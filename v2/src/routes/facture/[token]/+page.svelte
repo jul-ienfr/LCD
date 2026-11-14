@@ -13,7 +13,7 @@
 </svelte:head>
 
 {#if data.indisponible}
-  <main class="mx-auto max-w-md space-y-4 px-4 py-16 text-center">
+  <main id="contenu" class="mx-auto max-w-md space-y-4 px-4 py-16 text-center">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">LCD Parc</p>
     <h1 class="text-2xl font-semibold tracking-tight">Lien indisponible</h1>
     <p class="text-encre-douce">
@@ -21,10 +21,10 @@
         ? "Ce lien est invalide ou expiré. Demandez un nouveau lien à votre hôte."
         : "Cette facture n’est plus disponible en ligne. Contactez votre hôte pour obtenir une version à jour."}
     </p>
-    <a class="ui-lien text-sm" href="/">Retour à l’accueil</a>
+    <a class="ui-lien-action text-sm" href="/">Retour à l’accueil</a>
   </main>
 {:else if data.facture}
-  <main class="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
+  <main id="contenu" class="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
     <header class="flex flex-wrap items-start justify-between gap-4 border-b border-bordure pb-5">
       <div>
         <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Facture</p>

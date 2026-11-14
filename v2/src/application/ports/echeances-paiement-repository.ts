@@ -28,6 +28,8 @@ export interface EcheancesPaiementRepository {
     tenantId: string,
     reservationId: string,
   ): Promise<EcheancePaiement[]>;
+  /** Échéances encore à payer dont la date d'exigibilité est dépassée. */
+  listerEnRetard(tenantId: string, date: string): Promise<EcheancePaiement[]>;
   trouverParId(
     tenantId: string,
     echeanceId: string,

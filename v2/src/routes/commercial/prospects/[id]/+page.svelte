@@ -23,14 +23,14 @@
   <title>{data.prospect.nom} — Prospect</title>
 </svelte:head>
 
-<main class="mx-auto max-w-3xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-3xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Prospect</p>
       <h1 class="text-3xl font-semibold tracking-tight">{data.prospect.nom}</h1>
       <p class="text-encre-douce">{data.prospect.source}{data.prospect.email ? ` · ${data.prospect.email}` : ""}{data.prospect.telephone ? ` · ${data.prospect.telephone}` : ""}</p>
     </div>
-    <a class="ui-lien text-sm" href="/commercial">← Pipeline</a>
+    <a class="ui-lien-action text-sm" href="/commercial">← Pipeline</a>
   </header>
 
   {#if form?.message}

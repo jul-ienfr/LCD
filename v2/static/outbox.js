@@ -1,6 +1,10 @@
 (function () {
   var CLE = "lcd-outbox-incidents";
-  var form = document.querySelector('form[action="?/incident"]');
+  // Le formulaire d'incident peut être replié dans un `<details>` : on le
+  // retrouve par son id stable, puis par son action en repli.
+  var form =
+    document.getElementById("formulaire-incident") ||
+    document.querySelector('form[action="?/incident"]');
   if (!form) return;
 
   function lire() {
@@ -82,6 +86,17 @@
     };
     if (!entree.message.trim()) return;
     var entrees = lire();
+    // Idempotence locale : une même `ref` (double soumission, retour arrière)
+    // ne doit pas empiler deux signalements à rejouer.
+    for (var j = 0; j < entrees.length; j += 1) {
+      if (entrees[j].ref && entrees[j].ref === entree.ref) {
+        afficher(
+          "Hors ligne : ce signalement est déjà en attente d’envoi.",
+          false,
+        );
+        return;
+      }
+    }
     entrees.push(entree);
     ecrire(entrees);
     afficher(

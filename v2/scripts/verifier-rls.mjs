@@ -330,6 +330,630 @@ async function testerIsolationDemandes(owner, app) {
   }
 }
 
+async function testerIsolationFilsVoyageur(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  let tenantId = null;
+  try {
+    const [tenant] = await owner`
+      insert into tenants (slug, nom)
+      values (${`rls-fil-${suffix}`}, 'RLS fil voyageur')
+      returning id
+    `;
+    tenantId = tenant.id;
+    await owner`
+      insert into fils_voyageur
+        (tenant_id, voyageur_nom, voyageur_email, cle_regroupement)
+      values
+        (${tenantId}, 'RLS fil', ${`rls-${suffix}@example.fr`},
+         ${`email:rls-${suffix}@example.fr`})
+    `;
+    await owner`
+      insert into automatisations (tenant_id, code, libelle, declencheur, modele)
+      values (${tenantId}, ${`rls-${suffix}`}, 'RLS automatisation', 'j-1',
+              'Bonjour {{voyageur}}, message de test.')
+    `;
+
+    await app`select set_config('app.tenant_id', ${tenantId}, false)`;
+    const [meme] = await app`
+      select count(*)::int as n from fils_voyageur where tenant_id = ${tenantId}
+    `;
+    const [memeAuto] = await app`
+      select count(*)::int as n from automatisations where tenant_id = ${tenantId}
+    `;
+
+    await app`select set_config('app.tenant_id', '00000000-0000-4000-8000-000000000000', false)`;
+    const [autre] = await app`
+      select count(*)::int as n from fils_voyageur where tenant_id = ${tenantId}
+    `;
+    const [autreAuto] = await app`
+      select count(*)::int as n from automatisations where tenant_id = ${tenantId}
+    `;
+
+    let refusFil = false;
+    try {
+      await app`
+        insert into fils_voyageur
+          (tenant_id, voyageur_nom, voyageur_email, cle_regroupement)
+        values
+          (${tenantId}, 'Refus', ${`refus-${suffix}@example.fr`},
+           ${`email:refus-${suffix}@example.fr`})
+      `;
+    } catch {
+      refusFil = true;
+    }
+
+    let refusAuto = false;
+    try {
+      await app`
+        insert into automatisations (tenant_id, code, libelle, declencheur, modele)
+        values (${tenantId}, ${`refus-${suffix}`}, 'Refus', 'j-1',
+                'Bonjour {{voyageur}}, message refusé.')
+      `;
+    } catch {
+      refusAuto = true;
+    }
+
+    const resultat = {
+      filsMemeTenant: meme.n,
+      filsAutreTenant: autre.n,
+      insertionAutreTenantRefusee: refusFil && refusAuto,
+      automatisationsMemeTenant: memeAuto.n,
+      automatisationsAutreTenant: autreAuto.n,
+    };
+    console.log(JSON.stringify(resultat));
+    if (
+      !(
+        meme.n === 1 &&
+        autre.n === 0 &&
+        refusFil &&
+        refusAuto &&
+        memeAuto.n === 1 &&
+        autreAuto.n === 0
+      )
+    ) {
+      throw new Error("RLS messagerie voyageur non conforme.");
+    }
+    console.log("RLS VALIDÉE : fils voyageur et automatisations isolés par tenant.");
+  } finally {
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+    }
+  }
+}
+
+async function testerIsolationRecommandationsPrix(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  let tenantId = null;
+  try {
+    const [tenant] = await owner`
+      insert into tenants (slug, nom)
+      values (${`rls-prix-${suffix}`}, 'RLS recommandations prix')
+      returning id
+    `;
+    tenantId = tenant.id;
+    const [logement] = await owner`
+      insert into logements (tenant_id, code, nom)
+      values (${tenantId}, ${`rls-prix-${suffix}`}, 'RLS prix')
+      returning id
+    `;
+    await owner`
+      insert into recommandations_prix
+        (tenant_id, logement_id, jour, prix_recommande_centimes, source, confiance)
+      values (${tenantId}, ${logement.id}, '2026-12-24', 15000, 'local', 70)
+    `;
+
+    await app`select set_config('app.tenant_id', ${tenantId}, false)`;
+    const [meme] = await app`
+      select count(*)::int as n from recommandations_prix where tenant_id = ${tenantId}
+    `;
+
+    await app`select set_config('app.tenant_id', '00000000-0000-4000-8000-000000000000', false)`;
+    const [autre] = await app`
+      select count(*)::int as n from recommandations_prix where tenant_id = ${tenantId}
+    `;
+
+    let refus = false;
+    try {
+      await app`
+        insert into recommandations_prix
+          (tenant_id, logement_id, jour, prix_recommande_centimes, source, confiance)
+        values (${tenantId}, ${logement.id}, '2026-12-25', 16000, 'local', 70)
+      `;
+    } catch {
+      refus = true;
+    }
+
+    const resultat = {
+      recommandationsMemeTenant: meme.n,
+      recommandationsAutreTenant: autre.n,
+      insertionAutreTenantRefusee: refus,
+    };
+    console.log(JSON.stringify(resultat));
+    if (!(meme.n === 1 && autre.n === 0 && refus)) {
+      throw new Error("RLS recommandations de prix non conforme.");
+    }
+    console.log("RLS VALIDÉE : recommandations de prix isolées par tenant.");
+  } finally {
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+    }
+  }
+}
+
+async function testerIsolationRelevesProprietaires(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  let tenantId = null;
+  try {
+    const [tenant] = await owner`
+      insert into tenants (slug, nom)
+      values (${`rls-releve-${suffix}`}, 'RLS relevé')
+      returning id
+    `;
+    tenantId = tenant.id;
+    // users.id est une colonne texte sans DEFAULT : l'identifiant est fourni
+    // explicitement (pattern Better Auth).
+    const [proprietaire] = await owner`
+      insert into users (id, tenant_id, name, email, role)
+      values (${`rls-user-${suffix}`}, ${tenantId}, 'RLS proprietaire', ${`rls-releve-${suffix}@lcd.test`}, 'proprietaire')
+      returning id
+    `;
+
+    // Le rôle applicatif insère le relevé et l'envoi (flux normal :
+    // génération puis envoi depuis l'app). On teste insertion + lecture isolée.
+    const [releve] = await owner`
+      insert into releves_proprietaires
+        (tenant_id, proprietaire_id, proprietaire_nom, mois_debut, mois_fin,
+         total_ca_centimes, total_commission_centimes, total_charges_centimes,
+         total_net_centimes)
+      values (${tenantId}, ${proprietaire.id}, 'RLS proprietaire', '2026-11', '2026-11',
+              100000, 20000, 5000, 75000)
+      returning id
+    `;
+
+    const envoiRef = `rls-releve-envoi-${suffix}`;
+    await app`select set_config('app.tenant_id', ${tenantId}, false)`;
+    await app`
+      insert into envois_releves
+        (tenant_id, releve_id, proprietaire_id, destinataire, envoi_ref, envoye_at)
+      values (${tenantId}, ${releve.id}, ${proprietaire.id},
+              ${`rls-releve-${suffix}@lcd.test`}, ${envoiRef}, now())
+    `;
+    const [envoiAvec] = await app`
+      select count(*)::int as n from envois_releves where envoi_ref = ${envoiRef}
+    `;
+    const [releveAvec] = await app`
+      select count(*)::int as n from releves_proprietaires where id = ${releve.id}
+    `;
+
+    await app`select set_config('app.tenant_id', '00000000-0000-4000-8000-000000000000', false)`;
+    const [envoiAutre] = await app`
+      select count(*)::int as n from envois_releves where envoi_ref = ${envoiRef}
+    `;
+    const [releveAutre] = await app`
+      select count(*)::int as n from releves_proprietaires where id = ${releve.id}
+    `;
+
+    // Une insertion avec un mauvais tenant_id doit être refusée.
+    let refus = false;
+    try {
+      await app`
+        insert into envois_releves
+          (tenant_id, releve_id, proprietaire_id, destinataire, envoi_ref, envoye_at)
+        values (${tenantId}, ${releve.id}, ${proprietaire.id},
+                'x@lcd.test', ${`${envoiRef}-refus`}, now())
+      `;
+    } catch {
+      refus = true;
+    }
+
+    console.log(
+      JSON.stringify({
+        releveAvecTenant: releveAvec.n,
+        releveAutreTenant: releveAutre.n,
+        envoiAvecTenant: envoiAvec.n,
+        envoiAutreTenant: envoiAutre.n,
+        insertionAutreTenantRefusee: refus,
+      }),
+    );
+    if (
+      releveAvec.n !== 1 ||
+      releveAutre.n !== 0 ||
+      envoiAvec.n !== 1 ||
+      envoiAutre.n !== 0 ||
+      !refus
+    ) {
+      throw new Error("RLS releves_proprietaires/envois_releves non conforme.");
+    }
+  } finally {
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+    }
+  }
+}
+
+async function testerIsolationPaiementsProprietaires(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  let tenantId = null;
+  try {
+    const [tenant] = await owner`
+      insert into tenants (slug, nom)
+      values (${`rls-payout-${suffix}`}, 'RLS payout')
+      returning id
+    `;
+    tenantId = tenant.id;
+    // users.id est une colonne texte sans DEFAULT.
+    const [proprietaire] = await owner`
+      insert into users (id, tenant_id, name, email, role)
+      values (${`rls-user-pay-${suffix}`}, ${tenantId}, 'RLS proprietaire pay', ${`rls-payout-${suffix}@lcd.test`}, 'proprietaire')
+      returning id
+    `;
+
+    const payoutRef = `rls-payout-${suffix}`;
+    await app`select set_config('app.tenant_id', ${tenantId}, false)`;
+    await app`
+      insert into paiements_proprietaires
+        (tenant_id, proprietaire_id, ref, montant_attendu_centimes, statut)
+      values (${tenantId}, ${proprietaire.id}, ${payoutRef}, 75000, 'en_attente')
+    `;
+    const [avecTenant] = await app`
+      select count(*)::int as n from paiements_proprietaires where ref = ${payoutRef}
+    `;
+
+    await app`select set_config('app.tenant_id', '00000000-0000-4000-8000-000000000000', false)`;
+    const [autreTenant] = await app`
+      select count(*)::int as n from paiements_proprietaires where ref = ${payoutRef}
+    `;
+
+    // Une insertion avec un mauvais tenant_id doit être refusée.
+    let refus = false;
+    try {
+      await app`
+        insert into paiements_proprietaires
+          (tenant_id, proprietaire_id, ref, montant_attendu_centimes, statut)
+        values (${tenantId}, ${proprietaire.id}, ${`${payoutRef}-refus`}, 1000, 'en_attente')
+      `;
+    } catch {
+      refus = true;
+    }
+
+    console.log(
+      JSON.stringify({
+        payoutAvecTenant: avecTenant.n,
+        payoutAutreTenant: autreTenant.n,
+        insertionAutreTenantRefusee: refus,
+      }),
+    );
+    if (avecTenant.n !== 1 || autreTenant.n !== 0 || !refus) {
+      throw new Error("RLS paiements_proprietaires non conforme.");
+    }
+    console.log("RLS VALIDÉE : paiements propriétaires isolés par tenant.");
+  } finally {
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+    }
+  }
+}
+
+async function testerIsolationGuideEtSerrure(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  let tenantId = null;
+  let logementId = null;
+  try {
+    const [tenant] = await owner`
+      insert into tenants (slug, nom)
+      values (${`rls-guide-${suffix}`}, 'RLS guide')
+      returning id
+    `;
+    tenantId = tenant.id;
+    const [logement] = await owner`
+      insert into logements (tenant_id, code, nom)
+      values (${tenantId}, ${`rls-guide-${suffix}`}, 'RLS guide logement')
+      returning id
+    `;
+    logementId = logement.id;
+
+    // Insertion guide_contenus via le rôle applicatif
+    await app`select set_config('app.tenant_id', ${tenantId}, false)`;
+    await app`
+      insert into guide_contenus
+        (tenant_id, logement_id, section, langue, titre, corps)
+      values (${tenantId}, ${logementId}, 'arrivee', 'fr', 'Arrivée', 'Contenu test')
+    `;
+    const [guideAvec] = await app`
+      select count(*)::int as n from guide_contenus where logement_id = ${logementId}
+    `;
+
+    // Insertion acces_serrure via le rôle applicatif
+    await app`
+      insert into acces_serrure
+        (tenant_id, logement_id, ref, type, code, statut, valide_de, valide_a)
+      values (${tenantId}, ${logementId}, ${"rls-acc-" + suffix}, 'numerique', '1234', 'actif', now(), now() + interval '1 day')
+    `;
+    const [serrureAvec] = await app`
+      select count(*)::int as n from acces_serrure where logement_id = ${logementId}
+    `;
+
+    // Autre tenant : les données ne doivent pas être visibles
+    await app`select set_config('app.tenant_id', '00000000-0000-4000-8000-000000000000', false)`;
+    const [guideAutre] = await app`
+      select count(*)::int as n from guide_contenus where logement_id = ${logementId}
+    `;
+    const [serrureAutre] = await app`
+      select count(*)::int as n from acces_serrure where logement_id = ${logementId}
+    `;
+
+    // Insertion hors tenant doit être refusée
+    let refusGuide = false;
+    try {
+      await app`
+        insert into guide_contenus
+          (tenant_id, logement_id, section, langue, titre, corps)
+        values (${tenantId}, ${logementId}, 'wifi', 'fr', 'WiFi refus', 'x')
+      `;
+    } catch {
+      refusGuide = true;
+    }
+    let refusSerrure = false;
+    try {
+      await app`
+        insert into acces_serrure
+          (tenant_id, logement_id, ref, type, code, statut, valide_de, valide_a)
+        values (${tenantId}, ${logementId}, ${"rls-acc-" + suffix + "-refus"}, 'manuel', '9999', 'actif', now(), now() + interval '1 day')
+      `;
+    } catch {
+      refusSerrure = true;
+    }
+
+    console.log(
+      JSON.stringify({
+        guideAvecTenant: guideAvec.n,
+        guideAutreTenant: guideAutre.n,
+        serrureAvecTenant: serrureAvec.n,
+        serrureAutreTenant: serrureAutre.n,
+        refusGuide,
+        refusSerrure,
+      }),
+    );
+    if (
+      guideAvec.n !== 1 ||
+      guideAutre.n !== 0 ||
+      serrureAvec.n !== 1 ||
+      serrureAutre.n !== 0 ||
+      !refusGuide ||
+      !refusSerrure
+    ) {
+      throw new Error("RLS guide_contenus/acces_serrure non conforme.");
+    }
+    console.log("RLS VALIDÉE : guide et accès serrure isolés par tenant.");
+  } finally {
+    if (logementId) {
+      await owner`delete from logements where id = ${logementId}`;
+    }
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+    }
+  }
+}
+
+async function testerIsolationDemandesExtraAvis(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  let tenantId = null;
+  let logementId = null;
+  let reservationId = null;
+  try {
+    const [tenant] = await owner`
+      insert into tenants (slug, nom)
+      values (${`rls-extra-${suffix}`}, 'RLS extra')
+      returning id
+    `;
+    tenantId = tenant.id;
+    const [logement] = await owner`
+      insert into logements (tenant_id, code, nom)
+      values (${tenantId}, ${`rls-extra-${suffix}`}, 'RLS extra logement')
+      returning id
+    `;
+    logementId = logement.id;
+    const [reservation] = await owner`
+      insert into reservations
+        (tenant_id, logement_id, ref, debut, fin, statut, montant_centimes)
+      values
+        (${tenantId}, ${logementId}, ${`RLS-EXT-${suffix}`},
+         '2027-04-01', '2027-04-05', 'confirmee', 40000)
+      returning id
+    `;
+    reservationId = reservation.id;
+
+    // Insertion demandes_extra via le rôle applicatif
+    await app`select set_config('app.tenant_id', ${tenantId}, false)`;
+    await app`
+      insert into demandes_extra
+        (tenant_id, logement_id, reservation_id, ref, type, prix_centimes, statut)
+      values (${tenantId}, ${logementId}, ${reservationId}, ${"rls-ext-" + suffix}, 'depart-tardif', 3500, 'demande')
+    `;
+    const [extraAvec] = await app`
+      select count(*)::int as n from demandes_extra where reservation_id = ${reservationId}
+    `;
+
+    // Insertion avis_voyageur via le rôle applicatif
+    await app`
+      insert into avis_voyageur
+        (tenant_id, logement_id, reservation_id, ref, statut)
+      values (${tenantId}, ${logementId}, ${reservationId}, ${"rls-avis-" + suffix}, 'invite')
+    `;
+    const [avisAvec] = await app`
+      select count(*)::int as n from avis_voyageur where reservation_id = ${reservationId}
+    `;
+
+    // Autre tenant : les données ne doivent pas être visibles
+    await app`select set_config('app.tenant_id', '00000000-0000-4000-8000-000000000000', false)`;
+    const [extraAutre] = await app`
+      select count(*)::int as n from demandes_extra where reservation_id = ${reservationId}
+    `;
+    const [avisAutre] = await app`
+      select count(*)::int as n from avis_voyageur where reservation_id = ${reservationId}
+    `;
+
+    // Insertion hors tenant doit être refusée
+    let refusExtra = false;
+    try {
+      await app`
+        insert into demandes_extra
+          (tenant_id, logement_id, reservation_id, ref, type, prix_centimes, statut)
+        values (${tenantId}, ${logementId}, ${reservationId}, ${"rls-ext-" + suffix + "-refus"}, 'lit-bebe', 1500, 'demande')
+      `;
+    } catch {
+      refusExtra = true;
+    }
+    let refusAvis = false;
+    try {
+      await app`
+        insert into avis_voyageur
+          (tenant_id, logement_id, reservation_id, ref, statut)
+        values (${tenantId}, ${logementId}, ${reservationId}, ${"rls-avis-" + suffix + "-refus"}, 'invite')
+      `;
+    } catch {
+      refusAvis = true;
+    }
+
+    console.log(
+      JSON.stringify({
+        extraAvecTenant: extraAvec.n,
+        extraAutreTenant: extraAutre.n,
+        avisAvecTenant: avisAvec.n,
+        avisAutreTenant: avisAutre.n,
+        refusExtra,
+        refusAvis,
+      }),
+    );
+    if (
+      extraAvec.n !== 1 ||
+      extraAutre.n !== 0 ||
+      avisAvec.n !== 1 ||
+      avisAutre.n !== 0 ||
+      !refusExtra ||
+      !refusAvis
+    ) {
+      throw new Error("RLS demandes_extra/avis_voyageur non conforme.");
+    }
+    console.log("RLS VALIDÉE : demandes extra et avis voyageur isolés par tenant.");
+  } finally {
+    if (reservationId) {
+      await owner`delete from reservations where id = ${reservationId}`;
+    }
+    if (logementId) {
+      await owner`delete from logements where id = ${logementId}`;
+    }
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+    }
+  }
+}
+
+async function testerIsolationClesApiIntegrations(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  const hash = `${randomUUID().replaceAll("-", "")}${randomUUID().replaceAll("-", "")}`;
+  let tenantId = null;
+  try {
+    const [tenant] = await owner`
+      insert into tenants (slug, nom)
+      values (${`rls-api-${suffix}`}, 'RLS API')
+      returning id
+    `;
+    tenantId = tenant.id;
+
+    await app`select set_config('app.tenant_id', ${tenantId}, false)`;
+    await app`
+      insert into cles_api (tenant_id, nom, prefixe, hash, scopes)
+      values
+        (${tenantId}, 'Clé RLS', ${`lcd_${suffix.slice(0, 4)}`}, ${hash},
+         jsonb_build_array('logements:lire'))
+    `;
+    await app`
+      insert into integrations_tenant (tenant_id, fournisseur, actif, config)
+      values
+        (${tenantId}, 'zapier', true,
+         jsonb_build_object('evenement', 'reservation.created'))
+    `;
+
+    const [cleAvec] = await app`
+      select count(*)::int as n from cles_api where tenant_id = ${tenantId}
+    `;
+    const [integrationAvec] = await app`
+      select count(*)::int as n from integrations_tenant where tenant_id = ${tenantId}
+    `;
+
+    await app`select set_config('app.tenant_id', '00000000-0000-4000-8000-000000000000', false)`;
+    const [cleAutre] = await app`
+      select count(*)::int as n from cles_api where tenant_id = ${tenantId}
+    `;
+    const [integrationAutre] = await app`
+      select count(*)::int as n from integrations_tenant where tenant_id = ${tenantId}
+    `;
+
+    let refusCle = false;
+    try {
+      await app`
+        insert into cles_api (tenant_id, nom, prefixe, hash, scopes)
+        values
+          (${tenantId}, 'Clé refusée', ${`lcd_${suffix.slice(4, 8)}`},
+           ${"e".repeat(64)}, jsonb_build_array('prix:lire'))
+      `;
+    } catch {
+      refusCle = true;
+    }
+    let refusIntegration = false;
+    try {
+      await app`
+        insert into integrations_tenant (tenant_id, fournisseur, actif, config)
+        values (${tenantId}, 'swikly', true, '{}'::jsonb)
+      `;
+    } catch {
+      refusIntegration = true;
+    }
+
+    // Lecture par empreinte sans contexte tenant : seule la fonction
+    // SECURITY DEFINER doit répondre, et uniquement pour le bon hash.
+    await app`select set_config('app.tenant_id', '', false)`;
+    const [parHash] = await app`
+      select count(*)::int as n from api_cle_par_hash(${hash})
+    `;
+    const [hashInconnu] = await app`
+      select count(*)::int as n from api_cle_par_hash(${"f".repeat(64)})
+    `;
+
+    const resultat = {
+      cleAvecTenant: cleAvec.n,
+      cleAutreTenant: cleAutre.n,
+      integrationAvecTenant: integrationAvec.n,
+      integrationAutreTenant: integrationAutre.n,
+      refusCle,
+      refusIntegration,
+      parHashSansTenant: parHash.n,
+      hashInconnu: hashInconnu.n,
+    };
+    console.log(JSON.stringify(resultat));
+    if (
+      cleAvec.n !== 1 ||
+      cleAutre.n !== 0 ||
+      integrationAvec.n !== 1 ||
+      integrationAutre.n !== 0 ||
+      !refusCle ||
+      !refusIntegration ||
+      parHash.n !== 1 ||
+      hashInconnu.n !== 0
+    ) {
+      throw new Error("RLS cles_api/integrations_tenant non conforme.");
+    }
+    console.log(
+      "RLS VALIDÉE : clés API et intégrations isolées, lecture par empreinte contrôlée.",
+    );
+  } finally {
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+    }
+  }
+}
+
 async function verifierRlsTablesSite(owner) {
   for (const table of [
     "sites_tenants",
@@ -339,6 +963,20 @@ async function verifierRlsTablesSite(owner) {
     "promotions",
     "echeances_paiement",
     "demandes_sejour",
+    "recommandations_prix",
+    "fils_voyageur",
+    "pieces_jointes_message",
+    "automatisations",
+    "executions_automatisation",
+    "releves_proprietaires",
+    "envois_releves",
+    "paiements_proprietaires",
+    "guide_contenus",
+    "acces_serrure",
+    "demandes_extra",
+    "avis_voyageur",
+    "cles_api",
+    "integrations_tenant",
   ]) {
     const [rls] = await owner`
       select relrowsecurity
@@ -466,6 +1104,13 @@ async function main() {
       console.log("RLS VALIDÉE : site public isolé par tenant.");
       await testerIsolationEcheances(owner, app);
       await testerIsolationDemandes(owner, app);
+      await testerIsolationFilsVoyageur(owner, app);
+      await testerIsolationRecommandationsPrix(owner, app);
+      await testerIsolationRelevesProprietaires(owner, app);
+      await testerIsolationPaiementsProprietaires(owner, app);
+      await testerIsolationGuideEtSerrure(owner, app);
+      await testerIsolationDemandesExtraAvis(owner, app);
+      await testerIsolationClesApiIntegrations(owner, app);
     } finally {
       if (logementTemporaire) {
         await owner`delete from logements where id = ${logementTemporaire}`;

@@ -1,7 +1,7 @@
 import type { Theme } from "./types";
 
 const SANS =
-  '"Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  '"Inter Variable", "Inter repli", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 const SERIF =
   '"Fraunces Variable", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif';
 const MONO =
@@ -126,7 +126,7 @@ const OCEAN: Theme = {
   densite: {
     espaceSection: "1.75rem",
     espaceCarte: "1.25rem",
-    hauteurControle: "2.5rem",
+    hauteurControle: "2.75rem",
   },
   variantes: { nav: "souligne", entete: "gauche" },
 };
@@ -318,7 +318,7 @@ const ARDOISE: Theme = {
   densite: {
     espaceSection: "1.5rem",
     espaceCarte: "1rem",
-    hauteurControle: "2.5rem",
+    hauteurControle: "2.75rem",
   },
   variantes: { nav: "bloc", entete: "gauche" },
 };

@@ -151,6 +151,59 @@ async function main() {
     );
   }
 
+  const demoEmail = process.env.SEED_DEMO_EMAIL ?? "demo@lcd.test";
+  const demoPassword = process.env.SEED_DEMO_PASSWORD;
+  if (demoPassword && demoPassword.length >= 12) {
+    let demoTenant = (
+      await db
+        .select()
+        .from(tenants)
+        .where(eq(tenants.slug, "demo"))
+        .limit(1)
+    )[0];
+    if (!demoTenant) {
+      demoTenant = (
+        await db
+          .insert(tenants)
+          .values({
+            slug: "demo",
+            nom: "Démonstration LCD",
+            lectureSeule: true,
+          })
+          .returning()
+      )[0];
+      console.log("tenant créé : demo (lecture seule)");
+    } else if (!demoTenant.lectureSeule) {
+      demoTenant = (
+        await db
+          .update(tenants)
+          .set({ lectureSeule: true })
+          .where(eq(tenants.id, demoTenant.id))
+          .returning()
+      )[0];
+      console.log("tenant demo passé en lecture seule");
+    }
+
+    if (!demoTenant) throw new Error("Tenant demo introuvable.");
+    const demoExistant = (
+      await db
+        .select()
+        .from(users)
+        .where(eq(users.email, demoEmail))
+        .limit(1)
+    )[0];
+    if (!demoExistant) {
+      await depotUtilisateurs.creer({
+        tenantId: demoTenant.id,
+        name: "Démo LCD",
+        email: demoEmail,
+        role: "admin",
+        password: demoPassword,
+      });
+      console.log(`utilisateur créé : ${demoEmail} (admin, démo)`);
+    }
+  }
+
   await sql.end();
 }
 

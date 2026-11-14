@@ -20,7 +20,7 @@
   <title>{t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-12">
   <PageEntete
     surtitre={t.surtitre}
     titre={t.titre}
@@ -47,7 +47,8 @@
         {t.aucuneMission}
       </p>
     {:else}
-      <div class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table class="ui-tableau min-w-[960px]">
           <thead>
             <tr>

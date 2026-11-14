@@ -8,7 +8,7 @@
   <title>Relevé de mandat — {data.moisLabel}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-4xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-4xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Espace propriétaire</p>
@@ -18,7 +18,7 @@
       </p>
     </div>
     <div class="flex flex-wrap items-center gap-3">
-      <a class="ui-lien text-sm" href="/hote/securite">Sécurité / 2FA</a>
+      <a class="ui-lien-action text-sm" href="/hote/securite">Sécurité / 2FA</a>
       <form method="POST" action="/logout"><button class="ui-bouton ui-bouton--fantome ui-bouton--petit" type="submit">Quitter</button></form>
     </div>
   </header>
@@ -32,6 +32,7 @@
       <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/proprio?mois=${data.moisSuivant}`}>Mois suivant →</a>
       <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/proprio?mois=${data.mois}`}>Export CSV</a>
       <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/proprio/releve?mois=${data.mois}`}>Relevé PDF</a>
+      <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href="/proprio/releves">Relevés archivés</a>
     </div>
 
     <section class={data.estProprietaire ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "grid gap-4 sm:grid-cols-3"}>
@@ -46,7 +47,8 @@
       <div class="ui-carte"><p class="text-sm text-encre-faine">TTC facturé</p><p class="mt-1 text-2xl font-semibold">{data.ttc}</p><p class="text-xs text-encre-faine">taxe de séjour incluse</p></div>
     </section>
 
-    <section class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <section tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
       <table class="w-full min-w-[760px] border-collapse text-sm">
         <thead>
           <tr class="border-b border-bordure bg-fond text-left">

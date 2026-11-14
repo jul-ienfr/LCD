@@ -185,7 +185,7 @@ clé d'enveloppe (KMS ou secret manager), jamais en clair dans Postgres.
 | 1 — Abstraction V2 | **Fait** | Port, schéma, outbox, webhooks, faux adaptateur et tests sont en place. |
 | 2 — Adaptateur fournisseur | **Fait en sandbox** | Les cinq adaptateurs sont codés ; la preuve de contrat dépend des clés. |
 | 3 — Pilote | Externe | 1 logement, 2 canaux, double run iCal + API, rapport de pilote. |
-| 4 — Déploiement | **Partiel** | Kill switch, outbox/DLQ, replay, santé et runbook sont faits ; réconciliation quotidienne (lecture retour) reste. |
+| 4 — Déploiement | **Fait (socle)** | Kill switch, outbox/DLQ, replay, santé, runbook et réconciliation quotidienne des réservations sont faits ; lecture retour ARI et production dépendent des clés/certification fournisseur. |
 | 5 — Certification directe | Externe | Société, audit, SLA, partenariat OTA. |
 
 ### Phase 0 — Cadrage et choix du fournisseur (1 semaine)
@@ -253,13 +253,20 @@ Fait :
   quotidiens, seuils, kill switch, rejeu, webhooks, panne prolongée et
   migration progressive.
 
-Reste à faire :
+Fait :
 
-- Réconciliation quotidienne prix/disponibilités entre l’ARI local et le
-  fournisseur (lecture retour), avec alerte sur écart.
-- Migration de tous les canaux après le pilote.
+- Réconciliation quotidienne des réservations en lecture seule
+  (`/api/cron/reconcile-fournisseurs`, timer séparé, verrou, rapport par
+  logement et alertes dans `/supervision`).
+- Migration progressive logement par logement.
 
-**Livrable :** canaux natifs en production.
+Reste externe :
+
+- Lecture retour prix/disponibilités/restrictions : elle exige une API de
+  lecture et des clés sandbox du fournisseur, hors du socle sans contrat.
+- Migration de tous les canaux après le pilote et certification.
+
+**Livrable :** canaux natifs en production, après contrat fournisseur.
 
 ### Phase 5 — Certification directe (optionnelle, 12 à 24 mois) — **externe**
 

@@ -14,6 +14,7 @@ export const GET: RequestHandler = async () => {
     description:
       "Conciergerie locative saisonnière : hôte, voyageur, propriétaire, prestataire.",
     lang: "fr",
+    dir: "ltr",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -22,6 +23,7 @@ export const GET: RequestHandler = async () => {
     background_color: theme.clair.fond,
     theme_color: theme.clair.accent,
     categories: ["travel", "business", "productivity"],
+    prefer_related_applications: false,
     icons: [
       ...(identite.logoUrl
         ? [{ src: identite.logoUrl, sizes: "any", type: "image/svg+xml" }]

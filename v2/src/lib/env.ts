@@ -75,6 +75,9 @@ const schema = z.object({
     .transform((v) => v === "true" || v === "1"),
   EMAIL_FROM: z.string().default("LCD <no-reply@lcd.test>"),
   SMTP_URL: z.string().default("smtp://127.0.0.1:1025"),
+  // Entrée e-mail T307 : webhook signé, adresse reponses+<slug>@domaine.
+  EMAIL_WEBHOOK_SECRET: z.string().optional(),
+  EMAIL_INBOUND_DOMAIN: z.string().optional(),
 
   // SMS transactionnels (Brevo), désactivés par défaut.
   SMS_ENABLED: z
@@ -83,6 +86,19 @@ const schema = z.object({
     .transform((v) => v === "true" || v === "1"),
   BREVO_API_KEY: z.string().optional(),
   BREVO_SMS_SENDER: z.string().default("LCD"),
+
+  // WhatsApp Business Cloud (Meta), désactivé par défaut.
+  WHATSAPP_ENABLED: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true" || v === "1"),
+  WHATSAPP_API_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_API_VERSION: z.string().default("v21.0"),
+
+  // Sel de hachage des IP du journal de suivi (facultatif : BETTER_AUTH_SECRET
+  // sert de repli). Aucune IP en clair n'est stockée.
+  SUIVI_HASH_SECRET: z.string().optional(),
 
   // Paiement (facultatif au démarrage).
   STRIPE_SECRET_KEY: z.string().optional(),
@@ -93,6 +109,11 @@ const schema = z.object({
   LLM_API_KEY: z.string().optional(),
   LLM_MODEL: z.string().default("gpt-4o-mini"),
   LLM_MODEL_PREMIUM: z.string().optional(),
+  // Traduction à la demande dans les fils (optionnelle, désactivée par défaut).
+  TRADUCTION_ENABLED: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true" || v === "1"),
 
   // Tâches planifiées (cron OTA, backups déclenchés par HTTP).
   CRON_SECRET: z.string().optional(),
@@ -248,12 +269,27 @@ const schema = z.object({
   NOBEDS_API_TOKEN: z.string().optional(),
   NOBEDS_API_BASE: z.string().url().default("https://api.nobeds.com"),
   NOBEDS_WEBHOOK_SECRET: z.string().optional(),
+
+  // Revenu management : PriceLabs en partenaire, recommandation locale sinon.
+  PRICELABS_API_KEY: z.string().optional(),
+  PRICELABS_API_BASE: z.string().url().default("https://api.pricelabs.co/v1"),
+  // Import quotidien des recommandations de prix : désactivé par défaut.
+  // Même actif, rien ne s'applique sans décision humaine.
+  PRICING_IMPORT_ENABLED: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true" || v === "1"),
   FOURNISSEUR_HTTP_TIMEOUT_MS: z.coerce
     .number()
     .int()
     .min(1_000)
     .max(60_000)
     .default(12_000),
+
+  // Serrures connectées : Nuki Web API. Sans token, l'adapter se déclare
+  // indisponible et le repli manuel (T607) prend le relais à sa place.
+  NUKI_API_TOKEN: z.string().optional(),
+  NUKI_API_BASE: z.string().url().default("https://api.nuki.io"),
 
   // Connecteurs runtime box (Home Assistant / Moli / générique).
   BOX_RUNTIME_CONFIG: z.string().optional(),

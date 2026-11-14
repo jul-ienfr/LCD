@@ -12,7 +12,7 @@
   <title>{t.rappTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-12">
+<main id="contenu" class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-12">
   <PageEntete
     surtitre={t.rappSurtitre}
     titre={t.rappTitre}
@@ -26,9 +26,9 @@
   <section class="ui-carte">
     <h2 class="text-lg font-semibold">{t.importerTitre}</h2>
     <form class="mt-3 flex flex-wrap items-end gap-3" enctype="multipart/form-data" method="POST" action="?/importer">
-      <label class="space-y-2 text-sm">
+      <label class="w-full min-w-0 space-y-2 text-sm">
         <span class="ui-label">{t.fichier}</span>
-        <input accept=".csv,text/csv,text/plain" class="block rounded-lg border border-bordure p-2 text-sm" name="fichier" required type="file" />
+        <input accept=".csv,text/csv,text/plain" class="block w-full min-w-0 max-w-full rounded-lg border border-bordure p-2 text-sm min-h-11" name="fichier" required type="file" />
       </label>
       <button class="ui-bouton ui-bouton--primaire" type="submit">{t.importer}</button>
     </form>
@@ -70,7 +70,8 @@
         </p>
       {/if}
 
-      <div class="overflow-x-auto">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
         <table class="ui-tableau min-w-[720px]">
           <thead>
             <tr>
@@ -116,7 +117,7 @@
       <ul class="mt-3 space-y-2 text-sm" role="list">
         {#each data.recents as entree (entree.id)}
           <li>
-            <a class="ui-lien" href={`/hote/compta/rapprochement?import=${entree.id}`}>{entree.ref}</a>
+            <a class="ui-lien-action" href={`/hote/compta/rapprochement?import=${entree.id}`}>{entree.ref}</a>
             · {entree.fichier} · {t.ecartOrphelines(entree.ecart, entree.orphelines)}
           </li>
         {/each}

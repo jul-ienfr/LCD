@@ -30,7 +30,7 @@
   />
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+<main id="contenu" class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
   <header class="space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
       Transparence · LCEN art. 6 III · RGPD
@@ -73,13 +73,13 @@
             <dt class="text-encre-faine">Contact</dt>
             <dd class="flex flex-wrap gap-x-4 gap-y-1">
               {#if data.identite.emailContact}
-                <a class="ui-lien" href={`mailto:${data.identite.emailContact}`}>
+                <a class="ui-lien-action" href={`mailto:${data.identite.emailContact}`}>
                   {data.identite.emailContact}
                 </a>
               {/if}
               {#if data.identite.telephoneContact}
                 <a
-                  class="ui-lien"
+                  class="ui-lien-action"
                   href={`tel:${data.identite.telephoneContact.replace(/[^+0-9]/gu, "")}`}
                 >
                   {data.identite.telephoneContact}
@@ -137,16 +137,25 @@
   <section class="ui-carte space-y-3">
     <h2 class="text-xl font-semibold">Cookies et mesure d’audience</h2>
     <p class="text-sm text-encre-douce">
-      Le site n’utilise que des cookies et stockages strictement nécessaires :
-      session authentifiée, protection des formulaires (CSRF), préférence
-      d’affichage « version légère » et file d’attente hors ligne des
-      signalements voyageur. Aucun cookie publicitaire, aucun traceur tiers et
-      aucune mesure d’audience comportementale ne sont déposés.
+      Les cookies strictement nécessaires restent actifs : session authentifiée,
+      protection des formulaires (CSRF), préférence d’affichage « version
+      légère » et file d’attente hors ligne des signalements voyageur. Ils ne
+      requièrent pas de consentement.
     </p>
     <p class="text-sm text-encre-douce">
-      Ces traceurs essentiels ne requièrent pas de consentement. Vous pouvez les
-      supprimer à tout moment depuis les réglages de votre navigateur ; la
-      déconnexion efface la session et la file hors ligne est vidée après envoi.
+      Avec votre accord, le site peut enregistrer des événements de navigation
+      (pages vues, clics, soumissions, conversions et campagnes) dans un journal
+      first-party pseudonymisé, et charger des outils de mesure d’audience
+      (Google Analytics, Matomo, Plausible) ainsi que des pixels publicitaires
+      (Meta, Google Ads, TikTok) configurés par l’hôte. L’adresse IP n’est
+      jamais stockée en clair : seule une empreinte salée est conservée. Le
+      journal est purgé au-delà de 13 mois.
+    </p>
+    <p class="text-sm text-encre-douce">
+      Vous pouvez accepter, refuser ou modifier vos choix à tout moment depuis
+      <a class="inline-flex min-h-11 items-center underline" href="/consentement">la page de préférences</a>. Le
+      refus ne bloque pas l’accès au site. En l’absence de choix, aucun traceur
+      non essentiel n’est chargé.
     </p>
   </section>
 
@@ -159,7 +168,7 @@
         Le médiateur désigné par l’éditeur est
         <strong>{data.mediateur.nom}</strong>{#if data.mediateur.adresse}
           , {data.mediateur.adresse}{/if}{#if data.mediateur.url}
-          — <a class="ui-lien" href={data.mediateur.url} rel="noopener noreferrer">{data.mediateur.url}</a>{/if}.
+          — <a class="ui-lien-action" href={data.mediateur.url} rel="noopener noreferrer">{data.mediateur.url}</a>{/if}.
       {:else}
         Le médiateur n’est pas encore désigné : le consommateur peut saisir le
         médiateur compétent pour le secteur du tourisme ou, en dernier recours,
@@ -217,8 +226,8 @@
   <footer class="flex flex-wrap items-center justify-between gap-3 text-sm text-encre-faine">
     <p>Version du {new Date().toISOString().slice(0, 10)}.</p>
     <div class="flex flex-wrap gap-4">
-      <a class="ui-lien" href="/aide">Aide</a>
-      <a class="ui-lien" href="/">Retour à l’accueil</a>
+      <a class="ui-lien-action inline-flex min-h-11 min-w-11 items-center justify-center" href="/aide">Aide</a>
+      <a class="ui-lien-action inline-flex min-h-11 items-center" href="/">Retour à l’accueil</a>
     </div>
   </footer>
 </main>

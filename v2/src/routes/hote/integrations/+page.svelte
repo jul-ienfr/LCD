@@ -11,13 +11,20 @@
   <title>{t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-5xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-5xl space-y-8 px-6 py-12">
   <header class="space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
       {t.espace}
     </p>
     <h1 class="text-3xl font-semibold tracking-tight">{t.titre}</h1>
     <p class="text-encre-douce">{t.description}</p>
+    <p class="text-sm">
+      <a class="inline-flex min-h-11 items-center underline" href="/hote/integrations/api">Clés API et documentation →</a>
+      ·
+      <a class="inline-flex min-h-11 items-center underline" href="/hote/integrations/nuki">Serrures Nuki →</a>
+      ·
+      <a class="inline-flex min-h-11 items-center underline" href="/hote/suivi">Mesure d’audience et publicité →</a>
+    </p>
   </header>
 
   {#if data.ok}
@@ -58,7 +65,7 @@
         <legend class="text-sm font-medium">{t.evenements}</legend>
         <div class="grid gap-2 sm:grid-cols-2">
           {#each data.evenements as evenement (evenement.id)}
-            <label class="flex items-center gap-2 rounded-xl border border-bordure p-3 text-sm">
+            <label class="flex min-h-11 min-w-11 items-center gap-2 rounded-xl border border-bordure p-3 text-sm">
               <input defaultChecked={evenement.coche} name="events" type="checkbox" value={evenement.id} />
               <span>{t.evenementsLabels[evenement.id] ?? evenement.id}</span>
               <code class="ml-auto text-xs text-encre-faine">{evenement.id}</code>
@@ -111,7 +118,8 @@
         {t.aucuneLivraison}
       </p>
     {:else}
-      <div class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table class="ui-tableau min-w-[640px]">
           <thead>
             <tr>

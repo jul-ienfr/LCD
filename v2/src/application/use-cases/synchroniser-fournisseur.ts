@@ -1,4 +1,9 @@
 import { createHash } from "node:crypto";
+import {
+  disponibilitesDifferentes,
+  restrictionsDifferentes,
+  tarifsDifferents,
+} from "@/domain/ari-diff";
 import { ajouterJours, dateIsoValide } from "@/domain/calendrier";
 import { sejourValide } from "@/domain/planning";
 import { ErreurMetier } from "@/domain/erreurs";
@@ -384,6 +389,60 @@ export class SynchroniserFournisseur {
       });
     }
 
+    const disponibilites: DisponibiliteJour[] =
+      calendrier.disponibilites.map((jour) => ({
+        externalPropertyId,
+        externalRoomTypeId: affectation.externalRoomTypeId,
+        date: jour.date,
+        disponible: jour.disponible,
+        prixCentimes: code === "nobeds" ? jour.prixCentimes : null,
+      }));
+
+    const tarifsAri: TarifJour[] = calendrier.tarifs.map((tarif) => ({
+      externalPropertyId,
+      externalRoomTypeId: affectation.externalRoomTypeId,
+      externalRatePlanId: affectation.externalRatePlanId,
+      date: tarif.date,
+      prixCentimes: tarif.prixCentimes,
+      devise: "EUR",
+    }));
+
+    let disponibilitesDelta: DisponibiliteJour[] | null = null;
+    let tarifsDelta: TarifJour[] | null = null;
+    let restrictionsDelta: RestrictionJour[] | null = null;
+    let erreurDelta: string | null = null;
+    if (fournisseur.mode !== "lecture_seule") {
+      try {
+        const [distantesDispo, distantsTarifs, distantesRestrictions] =
+          await Promise.all([
+            fournisseur.lireDisponibilites?.(input.maintenant, fin, externalPropertyId),
+            fournisseur.lireTarifs?.(input.maintenant, fin, externalPropertyId),
+            fournisseur.lireRestrictions?.(input.maintenant, fin, externalPropertyId),
+          ]);
+        if (distantesDispo) {
+          disponibilitesDelta = disponibilitesDifferentes(
+            disponibilites,
+            distantesDispo,
+          );
+        }
+        if (distantsTarifs) {
+          tarifsDelta = tarifsDifferents(tarifsAri, distantsTarifs);
+        }
+        if (distantesRestrictions) {
+          restrictionsDelta = restrictionsDifferentes(
+            restrictionsAri,
+            distantesRestrictions,
+          );
+        }
+      } catch (erreur) {
+        erreurDelta = erreur instanceof Error ? erreur.message : String(erreur);
+      }
+    }
+    const differences =
+      (disponibilitesDelta?.length ?? 0) +
+      (tarifsDelta?.length ?? 0) +
+      (restrictionsDelta?.length ?? 0);
+
     const empreinte = createHash("sha256")
       .update(
         JSON.stringify({
@@ -406,6 +465,7 @@ export class SynchroniserFournisseur {
       !input.force &&
       !erreurLecture &&
       !erreurImport &&
+      differences === 0 &&
       affectation.dernierStatut === "ok" &&
       affectation.derniereEmpreinte === empreinte
     ) {
@@ -426,29 +486,16 @@ export class SynchroniserFournisseur {
     }
 
     try {
-      const disponibilites: DisponibiliteJour[] =
-        calendrier.disponibilites.map((jour) => ({
-          externalPropertyId,
-          externalRoomTypeId: affectation.externalRoomTypeId,
-          date: jour.date,
-          disponible: jour.disponible,
-          prixCentimes: code === "nobeds" ? jour.prixCentimes : null,
-        }));
-
-      const tarifsAri: TarifJour[] = calendrier.tarifs.map((tarif) => ({
-        externalPropertyId,
-        externalRoomTypeId: affectation.externalRoomTypeId,
-        externalRatePlanId: affectation.externalRatePlanId,
-        date: tarif.date,
-        prixCentimes: tarif.prixCentimes,
-        devise: "EUR",
-      }));
-
       let statut: StatutSyncFournisseur = "ok";
       let disponibilitesPoussees = 0;
       let tarifsPousses = 0;
       let restrictionsPoussees = 0;
       const notes: string[] = [];
+      if (erreurDelta) {
+        notes.push(
+          `État distant ARI illisible (${erreurDelta.slice(0, 160)}) : état complet poussé.`,
+        );
+      }
       if (erreurImport) {
         statut = "partiel";
         notes.push(`Import local des réservations incomplet : ${erreurImport}`);
@@ -464,6 +511,7 @@ export class SynchroniserFournisseur {
         statut = statut === "ok" ? "lecture_seule" : statut;
         notes.push("Fournisseur en lecture seule : aucun ARI poussé.");
       } else {
+        const disponibilitesPoussables = disponibilitesDelta ?? disponibilites;
         if (fournisseur.capacites.ecritureDisponibilites) {
           if (code === "nobeds") {
             const manquants = calendrier.disponibilites.filter(
@@ -475,12 +523,12 @@ export class SynchroniserFournisseur {
                 `${manquants} jour(s) sans tarif : Nobeds exige un prix pour écrire la disponibilité.`,
               );
             } else {
-              await fournisseur.pousserDisponibilites(disponibilites);
-              disponibilitesPoussees = disponibilites.length;
+              await fournisseur.pousserDisponibilites(disponibilitesPoussables);
+              disponibilitesPoussees = disponibilitesPoussables.length;
             }
           } else {
-            await fournisseur.pousserDisponibilites(disponibilites);
-            disponibilitesPoussees = disponibilites.length;
+            await fournisseur.pousserDisponibilites(disponibilitesPoussables);
+            disponibilitesPoussees = disponibilitesPoussables.length;
           }
         }
 
@@ -488,7 +536,7 @@ export class SynchroniserFournisseur {
           (code === "channex" && !affectation.externalRatePlanId) ||
           code === "nobeds"
             ? []
-            : tarifsAri;
+            : (tarifsDelta ?? tarifsAri);
         if (
           fournisseur.capacites.ecritureTarifs &&
           tarifsPoussables.length > 0 &&
@@ -509,7 +557,8 @@ export class SynchroniserFournisseur {
           );
         }
 
-        let restrictionsPoussables: RestrictionJour[] = restrictionsAri;
+        let restrictionsPoussables: RestrictionJour[] =
+          restrictionsDelta ?? restrictionsAri;
         if (code === "smoobu") {
           const ctaIgnorees = restrictionsAri.some(
             (restriction) =>

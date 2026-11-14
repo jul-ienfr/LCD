@@ -15,14 +15,14 @@
   <meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<main class="mx-auto max-w-2xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-2xl space-y-8 px-6 py-12">
   {#if data.indisponible}
     <h1 class="text-3xl font-semibold tracking-tight">Fiche de police</h1>
     <p class="ui-alerte ui-alerte--alerte">
       Lien invalide ou expiré, ou séjour introuvable. Ouvrez votre espace
       voyageur depuis le message de votre hôte.
     </p>
-    <a class="ui-lien text-sm" href="/voyageur">Retour à l’espace voyageur</a>
+    <a class="ui-lien-action text-sm" href="/voyageur">Retour à l’espace voyageur</a>
   {:else if data.reservation}
     <header class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Espace voyageur</p>
@@ -80,6 +80,6 @@
       </form>
     {/if}
 
-    <a class="ui-lien text-sm" href={retour}>← Retour à mon séjour</a>
+    <a class="ui-lien-action text-sm" href={retour}>← Retour à mon séjour</a>
   {/if}
 </main>

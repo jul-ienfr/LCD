@@ -22,6 +22,7 @@ function versDomaine(row: typeof tenants.$inferSelect): Tenant {
     ventesSuspendues: row.ventesSuspendues,
     ventesSuspenduesMotif: row.ventesSuspenduesMotif,
     ventesSuspenduesLe: row.ventesSuspenduesLe,
+    lectureSeule: row.lectureSeule,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

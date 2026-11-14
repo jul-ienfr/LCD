@@ -20,7 +20,7 @@
 </svelte:head>
 
 {#if data.indisponible}
-  <main class="mx-auto max-w-md space-y-4 px-4 py-16 text-center">
+  <main id="contenu" class="mx-auto max-w-md space-y-4 px-4 py-16 text-center">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">LCD Parc</p>
     <h1 class="text-2xl font-semibold tracking-tight">Lien indisponible</h1>
     <p class="text-encre-douce">
@@ -32,10 +32,10 @@
         Ce logement n’est plus disponible. Contactez votre hôte.
       {/if}
     </p>
-    <a class="ui-lien text-sm" href="/">Retour à l’accueil</a>
+    <a class="ui-lien-action text-sm" href="/">Retour à l’accueil</a>
   </main>
 {:else if data.contrat}
-  <main class="mx-auto max-w-3xl space-y-8 px-6 py-12 print:max-w-none print:px-0">
+  <main id="contenu" class="mx-auto max-w-3xl space-y-8 px-6 py-12 print:max-w-none print:px-0">
     <header class="flex flex-wrap items-start justify-between gap-4 border-b border-bordure pb-6">
       <div class="space-y-1">
         <h1 class="text-3xl font-semibold tracking-tight">Contrat de séjour</h1>
@@ -108,7 +108,7 @@
 
     <footer class="flex flex-wrap items-center justify-between gap-3 text-xs text-encre-faine">
       <p>Contrat généré le {new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}.</p>
-      <a class="ui-lien print:hidden" href="/">LCD Parc</a>
+      <a class="ui-lien-action print:hidden" href="/">LCD Parc</a>
     </footer>
   </main>
 {/if}

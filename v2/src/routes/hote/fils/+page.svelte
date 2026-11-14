@@ -8,7 +8,7 @@
   <title>{data.t.fTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-12">
   <header class="space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
       {data.t.fSurtitre}
@@ -74,18 +74,14 @@
       <h2 class="text-xl font-semibold">{data.t.fConversations}</h2>
       <nav class="flex flex-wrap gap-2 text-sm" aria-label={data.t.fFiltrer}>
         <a
-          class={data.canal === null
-            ? "rounded-full border border-accent bg-accent-douce px-3 py-1 font-semibold text-accent"
-            : "rounded-full border px-3 py-1"}
+          class="ui-puce {data.canal === null ? 'ui-puce-active' : ''}"
           href="/hote/fils"
         >
           {data.t.fTous}
         </a>
         {#each data.canaux as canal (canal.valeur)}
           <a
-            class={data.canal === canal.valeur
-              ? "rounded-full border border-accent bg-accent-douce px-3 py-1 font-semibold text-accent"
-              : "rounded-full border px-3 py-1"}
+            class="ui-puce {data.canal === canal.valeur ? 'ui-puce-active' : ''}"
             href={`/hote/fils?canal=${canal.valeur}`}
           >
             {canal.libelle}
@@ -99,7 +95,8 @@
         {data.t.fVide}
       </p>
     {:else}
-      <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
         <table class="w-full min-w-[760px] text-left text-sm">
           <thead
             class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine"
@@ -116,7 +113,7 @@
             {#each data.fils as fil (fil.id)}
               <tr class="border-b border-bordure last:border-0">
                 <td class="p-3">
-                  <a class="ui-lien font-medium" href={`/hote/fils/${fil.id}`}>
+                  <a class="ui-lien-action font-medium" href={`/hote/fils/${fil.id}`}>
                     {fil.sujet}
                   </a>
                 </td>
@@ -143,7 +140,7 @@
   </section>
 
   <nav class="flex flex-wrap gap-4 text-sm">
-    <a class="ui-lien" href="/hote">{data.t.fTableau}</a>
-    <a class="ui-lien" href="/hote/messages">{data.t.fMessagesVoyageur}</a>
+    <a class="ui-lien-action" href="/hote">{data.t.fTableau}</a>
+    <a class="ui-lien-action" href="/hote/messages">{data.t.fMessagesVoyageur}</a>
   </nav>
 </main>

@@ -21,6 +21,9 @@ function versDomaine(row: typeof logements.$inferSelect): Logement {
     regles: row.regles ?? undefined,
     urgenceTel: row.urgenceTel ?? undefined,
     guideTexte: row.guideTexte ?? undefined,
+    guideLangueDefaut: row.guideLangueDefaut ?? undefined,
+    guidePartenaireNom: row.guidePartenaireNom ?? undefined,
+    guidePartenaireUrl: row.guidePartenaireUrl ?? undefined,
     coproVerifiee: row.coproVerifiee,
     coproVerifieeLe: row.coproVerifieeLe ?? undefined,
     cutoffJours: row.cutoffJours,
@@ -102,6 +105,8 @@ export class DrizzleLogementRepository implements LogementRepository {
       regles: string | null;
       urgenceTel: string | null;
       guideTexte: string | null;
+      guidePartenaireNom: string | null;
+      guidePartenaireUrl: string | null;
     },
   ): Promise<Logement | null> {
     await withTenant(tenantId, async (tx) => {
@@ -115,6 +120,8 @@ export class DrizzleLogementRepository implements LogementRepository {
           regles: data.regles,
           urgenceTel: data.urgenceTel,
           guideTexte: data.guideTexte,
+          guidePartenaireNom: data.guidePartenaireNom,
+          guidePartenaireUrl: data.guidePartenaireUrl,
           updatedAt: new Date(),
         })
         .where(and(eq(logements.tenantId, tenantId), eq(logements.id, id)));

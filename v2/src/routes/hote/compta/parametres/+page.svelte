@@ -13,7 +13,7 @@
   <title>{t.paramsTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-3xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-3xl space-y-8 px-6 py-12">
   <PageEntete
     surtitre={t.paramsSurtitre}
     titre={t.paramsTitre}

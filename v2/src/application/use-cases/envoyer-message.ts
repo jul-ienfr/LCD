@@ -134,4 +134,81 @@ export class EnvoyerMessageFil {
 
     return { message, dejaEnvoye: false };
   }
+
+  /**
+   * Valide un brouillon déjà présent dans le fil : le brouillon est envoyé
+   * tel quel (jamais réécrit) puis marqué envoyé. Aucun envoi n'a lieu sans
+   * ce passage par l'inbox : c'est la règle produit des automatisations.
+   */
+  async envoyerBrouillon(input: {
+    tenantId: string;
+    filId: string;
+    messageId: string;
+    expediteur?: string | null;
+  }): Promise<ResultatEnvoi> {
+    const message = await this.fils.trouverMessageParId(
+      input.tenantId,
+      input.messageId,
+    );
+    if (!message || message.filId !== input.filId) {
+      throw new ErreurMetier("MESSAGE_INVALIDE", "Brouillon introuvable.");
+    }
+    if (message.sens !== "sortant" || message.statut !== "brouillon") {
+      return { message, dejaEnvoye: true };
+    }
+
+    const fil = await this.fils.trouverParId(input.tenantId, input.filId);
+    if (!fil) {
+      throw new ErreurMetier("MESSAGE_INVALIDE", "Le fil voyageur est introuvable.");
+    }
+    const canal = message.canal;
+    if (!CANAUX_ENVOI_DIRECT.includes(canal)) {
+      throw new ErreurMetier(
+        "MESSAGE_INVALIDE",
+        "Ce canal ne peut pas être envoyé depuis l'inbox.",
+      );
+    }
+    if (!consentementAutorise(fil.consentements, canal)) {
+      throw new ErreurMetier(
+        "CONSENTEMENT_REQUIS",
+        "Le voyageur n'a pas consenti à ce canal (opt-out).",
+      );
+    }
+    const destinataire =
+      message.destinataire ?? destinataireDuCanal(fil, canal);
+    if (!destinataire) {
+      throw new ErreurMetier(
+        "MESSAGE_INVALIDE",
+        canal === "email"
+          ? "Le fil n'a pas d'adresse email."
+          : "Le fil n'a pas de numéro de téléphone.",
+      );
+    }
+
+    const envoi = await this.canal.envoyer({
+      canal: canal as "email" | "sms" | "whatsapp",
+      destinataire,
+      sujet: null,
+      contenu: message.contenu,
+      ref: message.ref,
+      expediteur: input.expediteur ?? null,
+    });
+
+    const maj = await this.fils.mettreAJourMessage(
+      input.tenantId,
+      message.id,
+      {
+        statut: envoi.statut,
+        envoyeAt: new Date(),
+        externalId: envoi.externalId,
+      },
+    );
+
+    await this.fils.mettreAJour(input.tenantId, fil.id, {
+      dernierMessageAt: new Date(),
+      statut: "en_attente",
+    });
+
+    return { message: maj ?? message, dejaEnvoye: false };
+  }
 }

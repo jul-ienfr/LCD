@@ -4,7 +4,7 @@
 // - API, auth, staff, aperçu, réservation : JAMAIS mis en cache ;
 // - hors ligne : fallback /offline ;
 // - purge explicite par message `lcd-purge`.
-const VERSION = "lcd-v2-2026-10-25-4";
+const VERSION = "lcd-v2-2026-11-10-1";
 
 const PRECACHE = [
   "/",
@@ -73,6 +73,45 @@ self.addEventListener("message", (event) => {
       })(),
     );
   }
+});
+
+// Notifications push (T610) : le serveur peut envoyer un payload JSON
+// `{ titre, corps, url }`. Sans abonnement, rien n'est envoyé.
+self.addEventListener("push", (event) => {
+  let donnees = {};
+  try {
+    donnees = event.data ? event.data.json() : {};
+  } catch {
+    donnees = {};
+  }
+  const titre = donnees.titre || "LCD Parc";
+  const corps = donnees.corps || "Nouvelle notification.";
+  event.waitUntil(
+    self.registration.showNotification(titre, {
+      body: corps,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: donnees.url || "/hote/notifications" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/hote/notifications";
+  event.waitUntil(
+    (async () => {
+      const fenetres = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const fenetre of fenetres) {
+        if ("navigate" in fenetre) await fenetre.navigate(url);
+        if ("focus" in fenetre) return fenetre.focus();
+      }
+      return self.clients.openWindow(url);
+    })(),
+  );
 });
 
 async function cacheFirst(request) {

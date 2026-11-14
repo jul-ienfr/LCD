@@ -19,6 +19,10 @@ export interface Logement {
   regles?: string;
   urgenceTel?: string;
   guideTexte?: string;
+  guideLangueDefaut?: string;
+  /** Guide hébergé par un partenaire (Duve, Touch Stay…). */
+  guidePartenaireNom?: string;
+  guidePartenaireUrl?: string;
   coproVerifiee: boolean;
   coproVerifieeLe?: Date;
   cutoffJours?: number;
@@ -90,3 +94,26 @@ export function reservationsBloquantArchivage(
 export function logementArchive(logement: Pick<Logement, "statut">): boolean {
   return logement.statut === "archive";
 }
+
+/**
+ * Un guide partenaire est un lien HTTPS externe (Duve, Touch Stay, site
+ * propriétaire…). On refuse les identifiants dans l'URL et les schémas qui
+ * permettraient d'injecter du script.
+ */
+export function urlGuidePartenaireValide(valeur: string): boolean {
+  const propre = valeur.trim();
+  if (propre.length === 0 || propre.length > 500) return false;
+  let url: URL;
+  try {
+    url = new URL(propre);
+  } catch {
+    return false;
+  }
+  return (
+    url.protocol === "https:" &&
+    !url.username &&
+    !url.password &&
+    Boolean(url.hostname)
+  );
+}
+

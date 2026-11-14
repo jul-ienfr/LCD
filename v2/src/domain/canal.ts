@@ -235,3 +235,37 @@ export interface EvenementCanal {
   traiteAt: Date | null;
   createdAt: Date;
 }
+
+// --- Santé de connexion (T101) ---
+
+export type StatutSante = "ok" | "degrade" | "erreur" | "inconnu";
+
+export interface SanteConnexion {
+  /** Statut global de la connexion au fournisseur. */
+  statut: StatutSante;
+  /** Dernier push réussi (ISO 8601) ou null. */
+  dernierPushAt: string | null;
+  /** Dernier pull réussi (ISO 8601) ou null. */
+  dernierPullAt: string | null;
+  /** Dernière erreur rencontrée ou null. */
+  derniereErreur: string | null;
+  /** Nombre d'erreurs consécutives depuis le dernier succès. */
+  erreursConsecutives: number;
+  /** Latence moyenne des 5 derniers appels (ms) ou null. */
+  latenceMs: number | null;
+}
+
+/**
+ * Santé initiale d'une connexion jamais sollicitée. Utilisée par les
+ * adapters et use-cases qui créent une affectation fournisseur.
+ */
+export function santeConnexionInitiale(): SanteConnexion {
+  return {
+    statut: "inconnu",
+    dernierPushAt: null,
+    dernierPullAt: null,
+    derniereErreur: null,
+    erreursConsecutives: 0,
+    latenceMs: null,
+  };
+}

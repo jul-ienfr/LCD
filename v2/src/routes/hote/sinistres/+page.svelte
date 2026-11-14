@@ -31,7 +31,7 @@
   <title>{t.sTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-7xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-7xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
@@ -40,7 +40,7 @@
       <h1 class="text-3xl font-semibold tracking-tight">{t.sTitre}</h1>
       <p class="text-encre-douce">{t.sDescription}</p>
     </div>
-    <a class="text-sm underline" href="/hote">{t.tableauBord}</a>
+    <a class="inline-flex min-h-11 items-center text-sm underline" href="/hote">{t.tableauBord}</a>
   </header>
 
   {#if data.vide}
@@ -202,7 +202,8 @@
           {t.sAucun}
         </p>
       {:else}
-        <div class="ui-carte--plate overflow-x-auto rounded-2xl border border-bordure bg-surface">
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <div role="region" tabindex="0" aria-label="Tableau défilant" class="ui-carte--plate overflow-x-auto rounded-2xl border border-bordure bg-surface">
           <table class="ui-tableau w-full min-w-[960px] text-left text-sm">
             <thead>
               <tr>
@@ -289,9 +290,9 @@
     </section>
 
     <nav class="flex flex-wrap gap-4 text-sm">
-      <a class="underline" href="/hote/audit">{t.audit}</a>
-      <a class="underline" href="/hote/logements">{t.logements}</a>
-      <a class="underline" href="/hote">{t.tableauBord}</a>
+      <a class="inline-flex min-h-11 items-center underline" href="/hote/audit">{t.audit}</a>
+      <a class="inline-flex min-h-11 items-center underline" href="/hote/logements">{t.logements}</a>
+      <a class="inline-flex min-h-11 items-center underline" href="/hote">{t.tableauBord}</a>
     </nav>
   {/if}
 </main>

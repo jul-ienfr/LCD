@@ -25,6 +25,8 @@ export interface GuideLogementData {
   regles: string | null;
   urgenceTel: string | null;
   guideTexte: string | null;
+  guidePartenaireNom: string | null;
+  guidePartenaireUrl: string | null;
 }
 
 export interface LogementRepository {

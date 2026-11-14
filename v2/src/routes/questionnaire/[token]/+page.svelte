@@ -16,7 +16,7 @@
   <meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<main class="mx-auto max-w-2xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-2xl space-y-8 px-6 py-12">
   {#if data.indisponible}
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">LCD Parc</p>
     <h1 class="text-2xl font-semibold tracking-tight">Lien indisponible</h1>
@@ -25,7 +25,7 @@
         ? "Ce lien est invalide ou expiré. Demandez un nouveau lien à votre hôte."
         : "Ce séjour n’est plus disponible. Contactez votre hôte."}
     </p>
-    <a class="ui-lien text-sm" href="/">Retour à l’accueil</a>
+    <a class="ui-lien-action text-sm" href="/">Retour à l’accueil</a>
   {:else if data.reservation}
     <header class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Questionnaire de séjour</p>

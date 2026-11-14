@@ -1,44 +1,46 @@
 <script lang="ts">
+  import { traductionsCompta } from "@/lib/i18n-compta";
   import Kpi from "@/lib/components/ui/kpi.svelte";
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
+  const t = $derived(traductionsCompta((data as { langue?: string }).langue ?? "fr"));
 </script>
 
 <svelte:head>
-  <title>{data.t.titrePage}</title>
+  <title>{t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-5xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-5xl space-y-8 px-6 py-12">
   <header class="space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
-      {data.t.espace}
+      {t.espace}
     </p>
-    <h1 class="text-3xl font-semibold tracking-tight">{data.t.titre(data.moisLibelle)}</h1>
-    <p class="text-encre-douce">{data.t.description}</p>
+    <h1 class="text-3xl font-semibold tracking-tight">{t.titre(data.moisLibelle)}</h1>
+    <p class="text-encre-douce">{t.description}</p>
   </header>
 
   <div class="flex flex-wrap items-center gap-3">
-    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={data.precedent}>{data.t.precedent}</a>
-    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={data.courant}>{data.t.courant}</a>
-    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={data.suivant}>{data.t.suivant}</a>
-    <a class="ui-lien ml-auto text-sm" href="/hote/factures">{data.t.factures}</a>
-    <a class="ui-lien text-sm" href="/hote/compta/rapprochement">{data.t.rapprochement}</a>
-    <a class="ui-lien text-sm" href="/hote/compta/parametres">{data.t.parametresFiscaux}</a>
-    <a class="ui-lien text-sm" href="/hote/compta/simulateur">{data.t.simulateur}</a>
-    <a class="ui-lien text-sm" href="/hote/sorties">{data.t.sorties}</a>
-    <a class="ui-lien text-sm" href="/hote/planning">{data.t.planning}</a>
+    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={data.precedent}>{t.precedent}</a>
+    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={data.courant}>{t.courant}</a>
+    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={data.suivant}>{t.suivant}</a>
+    <a class="ui-lien-action ml-auto text-sm" href="/hote/factures">{t.factures}</a>
+    <a class="ui-lien-action text-sm" href="/hote/compta/rapprochement">{t.rapprochement}</a>
+    <a class="ui-lien-action text-sm" href="/hote/compta/parametres">{t.parametresFiscaux}</a>
+    <a class="ui-lien-action text-sm" href="/hote/compta/simulateur">{t.simulateur}</a>
+    <a class="ui-lien-action text-sm" href="/hote/sorties">{t.sorties}</a>
+    <a class="ui-lien-action text-sm" href="/hote/planning">{t.planning}</a>
   </div>
 
   <div class="flex flex-wrap items-center gap-2 rounded-2xl border border-bordure bg-surface p-3 text-sm">
-    <span class="font-medium">{data.t.exports(data.moisLibelle)}</span>
-    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/reservations?mois=${data.mois}`}>{data.t.resasCsv}</a>
-    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/factures?mois=${data.mois}`}>{data.t.facturesCsv}</a>
-    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/paiements?mois=${data.mois}`}>{data.t.paiementsCsv}</a>
-    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/factur-x?mois=${data.mois}`}>{data.t.facturX}</a>
-    <a class="ui-lien" href="/api/exports/modele-rapprochement">{data.t.modele}</a>
+    <span class="font-medium">{t.exports(data.moisLibelle)}</span>
+    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/reservations?mois=${data.mois}`}>{t.resasCsv}</a>
+    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/factures?mois=${data.mois}`}>{t.facturesCsv}</a>
+    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/paiements?mois=${data.mois}`}>{t.paiementsCsv}</a>
+    <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/factur-x?mois=${data.mois}`}>{t.facturX}</a>
+    <a class="ui-lien-action" href="/api/exports/modele-rapprochement">{t.modele}</a>
     {#if data.role === "admin"}
-      <a class="ui-lien" href="/api/exports/audit">{data.t.auditCsv}</a>
+      <a class="ui-lien-action" href="/api/exports/audit">{t.auditCsv}</a>
     {/if}
   </div>
 
@@ -48,15 +50,16 @@
     {/each}
   </section>
 
-  <section class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <section tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
     <table class="ui-tableau min-w-[640px]">
       <thead>
         <tr>
-          <th>{data.t.colLogement}</th>
-          <th class="text-right">{data.t.colSejours}</th>
-          <th class="text-right">{data.t.colCa}</th>
-          <th class="text-right">{data.t.colFactures}</th>
-          <th class="text-right">{data.t.colTtc}</th>
+          <th>{t.colLogement}</th>
+          <th class="text-right">{t.colSejours}</th>
+          <th class="text-right">{t.colCa}</th>
+          <th class="text-right">{t.colFactures}</th>
+          <th class="text-right">{t.colTtc}</th>
         </tr>
       </thead>
       <tbody>
@@ -77,21 +80,22 @@
   </section>
 
   <section class="space-y-3">
-    <h2 class="text-lg font-semibold">{data.t.paiementsMois}</h2>
+    <h2 class="text-lg font-semibold">{t.paiementsMois}</h2>
     {#if data.paiements.length === 0}
       <p class="rounded-2xl border border-dashed border-bordure p-6 text-encre-douce">
-        {data.t.aucunPaiement}
+        {t.aucunPaiement}
       </p>
     {:else}
-      <div class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table class="ui-tableau min-w-[640px]">
           <thead>
             <tr>
-              <th>{data.t.colDate}</th>
-              <th>{data.t.colFacture}</th>
-              <th>{data.t.colMode}</th>
-              <th>{data.t.colReference}</th>
-              <th class="text-right">{data.t.colMontant}</th>
+              <th>{t.colDate}</th>
+              <th>{t.colFacture}</th>
+              <th>{t.colMode}</th>
+              <th>{t.colReference}</th>
+              <th class="text-right">{t.colMontant}</th>
             </tr>
           </thead>
           <tbody>
@@ -100,7 +104,7 @@
                 <td>{paiement.date}</td>
                 <td>
                   {#if paiement.factureId}
-                    <a class="ui-lien" href={`/hote/factures/${paiement.factureId}`}>{paiement.numero}</a>
+                    <a class="ui-lien-action" href={`/hote/factures/${paiement.factureId}`}>{paiement.numero}</a>
                   {:else}
                     {paiement.numero}
                   {/if}

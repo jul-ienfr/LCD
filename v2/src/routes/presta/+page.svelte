@@ -8,7 +8,7 @@
   <title>Espace prestataire — LCD</title>
 </svelte:head>
 
-<main class="mx-auto max-w-3xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-3xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Espace prestataire</p>
@@ -16,7 +16,7 @@
       <p class="text-encre-douce">{data.missions.length} mission{data.missions.length > 1 ? "s" : ""} · {data.email}</p>
     </div>
     <div class="flex flex-wrap items-center gap-3">
-      <a class="ui-lien text-sm" href="/hote/securite">Sécurité / 2FA</a>
+      <a class="ui-lien-action text-sm" href="/hote/securite">Sécurité / 2FA</a>
       <form method="POST" action="/logout"><button class="ui-bouton ui-bouton--fantome ui-bouton--petit" type="submit">Quitter</button></form>
     </div>
   </header>
@@ -79,7 +79,7 @@
   </section>
 
   <nav class="flex flex-wrap gap-4 text-sm">
-    <a class="ui-lien" href="/support">Support</a>
-    <a class="ui-lien" href="/">Accueil</a>
+    <a class="ui-lien-action" href="/support">Support</a>
+    <a class="ui-lien-action" href="/">Accueil</a>
   </nav>
 </main>

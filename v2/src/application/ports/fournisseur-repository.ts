@@ -1,3 +1,4 @@
+import type { SanteConnexion } from "@/domain/canal";
 import type { CodeFournisseur } from "@/domain/fournisseur";
 
 export interface ActivationFournisseur {
@@ -91,4 +92,13 @@ export interface FournisseurRepository {
     logementId: string,
     etat: EtatSyncFournisseur,
   ): Promise<void>;
+  /**
+   * Santé de connexion de l'affectation (T103). Optionnel : les
+   * implémentations antérieures aux colonnes santé de `logements_fournisseurs`
+   * ne l'exposent pas ; l'appelant retombe sur `dernierStatut`/`derniereSync`.
+   */
+  lireSanteAffectation?(
+    tenantId: string,
+    logementId: string,
+  ): Promise<SanteConnexion | null>;
 }

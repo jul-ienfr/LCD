@@ -8,7 +8,7 @@
   <title>{data.estStaff ? "Tickets support" : "Mes demandes"} — LCD</title>
 </svelte:head>
 
-<main class="mx-auto max-w-4xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-4xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Support</p>
@@ -16,7 +16,7 @@
       <p class="text-encre-douce">{data.tickets.length} ticket{data.tickets.length > 1 ? "s" : ""} · {data.email}</p>
     </div>
     <div class="flex flex-wrap items-center gap-3">
-      <a class="ui-lien text-sm" href="/hote/securite">Sécurité / 2FA</a>
+      <a class="ui-lien-action text-sm" href="/hote/securite">Sécurité / 2FA</a>
       <form method="POST" action="/logout"><button class="ui-bouton ui-bouton--fantome ui-bouton--petit" type="submit">Quitter</button></form>
     </div>
   </header>
@@ -62,5 +62,5 @@
     {/if}
   </section>
 
-  <a class="ui-lien text-sm" href="/">Retour à l’accueil</a>
+  <a class="ui-lien-action text-sm" href="/">Retour à l’accueil</a>
 </main>

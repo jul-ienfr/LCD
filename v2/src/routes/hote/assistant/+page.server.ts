@@ -121,8 +121,11 @@ export const load: PageServerLoad = async (event) => {
     consomme.nombre >= QUOTA_ASSISTANT_MENSUEL ||
     consomme.coutCentimes >= BUDGET_ASSISTANT_MENSUEL_CENTIMES;
 
+  const langue = event.cookies.get("lcd_langue") ?? "fr";
+
   return {
-    t: traductionsCommunication(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsCommunication(langue),
+    langue,
     logements: logements.map((entree) => ({ id: entree.id, nom: entree.nom })),
     logement: logement ? { id: logement.id, nom: logement.nom } : null,
     intentions: INTENTIONS_ASSISTANT.map((valeur) => ({

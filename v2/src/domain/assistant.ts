@@ -161,6 +161,54 @@ export function typeMessageDepuisIntention(
   return "autre";
 }
 
+export interface MessageHistoriqueAssistant {
+  sens: "entrant" | "sortant";
+  contenu: string;
+}
+
+export const HISTORIQUE_ASSISTANT_MAX = 6;
+const HISTORIQUE_MESSAGE_CARACTERES_MAX = 400;
+
+function masquerCodes(texte: string): string {
+  return texte.replace(/\b\d{4,8}\b/g, "[code masqué]");
+}
+
+/**
+ * Invite contextualisée par les derniers échanges du fil. L'historique est
+ * borné et les suites de chiffres sont masquées pour ne jamais envoyer un
+ * code d'accès au modèle.
+ */
+export function construireInviteFil(input: {
+  intention: IntentionAssistant;
+  ton: TonAssistant;
+  logement: string;
+  voyageur: string;
+  details: string;
+  historique: readonly MessageHistoriqueAssistant[];
+}): string {
+  const base = construireInvite(input);
+  const historique = input.historique
+    .slice(-HISTORIQUE_ASSISTANT_MAX)
+    .map((message) => {
+      const auteur = message.sens === "entrant" ? "Voyageur" : "Hôte";
+      const contenu = masquerCodes(
+        message.contenu.replace(/\s+/g, " ").trim(),
+      ).slice(0, HISTORIQUE_MESSAGE_CARACTERES_MAX);
+      return `${auteur} : ${contenu}`;
+    })
+    .filter((ligne) => !ligne.endsWith(": "));
+
+  if (historique.length === 0) return base;
+
+  return [
+    base,
+    "",
+    "Historique récent du fil :",
+    ...historique,
+    "Réponds au dernier message du voyageur en tenant compte de cet historique.",
+  ].join("\n");
+}
+
 export function compterMots(texte: string): number {
   const propre = texte.trim();
   return propre ? propre.split(/\s+/).length : 0;

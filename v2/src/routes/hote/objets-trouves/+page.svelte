@@ -28,7 +28,7 @@
   <title>{t.oTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
@@ -37,7 +37,7 @@
       <h1 class="text-3xl font-semibold tracking-tight">{t.oTitre}</h1>
       <p class="text-encre-douce">{t.oDescription(JOURS_AVANT_DON)}</p>
     </div>
-    <a class="text-sm underline" href="/hote">{t.retourTableau}</a>
+    <a class="inline-flex min-h-11 items-center text-sm underline" href="/hote">{t.retourTableau}</a>
   </header>
 
   {#if data.vide}
@@ -277,10 +277,10 @@
     </section>
 
     <nav class="flex flex-wrap gap-4 text-sm">
-      <a class="underline" href={`/hote/phrases?logement=${logement.id}`}>
+      <a class="inline-flex min-h-11 items-center underline" href={`/hote/phrases?logement=${logement.id}`}>
         {t.phrases}
       </a>
-      <a class="underline" href="/hote">{t.tableauBord}</a>
+      <a class="inline-flex min-h-11 items-center underline" href="/hote">{t.tableauBord}</a>
     </nav>
   {/if}
 </main>

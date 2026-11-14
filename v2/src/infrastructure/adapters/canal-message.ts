@@ -5,16 +5,18 @@ import type {
 } from "@/application/ports/canal-message-port";
 import type { EmailSender } from "@/application/ports/email";
 import type { SmsSender } from "@/application/ports/sms";
+import type { WhatsAppSender } from "@/application/ports/whatsapp";
 import { ErreurMetier } from "@/domain/erreurs";
 
 /**
- * Compose les ports e-mail et SMS existants derrière le port d'envoi de
- * messages voyageur. WhatsApp et OTA n'ont pas encore de connecteur : ils
- * échouent explicitement plutôt que de faire croire à un envoi.
+ * Compose les ports e-mail, SMS et WhatsApp derrière le port d'envoi de
+ * messages voyageur. OTA n'a pas encore de connecteur : il échoue
+ * explicitement plutôt que de faire croire à un envoi.
  */
 export function creerCanalMessage(options: {
   email?: EmailSender | null;
   sms?: SmsSender | null;
+  whatsapp?: WhatsAppSender | null;
   expediteurEmail?: string | null;
 }): CanalMessagePort {
   return {
@@ -49,9 +51,23 @@ export function creerCanalMessage(options: {
         return { externalId: null, statut: "envoye" };
       }
 
+      if (input.canal === "whatsapp") {
+        if (!options.whatsapp) {
+          throw new ErreurMetier(
+            "CANAL_INDISPONIBLE",
+            "Aucun fournisseur WhatsApp n'est configuré.",
+          );
+        }
+        const resultat = await options.whatsapp.envoyer({
+          to: input.destinataire,
+          text: input.contenu,
+        });
+        return { externalId: resultat.externalId, statut: "envoye" };
+      }
+
       throw new ErreurMetier(
         "CANAL_INDISPONIBLE",
-        "Ce canal n'a pas encore de connecteur (WhatsApp, plateforme).",
+        "Ce canal n'a pas encore de connecteur (plateforme).",
       );
     },
   };

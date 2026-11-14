@@ -9,7 +9,7 @@
   <title>Voir comme — Supervision</title>
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-12">
+<main id="contenu" class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-12">
   <NavSuperAdmin actif="/supervision/voir-comme" />
 
   <header class="space-y-2">
@@ -65,7 +65,7 @@
   {/if}
 
   <div class="flex flex-wrap gap-4 text-sm">
-    <a class="ui-lien" href="/supervision">← Supervision</a>
-    <a class="ui-lien" href="/journal?action=apercu">Journal des aperçus</a>
+    <a class="ui-lien-action" href="/supervision">← Supervision</a>
+    <a class="ui-lien-action" href="/journal?action=apercu">Journal des aperçus</a>
   </div>
 </main>

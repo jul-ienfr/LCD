@@ -8,7 +8,7 @@
   <title>{data.t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-3xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-3xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
@@ -17,7 +17,7 @@
       <h1 class="text-3xl font-semibold tracking-tight">{data.t.titre}</h1>
       <p class="text-encre-douce">{data.t.description}</p>
     </div>
-    <a class="ui-lien text-sm" href="/hote/proprietaires">{data.t.proprietaires}</a>
+    <a class="ui-lien-action text-sm" href="/hote/proprietaires">{data.t.proprietaires}</a>
   </header>
 
   {#if !data.tenant}

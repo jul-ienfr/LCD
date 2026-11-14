@@ -8,10 +8,10 @@
   <title>Connexion — {data.apparence.identite.nom}</title>
 </svelte:head>
 
-<main lang={data.langue} class="relative mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 overflow-hidden px-6 py-12">
+<main id="contenu" lang={data.langue} class="relative mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 overflow-hidden px-6 py-12">
   <div class="ui-orb -right-24 top-10 size-64" aria-hidden="true"></div>
   <header class="relative space-y-3">
-    <a class="inline-flex items-center gap-2.5 font-semibold tracking-tight" href="/">
+    <a class="inline-flex min-h-11 items-center gap-2.5 font-semibold tracking-tight" href="/">
       <span class="grid size-9 place-items-center rounded-xl bg-accent text-base font-black text-sur-accent">
         {data.apparence.identite.nom.slice(0, 1)}
       </span>
@@ -24,7 +24,7 @@
       {#each data.langues as langue (langue)}
         <a
           class:font-bold={langue === data.langue}
-          class="ui-lien uppercase"
+          class="ui-lien-action inline-flex min-h-11 min-w-11 items-center justify-center px-2 uppercase"
           href={`?lang=${langue}`}
           hreflang={langue}
         >{langue}</a>
@@ -65,7 +65,7 @@
       </div>
     {/if}
     <button class="ui-bouton ui-bouton--primaire w-full" type="submit">{data.t.seConnecter}</button>
-    <a class="block text-center text-sm ui-lien" href="/mot-de-passe-oublie">{data.t.oublie}</a>
+    <a class="ui-lien-action inline-flex min-h-11 w-full items-center justify-center text-center text-sm" href="/mot-de-passe-oublie">{data.t.oublie}</a>
   </form>
 
   <p class="text-center text-xs text-encre-faine">{data.t.footer}</p>

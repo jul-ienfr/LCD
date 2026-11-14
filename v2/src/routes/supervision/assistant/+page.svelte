@@ -8,7 +8,7 @@
   <title>Routage assistant — LCD Parc</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-12">
   <header class="space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">
       Super-admin · Assistant
@@ -79,7 +79,7 @@
   <section class="ui-carte space-y-4">
     <h2 class="text-lg font-semibold">Configuration</h2>
     <form method="POST" action="?/configurer" class="space-y-4">
-      <label class="flex items-start gap-3 text-sm">
+      <label class="flex min-h-11 min-w-11 items-start gap-3 text-sm">
         <input
           class="mt-1"
           type="checkbox"
@@ -139,7 +139,8 @@
         interne, pas une facture fournisseur.
       </p>
     </div>
-    <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
       <table class="w-full min-w-[820px] text-left text-sm">
         <thead
           class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine"
@@ -182,8 +183,8 @@
   </section>
 
   <nav class="flex flex-wrap gap-4 text-sm">
-    <a class="ui-lien" href="/supervision">Supervision</a>
-    <a class="ui-lien" href="/hote/assistant">Voir l’assistant hôte</a>
-    <a class="ui-lien" href="/journal">Journal d’audit</a>
+    <a class="ui-lien-action" href="/supervision">Supervision</a>
+    <a class="ui-lien-action" href="/hote/assistant">Voir l’assistant hôte</a>
+    <a class="ui-lien-action" href="/journal">Journal d’audit</a>
   </nav>
 </main>

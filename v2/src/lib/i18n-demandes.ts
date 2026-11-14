@@ -22,7 +22,8 @@ export interface TraductionsDemandes {
   reservation: string;
   okQualifiee: string;
   okRefusee: string;
-  okConvertie: (reference: string) => string;
+  /** Gabarit : la référence est insérée côté composant (`{reference}`). */
+  okConvertie: string;
   erreur: string;
   vide: string;
 }
@@ -56,7 +57,7 @@ const TRADUCTIONS: Record<LanguePublique, TraductionsDemandes> = {
     reservation: "Réservation",
     okQualifiee: "Demande qualifiée.",
     okRefusee: "Demande refusée.",
-    okConvertie: (reference) => `Réservation créée : ${reference}.`,
+    okConvertie: "Réservation créée : {reference}.",
     erreur: "Action impossible : demandez plus de détails.",
     vide: "Aucune demande pour ce filtre.",
   },
@@ -88,7 +89,7 @@ const TRADUCTIONS: Record<LanguePublique, TraductionsDemandes> = {
     reservation: "Booking",
     okQualifiee: "Request qualified.",
     okRefusee: "Request declined.",
-    okConvertie: (reference) => `Booking created: ${reference}.`,
+    okConvertie: "Booking created: {reference}.",
     erreur: "Action failed: ask for more details.",
     vide: "No request for this filter.",
   },
@@ -120,7 +121,7 @@ const TRADUCTIONS: Record<LanguePublique, TraductionsDemandes> = {
     reservation: "Reserva",
     okQualifiee: "Solicitud cualificada.",
     okRefusee: "Solicitud rechazada.",
-    okConvertie: (reference) => `Reserva creada: ${reference}.`,
+    okConvertie: "Reserva creada: {reference}.",
     erreur: "Acción imposible: pida más detalles.",
     vide: "Ninguna solicitud para este filtro.",
   },
@@ -152,7 +153,7 @@ const TRADUCTIONS: Record<LanguePublique, TraductionsDemandes> = {
     reservation: "Prenotazione",
     okQualifiee: "Richiesta qualificata.",
     okRefusee: "Richiesta rifiutata.",
-    okConvertie: (reference) => `Prenotazione creata: ${reference}.`,
+    okConvertie: "Prenotazione creata: {reference}.",
     erreur: "Azione impossibile: chiedi più dettagli.",
     vide: "Nessuna richiesta per questo filtro.",
   },
@@ -184,7 +185,7 @@ const TRADUCTIONS: Record<LanguePublique, TraductionsDemandes> = {
     reservation: "Buchung",
     okQualifiee: "Anfrage qualifiziert.",
     okRefusee: "Anfrage abgelehnt.",
-    okConvertie: (reference) => `Buchung erstellt: ${reference}.`,
+    okConvertie: "Buchung erstellt: {reference}.",
     erreur: "Aktion nicht möglich: Details anfordern.",
     vide: "Keine Anfrage für diesen Filter.",
   },
@@ -216,7 +217,7 @@ const TRADUCTIONS: Record<LanguePublique, TraductionsDemandes> = {
     reservation: "Boeking",
     okQualifiee: "Aanvraag gekwalificeerd.",
     okRefusee: "Aanvraag geweigerd.",
-    okConvertie: (reference) => `Boeking aangemaakt: ${reference}.`,
+    okConvertie: "Boeking aangemaakt: {reference}.",
     erreur: "Actie niet mogelijk: vraag meer details.",
     vide: "Geen aanvraag voor dit filter.",
   },

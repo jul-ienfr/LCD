@@ -7,6 +7,7 @@ import {
 import type { CategorieRecherche } from "@/application/ports/recherche-repository";
 import { DrizzleRechercheRepository } from "@/infrastructure/db/repositories/recherche-repository";
 import { traductionsRecherche } from "@/lib/i18n-recherche";
+import { mesurerParcours } from "@/lib/server/mesure-ergonomie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
 
@@ -47,6 +48,21 @@ export const load: PageServerLoad = async (event) => {
     ? await new RechercherRefs(new DrizzleRechercheRepository()).executer(tenantId, q)
     : [];
   const t = traductionsRecherche(event.cookies.get("lcd_langue") ?? "fr");
+
+  /* --- Mesure (T092) : recherche effectuée ou sans résultat --- */
+  // Seul le nombre de résultats est mesuré : jamais le texte cherché (PII).
+  if (q && valide) {
+    await mesurerParcours(event, tenantId, {
+      nom: resultats.length > 0 ? "recherche_effectuee" : "recherche_sans_resultat",
+      parcoursId: "P-RECHERCHE",
+      surface: "staff",
+      route: "/hote/recherche",
+      etape: "resultats",
+      resultat: resultats.length > 0 ? "succes" : "erreur",
+      role: session.user.role ?? "",
+      nombreResultats: resultats.length,
+    });
+  }
 
   return {
     t,

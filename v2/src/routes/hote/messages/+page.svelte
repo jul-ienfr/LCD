@@ -11,19 +11,19 @@
   <title>{t.messagesTitrePage}</title>
 </svelte:head>
 
-<main class="mx-auto max-w-5xl space-y-8 px-6 py-12">
+<main id="contenu" class="mx-auto max-w-5xl space-y-8 px-6 py-12">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">{t.messagesSurtitre}</p>
       <h1 class="text-3xl font-semibold tracking-tight">{t.messagesTitre}</h1>
       <p class="text-encre-douce">{t.messagesDescription}</p>
     </div>
-    <a class="ui-lien text-sm" href="/hote">{t.retourTableau}</a>
+    <a class="ui-lien-action inline-flex min-h-11 items-center text-sm" href="/hote">{t.retourTableau}</a>
   </header>
 
   {#if !data.logement}
     <p class="ui-carte border-dashed text-encre-douce">{t.creerLogementDAbord}</p>
-    <a class="ui-lien text-sm" href="/hote/logements">{t.creerLogement}</a>
+    <a class="ui-lien-action inline-flex min-h-11 items-center text-sm" href="/hote/logements">{t.creerLogement}</a>
   {:else}
     {#if data.logements.length > 1}
       <nav class="flex flex-wrap gap-2" aria-label={t.choisirLogement}>
@@ -100,8 +100,8 @@
     </section>
 
     <nav class="flex flex-wrap gap-4 text-sm">
-      <a class="ui-lien" href="/hote/audit">{t.journalAudit}</a>
-      <a class="ui-lien" href="/hote">{t.tableauBord}</a>
+      <a class="ui-lien-action" href="/hote/audit">{t.journalAudit}</a>
+      <a class="ui-lien-action" href="/hote">{t.tableauBord}</a>
     </nav>
   {/if}
 </main>

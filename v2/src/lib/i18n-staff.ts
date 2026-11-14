@@ -30,7 +30,7 @@ const FR: TraductionsConnexion = {
   captchaResultat: "Résultat en chiffres",
   seConnecter: "Se connecter",
   oublie: "Mot de passe oublié ?",
-  footer: "Connexion sécurisée · 2FA disponible · Aucun traceur publicitaire.",
+  footer: "Connexion sécurisée · 2FA disponible · Suivi soumis à votre consentement.",
   succesReinitialise:
     "Votre mot de passe a été modifié. Connectez-vous avec votre nouveau mot de passe.",
   erreurAcces: "Accès refusé : cette page est réservée à un rôle autorisé.",
@@ -49,7 +49,7 @@ const EN: TraductionsConnexion = {
   captchaResultat: "Numeric answer",
   seConnecter: "Sign in",
   oublie: "Forgot your password?",
-  footer: "Secure login · 2FA available · No advertising trackers.",
+  footer: "Secure login · 2FA available · Tracking requires your consent.",
   succesReinitialise:
     "Your password has been changed. Sign in with your new password.",
   erreurAcces: "Access denied: this page requires an authorised role.",
@@ -67,7 +67,7 @@ const ES: TraductionsConnexion = {
   captchaResultat: "Resultado numérico",
   seConnecter: "Iniciar sesión",
   oublie: "¿Ha olvidado su contraseña?",
-  footer: "Conexión segura · 2FA disponible · Sin rastreadores publicitarios.",
+  footer: "Conexión segura · 2FA disponible · Seguimiento con su consentimiento.",
   succesReinitialise:
     "Su contraseña ha sido modificada. Inicie sesión con la nueva contraseña.",
   erreurAcces: "Acceso denegado: esta página requiere un rol autorizado.",
@@ -85,7 +85,7 @@ const IT: TraductionsConnexion = {
   captchaResultat: "Risultato numerico",
   seConnecter: "Accedi",
   oublie: "Password dimenticata?",
-  footer: "Accesso sicuro · 2FA disponibile · Nessun tracker pubblicitario.",
+  footer: "Accesso sicuro · 2FA disponibile · Tracciamento soggetto al consenso.",
   succesReinitialise:
     "La password è stata modificata. Accedi con la nuova password.",
   erreurAcces: "Accesso negato: questa pagina richiede un ruolo autorizzato.",
@@ -103,7 +103,7 @@ const DE: TraductionsConnexion = {
   captchaResultat: "Numerisches Ergebnis",
   seConnecter: "Anmelden",
   oublie: "Passwort vergessen?",
-  footer: "Sichere Anmeldung · 2FA verfügbar · Keine Werbetracker.",
+  footer: "Sichere Anmeldung · 2FA verfügbar · Tracking nur mit Einwilligung.",
   succesReinitialise:
     "Ihr Passwort wurde geändert. Melden Sie sich mit dem neuen Passwort an.",
   erreurAcces: "Zugriff verweigert: Diese Seite erfordert eine autorisierte Rolle.",

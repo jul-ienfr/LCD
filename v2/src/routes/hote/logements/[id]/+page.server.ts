@@ -1,4 +1,5 @@
 import { error, fail } from "@sveltejs/kit";
+import { urlGuidePartenaireValide } from "@/domain/logement";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
@@ -47,6 +48,8 @@ export const load: PageServerLoad = async (event) => {
       checkinInstructions: logement.checkinInstructions ?? "",
       regles: logement.regles ?? "",
       guideTexte: logement.guideTexte ?? "",
+      guidePartenaireNom: logement.guidePartenaireNom ?? "",
+      guidePartenaireUrl: logement.guidePartenaireUrl ?? "",
     },
     urlCalendrier,
   };
@@ -73,6 +76,18 @@ export const actions = {
     );
     if (!logement) error(404, "Logement introuvable");
 
+    const guidePartenaireUrl = texteOuNull(
+      donnees.get("guidePartenaireUrl"),
+      500,
+    );
+    if (guidePartenaireUrl && !urlGuidePartenaireValide(guidePartenaireUrl)) {
+      return fail(400, {
+        ok: false,
+        message:
+          "L’URL du guide partenaire doit être en HTTPS, sans identifiants.",
+      });
+    }
+
     try {
       await new DrizzleLogementRepository().mettreAJourGuide(
         tenantId,
@@ -88,6 +103,11 @@ export const actions = {
           regles: texteOuNull(donnees.get("regles"), 4000),
           urgenceTel: texteOuNull(donnees.get("urgenceTel"), 40),
           guideTexte: texteOuNull(donnees.get("guideTexte"), 8000),
+          guidePartenaireNom: texteOuNull(
+            donnees.get("guidePartenaireNom"),
+            80,
+          ),
+          guidePartenaireUrl,
         },
       );
 
@@ -98,7 +118,9 @@ export const actions = {
           action: "logement.guide",
           cible: logementId,
           ref: logement.code,
-          payload: {},
+          payload: {
+            guidePartenaire: Boolean(guidePartenaireUrl),
+          },
         }),
       );
 

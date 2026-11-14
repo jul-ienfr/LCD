@@ -8,7 +8,7 @@
   <title>Double authentification — {data.apparence.identite.nom}</title>
 </svelte:head>
 
-<main class="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-6 py-12">
+<main id="contenu" class="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-6 py-12">
   <header class="space-y-2">
     <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Sécurité</p>
     <h1 class="text-3xl font-semibold tracking-tight">Double authentification</h1>

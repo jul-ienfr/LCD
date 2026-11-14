@@ -9,7 +9,7 @@
   <title>Journal global — Supervision</title>
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-12">
+<main id="contenu" class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-12">
   <NavSuperAdmin actif="/journal" />
 
   <header class="space-y-2">
@@ -54,7 +54,8 @@
 
     <p class="text-sm text-encre-douce">{data.entrees.length} entrée(s) affichée(s).</p>
 
-    <div class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div role="region" tabindex="0" aria-label="Tableau défilant" class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
       <table class="ui-tableau min-w-[900px]">
         <thead>
           <tr>
@@ -84,8 +85,9 @@
                   —
                 {:else}
                   <details>
-                    <summary class="cursor-pointer text-encre-douce">Voir</summary>
-                    <pre class="mt-2 max-w-md overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-fond p-2">{entree.payloadTexte}</pre>
+                    <summary class="flex min-h-11 min-w-11 cursor-pointer items-center text-encre-douce">Voir</summary>
+                    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+                    <pre role="region" tabindex="0" aria-label="Charge utile" class="mt-2 max-w-md overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-fond p-2">{entree.payloadTexte}</pre>
                   </details>
                 {/if}
               </td>

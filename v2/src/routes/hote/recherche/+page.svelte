@@ -1,49 +1,51 @@
 <script lang="ts">
+  import { traductionsRecherche } from "@/lib/i18n-recherche";
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
+  const t = $derived(traductionsRecherche((data as { langue?: string }).langue ?? "fr"));
 </script>
 
 <svelte:head>
-  <title>{data.t.titrePage}</title>
+  <title>{t.titrePage}</title>
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+<main id="contenu" class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
   <PageEntete
-    surtitre={data.t.surtitre}
-    titre={data.t.titre}
-    description={data.t.description}
+    surtitre={t.surtitre}
+    titre={t.titre}
+    description={t.description}
   />
 
   <form class="flex flex-wrap items-end gap-3" method="get">
     <label class="block min-w-64 flex-1 space-y-2 text-sm">
-      <span class="ui-label">{data.t.label}</span>
+      <span class="ui-label">{t.label}</span>
       <input
         class="ui-champ"
         maxlength={data.max}
         minlength={data.min}
         name="q"
-        placeholder={data.t.placeholder}
+        placeholder={t.placeholder}
         required
         type="search"
         defaultValue={data.q}
       />
     </label>
-    <button class="ui-bouton ui-bouton--primaire" type="submit">{data.t.rechercher}</button>
+    <button class="ui-bouton ui-bouton--primaire" type="submit">{t.rechercher}</button>
   </form>
 
   {#if data.q && !data.valide}
-    <p class="ui-alerte ui-alerte--alerte">{data.t.minimum(data.min)}</p>
+    <p class="ui-alerte ui-alerte--alerte">{t.minimum(data.min)}</p>
   {/if}
 
   {#if data.q && data.valide}
-    <p class="text-sm text-encre-douce">{data.t.resultats(data.nombre, data.q)}</p>
+    <p class="text-sm text-encre-douce">{t.resultats(data.nombre, data.q)}</p>
   {/if}
 
   {#if data.q && data.valide && data.nombre === 0}
     <p class="rounded-2xl border border-bordure bg-surface p-6 text-sm text-encre-douce">
-      {data.t.aucun}
+      {t.aucun}
     </p>
   {/if}
 
@@ -64,7 +66,7 @@
   {/each}
 
   <div class="flex flex-wrap gap-4 text-sm">
-    <a class="ui-lien" href="/hote">{data.t.retour}</a>
-    <a class="ui-lien" href="/hote/audit">{data.t.audit}</a>
+    <a class="ui-lien-action inline-flex min-h-11 items-center" href="/hote">{t.retour}</a>
+    <a class="ui-lien-action inline-flex min-h-11 items-center" href="/hote/audit">{t.audit}</a>
   </div>
 </main>

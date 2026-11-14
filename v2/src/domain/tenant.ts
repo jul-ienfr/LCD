@@ -25,6 +25,7 @@ export interface Tenant {
   ventesSuspendues: boolean;
   ventesSuspenduesMotif: string | null;
   ventesSuspenduesLe: Date | null;
+  lectureSeule: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

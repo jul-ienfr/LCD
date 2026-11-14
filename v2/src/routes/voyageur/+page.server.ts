@@ -40,6 +40,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { formaterEuros } from "@/lib/format";
 import { dictionnaire, langueDepuisParam } from "@/lib/i18n";
 import { logErreur } from "@/lib/logger";
+import { mesurerParcours } from "@/lib/server/mesure-ergonomie";
 import { verifierTokenVoyageur } from "@/lib/voyageur-token";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -54,11 +55,12 @@ function retour(token: string, langue: string, suffixe: string): never {
   redirect(303, `${base}&${suffixe}`);
 }
 
-export const load: PageServerLoad = async ({ url, parent }) => {
+export const load: PageServerLoad = async (event) => {
+  const { url } = event;
   const token = url.searchParams.get("t") ?? "";
   const langue = langueDepuisParam(url.searchParams.get("lang") ?? undefined);
   const d = dictionnaire(langue);
-  const { apparence } = await parent();
+  const { apparence } = await event.parent();
   const identite = { nom: apparence.identite.nom, logoUrl: apparence.identite.logoUrl };
 
   if (!token) {
@@ -129,10 +131,28 @@ export const load: PageServerLoad = async ({ url, parent }) => {
     lieux.some((lieu) => lieu.categorie === categorie),
   );
 
+  /* --- Mesure (T090) : ouverture du séjour voyageur --- */
+  // Lien signé vérifié, réservation et logement cohérents : le parcours
+  // « séjour » démarre. Événement anonyme, sans identité ni référence.
+  await mesurerParcours(event, payload.tenantId, {
+    nom: "parcours_demarre",
+    parcoursId: "P-SEJOUR",
+    surface: "voyageur",
+    route: "/voyageur",
+    etape: "ouverture",
+    role: "voyageur",
+  });
+
   return {
     invalide: false,
     token,
     langue,
+    /**
+     * T054 : instant de rendu de la page, exposé au bandeau « dernière mise à
+     * jour ». La page étant mise en cache par le service worker (`csr = false`),
+     * le voyageur hors ligne voit la date du document qu'il consulte.
+     */
+    miseAJourLe: new Date().toISOString(),
     etapesDepart: [...ETAPES_DEPART],
     d,
     identite,
@@ -159,6 +179,8 @@ export const load: PageServerLoad = async ({ url, parent }) => {
       urgenceTel: logement.urgenceTel,
       regles: logement.regles,
       guideTexte: logement.guideTexte,
+      guidePartenaireNom: logement.guidePartenaireNom,
+      guidePartenaireUrl: logement.guidePartenaireUrl,
     },
     incidents: incidents.map((incident) => ({
       id: incident.id,

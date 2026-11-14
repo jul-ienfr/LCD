@@ -91,7 +91,7 @@
   <title>Fournisseurs — Supervision</title>
 </svelte:head>
 
-<main class="mx-auto max-w-7xl space-y-8 px-6 py-10">
+<main id="contenu" class="mx-auto max-w-7xl space-y-8 px-6 py-10">
   <header class="space-y-4">
     <NavSuperAdmin actif="fournisseurs" />
     <div class="ui-entete space-y-2">
@@ -161,7 +161,7 @@
               <p class="text-xs text-encre-douce">{alerte.message}</p>
             </div>
             <a
-              class="ui-lien text-sm"
+              class="ui-lien-action text-sm"
               href={`#logement-${alerte.logementId}`}
             >
               Voir
@@ -330,11 +330,11 @@
           </div>
 
           <div class="flex flex-wrap gap-3 text-sm">
-            <a class="ui-lien" href={fiche.site} target="_blank" rel="noreferrer">
+            <a class="ui-lien-action" href={fiche.site} target="_blank" rel="noreferrer">
               Site
             </a>
             <a
-              class="ui-lien"
+              class="ui-lien-action"
               href={fiche.documentation}
               target="_blank"
               rel="noreferrer"
@@ -365,7 +365,8 @@
         Aucun logement à affecter pour le moment.
       </p>
     {:else}
-      <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
         <table class="w-full min-w-[1100px] text-left text-sm">
           <thead class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine">
             <tr>
@@ -592,7 +593,8 @@
         pilote complet.
       </p>
     </div>
-    <div class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
       <table class="w-full min-w-[760px] text-left text-sm">
         <thead class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine">
           <tr>

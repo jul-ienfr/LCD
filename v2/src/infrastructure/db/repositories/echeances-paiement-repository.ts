@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, lt } from "drizzle-orm";
 import type {
   CreerEcheancePaiementData,
   EcheancePaiement,
@@ -78,6 +78,27 @@ export class DrizzleEcheancesPaiementRepository
           ),
         )
         .orderBy(asc(echeancesPaiement.exigibleLe), asc(echeancesPaiement.type));
+      return rows.map(versEcheance);
+    });
+  }
+
+  async listerEnRetard(
+    tenantId: string,
+    date: string,
+  ): Promise<EcheancePaiement[]> {
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(echeancesPaiement)
+        .where(
+          and(
+            eq(echeancesPaiement.tenantId, tenantId),
+            eq(echeancesPaiement.statut, "a_payer"),
+            lt(echeancesPaiement.exigibleLe, date),
+          ),
+        )
+        .orderBy(asc(echeancesPaiement.exigibleLe))
+        .limit(200);
       return rows.map(versEcheance);
     });
   }

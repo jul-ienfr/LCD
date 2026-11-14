@@ -21,13 +21,21 @@
     dateStyle: "medium",
     timeStyle: "short",
   });
+
+  // T099 : les garde-fous de publication renvoient le détail des blocages
+  // (contraste, cible 44 px). Le type d'action n'est pas élargi pour autant :
+  // on lit la propriété de façon défensive.
+  const problemes = $derived(
+    ((form as { problemes?: { type: string; message: string; details: string[] }[] } | null)
+      ?.problemes ?? []),
+  );
 </script>
 
 <svelte:head>
   <title>Apparence — Supervision</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl space-y-8 px-6 py-10">
+<main id="contenu" class="mx-auto max-w-6xl space-y-8 px-6 py-10">
   <header class="space-y-4">
     <NavSuperAdmin actif="apparence" />
     <div class="flex flex-wrap items-end justify-between gap-4">
@@ -44,6 +52,10 @@
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
+        <a
+          class="ui-bouton ui-bouton--secondaire"
+          href="/supervision/apparence/apercu-composants">Aperçu des composants</a
+        >
         <form method="POST" action="?/apercu">
           <button class="ui-bouton ui-bouton--secondaire" type="submit">
             Prévisualiser
@@ -67,6 +79,20 @@
     >
       {form.message}
     </p>
+    {#if problemes.length}
+      <ul class="ui-alerte ui-alerte--danger list-disc space-y-1 pl-6 text-sm">
+        {#each problemes as probleme, index (index)}
+          <li>
+            <strong>{probleme.type === "contraste" ? "Contraste" : "Cible tactile"}</strong>
+            <ul class="mt-1 list-disc space-y-0.5 pl-4 text-xs">
+              {#each probleme.details as detail (detail)}
+                <li>{detail}</li>
+              {/each}
+            </ul>
+          </li>
+        {/each}
+      </ul>
+    {/if}
   {/if}
   {#if data.apercu}
     <p class="ui-alerte ui-alerte--alerte" role="status">
@@ -127,7 +153,7 @@
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {#each data.themes as theme (theme.id)}
             <label
-              class="ui-carte flex cursor-pointer items-start gap-3 p-3 has-[:checked]:border-accent has-[:checked]:ring-2 has-[:checked]:ring-accent"
+              class="ui-carte flex min-h-11 min-w-11 cursor-pointer items-start gap-3 p-3 has-[:checked]:border-accent has-[:checked]:ring-2 has-[:checked]:ring-accent"
             >
               <input
                 class="mt-1 size-4 accent-[var(--accent)]"
@@ -161,7 +187,7 @@
       <h2 class="text-lg font-semibold">2. Accent et identité</h2>
       <div class="grid gap-4 md:grid-cols-2">
         <div class="space-y-2 md:col-span-2">
-          <label class="flex items-center gap-3 text-sm">
+          <label class="flex min-h-11 min-w-11 items-center gap-3 text-sm">
             <input
               type="checkbox"
               name="accentActif"
@@ -171,9 +197,10 @@
           </label>
           <div class="flex items-center gap-3">
             <input
-              class="h-10 w-24 cursor-pointer rounded border border-bordure bg-fond"
+              class="h-11 w-24 cursor-pointer rounded border border-bordure bg-fond"
               type="color"
               name="accent"
+              aria-label="Couleur d’accent personnalisée"
               defaultValue={data.apparence.accent ?? themeActif?.clair.accent ?? "#0e7c6b"}
             />
             <p class="text-xs text-encre-faine">
@@ -276,7 +303,8 @@
     {#if data.versions.length === 0}
       <p class="text-sm text-encre-douce">Aucune version publiée pour l’instant.</p>
     {:else}
-      <div class="overflow-x-auto">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
         <table class="ui-tableau">
           <thead>
             <tr>

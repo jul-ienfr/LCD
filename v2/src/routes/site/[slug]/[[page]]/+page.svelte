@@ -64,9 +64,9 @@
     </nav>
   </header>
 
-  <main>
+  <main id="contenu">
     {#each data.blocs as bloc (bloc.id)}
-      <BlocSite {bloc} />
+      <BlocSite {bloc} avisPublies={data.avisPublies} />
     {/each}
     {#if data.blocs.length === 0}
       <section class="mx-auto max-w-3xl space-y-4 px-6 py-16">
@@ -98,7 +98,7 @@
         {/if}
 
         <form method="POST" action="?/demande" class="grid gap-4 sm:grid-cols-2">
-          <label class="flex flex-col gap-1 text-sm">
+          <label class="flex min-h-11 min-w-11 flex-col gap-1 text-sm">
             <span>{t.demandeNom}</span>
             <input
               class="rounded border border-black/20 bg-white/80 px-3 py-2"
@@ -109,7 +109,7 @@
               autocomplete="name"
             />
           </label>
-          <label class="flex flex-col gap-1 text-sm">
+          <label class="flex min-h-11 min-w-11 flex-col gap-1 text-sm">
             <span>{t.demandeEmail}</span>
             <input
               class="rounded border border-black/20 bg-white/80 px-3 py-2"
@@ -119,7 +119,7 @@
               autocomplete="email"
             />
           </label>
-          <label class="flex flex-col gap-1 text-sm">
+          <label class="flex min-h-11 min-w-11 flex-col gap-1 text-sm">
             <span>{t.demandeTelephone}</span>
             <input
               class="rounded border border-black/20 bg-white/80 px-3 py-2"
@@ -128,7 +128,7 @@
               autocomplete="tel"
             />
           </label>
-          <label class="flex flex-col gap-1 text-sm">
+          <label class="flex min-h-11 min-w-11 flex-col gap-1 text-sm">
             <span>{t.demandeVoyageurs}</span>
             <input
               class="rounded border border-black/20 bg-white/80 px-3 py-2"
@@ -140,7 +140,7 @@
               value="2"
             />
           </label>
-          <label class="flex flex-col gap-1 text-sm">
+          <label class="flex min-h-11 min-w-11 flex-col gap-1 text-sm">
             <span>{t.demandeArrivee}</span>
             <input
               class="rounded border border-black/20 bg-white/80 px-3 py-2"
@@ -148,7 +148,7 @@
               type="date"
             />
           </label>
-          <label class="flex flex-col gap-1 text-sm">
+          <label class="flex min-h-11 min-w-11 flex-col gap-1 text-sm">
             <span>{t.demandeDepart}</span>
             <input
               class="rounded border border-black/20 bg-white/80 px-3 py-2"
@@ -157,7 +157,7 @@
             />
           </label>
           {#if data.enquete.logements.length > 0}
-            <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+            <label class="flex min-h-11 min-w-11 flex-col gap-1 text-sm sm:col-span-2">
               <span>{t.demandeLogement}</span>
               <select
                 class="rounded border border-black/20 bg-white/80 px-3 py-2"
@@ -170,7 +170,7 @@
               </select>
             </label>
           {/if}
-          <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+          <label class="flex min-h-11 min-w-11 flex-col gap-1 text-sm sm:col-span-2">
             <span>{t.demandeMessage}</span>
             <textarea
               class="rounded border border-black/20 bg-white/80 px-3 py-2"
