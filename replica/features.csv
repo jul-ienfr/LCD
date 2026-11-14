@@ -122,3 +122,7 @@
 "Académie et support 24/7","Plateforme","skip","yes","no","Lodgify : académie, chat, téléphone. LCD : support opérateur."
 "Essai gratuit 7 jours","Plateforme","could","yes","no","Lodgify : essai sans carte. LCD : pas de funnel self-service."
 "Tarification par logement","Plateforme","skip","yes","no","Lodgify : abonnement par logement. LCD : FULL/PILOTAGE/KIT, modèle conciergerie."
+"API publique en lecture","Intégrations","should","no","yes","LCD API v1 : six ressources, clés à scopes, pagination, rate limit, OpenAPI 3.1."
+"Webhooks signés","Intégrations","should","no","yes","LCD : HMAC-SHA256 X-LCD-Signature, rejeu 5 tentatives, historique."
+"Import CSV logements/réservations","Onboarding","should","yes","yes","LCD : parseur tolérant, rapport ligne par ligne, refus des chevauchements."
+"Tarifs publics et calculateur","Commercial","must","yes","yes","LCD : /tarifs FULL/PILOTAGE/KIT, calculateur HTML-first, FAQ."

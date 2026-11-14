@@ -67,15 +67,19 @@ une page logement crédible, un domaine, un tunnel qui encaisse et un SEO propre
 - [x] Six langues avec repli fr — `v2/tests/lib/i18n-site.test.ts`.
 - [ ] Lighthouse mobile ≥ 90 (hors tunnel) — non mesuré à ce jour.
 
-## Réserve de routage connue
+## Routage d'un domaine personnalisé
 
-Le routage d'un domaine personnalisé vers le site du tenant n'est pas
-implémenté : SvelteKit résout la route avant d'exécuter `handle`, donc la
-réécriture d'URL depuis le hook a lieu trop tard. La résolution par `Host` doit
-être faite en amont (proxy) ou via un `reroute` de build. Tant que ce point
-n'est pas tranché, T209 reste partiel : création, vérification, activation et
-suppression d'un domaine fonctionnent, mais le domaine activé ne sert pas encore
-le site.
+Le routage applicatif est implémenté (2026-11-10) : le hook universel
+`reroute` résout l'hôte actif via `GET /api/domaine` (fonction SQL
+`domaine_public_par_hote`, SECURITY DEFINER) puis sert `/site/<slug>` à la
+racine du domaine. Les routes applicatives (`/reserver`, `/guide`, `/hote`,
+`/api`…) ne sont jamais réécrites. Preuve : e2e `site-public.spec.ts` avec
+l'hôte `demo-e2e.localhost` en `js` et `sans-js`.
+
+Restent à la charge de l'hébergement : certificat TLS, redirection
+`www`/apex canonique et terminaison proxy. La création, la vérification TXT,
+l'activation et la suppression d'un domaine restent couvertes par
+`v2/tests/lib/domaine-dns.test.ts` et l'UI `/hote/design/domaine`.
 
 ## Plan de retrait
 

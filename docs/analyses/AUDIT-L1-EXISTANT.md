@@ -255,3 +255,239 @@ restent bloqués par L0.
 - T126/T127 (sandbox OTA) et T129 (frais par canal) dépendent de L0.
 - Les ADR L0 ne sont pas signés ; le budget partenaire n'est pas plafonné.
 
+## 11. US3 — Inbox voyageur unifiée (2026-11-09)
+
+### Fils et messages
+
+- Domaine `v2/src/domain/fil-voyageur.ts` : `cleRegroupement` (`ext:` par
+  réservation, `email:`, `tel:`), consentements par canal, détection d'opt-out
+  (`messageEstOptout`, `appliquerOptout`).
+- Tables `fils_voyageur`, `pieces_jointes_message`, `automatisations`,
+  `executions_automatisation` (migration `0090`), colonne `assigne_a` (`0091`),
+  rattachement réel des messages existants (`0092`).
+- Cas d'usage : `ouvrirFil`, `envoyerMessage` (+ `envoyerBrouillon`, idempotent
+  par `ref`), `ajouterPieceJointe` (jpg/png/webp/pdf ≤ 8 Mo), canal
+  `canal-message.ts` (SMTP, SMS Brevo, WhatsApp/OTA refusés en
+  `CANAL_INDISPONIBLE`).
+- Backfill mesuré sur la base locale : 264 messages, 0 orphelin, 248 fils
+  (113 regroupés par e-mail, 135 par logement faute de contact connu). La
+  migration `0090` seule laissait 100 % des messages orphelins : elle ne
+  traitait que les messages porteurs d'une réservation, cas inexistant ici.
+
+### Automatisations : brouillons uniquement
+
+- `executerAutomatisation` écrit toujours un message `statut = brouillon` dans le
+  fil ; l'envoi reste une action humaine (`envoyerBrouillon`).
+- Le planificateur J-7 / J-1 / arrivée / départ / J+1 est déclenché par
+  `/api/cron/messages-auto`, doublement protégé par `CRON_SECRET` et par
+  `MESSAGES_AUTO_ENABLED` (faux par défaut) ; `?simulation=1` montre ce qui
+  partirait sans rien écrire.
+
+### Écrans staff livrés
+
+- `/hote/messages/fils` : liste, filtres (statut, recherche, logement, assigné),
+  badges non-lus et brouillons, assignation, opt-out.
+- `/hote/messages/fils/[id]` : chronologie, réponse e-mail/SMS, validation de
+  brouillon, pièces jointes, bascule de consentement.
+- `/hote/automatisations` : création depuis les 5 modèles par défaut,
+  activation, édition, suppression, audit.
+- `/hote/notifications` : messages non lus, brouillons à valider, réservations
+  `brouillon` à confirmer, échéances `a_payer` en retard (nouvelle méthode
+  `listerEnRetard` sur le port des échéances).
+- Écart assumé : `/hote/fils` héberge déjà les fils internes d'équipe ; l'inbox
+  voyageur vit sous `/hote/messages/fils` et `/hote/messages` reste l'envoi par
+  logement.
+
+### Preuves du 2026-11-09
+
+- 950 tests unitaires / 191 fichiers, 0 échec ; `npm run check` 0 erreur /
+  0 avertissement ; `npm run build` OK.
+- 93 migrations / 85 tables / 73 tables en RLS / 73 policies validées sur base
+  vide ; `db:test-rls` ajoute « fils voyageur et automatisations isolés par
+  tenant » ; `db:check` « Everything's fine ».
+- e2e `inbox.spec.ts` 2/2 (js et sans JS) : regroupement, réponse reçue dans
+  Mailpit, validation de brouillon, assignation ; `demande-sejour.spec.ts` 10/10
+  (avec `ENQUIRY_ENABLED=true`), `messages.spec.ts`, `design.spec.ts` et
+  `apparence.spec.ts` verts.
+
+### Ce qui reste bloqué en US3
+
+- T306 (messaging OTA) et T309 (WhatsApp Business) : aucune API accessible sans
+  compte partenaire ; le canal existe mais l'envoi est refusé proprement.
+- T307 (entrée IMAP) : la sortie SMTP fonctionne, l'entrée exige une boîte
+  dédiée non fournie. T310 : tests de contrat limités au canal local.
+- T315 (brouillons assistés par IA) et T316 (traduction) non commencés.
+
+
+
+## 12. US4 — Revenue management explicable (2026-11-09)
+
+### Principe : proposer, jamais imposer
+
+- Une recommandation de prix est toujours créée en statut `proposee`. Aucun
+  import ne modifie un prix : la décision reste humaine, dans
+  `/hote/prix/recommandations`.
+- `prixEffectif()` fixe la priorité : override manuel > recommandation appliquée
+  > prix catalogue. Un prix manuel n'est donc jamais écrasé par un import.
+- `PRICING_IMPORT_ENABLED` est faux par défaut : le cron d'import est inerte tant
+  qu'un opérateur ne l'active pas.
+
+### Ce qui a été livré
+
+- Domaine `v2/src/domain/recommandation-prix.ts` : bornes par défaut 20 €–2 000 €,
+  plancher et plafond absolus 10 €/5 000 €, arrondi à 50 centimes, seuil de
+  confiance 40, impact maximal 300 %, `joursInclus` (une plage « du 1er au 3 »
+  couvre trois jours, contrairement à un séjour dont la fin est exclusive).
+- Domaine `v2/src/domain/performance-prix.ts` : ADR, taux d'occupation, RevPAR et
+  comparaison de deux périodes de même durée — réutilisable par US5.
+- Ports `pricing.ts` (`PricingPort`) et `recommandations-prix-repository.ts`,
+  migration `0093` (`recommandations_prix`, RLS, contraintes de source, statut et
+  confiance, unicité `(tenant, logement, jour, source)`).
+- Adapters : `pricing-pricelabs.ts` (`X-API-Key`, parsing tolérant, refus
+  `PRICING_INDISPONIBLE` sans clé ou sans référence) et `pricing-local.ts`
+  (prix catalogue + occupation 30 jours, facteurs listés, fonctionne sans
+  partenaire).
+- Cas d'usage : `ImporterRecommandations` (partenaire si disponible, sinon local ;
+  confiance < 40 écartée ; idempotent) et `AppliquerRecommandation` (prix borné et
+  signalé, tarif écrit avec `source = recommandation`, audit, un échec de push
+  canal n'annule pas l'application locale).
+- Cron `/api/cron/pricing` (`CRON_SECRET` + `PRICING_IMPORT_ENABLED`,
+  `?simulation=1`, horizon 90 jours) via
+  `v2/src/lib/server/planificateur-pricing.ts`.
+- Écran `/hote/prix/recommandations` : prix actuel / recommandé / écart signé,
+  facteurs et confiance (« pourquoi ce prix »), application ou rejet unitaire,
+  sources disponibles avec leur état, bloc « RevPAR avant / après décision ».
+  Accès depuis `/hote/prix`.
+
+### Panne partenaire (T410)
+
+- Si `PRICELABS_API_KEY` est absente, l'écran affiche « PriceLabs — indisponible »
+  et l'import bascule sur la source locale ; un import impossible laisse tous les
+  prix en place (« aucun prix n'a été modifié »). Aucun prix ne dépend de la
+  disponibilité d'un partenaire.
+
+### Preuves du 2026-11-09
+
+- 976 tests unitaires / 195 fichiers, 0 échec (dont `tests/contract/pricing.test.ts`,
+  nouveau dossier de contrat) ; `npm run check` 0 erreur / 0 avertissement ;
+  `npm run build` OK.
+- 94 migrations / 86 tables / 74 tables en RLS / 74 policies validées sur base
+  vide ; `db:test-rls` ajoute « recommandations de prix isolées par tenant ».
+- e2e `pricing.spec.ts` 2/2 (js et sans JavaScript) : import de 3 jours, écarts et
+  facteurs affichés, application bornée (+ audit `prix.recommandation-appliquee`,
+  tarif source `recommandation`), rejet sans toucher au prix, réimport idempotent
+  qui ne réécrit ni le catalogue ni les décisions prises.
+
+### Ce qui reste bloqué en US4
+
+- T404 : l'adaptateur PriceLabs n'a jamais été exécuté contre l'API réelle
+  (aucune clé disponible) ; seule la lecture du payload est couverte par un test.
+- T414 (gate) : impossible sans clé partenaire et sans 30 jours de réservations
+  réelles post-application.
+- Le push canal d'un prix appliqué n'est exercé par aucun test : aucun canal de
+  distribution n'est configuré dans l'environnement local.
+- L'impact RevPAR affiché est une projection (prix appliqués × occupation
+  réalisée), pas une mesure de 30 jours de réservations réelles.
+
+## 13. US6 — Expérience voyageur : guide, extras, avis, codes d'accès (2026-11-10)
+
+### Principe : le voyageur n'a besoin d'aucun compte, et rien ne dépend d'une serrure
+
+- Le guide d'arrivée et le dépôt d'avis passent par un lien signé
+  (payload base64url + HMAC-SHA256, validité 60 jours) vérifié **avant** toute
+  lecture (règle 11) : un jeton falsifié ne fait fuiter ni adresse, ni code wifi,
+  ni numéro d'urgence.
+- Aucun écran voyageur n'exige JavaScript : `/guide/[token]` et `/avis/[token]`
+  sont en `csr = false`, `noindex`, avec formulaires natifs ; le parcours complet
+  est rejoué avec JavaScript désactivé (projet Playwright `sans-js`).
+- Une serrure connectée est un confort, jamais une condition : `CreerAccesSerrure`
+  tente le fournisseur puis retombe sur un code manuel, et le job J-7 qui prépare
+  le code d'arrivée ne bloque jamais l'envoi du message (erreur journalisée,
+  message publié).
+- La publication d'un avis reste une décision humaine : le domaine n'automatise
+  ni la publication ni le masquage, et un avis négatif n'est jamais caché.
+
+### Ce qui a été livré
+
+- Domaines purs `v2/src/domain/` : `guide-voyageur.ts` (6 langues, 5 sections
+  arrivée/wifi/séjour/départ/urgence, validation et résolution de contenu, lien
+  signé), `acces-serrure.ts` (fenêtre d'accès, code numérique, révocation),
+  `demande-extra.ts` (6 types, statuts et prix) et `avis-voyageur.ts` (cycle
+  invité → déposé → publié/masqué, note 1-5) ; erreurs typées `GUIDE_INVALIDE`,
+  `SERRURE_INDISPONIBLE`, `DEMANDE_EXTRA_INVALIDE` dans `erreurs.ts`.
+- Migrations `0096` (`guide_contenus`, `acces_serrure`), `0097` (idempotence des
+  accès, expand/contract) et `0098` (`demandes_extra`, `avis_voyageur`) : RLS plus
+  grant `lcd_app`, contrôlées par `scripts/verifier-rls.mjs`.
+- Ports `guides-repository.ts`, `serrure-connectee.ts`,
+  `demandes-extra-repository.ts`, `avis-voyageur-repository.ts` et adapters
+  Drizzle correspondants ; `serrures/nuki.ts` (création `PUT authorization`,
+  révocation `DELETE`, `estDisponible()` qui ne lève jamais, révocation
+  idempotente sur 404) avec son contrat `tests/contract/nuki.test.ts`.
+- Cas d'usage `creer-acces-serrure.ts` (idempotent par `ref`, repli manuel),
+  `demander-extra.ts` / `decider-demande-extra.ts`, `gerer-avis-voyageur.ts`
+  (inviter, déposer, modérer) et `preparerAccesArrivee` branché au planificateur
+  de messages J-7.
+- Voyageur : `/guide/[token]` (sections dans la langue du lien, wifi, urgence,
+  demande d'extra et suivi de ses demandes avec statut, prix et motif de refus) et
+  `/avis/[token]` (avis sans compte).
+- Staff : éditeur `/hote/logements/[id]/guide`, écran serrure
+  `/hote/logements/[id]/serrure` (réservation ou plage libre, révocation motivée),
+  `/hote/demandes-extra` et `/hote/avis-voyageur` ; les avis publiés remontent au
+  site public par `listerPublies` dans `/site/[slug]/[[page]]` (`BlocAvis`).
+- Installation PWA (`/hote/installation`, `static/pwa.js`, manifeste) et
+  navigation staff complétée des écrans US3/US6 absents du menu, avec libellés
+  dans les cinq langues (`i18n-nav.ts`).
+
+### Preuves du 2026-11-10
+
+- `npm run check` : 0 erreur / 0 avertissement ; `npm run build` : OK.
+- `node node_modules/vitest/vitest.mjs run` : 221 fichiers, 1 278 tests verts,
+  2 sautés (sandbox Nuki, hors clés).
+- `npm run db:test-migrations` : 99 migrations, 93 tables, 81 en RLS, 81 policies,
+  base vide, rôle `lcd_app` autorisé ; `npm run db:test-rls` : « demandes extra et
+  avis voyageur isolés par tenant » (accès inter-tenant refusé).
+- e2e `v2/e2e/experience-voyageur.spec.ts` : 1/1 sur `js` (19,9 s) et 1/1 sur
+  `sans-js` (9,3 s) — guide signé lisible sans compte, jeton falsifié refusé,
+  demande d'extra puis validation staff, création puis révocation d'un code,
+  dépôt puis publication d'un avis.
+
+### Limites assumées
+
+- Révocation côté fournisseur Nuki impossible : aucun `serrure_id` n'est persisté.
+  La révocation reste locale au produit et le code expire en fin de fenêtre.
+- Aucun envoi réel de message : l'automatisation ne produit que des brouillons,
+  `MESSAGES_AUTO_ENABLED` reste faux par défaut.
+- Le contrat sandbox Nuki (création/révocation réelles) est sauté sans
+  `NUKI_API_TOKEN` et `NUKI_SANDBOX_SERRURE_ID`.
+
+---
+
+## 14. i18n staff : libellés paramétrés non sérialisables (2026-11-10)
+
+**Constat.** Les dictionnaires staff contiennent des libellés paramétrés
+(fonctions : `avancement(nom)`, `aMots(mots, max)`, …). SvelteKit refuse de
+sérialiser une fonction : `Data returned from load while rendering /hote is not
+serializable: Cannot stringify a function (data.tNav.apercuLectureSeule)`.
+`masquerFonctions()` (`src/lib/i18n-staff.ts`) les rend non énumérables pour que
+le payload reste sérialisable : la fonction existe côté serveur mais **est
+absente du payload client**.
+
+**Effet.** Un écran qui appelle `data.t.<libellé>(…)` s'affiche correctement en
+chargement complet mais casse en navigation interne (clic menu) :
+`TypeError: data.t.avancement is not a function` → page « Internal Error »
+(500). Reproduit sur `/hote/onboarding?logement=<id>` puis corrigé en
+pré-rendant les libellés dans le `load` (`avancementTexte`,
+`progressionTexte`, `pretNoteTexte`).
+
+**Règle de conception.** Un composant qui utilise un libellé paramétré
+reconstruit son dictionnaire côté client :
+`const t = $derived(traductionsXxx(data.langue));` (le `load` expose `langue`).
+Sinon le libellé est pré-rendu côté serveur dans une chaîne du `load`. Ne jamais
+appeler `data.t.<libellé>(…)` dans un template hydraté : les libellés simples
+(chaînes) sont sûrs, les libellés paramétrés ne le sont pas.
+
+**État au 2026-11-10.** Écrans convertis au dictionnaire client (dont
+`/hote/factures`, `/hote/compta`, `/hote/planning`, `/hote/logements/[id]`,
+`/hote/assistant`) ; `load` de `/hote/onboarding` pré-rend les trois libellés
+paramétrés. Dernier appel résiduel corrigé dans
+`src/routes/hote/assistant/+page.svelte` (+ `langue` exposée par son `load`).

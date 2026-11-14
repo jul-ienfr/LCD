@@ -20,10 +20,28 @@ architecture en couches, pas un pari sur un seul connecteur.
 **Fil unique par voyageur**, alimenté par :
 
 1. le fournisseur OTA (si messaging exposé) ;
-2. IMAP/SMTP pour l'email ;
+2. un **webhook e-mail entrant signé** pour l'email (pas d'IMAP direct) ;
 3. Brevo pour le SMS ;
 4. WhatsApp Business API en phase 2 ;
 5. les messages internes existants.
+
+### Entrée e-mail : webhook signé, pas IMAP
+
+Le connecteur entrant retenu est un webhook HTTP signé en HMAC-SHA256
+(`POST /api/email/entrant`) : le fournisseur de boîte (Cloudflare Email
+Workers, Postmark inbound, Mailgun routes, etc.) livre le message déjà
+téléchargé, et LCD vérifie la signature **avant** tout parsing. L'adresse
+`reponses+<slug>@EMAIL_INBOUND_DOMAIN` rattache le message au tenant ; le
+`Message-ID` assure l'idempotence, `In-Reply-To` retrouve le fil parent.
+
+IMAP direct est volontairement écarté : il impose des identifiants de boîte
+longue durée, un poller et une connexion sortante par tenant, pour un résultat
+fonctionnel équivalent. Le webhook est plus simple à isoler, à révoquer et à
+tracer ; il ne crée aucun contact depuis un expéditeur inconnu.
+
+**Conséquence** : aucun mot de passe IMAP n'est stocké. Le jour où un client
+exige une boîte IMAP dédiée, l'ajout se fait derrière le même port
+`SourceEmailEntrant`, sans changer le cas d'usage de réception.
 
 **Automatisations en brouillon par défaut**, IA en suggestion, **jamais
 d'envoi autonome** sans activation explicite.
@@ -61,7 +79,7 @@ d'envoi autonome** sans activation explicite.
 ## Preuves à joindre avant signature
 
 - [ ] Message OTA sandbox → fil de la réservation.
-- [ ] Email entrant → même fil.
+- [x] Email entrant → même fil (webhook signé, In-Reply-To ; test d’intégration — boîte réelle à valider en L0).
 - [ ] SMS sortant tracé.
 - [ ] Scénario J-1 → brouillon, pas d'envoi auto.
 - [ ] Validation humaine → envoi + audit.

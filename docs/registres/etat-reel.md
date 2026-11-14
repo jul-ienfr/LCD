@@ -288,3 +288,204 @@
 - FRONT cibles tactiles 2026-10-21 (suite directe de §F7 320 px) : la règle « cibles tactiles ≥44 px » n'était PAS tenue — mesure Edge réelle à 320×568 sur les 6 surfaces : 161 cibles dont 144 sous 44 px (navigation 28-34 px, .bouton ~41 px, select 43 px ; l'essentiel des 144 restants = liens de texte inline). CORRIGÉ le même jour : .bouton et .champ en `min-height: 2.75rem`, chips/liens de nav + bascule de thème + Connexion en `min-h-11` avec centrage, et `recette-320.mjs` assert désormais tout contrôle ≥44 px sur les 6 surfaces — **43/43 mesurés**, contrôle positif 10×10 détecté. Ce qui reste sous 44 : les liens inline, hors périmètre. Le plancher WCAG 2.2 AA (24 px) était déjà respecté ; la batterie passe à **150 lignes vertes**, 0 KO.
 
 - FRONT design du site 2026-10-21 (cahier 70 §F11, REQ-S-011) : le super_admin change desormais l'apparence de TOUT le site en quelques secondes depuis /systeme, avec quatre themes complets (sejour, ocean, sable, nuit) definis en paires clair + sombre. Registre ferme `web/src/lib/themes.ts` (aucun id libre : le formulaire ne peut pas injecter de CSS), contraste WCAG 2.2 AA verifie par `web/src/lib/themes.test.ts` (4 themes x 2 modes : encre >= 7:1, textes doux/fain et accent >= 4,5:1), etat runtime `custom/design.yaml` monte dans le conteneur web et jamais versionne, injection des jetons par le layout sous `:root:root` (specificite superieure aux palettes clair/sombre existantes). Formulaire natif `<form action>` -> fonctionne SANS JavaScript ; autorisation sur l'identite REELLE (`quiReel` = super_admin, jamais l'identite « voir-comme ») et re-verifiee dans l'action serveur. Mesure : POST natif -> 303 -> `?design=ocean`, fichier ecrit, `/hote` sert `data-design="ocean"` + `--accent:#1d4ed8`, id inconnu refuse (fichier inchange), retour au defaut. Limites dites : etat SERVEUR (tous les visiteurs voient le meme design ; le clair/sombre reste un cookie par navigateur), pas de synchronisation multi-instances (mono-instance aujourd'hui), montage manquant = message « ecriture impossible » dans le dashboard, jamais une page blanche. Preuves : `test-super.ps1` 46/46 (+12 checks design, barre navigateur comprise), `test-unites.ps1` (vitest 86 tests 0 echec dont 13 themes + temoin negatif), suite complete verte.
+
+- ERGONOMIE V2 2026-11-13 (plan 004, `specs/004-ergonomie-experience-client/`) :
+  la refonte d'ergonomie est **exécutée de bout en bout, mesures à l'appui**.
+  État réel vérifié sur `http://127.0.0.1:4173` (base `lcd_demo`) : **0 violation
+  axe sérieuse** sur **18 routes** (9 publiques + 9 staff authentifiées),
+  **0 cible < 44 px** et **0 px de débordement à 320 px** sur ces 18 routes,
+  budget JS **inchangé dans son ordre de grandeur** (4 routes P1 : 1,4 Ko → 1,8 Ko
+  gzip cumulés, dont 1,4 Ko pour `/voyageur` — `outbox.js` + `register-sw.js` —
+  contre un plafond voyageur de 50 Ko), `npm run check` à **0 erreur /
+  0 avertissement**, Vitest **256 fichiers / 1 587 réussis / 2 ignorés** dont
+  `tests/ergonomie/` **14 fichiers / 184 tests**. Ce qui a changé pour l'usager :
+  navigation staff par tâches (7 entrées principales au maximum, fil d'Ariane,
+  recherche globale), 5 langues publiques sans JavaScript, tunnel de réservation
+  en 2 étapes avec erreurs conservant la saisie et confirmation rassurante,
+  espace voyageur hiérarchisé avec offline, thèmes super-admin refusés s'ils
+  échouent au contraste AA ou aux cibles 44 px. Mesure first-party anonyme
+  (parcours P-RESA, P-SEJOUR, P-RECHERCHE, P-HOTE-5) : consentement requis,
+  aucun texte saisi, échec de mesure jamais bloquant pour le parcours.
+  **Ce qui n'était pas encore vérifié à ce point du plan** : Lighthouse mobile
+  (SC-004 — Lighthouse absent du
+  dépôt et jamais installé par les scripts), les indicateurs qui exigent des
+  humains (SC-001 temps de demande, SC-003 trouvabilité voyageur, SC-010 SUS/SEQ,
+  T107 second round de 5 testeurs), la recette super-admin de publication de
+  thème (T103) et le déploiement par surface (T110) : tous listés dans
+  `specs/004-ergonomie-experience-client/resultats.md` § 4 et repris dans
+  `v2/TESTS-A-FAIRE.md` § 7.1. Piège d'environnement à connaître : les specs e2e
+  qui ensemencent la base lisent `.env.local` (base `lcd`) alors que le serveur
+  de démo `--mode demo` lit `.env.demo.local` (base `lcd_demo`) ; exporter
+  `DATABASE_URL`/`MIGRATION_DATABASE_URL` de `.env.demo.local` avant
+  `npx playwright test`, et ne jamais lancer `npm run check` pendant un run e2e
+  (la réécriture de `.svelte-kit/types` tue le serveur de dev).
+
+- PLAN 004 — PHASE 9 CLOSE, SUITE E2E VERTE 2026-11-13 : la validation finale du
+  plan 004 est exécutée. `npm run build` passe (Vite puis
+  `@sveltejs/adapter-node`), `npm run db:check` répond « Everything's fine »
+  (migrations sans collision), `npm run typecheck` reste à 0 erreur /
+  0 avertissement et Vitest à 256 fichiers / 1 587 réussis / 2 ignorés. La suite
+  e2e complète a été rejouée sur un serveur de démonstration **provisionné**
+  (`ENQUIRY_ENABLED=true`, `APP_URL`/`BETTER_AUTH_URL` = port 4174, base
+  `lcd_demo`) : **260 tests, 254 réussis, 0 échec, 2 instables repassés verts au
+  retry, 4 ignorés, code de sortie 0** (`v2/.artifacts/ergonomie/e2e-full-4174.log`).
+  SC-011 est satisfait. Une première passe sur le serveur lancé à la main (port
+  4173, sans `ENQUIRY_ENABLED`) avait produit 20 échecs, tous environnementaux
+  ou dus à des specs figées sur l'ancienne UI Next : 10 sur `demande-sejour`
+  (drapeau absent), 2 sur `support` et 2 sur `super-admin` (`admin@lcd.test` est
+  `super_admin` dans `lcd_demo` mais `admin` dans `lcd`), 2 sur `auth` (nouvelle
+  redirection de rôle assumée, décision A11), plus `deux-facteurs` (menu de
+  compte en `<details>`), `super-admin:112` (`apercu.quitter` et non
+  `apercu.arreter`), `confiance` et `ergonomie-staff` (assertions trop strictes).
+  Toutes ces corrections sont de spec, sauf A11 (redirection d'un rôle hors
+  espace hôte vers sa propre surface, `/hote/securite` exempté). `tasks.md` :
+  47 tâches cochées, 15 restantes, toutes bloquées par une validation humaine,
+  une mesure impossible ou le déploiement. Le serveur de démonstration a été
+  relancé après le build sur `http://127.0.0.1:4173` (base `lcd_demo`) et
+  vérifié (HTTP 200 sur `/login` et `/`). **Le plan n'est pas clos à 100 %** :
+  97 tâches sur 112 sont cochées. Les portes G1, G6 (et les checkpoints des
+  phases 7 et 8 côté code) sont franchies ; G0, G2, G3, G4 et G5 restent
+  **partiels**, chacune bloquée par ce qui exige un humain ou un outil absent —
+  panel de 5 testeurs (T007, T008, T011), temps médian et temps de recherche
+  (T045, T057), lecteur d'écran (T076), zoom et appareil réel (T077, T078),
+  Lighthouse et LCP/CLS (T003, T081), recette super-admin (T103), second round
+  (T107), production gelée (T110). Détail : `resultats.md` § 6 (SC-001 à SC-012)
+  et § 7 (checkpoints, avec ce qui manque pour chacun). Les tâches restantes sont
+  désormais exécutables sans développeur : `quickstart.md` § 10 contient le
+  protocole complet de test utilisateurs (préparation du serveur, comptes,
+  déroulé, tâches, SUS, SEQ, feuille de relevé), la recette des 7 rôles, la
+  recette de publication de thème et la commande Lighthouse exacte. Constat en
+  passant : **T072 est sans objet côté code**, aucun flag `ERGONOMIE_NAV` n'a
+  jamais existé dans `src/` — la navigation par tâches est livrée active, il n'y
+  a rien à retirer.
+
+- ERGONOMIE V2 2026-11-13 (suite, plan 004 — Lighthouse mesuré) : **SC-004 est
+  vérifié et le checkpoint G5 est franchi**. Mesure Lighthouse 13.6.0 (récupérée
+  dans le cache `npx`, jamais installée dans le dépôt) exécutée par
+  `v2/.artifacts/ergonomie/mesurer-lighthouse.mjs` **sur le build de production**
+  (`npm run build` puis `node build`, port 4180) et non sur `vite dev` : 6 routes
+  (`/`, `/reserver`, `/voyageur`, `/login`, `/aide`, `/hote`) × mobile et desktop
+  = 12 relevés dans `v2/.artifacts/ergonomie/lighthouse-resume.md` (+ un JSON par
+  route). Résultat : **performance mobile 100 partout sauf `/reserver` 94 ;
+  desktop 100 partout ; CLS ≤ 0,03 ; accessibilité et bonnes pratiques 100**.
+  `/hote` et `/voyageur` sont mesurés avec session, via un profil Chrome
+  persistant préparé par `.artifacts/ergonomie/preparer-profil-hote.mjs`.
+  Corrections issues de la mesure : première carte de `/reserver` en
+  `loading="eager"` + `fetchpriority="high"` (l'image LCP était en `lazy`),
+  variantes 640 px et 768 px des photos générées par `npm run assets:photos`
+  (`sharp` déjà présent via `@sveltejs/enhanced-img`) et servies par
+  `srcsetLogement()` — `/reserver` mobile **80 → 94**, page **1 072 → 441 Kio**
+  (−59 %). Vitest **257 fichiers / 1 594 réussis / 2 ignorés**, `npm run
+  typecheck` **0 erreur / 0 avertissement**, build OK. **Piège de déploiement
+  confirmé** : `ORIGIN` n'est pas lu à l'exécution (valeur figée dans
+  `build/adapter-node.js` au build) ; sans `PROTOCOL_HEADER`/`HOST_HEADER`
+  d'un reverse proxy, `adapter-node` suppose `https` et refuse **tous** les POST
+  de formulaire en `403 Cross-site POST form submissions are forbidden` — le
+  `Dockerfile` posant déjà ces variables, la production n'est pas affectée.
+  **Ce qui reste non vérifié** : les indicateurs humains (SC-001, SC-003,
+  SC-005 lecteur d'écran, SC-010, T045, T057, T071, T076, T077, T078, T107), la
+  recette super-admin (T103) et le déploiement (T110), soit **13 tâches sur 112**
+  — plus le **LCP simulé de `/reserver` mobile à 3,08 s** (> 2,5 s) dû au CSS de
+  rendu (66 Kio, 340 ms), report assumé dans `resultats.md` § 4.
+
+- ERGONOMIE V2 2026-11-13 (clôture de la mesure, plan 004 — quatre défauts
+  corrigés) : la campagne Lighthouse a été rejouée sur le build de production
+  après correction de quatre défauts qu'elle avait révélés.
+  (1) **Script tiers bloquant** : le tag Plausible était en `defer` ;
+  `DOMContentLoaded` attendait donc un vendeur injoignable et la page restait
+  figée en `interactive` (service worker jamais enregistré, 30 s de timeout avec
+  le cookie de consentement). Passé en `async` dans
+  `v2/src/lib/server/suivi.ts` et verrouillé par un test qui refuse tout
+  `<script src=…>` tiers en `defer`.
+  (2) **Cible tactile** : le thème « souligné » supprime le rembourrage
+  horizontal des liens de navigation, si bien que « Aide » ne mesurait que
+  **31 × 48 px** à 320 px (`smallTargets = 1` sur `/reserver` et `/voyageur`).
+  Corrigé par `min-width: 44 px` ; l'audit à 320 px repasse à
+  **`smallTargets = 0`**, `overflow = 0`, axe **0 violation** sérieuse ou
+  critique.
+  (3) **Décalage de police** : ce correctif a fait apparaître un **CLS de 0,289**
+  sur `/voyageur` mobile (score 85) — `Inter Variable` se charge en
+  `font-display: swap`, l'en-tête gagnait une ligne au basculement et poussait
+  le contenu. Corrigé à la racine par une police de repli à métriques Inter
+  (`@font-face` `"Inter repli"`, `size-adjust: 107 %`, overrides d'ascendante et
+  de descendante) ajoutée à la pile `SANS` des thèmes : mesure A/B **85 / 0,289
+  → 100 / 0**.
+  (4) Le script de préparation du profil de session détecte une session déjà
+  ouverte (le profil Chrome persistant est réutilisé d'une campagne à l'autre).
+  **Résultat final de la campagne (12 relevés)** : mobile **100 partout sauf
+  `/reserver` 94**, desktop **100 partout**, **CLS 0 sur onze routes** et 0,03
+  sur `/reserver`, LCP 1,05–3,08 s ; `npm test` **257 fichiers / 1 594 réussis /
+  2 ignorés**, `npm run typecheck` **0 erreur / 0 avertissement**. La réserve du
+  § 4 de `resultats.md` reste la seule ouverte : le LCP **simulé** de
+  `/reserver` mobile à 3,08 s, dû au CSS de rendu (66 Kio, 340 ms).
+- ERGONOMIE V2 2026-11-13 (suite, plan 004 — les 68 routes staff au contrat
+  320 px) : la campagne de mesure a été **élargie de 18 à 68 routes staff**
+  (`v2/.artifacts/ergonomie/apres-320-staff.json`). Le premier relevé a trouvé
+  **1 erreur serveur, 3 débordements et 96 cibles tactiles sous 44 px** sur
+  28 routes ; l'état final est **0 erreur, 0 débordement, 0 cible sous 44 px**,
+  et le gate `audit:ergonomie:verifier` reste **OK** sur `/`, `/reserver`,
+  `/login` et `/voyageur`. Défaut produit corrigé au passage : `/hote/demandes`
+  répondait **500** à toute session (`load_not_serializable : Cannot stringify a
+  function (data.t.okConvertie)`) parce que le `load` renvoyait l'objet de
+  traductions entier ; `okConvertie` devient un gabarit `{reference}` (6 langues)
+  et `tests/lib/i18n-demandes.test.ts` refuse toute entrée non sérialisable
+  (décisions A19 à A21 de `resultats.md`). Deux débordements réels corrigés
+  (`/hote/prix/recommandations` 110 px, `/hote/compta/rapprochement` 48 px) ;
+  le troisième (`/hote/rgpd`, 404 px annoncés) était un **faux positif de
+  mesure** — `documentElement.scrollWidth` agrège le contenu d'un conteneur
+  `overflow-x: auto` alors que le corps reste à 320 px — la mesure se fait
+  désormais sur `body.scrollWidth` (friction R-07). Cibles tactiles : liens
+  d'interface en `ui-lien-action`, étiquettes de cases à cocher en
+  `min-h-11 min-w-11`, champs de fichier en `min-h-11`, sélecteurs de couleur en
+  `h-11` ; le rapport publie `classe` et `libelleHtml` par cible. Vérifications :
+  `npm test` **257 fichiers / 1 596 réussis / 2 ignorés**, `npm run typecheck`
+  **0 erreur / 0 avertissement**, `npm run build` **0 erreur**, suite e2e
+  complète sur le serveur provisionné **252 réussis / 0 échec / 4 instables
+  repassés verts / 4 ignorés** (code de sortie 0, 21,3 min), et **Lighthouse
+  rejouée sur le build final** : mobile **100 partout sauf `/reserver` 93**
+  (LCP simulé 3,12 s, CLS 0,03), desktop **100 partout** — le score de
+  `/reserver` varie de 93 à 95 d'une passe à l'autre, à cause du profil mobile
+  simulé, pas d'une régression.
+- **ACCESSIBILITÉ STAFF 2026-11-13 (suite, plan 004 — axe sur les 70 routes staff)**
+  : axe (WCAG 2.0/2.1 A+AA) lancé sur les 70 routes staff dérivées du disque
+  donne **0 violation** après correction de 10 routes (`scrollable-region-focusable`)
+  et de **32 champs sans étiquette** : les zones à défilement horizontal sont
+  désormais focusables et nommées (56 zones, décision A22), les champs répétés de
+  tableau portent un `aria-label` contextuel (A23). Deux gates rejouables :
+  `npm run audit:ergonomie:staff` (tactile + débordement + étiquettes) et
+  `npm run audit:a11y:staff` (axe), tous deux à routes dérivées de `src/routes`
+  et code de sortie 1 en cas d'échec (A24). Vérifications : typecheck 0/0, build
+  0 erreur, `npm test` 1 596 réussis, e2e ciblé 42/42.
+- **ROUTES PUBLIQUES 2026-11-13 (suite, plan 004 — contrat 320 px et axe hors P1)**
+  : les **21 pages publiques** hors staff sont désormais mesurées (`--public` sur
+  les deux scripts, routes dérivées du disque, `/login` et `/two-factor` exclues
+  avec motif). Trois défauts réels corrigés : `/journal` **188** cibles
+  (`<summary>Voir</summary>` à 30 × 24 px), `/tarifs` 2, `/mot-de-passe-oublie` 1.
+  État final : **0 cible, 0 débordement, 0 champ sans étiquette, 0 violation
+  axe** sur 21 routes ; gates staff inchangés (70 routes, 0/0/0/0). Garde-fou
+  ajouté : un fichier `baseline*` n'est plus écrasé sans `AUDIT_ECRASER=1` — la
+  référence 320 px avait été écrasée par une variable d'environnement mal nommée
+  et a été reconstituée (friction R-10).
+- **COMMANDES DE MESURE DURCIES 2026-11-13** : `npm run audit:a11y`
+  refuse désormais d'écraser `baseline-axe.json` (garde-fou, code 2) ;
+  `npm run audit:a11y:verifier` mesure les 4 routes P1 et applique le gate
+  (0 violation, code 0) ; `npm run audit:ergonomie:ecrire` n'exécute plus de
+  mesure. Rapport agrégé régénéré sans perte des valeurs « avant ».
+- **SUITE E2E : DEUX ÉCHECS ENVIRONNEMENTAUX 2026-11-13** : la passe
+  complète donne 251 réussites / 2 échecs, tous deux dans le tunnel de
+  réservation, parce que le tenant de démonstration accumule les fixtures des
+  passes précédentes (617 logements, 64 publiés, 3 seulement non-fixtures avec
+  tarif) et que l'accueil n'affiche que 3 cartes. Aucune route corrigée n'est en
+  cause : les deux tests reproduisent les mêmes échecs en isolation avec le
+  support d'origine. Le nettoyage — **tous les faux comptes et faux logements
+  créés pour tester** (120 comptes `@lcd.test`, 614 logements sur 617, et leurs
+  dépendances) — est **réservé au déploiement, après le déploiement** (décision du
+  2026-11-13) et non joué avant une recette : ces données servent à tester.
+  Procédure : `v2/DEPLOIEMENT.md` § 8 — friction R-11.
+- **OUTIL DE PURGE DES DONNÉES DE RECETTE 2026-11-13** : `npm run
+  db:nettoyer-recette` (`scripts/nettoyer-donnees-recette.mjs`) affiche le plan
+  et ne supprime rien par défaut ; l'écriture exige `--appliquer`,
+  `NETTOYAGE_CONFIRME=1` et un nom de base de recette. Plan mesuré : 41
+  paiements, 65 factures, 444 réservations, 13 dispatchs, 26 missions, 119
+  comptes, 614 logements → après purge, 3 logements de vitrine et 1 compte.
+  Règles testées : `tests/nettoyage-donnees-recette.test.ts`.

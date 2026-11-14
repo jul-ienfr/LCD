@@ -1,0 +1,108 @@
+# LCD v2 — Qualité ergonomie et accessibilité (plan 004, T074 / T075)
+#
+# Ce workflow ajoute au build l'axe-core et le gate ergonomie du plan 004 :
+#   - axe (WCAG 2.1 A/AA) sur les surfaces publiques à 320 px ;
+#   - cibles tactiles 44 px et débordement horizontal ;
+#   - rapport agrégé baseline / après et gate de non-régression.
+#
+# Lighthouse n'est pas installé (aucune dépendance ajoutée au projet) :
+# l'étape est en `continue-on-error` et n'échoue jamais. Quand Lighthouse sera
+# disponible, remplacer la ligne d'installation par une dépendance de dev et
+# retirer `continue-on-error`.
+name: qualite-ergonomie
+
+on:
+  push:
+    paths:
+      - "v2/**"
+      - ".github/workflows/qualite-ergonomie.yml"
+  pull_request:
+    paths:
+      - "v2/**"
+      - ".github/workflows/qualite-ergonomie.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qualite-ergonomie-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BASE_URL: http://127.0.0.1:4173
+  AUDIT_PAGES: "/,/reserver,/login,/voyageur"
+
+jobs:
+  ergonomie:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Installer Chromium (Playwright)
+        run: npx playwright install --with-deps chromium
+
+      - name: Types et tests unitaires (dont garde-fous de thème)
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Build (adapter-node)
+        run: npm run build
+
+      - name: Démarrer le serveur de prévisualisation
+        run: |
+          nohup node build > /tmp/lcd-v2.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS "$BASE_URL/" > /dev/null; then echo "serveur prêt"; exit 0; fi
+            sleep 2
+          done
+          echo "le serveur n'a pas démarré"; cat /tmp/lcd-v2.log; exit 1
+
+      - name: Audit axe (T074)
+        run: node scripts/audit-a11y.mjs
+
+      - name: Audit cibles 44 px et débordement 320 px (T031)
+        run: node scripts/mesurer-cibles.mjs
+
+      - name: Audit ergonomie 320 px (T005)
+        run: node scripts/audit-ergonomie.mjs
+
+      - name: Rapport agrégé baseline / après (T032 / T093)
+        run: node scripts/audit-ergonomie.mjs --ecrire --sans-audit
+
+      - name: Gate de non-régression ergonomie (T032)
+        run: node scripts/audit-ergonomie.mjs --verifier
+
+      - name: Lighthouse (T075, informatif)
+        continue-on-error: true
+        run: |
+          npx --yes lighthouse@13 "$BASE_URL/" \
+            --preset=desktop \
+            --chrome-flags="--headless=new" \
+            --output=json \
+            --output-path=.artifacts/ergonomie/apres-lighthouse.json
+
+      - name: Publier les artefacts d'audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ergonomie-${{ github.run_id }}
+          path: |
+            v2/.artifacts/ergonomie/
+            specs/004-ergonomie-experience-client/baseline/rapport-agrege.md
+          if-no-files-found: ignore
+          retention-days: 30

@@ -468,6 +468,16 @@ Légende : **L** = Lodgify, **C** = LCD. Statuts : O = oui, P = partiel, N = non
 
 ---
 
+## 10 bis. Mise à jour de parité — 2026-11-10
+
+- **API et intégrations** : clés API à six scopes (`logements:lire`, `reservations:lire`, `disponibilites:lire`, `prix:lire`, `proprietaires:lire`, `releves:lire`), empreinte SHA-256 seule stockée, API v1 paginée avec `X-Request-Id`, rate limit 120 req/min, OpenAPI 3.1 sur `/api/v1/openapi` et guide `/developpeurs`.
+- **Webhooks** : signature HMAC-SHA256 `X-LCD-Signature`, rejeu 5 tentatives `[0,1,5,15,60]` minutes, historique dans `/hote/integrations`.
+- **Serrure Nuki** : page `/hote/integrations/nuki`, création/révocation de codes par réservation depuis `/hote/logements/[id]/serrure`, repli manuel sans token.
+- **Onboarding** : import CSV logements/réservations avec rapport ligne par ligne, parcours de réservation test avec lien guide signé, page publique `/tarifs` FULL/PILOTAGE/KIT avec calculateur sans JavaScript.
+- **Limites** : Duve/Touch Stay, Swikly, Zapier/Make et MCP ne sont pas branchés faute de contrat ou de compte partenaire ; les gates T718/T811 restent ouverts.
+
+---
+
 ## 11. Annexes
 
 - Recon complet : `replica/recon.md`
