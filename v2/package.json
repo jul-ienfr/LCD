@@ -37,6 +37,7 @@
     "db:test-ics": "tsx --env-file-if-exists=.env.local scripts/test-sync-ics.ts",
     "db:test-migrations": "node scripts/test-migrations.mjs",
     "preflight": "tsx scripts/preflight.ts",
+    "smoke": "node scripts/smoke.mjs",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",

@@ -72,6 +72,7 @@ Source de vérité : ce fichier pour la carte ; chaque document pour son contenu
 | `docs/ops/runbook-production.md` | variables, DNS, SMTP, supervision, crons, déploiement, migrations, sauvegarde, rollback, incidents, checklist | ACTIF |
 | `docs/ops/runbook-bascule.md` | gel, différentiel, DNS, smoke tests, retour arrière, hypercare | ACTIF |
 | `docs/ops/recette-2026-11/journal.md` | 155 cases REC + 21 parcours QA, preuves et défauts | ACTIF |
+| `docs/ops/recette-2026-11/repetition-locale-2026-11-15.md` | rôle `lcd_app`, RLS et smoke test rejoués hors production | ACTIF |
 | `docs/ops/procedure-backup-restore.md` | sauvegarde et restauration (contexte historique) | ARCHIVE |
 | `docs/ops/procedure-migration-p2-p3.md` | migration P2 → P3 | ARCHIVE |
 | `docs/ops/procedure-p1-mise-en-service.md` | mise en service P1 | ARCHIVE |
