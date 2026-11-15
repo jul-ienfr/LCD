@@ -80,6 +80,42 @@ Le même script lancé sur le build relié au rôle propriétaire échoue sur
 `/api/ready` (503, `rls=unsafe`) et réussit les dix autres contrôles : le
 détecteur discrimine bien les deux situations.
 
+### 2.4 Sauvegarde chiffrée et restauration
+
+```text
+OK lcd-20261115-090323.sql.gz.enc (2,42 Mo)
+SHA-256 3d0c427c7dbf0b651cddf5db4aca29652be95b9b0876e77429c41916a2bb09ad
+Chiffrement AES-256-GCM activé.
+Sauvegarde chiffrée : AES-256-GCM vérifié.
+Restauration dans lcd_restore_1794733404104…
+OK tenants=2 users=723 logements=3776 reservations=1907
+   factures=524 paiements=373 blocages=138 tables=98 migrations=105
+Comptes conformes au manifeste de sauvegarde.
+RESTAURATION VALIDÉE
+```
+
+La sauvegarde est produite avec `BACKUP_ENCRYPTION_KEY`, vérifiée par son
+empreinte SHA-256, restaurée dans une base jetable puis comparée au manifeste
+de comptes. La base restaurée contient 98 tables et 105 migrations.
+
+### 2.5 Préflight production
+
+Exécuté avec `NODE_ENV=production`, une URL HTTPS, le rôle `lcd_app` et un
+volume photos dédié :
+
+```text
+✓ Version de Node — v24.13.0
+✓ Environnement — aucune erreur bloquante
+✓ Connexion base de données — rôle lcd_app, RLS appliquée
+✓ Migrations — 105/105 migrations
+✓ Espace disque — 9,6 Go libres (seuil 2 Go)
+✓ Volume photos — inscriptible
+Préflight réussi : le déploiement peut démarrer.
+```
+
+Les seuls avertissements sont attendus en local : e-mail désactivé,
+planificateur ICS désactivé, `LCD_VERSION` absente.
+
 ## 3. Portée
 
 Prouvé par cette répétition :
@@ -88,14 +124,18 @@ Prouvé par cette répétition :
 - les politiques RLS bloquent les lectures et écritures inter-tenants ;
 - le build de production rend les sept pages publiques sans JavaScript ;
 - le manifeste PWA est servi et valide ;
-- `npm run smoke` est utilisable tel quel et sort en erreur au premier échec.
+- `npm run smoke` est utilisable tel quel et sort en erreur au premier échec ;
+- la sauvegarde chiffrée AES-256-GCM se restaure sur une base jetable avec des
+  comptes conformes au manifeste ;
+- le préflight production accepte l'environnement simulé (105/105 migrations,
+  rôle `lcd_app`, volume photos inscriptible).
 
 Non prouvé, et donc encore à faire sur l'environnement public :
 
 - résolution DNS, certificat, redirection HTTP → HTTPS et HSTS ;
 - envoi SMTP réel, SPF/DKIM/DMARC ;
 - installation PWA et cache hors ligne dans un navigateur ;
-- crons réels, sauvegarde/restauration, supervision, retour arrière ;
+- crons réels, copie hors serveur de la sauvegarde, supervision, retour arrière ;
 - recette fonctionnelle des 155 cases et des 21 parcours.
 
 ## 4. Reproduction
@@ -113,6 +153,9 @@ npm run build
 DATABASE_URL="postgres://lcd_app:$APP_ROLE_PASSWORD@127.0.0.1:5432/lcd" \
 PORT=4181 HOST=127.0.0.1 node --env-file=.env.local build &
 npm run smoke -- http://127.0.0.1:4181
+BACKUP_ENCRYPTION_KEY="$BACKUP_KEY" BACKUP_DIR="$BACKUP_DIR" npm run db:backup
+BACKUP_ENCRYPTION_KEY="$BACKUP_KEY" BACKUP_DIR="$BACKUP_DIR" npm run db:restore-test
+PREFLIGHT_ENV_FILE=.env.preflight npm run preflight
 ```
 
 Le job `release` de `.github/workflows/v2-ci.yml` rejoue ce smoke sur chaque
