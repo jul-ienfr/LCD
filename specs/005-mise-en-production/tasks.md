@@ -99,15 +99,15 @@ sauvegarde restaurée, rollback rejoué.
 ### Base et application
 
 - [ ] T046 [US1] Appliquer toutes les migrations avec le conteneur `tools`, vérifier `db:check` et le nombre de migrations en base
-- [ ] T047 [US1] Créer le rôle `lcd_app`, exécuter `db:test-rls` contre la production et archiver la sortie
+- [~] T047 [US1] Créer le rôle `lcd_app`, exécuter `db:test-rls` contre la production et archiver la sortie — **local validé** (2026-11-15, 11 familles RLS, 0 fuite inter-tenant, `/api/ready` 200) ; la production reste à faire.
 - [ ] T048 [US1] Créer le compte administrateur dédié, activer la 2FA, supprimer ou désactiver tout compte de démonstration
 - [ ] T049 [US1] Construire et démarrer `web`, `caddy` et `uptime-kuma`, vérifier les conteneurs et les journaux
 - [ ] T050 [US1] Configurer le DNS et le certificat, vérifier HTTPS, HSTS, redirection HTTP et l'absence d'erreur de certificat
 - [ ] T051 [US1] Envoyer un email réel depuis l'application vers une boîte externe, vérifier SPF/DKIM/DMARC et l'absence de classement indésirable
-- [ ] T052 [US1] Exécuter le smoke test : `/api/health`, `/api/ready`, `/login`, `/reserver`, `/voyageur`, `/aide`, `/legales`, avec et sans JavaScript
+- [~] T052 [US1] Exécuter le smoke test : `/api/health`, `/api/ready`, `/login`, `/reserver`, `/voyageur`, `/aide`, `/legales`, avec et sans JavaScript — **outil prêt** (`npm run smoke`, 11/11 sur build local le 2026-11-15, job `release`) ; l'exécution publique HTTPS reste à faire.
 - [ ] T053 [US1] Vérifier l'installation PWA, le service worker, le cache hors ligne et les photos de démonstration remplacées
 - [ ] T054 [US1] Activer les tâches planifiées et vérifier une exécution réelle de chaque cron, sans doublon avec un planificateur in-process
-- [ ] T055 [US1] Produire une sauvegarde de production, la copier hors serveur, la restaurer sur une base jetable et comparer au manifeste
+- [~] T055 [US1] Produire une sauvegarde de production, la copier hors serveur, la restaurer sur une base jetable et comparer au manifeste — **local validé** (2026-11-15, AES-256-GCM, 2,42 Mo, 98 tables, 105 migrations, comptes conformes) ; copie hors serveur et production à faire.
 - [ ] T056 [US1] Configurer Uptime Kuma sur `/api/health` et `/api/ready`, Sentry si retenu, et tester une alerte réelle reçue par l'exploitant
 - [ ] T057 [US1] Répéter le retour arrière : déployer le tag précédent, vérifier le smoke, revenir au tag courant, mesurer la durée
 - [ ] T058 [US1] Écrire `docs/ops/preuves-mise-en-production-2026-11.md` : URL, version, migrations, rôle, email, sauvegarde, restauration, alertes, rollback
