@@ -3,7 +3,7 @@
 ```text
 Statut : ACTIF
 Propriétaire : exploitation
-Dernière vérification : 2026-11-14
+Dernière vérification : 2026-11-15
 Remplace / remplacé par : docs/ops/procedure-p1-mise-en-service.md (V1, archivé)
 Source de vérité : specs/005-mise-en-production/spec.md (US4, FR-029 → FR-036)
 ```
@@ -30,15 +30,28 @@ environnement public validé, recette signée, migration à blanc réconciliée.
 Si une condition manque, la bascule est **refusée**. Un défaut S2 ouvert est un
 veto, pas une réserve.
 
-## 1. J-7 — préparation
+## 1. J-14 et J-7 — préparation
 
-1. Réduire le TTL DNS à 300 s (`A` et `AAAA` du domaine public).
-2. Geler les changements de schéma : plus aucune migration après le tag de
+À J-14 :
+
+1. Fixer la fenêtre avec l'exploitant et l'écrire dans §11 ; prévenir les
+   utilisateurs et les partenaires (OTA, prestataires) de la date et du gel des
+   écritures V1.
+2. Confirmer les conditions d'entrée : ADR-06 contresigné, recette signée,
+   migration à blanc réconciliée, retour arrière répété.
+3. Geler le périmètre : aucune fonctionnalité nouvelle, seules les corrections
+   S1/S2 et les preuves sont acceptées.
+4. Vérifier que la préproduction contient une copie récente des données et que
+   le DNS de test pointe dessus.
+
+À J-7 :
+
+5. Réduire le TTL DNS à 300 s (`A` et `AAAA` du domaine public).
+6. Geler les changements de schéma : plus aucune migration après le tag de
    bascule.
-3. Vérifier la dernière sauvegarde chiffrée et sa copie hors serveur.
-4. Tester `revenir.sh` sur préproduction et noter la durée réelle.
-5. Prévenir les utilisateurs de la fenêtre et du gel des écritures V1.
-6. Vérifier les comptes : aucun compte de démonstration actif en production,
+7. Vérifier la dernière sauvegarde chiffrée et sa copie hors serveur.
+8. Tester `revenir.sh` sur préproduction et noter la durée réelle.
+9. Vérifier les comptes : aucun compte de démonstration actif en production,
    `AUTH_2FA_REQUIRED=true`, administrateur dédié.
 
 ## 2. J-1 — dernier contrôle
@@ -97,6 +110,11 @@ poursuivre ou de revenir en arrière (§8).
 Un échec sur 1, 2, 5, 6 ou 9 déclenche la décision de retour arrière (§8).
 
 ## 6. Hypercare — 14 jours
+
+**J+1** : point de situation après la première nuit. Vérifier la sauvegarde
+automatique, les premiers crons ICS, fournisseurs et relances, ainsi que les
+paiements et emails de la veille. Tout écart sur ces éléments est traité comme
+un incident S2 minimum.
 
 Point quotidien de 15 minutes, consigné dans §11 :
 

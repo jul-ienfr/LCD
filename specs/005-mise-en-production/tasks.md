@@ -125,7 +125,7 @@ supervisé et réversible.
 
 ### Préparation
 
-- [ ] T070 [US2] Réécrire `v2/docs/qa-manuel.md` pour les routes SvelteKit actuelles : 21 parcours, rôle, URL, résultat attendu, preuve
+- [x] T070 [US2] Réécrire `v2/docs/qa-manuel.md` pour les routes SvelteKit actuelles : 21 parcours, rôle, URL, résultat attendu, preuve
 - [ ] T071 [P] [US2] Exécuter la recette authentification, rôles, 2FA et sessions (`TESTS-A-FAIRE.md` §1)
 - [ ] T072 [P] [US2] Exécuter la recette logements, annonces, onboarding et import CSV (§2)
 - [ ] T073 [P] [US2] Exécuter la recette planning, prix, canaux, ICS et fournisseurs (§3)
@@ -210,7 +210,7 @@ possible pendant la fenêtre.
 **Independent Test**: répétition complète sur préproduction, rollback mesuré,
 smoke tests verts.
 
-- [ ] T120 [US4] Écrire `docs/ops/bascule-2027/runbook.md` : jalons T-14, T-7, T-1, T0, T+1, T+14, rôles, communications, critères de retour arrière
+- [x] T120 [US4] Écrire `docs/ops/runbook-bascule.md` : jalons J-14, J-7, J-1, J, J+1, J+14, rôles, communications, critères de retour arrière
 - [ ] T121 [US4] Répéter la bascule sur un environnement de préproduction avec une copie des données et le DNS de test
 - [ ] T122 [US4] Mesurer la durée de la répétition, corriger le runbook et valider la fenêtre avec l'exploitant
 - [ ] T123 [US4] Réduire le TTL DNS à 300 s au moins sept jours avant la date
