@@ -163,7 +163,7 @@ const AUTOMATIQUES = [
   {
     id: "REC-026",
     section: "1. Auth, rôles et sécurité",
-    portee: "partiel : présence des en-têtes ; HSTS à constater au proxy",
+    portee: "partiel : en-têtes et CSP ; HSTS à constater au proxy",
     libelle: "En-têtes de sécurité présents",
     executer: async () => {
       const { reponse } = await requete("/");
@@ -185,7 +185,13 @@ const AUTOMATIQUES = [
         return { ok: false, preuve: `en-têtes absents ou faibles : ${absents.join(", ")}` };
       }
       const csp = entetes.get("content-security-policy") ?? "";
-      const scripts = /script-src|default-src/i.test(csp);
+      if (!/script-src/i.test(csp) || !/default-src/i.test(csp)) {
+        return {
+          ok: false,
+          preuve: `CSP sans script-src/default-src : ${csp || "absente"}`,
+        };
+      }
+      const nonce = /'nonce-[^']+'/i.test(csp);
       const hsts = entetes.get("strict-transport-security");
       const hstsNote = hsts
         ? "HSTS présent"
@@ -194,9 +200,7 @@ const AUTOMATIQUES = [
           : "HSTS ignoré en http";
       return {
         ok: true,
-        preuve:
-          `5 en-têtes conformes, ${hstsNote}` +
-          (scripts ? "" : ", CSP sans script-src/default-src (contenu des scripts non restreint)"),
+        preuve: `5 en-têtes conformes, CSP avec script-src et default-src${nonce ? " (+ nonce)" : ""}, ${hstsNote}`,
       };
     },
   },

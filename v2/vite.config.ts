@@ -9,7 +9,26 @@ const src = fileURLToPath(new URL("./src", import.meta.url));
 
 export default defineConfig(async ({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ""));
-  const kit = await sveltekit({ adapter: adapter() });
+  const kit = await sveltekit({
+    adapter: adapter(),
+    csp: {
+      mode: "auto",
+      directives: {
+        "default-src": ["self"],
+        "script-src": ["self"],
+        "style-src": ["self", "unsafe-inline"],
+        "img-src": ["self", "data:", "blob:"],
+        "font-src": ["self", "data:"],
+        "connect-src": ["self"],
+        "manifest-src": ["self"],
+        "worker-src": ["self", "blob:"],
+        "frame-ancestors": ["none"],
+        "object-src": ["none"],
+        "base-uri": ["self"],
+        "form-action": ["self"],
+      },
+    },
+  });
 
   return {
     plugins: [tailwindcss(), enhancedImages(), ...kit],

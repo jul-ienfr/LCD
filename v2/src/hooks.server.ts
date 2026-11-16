@@ -39,10 +39,14 @@ const cheminsPrives = [
   "/api/",
 ];
 
+/**
+ * Le CSP des pages est posé par SvelteKit (`csp` dans `vite.config.ts`), avec
+ * un nonce pour les scripts inline. On ne le réécrit pas ici, sous peine de
+ * supprimer ce nonce. Seul le widget, qui doit être embarquable, a sa propre
+ * politique.
+ */
 const entetesSecurite = (chemin: string): Record<string, string> => {
   const entetes: Record<string, string> = {
-    "Content-Security-Policy":
-      "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
@@ -52,14 +56,11 @@ const entetesSecurite = (chemin: string): Record<string, string> => {
   if (cheminsPrives.some((prefixe) => chemin.startsWith(prefixe))) {
     entetes["X-Robots-Tag"] = "noindex, nofollow, noarchive";
   }
-  if (chemin === "/api/widget" || chemin.startsWith("/api/widget/")) {
-    // Le widget doit pouvoir être embarqué sur un site externe.
-    entetes["Content-Security-Policy"] =
-      "base-uri 'self'; form-action 'self'; frame-ancestors *; object-src 'none'";
-    delete entetes["X-Frame-Options"];
-  }
   return entetes;
 };
+
+const cheminWidget = (chemin: string): boolean =>
+  chemin === "/api/widget" || chemin.startsWith("/api/widget/");
 
 export const init = async () => {
   // Un déploiement réel (production + HTTPS) refuse de démarrer sur un secret
@@ -154,6 +155,14 @@ export const handle: Handle = async ({ event, resolve }) => {
   const entetes = new Headers(reponse.headers);
   for (const [cle, valeur] of Object.entries(entetesSecurite(event.url.pathname))) {
     entetes.set(cle, valeur);
+  }
+  if (cheminWidget(event.url.pathname)) {
+    // Le widget doit pouvoir être embarqué sur un site externe.
+    entetes.set(
+      "Content-Security-Policy",
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'self'; object-src 'none'; frame-ancestors *",
+    );
+    entetes.delete("X-Frame-Options");
   }
   return new Response(reponse.body, {
     status: reponse.status,

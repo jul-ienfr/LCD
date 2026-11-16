@@ -191,9 +191,13 @@ Ce que la répétition ne prouve pas : les 143 autres cases et les 18 entrées
 manuelles (écritures, comptes, 2FA, jetons réels, paiements, navigateur), ni
 la recette sur URL publique. Elle ne remplace pas la signature.
 
-Observation : la CSP ne contient ni `default-src` ni `script-src` ; les
-en-têtes sont présents (REC-026 OK) mais le contenu des scripts n'est pas
-restreint. À durcir avant l'ouverture si le niveau attendu l'impose.
+CSP durcie le 2026-11-16 : `default-src 'self'` et `script-src 'self'` sont
+désormais servis, avec `img-src`, `font-src`, `connect-src`, `manifest-src`,
+`worker-src`, `object-src`, `base-uri`, `form-action` et `frame-ancestors`.
+La politique vient de SvelteKit (`csp` dans `vite.config.ts`) et n'est plus
+réécrite par le hook, sauf pour `/api/widget` (`frame-ancestors *`). REC-026
+échoue désormais si `script-src` ou `default-src` manque : la preuve ci-dessus
+a été régénérée après le durcissement.
 
 Reproduction :
 

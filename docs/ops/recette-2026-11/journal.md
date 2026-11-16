@@ -251,10 +251,13 @@ Il sort en erreur au premier échec et écrit un JSON horodaté.
   montant. Ces contrôles ne remplacent pas la recette publique : ils la
   préparent et se rejouent tels quels sur l'URL de recette.
 
-Observation à instruire (non bloquante pour REC-026, qui exige seulement la
-présence des en-têtes) : la CSP servie ne contient ni `default-src` ni
-`script-src` ; elle ne restreint donc pas les scripts. À durcir avant
-l'ouverture si le niveau de sécurité attendu l'impose.
+CSP durcie le 2026-11-16 : la politique servie contient désormais
+`default-src 'self'` et `script-src 'self'`, en plus de `base-uri`,
+`form-action`, `frame-ancestors`, `object-src`, `img-src`, `font-src`,
+`connect-src`, `manifest-src` et `worker-src`. Elle est posée par SvelteKit
+(`csp` dans `vite.config.ts`) ; le hook ne la réécrit plus, sauf pour
+`/api/widget`, qui conserve `frame-ancestors *` pour rester embarquable.
+La recette REC-026 échoue maintenant si `script-src` ou `default-src` manque.
 
 ## E. Signature
 

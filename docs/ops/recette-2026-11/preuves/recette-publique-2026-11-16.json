@@ -1,7 +1,7 @@
 {
   "modele": "recette-publique/1.0",
   "base": "http://127.0.0.1:4180",
-  "date": "2026-11-16T09:49:01.828Z",
+  "date": "2026-11-16T11:18:25.807Z",
   "automatiques": {
     "total": 12,
     "ok": 12,
@@ -102,9 +102,9 @@
       "id": "REC-026",
       "section": "1. Auth, rôles et sécurité",
       "libelle": "En-têtes de sécurité présents",
-      "portee": "partiel : présence des en-têtes ; HSTS à constater au proxy",
+      "portee": "partiel : en-têtes et CSP ; HSTS à constater au proxy",
       "resultat": "OK",
-      "preuve": "5 en-têtes conformes, HSTS ignoré en http, CSP sans script-src/default-src (contenu des scripts non restreint)"
+      "preuve": "5 en-têtes conformes, CSP avec script-src et default-src, HSTS ignoré en http"
     },
     {
       "id": "REC-048",
@@ -120,7 +120,7 @@
       "libelle": "Page d'accueil rendue sans JS",
       "portee": "partiel : H1 et contenu ; rendu visuel et thème non vérifiés",
       "resultat": "OK",
-      "preuve": "200, H1 présent, 3398 car. rendus sans JS (44 ms)"
+      "preuve": "200, H1 présent, 3398 car. rendus sans JS (55 ms)"
     },
     {
       "id": "QA-002",
@@ -136,7 +136,7 @@
       "libelle": "/login : formulaire POST natif présent",
       "portee": "partiel : formulaire natif ; connexion réelle à faire à la main",
       "resultat": "OK",
-      "preuve": "200, formulaire POST avec email et mot de passe (7 ms)"
+      "preuve": "200, formulaire POST avec email et mot de passe (8 ms)"
     },
     {
       "id": "QA-004",
@@ -152,7 +152,7 @@
       "libelle": "/supervision/apparence inaccessible sans session",
       "portee": "partiel : refus anonyme ; accès super-admin réel non couvert",
       "resultat": "OK",
-      "preuve": "303 → /login : accès refusé (4 ms)"
+      "preuve": "303 → /login : accès refusé (10 ms)"
     },
     {
       "id": "QA-005",
@@ -168,7 +168,7 @@
       "libelle": "/voyageur : jeton invalide refusé proprement",
       "portee": "partiel : refus d'un jeton invalide ; lien réel à ouvrir à la main",
       "resultat": "OK",
-      "preuve": "200, message de lien invalide affiché (8 ms)"
+      "preuve": "200, message de lien invalide affiché (6 ms)"
     },
     {
       "id": "QA-009",
