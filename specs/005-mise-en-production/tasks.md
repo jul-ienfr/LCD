@@ -140,7 +140,7 @@ supervisé et réversible.
 
 ### QA et validations humaines
 
-- [ ] T082 [US2] Exécuter les 21 parcours de `v2/docs/qa-manuel.md` et consigner chaque résultat
+- [ ] T082 [US2] Exécuter les 21 parcours de `v2/docs/qa-manuel.md` et consigner chaque résultat. Outillage partiel disponible : `npm run recette:publique` automatise 12 contrôles en lecture seule (pré-requis, accès anonyme, parcours publics) et liste les 18 entrées qui exigent un compte, une écriture, un jeton ou un navigateur ; 12/12 OK en local le 2026-11-16
 - [ ] T083 [US2] Réaliser ou différer avec accord les validations humaines 004 : T007, T008, T011, T045, T057, T071, T076, T077, T078, T103, T107
 - [ ] T084 [US2] Trier les défauts : sévérité S1-S4, propriétaire, échéance, contournement, dans le journal de recette
 - [ ] T085 [US2] Corriger tous les défauts S1 et S2, rejouer les cases concernées et ajouter un test de non-régression quand c'est automatisable

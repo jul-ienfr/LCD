@@ -229,6 +229,33 @@ ci-dessous est conservée pour la saisie des preuves et peut être abrégée.
 - [ ] Un parcours complet sans JavaScript.
 - [ ] Un rollback applicatif répété et chronométré.
 
+## D bis. Contrôles automatisés rejouables
+
+`v2/scripts/recette-publique.mjs` (`npm run recette:publique`) exécute sans
+navigateur les cases en lecture seule du journal, sur un environnement déployé.
+Il sort en erreur au premier échec et écrit un JSON horodaté.
+
+- **Portée** : pré-requis (REC-006, REC-013, REC-026, REC-048), accès anonyme
+  super-admin (REC-125, partiel) et parcours publics anonymes (QA-001 à QA-006,
+  QA-009), avec une portée « partiel » explicite quand seule une partie de la
+  case est vérifiable sans compte.
+- **Non couvert** : les 18 entrées restantes exigent une écriture, un compte,
+  une 2FA, un jeton réel, un paiement ou un navigateur ; elles sont listées par
+  `--lister` avec leur motif.
+- **Dernière exécution** : 2026-11-16, build de production local, `lcd_app`,
+  **12/12 OK**. Preuve :
+  `preuves/recette-publique-2026-11-16.json`.
+- **Limite de l'exécution locale** : la base locale contient les fixtures e2e
+  (70 logements) et non les 3 logements de démonstration avec tarif attendus
+  par QA-002 ; la case vérifie donc la liste et le formulaire GET, pas le
+  montant. Ces contrôles ne remplacent pas la recette publique : ils la
+  préparent et se rejouent tels quels sur l'URL de recette.
+
+Observation à instruire (non bloquante pour REC-026, qui exige seulement la
+présence des en-têtes) : la CSP servie ne contient ni `default-src` ni
+`script-src` ; elle ne restreint donc pas les scripts. À durcir avant
+l'ouverture si le niveau de sécurité attendu l'impose.
+
 ## E. Signature
 
 - Cases exécutées : ____ / 155

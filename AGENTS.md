@@ -1,5 +1,12 @@
 # AGENTS.md — Location courte durée (LCD)
 
+## Rôle de l'assistant
+
+Cet assistant est dédié exclusivement à LCD. Le dépôt de référence est
+`C:\Users\julie\Desktop\Location courte duree`. Le dépôt `opencode-proxy-one`
+et la flotte proxy free sont hors sujet : ne pas y travailler, même pour
+« vérifier » ou « tester ».
+
 ## Périmètre actif : V2
 
 La version en cours de développement est `v2/` (SvelteKit 3 + Svelte 5 +

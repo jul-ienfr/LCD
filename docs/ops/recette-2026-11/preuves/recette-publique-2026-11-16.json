@@ -1,0 +1,182 @@
+{
+  "modele": "recette-publique/1.0",
+  "base": "http://127.0.0.1:4180",
+  "date": "2026-11-16T09:49:01.828Z",
+  "automatiques": {
+    "total": 12,
+    "ok": 12,
+    "ko": 0
+  },
+  "manuels": [
+    {
+      "id": "QA-003",
+      "motif": "Connexion réelle : le POST déclenche captcha et anti-bruteforce."
+    },
+    {
+      "id": "QA-006",
+      "motif": "Séjour réel : exige un jeton voyageur émis par `/hote`."
+    },
+    {
+      "id": "QA-007",
+      "motif": "Préférences relues depuis la base : écriture par le voyageur."
+    },
+    {
+      "id": "QA-008",
+      "motif": "Incident et avis : écriture sans JS, unicité à vérifier."
+    },
+    {
+      "id": "QA-009",
+      "motif": "Facture réelle : exige un jeton de facture émis et une facture émise."
+    },
+    {
+      "id": "QA-010",
+      "motif": "Routage par rôle et 2FA : un compte par rôle."
+    },
+    {
+      "id": "QA-011",
+      "motif": "Assistant : génération et enregistrement d'un brouillon."
+    },
+    {
+      "id": "QA-012",
+      "motif": "Inventaire : changement d'état et relecture du tableau."
+    },
+    {
+      "id": "QA-013",
+      "motif": "Factures : création, envoi, relance (Mailpit en recette)."
+    },
+    {
+      "id": "QA-014",
+      "motif": "Phrases : substitution des variables dans l'aperçu."
+    },
+    {
+      "id": "QA-015",
+      "motif": "Annonce : DPE/GES, publication et retour brouillon."
+    },
+    {
+      "id": "QA-016",
+      "motif": "Audit : période 90 jours, filtre famille, export CSV."
+    },
+    {
+      "id": "QA-017",
+      "motif": "Publication d'un thème et application immédiate sur `/`."
+    },
+    {
+      "id": "QA-018",
+      "motif": "Quota assistant : 100 brouillons/mois, remise à zéro encadrée."
+    },
+    {
+      "id": "QA-019",
+      "motif": "Seeds : `db:seed` puis `db:seed-demo` idempotents (écriture)."
+    },
+    {
+      "id": "QA-020",
+      "motif": "Nettoyage : dry-run puis `--appliquer` avec confirmation."
+    },
+    {
+      "id": "QA-021",
+      "motif": "Piles V1 : ne jamais lancer `deploy/demarrer.ps1` ni `lab-run.ps1`."
+    },
+    {
+      "id": "REC-001…REC-155",
+      "motif": "Hors pré-requis automatisables : voir le journal de recette pour le détail."
+    }
+  ],
+  "cases": [
+    {
+      "id": "REC-006",
+      "section": "0. Pré-requis",
+      "libelle": "/api/health et /api/ready sains (base, schéma, RLS)",
+      "portee": "complet sur l'environnement ciblé",
+      "resultat": "OK",
+      "preuve": "/api/health et /api/ready 200, db up, schema ok, rls ok"
+    },
+    {
+      "id": "REC-013",
+      "section": "1. Auth, rôles et sécurité",
+      "libelle": "Inscription publique refusée",
+      "portee": "complet sur l'environnement ciblé",
+      "resultat": "OK",
+      "preuve": "inscription refusée (HTTP 403)"
+    },
+    {
+      "id": "REC-026",
+      "section": "1. Auth, rôles et sécurité",
+      "libelle": "En-têtes de sécurité présents",
+      "portee": "partiel : présence des en-têtes ; HSTS à constater au proxy",
+      "resultat": "OK",
+      "preuve": "5 en-têtes conformes, HSTS ignoré en http, CSP sans script-src/default-src (contenu des scripts non restreint)"
+    },
+    {
+      "id": "REC-048",
+      "section": "2. Gestion locative",
+      "libelle": "Cron de secours protégé",
+      "portee": "complet sur l'environnement ciblé",
+      "resultat": "OK",
+      "preuve": "401 sans CRON_SECRET"
+    },
+    {
+      "id": "QA-001",
+      "section": "1. Public, sans JavaScript",
+      "libelle": "Page d'accueil rendue sans JS",
+      "portee": "partiel : H1 et contenu ; rendu visuel et thème non vérifiés",
+      "resultat": "OK",
+      "preuve": "200, H1 présent, 3398 car. rendus sans JS (44 ms)"
+    },
+    {
+      "id": "QA-002",
+      "section": "1. Public, sans JavaScript",
+      "libelle": "/reserver : liste des logements et formulaire GET",
+      "portee": "partiel : liste et formulaire GET ; « 3 logements de démo avec tarif » exige un environnement seedé",
+      "resultat": "OK",
+      "preuve": "200, 70 liens de logement, formulaire GET sur le détail"
+    },
+    {
+      "id": "QA-003",
+      "section": "1. Public, sans JavaScript",
+      "libelle": "/login : formulaire POST natif présent",
+      "portee": "partiel : formulaire natif ; connexion réelle à faire à la main",
+      "resultat": "OK",
+      "preuve": "200, formulaire POST avec email et mot de passe (7 ms)"
+    },
+    {
+      "id": "QA-004",
+      "section": "1. Public, sans JavaScript",
+      "libelle": "/design : galerie « Design system » rendue",
+      "portee": "complet sur l'environnement ciblé",
+      "resultat": "OK",
+      "preuve": "200, galerie rendue (4869 car.) (8 ms)"
+    },
+    {
+      "id": "REC-125",
+      "section": "6. Observabilité, sauvegardes et exploitation",
+      "libelle": "/supervision/apparence inaccessible sans session",
+      "portee": "partiel : refus anonyme ; accès super-admin réel non couvert",
+      "resultat": "OK",
+      "preuve": "303 → /login : accès refusé (4 ms)"
+    },
+    {
+      "id": "QA-005",
+      "section": "1. Public, sans JavaScript",
+      "libelle": "/aide, /legales, /tarifs, /offline rendues",
+      "portee": "complet sur l'environnement ciblé",
+      "resultat": "OK",
+      "preuve": "4/4 pages 200 avec contenu rendu"
+    },
+    {
+      "id": "QA-006",
+      "section": "2. Voyageur, HTML-first",
+      "libelle": "/voyageur : jeton invalide refusé proprement",
+      "portee": "partiel : refus d'un jeton invalide ; lien réel à ouvrir à la main",
+      "resultat": "OK",
+      "preuve": "200, message de lien invalide affiché (8 ms)"
+    },
+    {
+      "id": "QA-009",
+      "section": "2. Voyageur, HTML-first",
+      "libelle": "/facture : jeton invalide refusé proprement",
+      "portee": "partiel : refus d'un jeton invalide ; facture réelle à ouvrir à la main",
+      "resultat": "OK",
+      "preuve": "200, écran « lien indisponible » affiché (5 ms)"
+    }
+  ]
+}

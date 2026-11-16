@@ -3,9 +3,9 @@
 ```text
 Statut : ACTIF
 Propriétaire : exploitation
-Dernière vérification : 2026-11-15
+Dernière vérification : 2026-11-16
 Remplace / remplacé par : —
-Source de vérité : specs/005-mise-en-production/tasks.md (T047, T052)
+Source de vérité : specs/005-mise-en-production/tasks.md (T047, T052, T082)
 ```
 
 Cette répétition exécute **hors production** la chaîne qui sera rejouée sur
@@ -160,3 +160,48 @@ PREFLIGHT_ENV_FILE=.env.preflight npm run preflight
 
 Le job `release` de `.github/workflows/v2-ci.yml` rejoue ce smoke sur chaque
 tag `v*`, après migrations, seeds, rôle applicatif et RLS.
+
+## 5. Recette publique automatisée (2026-11-16)
+
+`npm run recette:publique` complète le smoke : il vérifie 12 cases du journal
+en lecture seule et sort en erreur dès qu'une échoue.
+
+```text
+Recette publique — http://127.0.0.1:4180
+OK   REC-006  /api/health et /api/ready sains (base, schéma, RLS)
+OK   REC-013  Inscription publique refusée (HTTP 403)
+OK   REC-026  5 en-têtes conformes, HSTS ignoré en http
+OK   REC-048  Cron de secours protégé (401 sans CRON_SECRET)
+OK   QA-001   Page d'accueil rendue sans JS
+OK   QA-002   /reserver : liste des logements et formulaire GET
+OK   QA-003   /login : formulaire POST natif présent
+OK   QA-004   /design : galerie « Design system » rendue
+OK   REC-125  /supervision/apparence inaccessible sans session (303 → /login)
+OK   QA-005   /aide, /legales, /tarifs, /offline rendues
+OK   QA-006   /voyageur : jeton invalide refusé proprement
+OK   QA-009   /facture : jeton invalide refusé proprement
+12/12 cases automatiques OK, 18 entrées manuelles listées.
+```
+
+Preuve archivée :
+`preuves/recette-publique-2026-11-16.json`. Le JSON porte, pour chaque case,
+l'identifiant du journal, la portée, le verdict et la preuve mesurée.
+
+Ce que la répétition ne prouve pas : les 143 autres cases et les 18 entrées
+manuelles (écritures, comptes, 2FA, jetons réels, paiements, navigateur), ni
+la recette sur URL publique. Elle ne remplace pas la signature.
+
+Observation : la CSP ne contient ni `default-src` ni `script-src` ; les
+en-têtes sont présents (REC-026 OK) mais le contenu des scripts n'est pas
+restreint. À durcir avant l'ouverture si le niveau attendu l'impose.
+
+Reproduction :
+
+```bash
+cd v2
+npm run build
+NODE_ENV=production PORT=4180 HOST=127.0.0.1 \
+  APP_URL=http://127.0.0.1:4180 BETTER_AUTH_URL=http://127.0.0.1:4180 \
+  node --env-file=.env.local build &
+npm run recette:publique -- http://127.0.0.1:4180
+```
