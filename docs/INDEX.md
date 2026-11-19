@@ -101,6 +101,7 @@ Côté application :
 | 003 — audit des plans initiaux | `specs/003-audit-parite-plans-initiaux/` | absorbé par 002 |
 | 004 — ergonomie et expérience client | `specs/004-ergonomie-experience-client/` | 13 tâches, 11 validations humaines |
 | 005 — mise en production | `specs/005-mise-en-production/` | phases 1–2 faites, phases 3–6 externes |
+| 006 — autonomie et finitions | `specs/006-autonomie-et-finitions/` | brouillon du 19/11 : exploitation autonome, fiabilité, boucle de preuve, finitions, modules |
 
 ## Analyses et audits
 
