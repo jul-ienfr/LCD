@@ -37,7 +37,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
       auth.requestId,
       auth.headers,
     );
-  } catch {
-    return erreurInterne(auth.requestId, auth.headers);
+  } catch (erreur) {
+    return erreurInterne(auth.requestId, auth.headers, erreur);
   }
 };

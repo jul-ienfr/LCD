@@ -8,6 +8,7 @@ import {
   CONSENTEMENTS_DEFAUT,
   memeContact,
   messageEstOptout,
+  resumerMessagesParFils,
   validerFilVoyageur,
   type ConsentementsFil,
   type FilVoyageur,
@@ -114,5 +115,69 @@ describe("domaine des fils voyageur", () => {
     expect(() =>
       validerFilVoyageur({ voyageurNom: "Camille Test", voyageurEmail: "a@b.fr" }),
     ).not.toThrow();
+  });
+});
+
+describe("résumé des messages par fil (FR-027)", () => {
+  function message(
+    filId: string,
+    partiel: Partial<{
+      sens: "entrant" | "sortant";
+      statut: string;
+      luAt: Date | null;
+      createdAt: Date;
+      contenu: string;
+    }> = {},
+  ) {
+    return {
+      filId,
+      sens: partiel.sens ?? "sortant",
+      statut: partiel.statut ?? "envoye",
+      luAt: partiel.luAt ?? null,
+      createdAt: partiel.createdAt ?? new Date("2026-11-01T10:00:00Z"),
+      contenu: partiel.contenu ?? "Bonjour",
+    };
+  }
+
+  it("compte les non-lus entrants, les brouillons et le dernier message", () => {
+    const t0 = new Date("2026-11-01T10:00:00Z");
+    const t1 = new Date("2026-11-01T11:00:00Z");
+    const t2 = new Date("2026-11-01T12:00:00Z");
+    const resume = resumerMessagesParFils(["fil-1"], [
+      message("fil-1", { createdAt: t1, contenu: "deuxième" }),
+      message("fil-1", { sens: "entrant", statut: "recu", createdAt: t0 }),
+      message("fil-1", { sens: "entrant", statut: "recu", luAt: t1, createdAt: t0 }),
+      message("fil-1", { statut: "brouillon", createdAt: t2, contenu: "dernier" }),
+    ]);
+
+    const entree = resume.get("fil-1");
+    expect(entree?.total).toBe(4);
+    expect(entree?.nonLus).toBe(1);
+    expect(entree?.brouillons).toBe(1);
+    // Le dernier suit `createdAt`, même si le tableau arrive dans le désordre.
+    expect(entree?.dernier?.contenu).toBe("dernier");
+  });
+
+  it("renvoie une entrée vide pour un fil sans message, ignore les fils inconnus", () => {
+    const resume = resumerMessagesParFils(
+      ["fil-1", "fil-2"],
+      [message("fil-3")],
+    );
+    expect(resume.get("fil-1")).toEqual({
+      total: 0,
+      nonLus: 0,
+      brouillons: 0,
+      dernier: null,
+    });
+    expect(resume.get("fil-2")?.total).toBe(0);
+    expect(resume.size).toBe(2);
+  });
+
+  it("ignore un message sans fil", () => {
+    const resume = resumerMessagesParFils(
+      ["fil-1"],
+      [message("fil-1"), { ...message("fil-1"), filId: null }],
+    );
+    expect(resume.get("fil-1")?.total).toBe(1);
   });
 });

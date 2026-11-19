@@ -8,6 +8,7 @@
  *
  * `page` commence à 1, `limite` est bornée à 200 (défaut 50).
  */
+import { logErreur } from "@/lib/logger";
 import { erreurApi } from "./api-auth";
 
 export interface ParametresPagination {
@@ -116,10 +117,19 @@ export function parametreRequis(
   return valeur;
 }
 
+/**
+ * Réponse 500 de l'API v1 (FR-029) : aucun 500 ne part sans être journalisé.
+ * L'erreur d'origine est tracée avec l'identifiant de requête ; le client ne
+ * reçoit qu'un message générique.
+ */
 export function erreurInterne(
   requestId: string,
   headers: Record<string, string>,
+  erreur?: unknown,
 ): Response {
+  logErreur("apiV1.erreurInterne", erreur ?? new Error("Erreur interne."), {
+    requestId,
+  });
   return erreurApi(
     500,
     "erreur_interne",

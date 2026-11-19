@@ -41,10 +41,15 @@ export const load: PageServerLoad = async (event) => {
   ]);
 
   const nomsLogements = new Map(logements.map((l) => [l.id, l.nom]));
+  // FR-027 : résumé agrégé en une requête au lieu d'un `listerMessages` par fil.
+  const resumes = await depot.resumerMessagesParFils(
+    tenantId,
+    fils.map((fil) => fil.id),
+  );
   const lignes = [];
   for (const fil of fils) {
-    const messages = await depot.listerMessages(tenantId, fil.id);
-    const dernier = messages.at(-1) ?? null;
+    const resume = resumes.get(fil.id);
+    const dernier = resume?.dernier ?? null;
     lignes.push({
       id: fil.id,
       voyageurNom: fil.voyageurNom,
@@ -53,9 +58,9 @@ export const load: PageServerLoad = async (event) => {
       statut: fil.statut,
       assigneA: fil.assigneA,
       logement: fil.logementId ? (nomsLogements.get(fil.logementId) ?? null) : null,
-      nombreMessages: messages.length,
-      nonLus: messages.filter((m) => m.sens === "entrant" && !m.luAt).length,
-      brouillons: messages.filter((m) => m.statut === "brouillon").length,
+      nombreMessages: resume?.total ?? 0,
+      nonLus: resume?.nonLus ?? 0,
+      brouillons: resume?.brouillons ?? 0,
       dernierContenu: dernier?.contenu ?? null,
       dernierCanal: dernier?.canal ?? null,
       dernierDate: dernier?.createdAt ?? fil.dernierMessageAt,

@@ -2,6 +2,7 @@ import type {
   CanalFil,
   ConsentementsFil,
   FilVoyageur,
+  ResumeFil,
   SensMessage,
   StatutFil,
 } from "@/domain/fil-voyageur";
@@ -38,6 +39,9 @@ export interface MettreAJourMessageData {
   luAt?: Date | null;
   contenu?: string;
 }
+
+/** Agrégat des messages d'un fil, pour les listes qui n'affichent qu'un résumé. */
+export type ResumeMessagesFil = ResumeFil<MessageFil>;
 
 export interface CreerPieceJointeData {
   tenantId: string;
@@ -131,6 +135,15 @@ export interface FilsVoyageurRepository {
     id: string,
   ): Promise<MessageFil | null>;
   listerMessages(tenantId: string, filId: string): Promise<MessageFil[]>;
+  /**
+   * Résumé des messages de plusieurs fils en une seule requête (FR-027) :
+   * compteurs de non-lus entrant et de brouillons, plus le dernier message.
+   * Évite le N+1 de la liste des notifications (`listerMessages` par fil).
+   */
+  resumerMessagesParFils(
+    tenantId: string,
+    filIds: readonly string[],
+  ): Promise<Map<string, ResumeMessagesFil>>;
   marquerMessagesLus(tenantId: string, filId: string): Promise<number>;
   trouverMessageParExternalId(
     tenantId: string,

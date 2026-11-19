@@ -21,23 +21,29 @@ export const load: PageServerLoad = async (event) => {
   const notifications: Notification[] = [];
 
   const fils = new DrizzleFilsVoyageurRepository();
-  for (const fil of await fils.listerParTenant(tenantId, { statut: "ouvert" })) {
-    const messages = await fils.listerMessages(tenantId, fil.id);
-    const nonLus = messages.filter((m) => m.sens === "entrant" && !m.luAt).length;
-    const brouillons = messages.filter((m) => m.statut === "brouillon").length;
-    if (nonLus > 0) {
+  const filsOuverts = await fils.listerParTenant(tenantId, { statut: "ouvert" });
+  // FR-027 : un seul chargement agrégé au lieu d'un `listerMessages` par fil.
+  const resumes = await fils.resumerMessagesParFils(
+    tenantId,
+    filsOuverts.map((fil) => fil.id),
+  );
+  for (const fil of filsOuverts) {
+    const resume = resumes.get(fil.id);
+    if (!resume) continue;
+    const dernier = resume.dernier;
+    if (resume.nonLus > 0) {
       notifications.push({
         type: "message",
-        libelle: `${nonLus} message(s) non lu(s) — ${fil.voyageurNom}`,
-        detail: messages.at(-1)?.contenu.slice(0, 140) ?? "",
+        libelle: `${resume.nonLus} message(s) non lu(s) — ${fil.voyageurNom}`,
+        detail: dernier?.contenu.slice(0, 140) ?? "",
         href: `/hote/messages/fils/${fil.id}`,
-        date: messages.at(-1)?.createdAt.toISOString() ?? null,
+        date: dernier?.createdAt.toISOString() ?? null,
       });
     }
-    if (brouillons > 0) {
+    if (resume.brouillons > 0) {
       notifications.push({
         type: "brouillon",
-        libelle: `${brouillons} brouillon(s) à valider — ${fil.voyageurNom}`,
+        libelle: `${resume.brouillons} brouillon(s) à valider — ${fil.voyageurNom}`,
         detail: "Aucun message automatique ne part sans validation.",
         href: `/hote/messages/fils/${fil.id}`,
         date: fil.dernierMessageAt?.toISOString() ?? null,

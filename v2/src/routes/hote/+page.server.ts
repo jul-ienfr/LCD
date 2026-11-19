@@ -110,19 +110,13 @@ export const load: PageServerLoad = async (event) => {
   const filsOuverts = (
     await depotFils.listerParTenant(tenantId, { statut: "ouvert" })
   ).slice(0, LIMITE_FILS_ANALYSES);
-  const messagesParFil = await Promise.all(
-    filsOuverts.map(async (fil) => ({
-      fil,
-      messages: await depotFils.listerMessages(tenantId, fil.id),
-    })),
+  // FR-027 : résumé agrégé en une requête au lieu d'un `listerMessages` par fil.
+  const resumesFils = await depotFils.resumerMessagesParFils(
+    tenantId,
+    filsOuverts.map((fil) => fil.id),
   );
-  const filsNonLus = messagesParFil
-    .map(({ fil, messages }) => ({
-      fil,
-      nonLus: messages.filter(
-        (message) => message.sens === "entrant" && !message.luAt,
-      ).length,
-    }))
+  const filsNonLus = filsOuverts
+    .map((fil) => ({ fil, nonLus: resumesFils.get(fil.id)?.nonLus ?? 0 }))
     .filter((entree) => entree.nonLus > 0);
 
   const arriveesDuJour = reservations.filter(

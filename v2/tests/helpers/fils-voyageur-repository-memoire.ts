@@ -7,8 +7,14 @@ import type {
   MettreAJourFilData,
   MettreAJourMessageData,
   PieceJointeMessage,
+  ResumeMessagesFil,
 } from "@/application/ports/fils-voyageur-repository";
-import type { CanalFil, FilVoyageur, StatutFil } from "@/domain/fil-voyageur";
+import {
+  resumerMessagesParFils,
+  type CanalFil,
+  type FilVoyageur,
+  type StatutFil,
+} from "@/domain/fil-voyageur";
 
 let compteur = 0;
 function id(suffixe = ""): string {
@@ -200,6 +206,16 @@ export class FilsVoyageurRepositoryMemoire implements FilsVoyageurRepository {
   async listerMessages(tenantId: string, filId: string): Promise<MessageFil[]> {
     return this.messages.filter(
       (message) => message.tenantId === tenantId && message.filId === filId,
+    );
+  }
+
+  async resumerMessagesParFils(
+    tenantId: string,
+    filIds: readonly string[],
+  ): Promise<Map<string, ResumeMessagesFil>> {
+    return resumerMessagesParFils(
+      filIds,
+      this.messages.filter((message) => message.tenantId === tenantId),
     );
   }
 

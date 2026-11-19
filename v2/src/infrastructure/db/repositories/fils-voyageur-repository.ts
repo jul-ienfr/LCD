@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import type {
   CreerFilData,
   CreerMessageFilData,
@@ -8,13 +8,15 @@ import type {
   MettreAJourFilData,
   MettreAJourMessageData,
   PieceJointeMessage,
+  ResumeMessagesFil,
 } from "@/application/ports/fils-voyageur-repository";
-import type {
-  CanalFil,
-  ConsentementsFil,
-  FilVoyageur,
-  SensMessage,
-  StatutFil,
+import {
+  resumerMessagesParFils,
+  type CanalFil,
+  type ConsentementsFil,
+  type FilVoyageur,
+  type SensMessage,
+  type StatutFil,
 } from "@/domain/fil-voyageur";
 import { withTenant } from "../client";
 import { filsVoyageur, messagesVoyageur, piecesJointesMessage } from "../schema";
@@ -355,6 +357,32 @@ export class DrizzleFilsVoyageurRepository implements FilsVoyageurRepository {
         .orderBy(asc(messagesVoyageur.createdAt))
         .limit(500);
       return rows.map(versMessage);
+    });
+  }
+
+  /**
+   * Résumé par fil en une requête (FR-027) : au lieu d'appeler
+   * `listerMessages` pour chaque fil (N+1), on charge une fois les messages
+   * des fils demandés et on agrège — logique partagée dans le domaine.
+   */
+  async resumerMessagesParFils(
+    tenantId: string,
+    filIds: readonly string[],
+  ): Promise<Map<string, ResumeMessagesFil>> {
+    if (filIds.length === 0) return new Map();
+    const ids = [...new Set(filIds)];
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(messagesVoyageur)
+        .where(
+          and(
+            eq(messagesVoyageur.tenantId, tenantId),
+            inArray(messagesVoyageur.filId, ids),
+          ),
+        )
+        .orderBy(asc(messagesVoyageur.createdAt));
+      return resumerMessagesParFils(ids, rows.map(versMessage));
     });
   }
 

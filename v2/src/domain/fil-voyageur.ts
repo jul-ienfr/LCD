@@ -80,6 +80,46 @@ export interface ApercuFil {
   nonLus: number;
 }
 
+/** Résumé agrégé des messages d'un fil (listes de fils, notifications). */
+export interface ResumeFil<TMessage> {
+  total: number;
+  nonLus: number;
+  brouillons: number;
+  dernier: TMessage | null;
+}
+
+/**
+ * Agrège des messages en résumé par fil (FR-027) : total, entrants non lus,
+ * brouillons et dernier message. `dernier` suit `createdAt`, pas l'ordre du
+ * tableau, pour que tous les dépôts produisent le même résumé.
+ */
+export function resumerMessagesParFils<
+  T extends {
+    filId: string | null;
+    sens: SensMessage;
+    statut: string;
+    luAt: Date | null;
+    createdAt: Date;
+  },
+>(filIds: readonly string[], messages: readonly T[]): Map<string, ResumeFil<T>> {
+  const resume = new Map<string, ResumeFil<T>>();
+  for (const filId of new Set(filIds)) {
+    resume.set(filId, { total: 0, nonLus: 0, brouillons: 0, dernier: null });
+  }
+  const ordonnes = [...messages].sort(
+    (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+  for (const message of ordonnes) {
+    const entree = message.filId ? resume.get(message.filId) : undefined;
+    if (!entree) continue;
+    entree.total += 1;
+    if (message.sens === "entrant" && !message.luAt) entree.nonLus += 1;
+    if (message.statut === "brouillon") entree.brouillons += 1;
+    entree.dernier = message;
+  }
+  return resume;
+}
+
 export const APERCU_MAX = 140;
 
 /** Clé de regroupement canonique d'un contact, quel que soit le canal. */
