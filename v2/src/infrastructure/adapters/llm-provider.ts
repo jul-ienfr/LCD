@@ -1,5 +1,6 @@
 import type { LlmMessage, LlmProvider, LlmReponse } from "@/application/ports/llm";
 import { env } from "@/lib/env";
+import { fetchAvecReessais } from "./http-retry";
 
 interface ReponseChat {
   model?: string;
@@ -21,20 +22,25 @@ export function creerLlmProvider(): LlmProvider {
         throw new Error("LLM non configuré (LLM_API_URL / LLM_API_KEY).");
       }
       const modele = options?.modele ?? env.LLM_MODEL;
-      const reponse = await fetch(env.LLM_API_URL, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${env.LLM_API_KEY}`,
+      // Politique de retry (FR-022) : une complétion est sans effet de bord
+      // visible, donc 429/5xx et les erreurs réseau sont rejoués.
+      const reponse = await fetchAvecReessais(
+        env.LLM_API_URL,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${env.LLM_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: modele,
+            messages,
+            max_tokens: options?.maxTokens ?? 300,
+            temperature: 0.4,
+          }),
         },
-        body: JSON.stringify({
-          model: modele,
-          messages,
-          max_tokens: options?.maxTokens ?? 300,
-          temperature: 0.4,
-        }),
-        signal: AbortSignal.timeout(20_000),
-      });
+        { timeoutMs: 20_000 },
+      );
       if (!reponse.ok) {
         throw new Error(`LLM : réponse HTTP ${reponse.status}.`);
       }

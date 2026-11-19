@@ -5,6 +5,7 @@ import type {
 } from "@/application/ports/whatsapp";
 import { ErreurMetier } from "@/domain/erreurs";
 import { env } from "@/lib/env";
+import { fetchAvecReessais } from "./http-retry";
 
 interface ReponseWhatsApp {
   messages?: { id?: string }[];
@@ -69,22 +70,32 @@ export function creerWhatsAppCloud(options?: {
           "Le message WhatsApp est vide.",
         );
       }
-      const reponse = await fetchImpl(url, {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${token}`,
-          "content-type": "application/json",
-          accept: "application/json",
+      // Politique de retry (FR-022) : 429/5xx sont des refus certains, donc
+      // rejoués ; pas d'erreur réseau — Meta n'expose pas de clé
+      // d'idempotence et un timeout pourrait cacher un message déjà envoyé.
+      const reponse = await fetchAvecReessais(
+        url,
+        {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${token}`,
+            "content-type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({
+            messaging_product: "whatsapp",
+            recipient_type: "individual",
+            to,
+            type: "text",
+            text: { preview_url: false, body: texte },
+          }),
         },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to,
-          type: "text",
-          text: { preview_url: false, body: texte },
-        }),
-        signal: AbortSignal.timeout(15_000),
-      });
+        {
+          timeoutMs: 15_000,
+          rejouerErreurReseau: false,
+          fetchImpl,
+        },
+      );
       let donnees: ReponseWhatsApp = {};
       try {
         donnees = (await reponse.json()) as ReponseWhatsApp;

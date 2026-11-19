@@ -309,6 +309,14 @@ const schema = z.object({
     .min(1_000)
     .max(60_000)
     .default(12_000),
+  // Disjoncteur fournisseur (FR-023/FR-014) : nombre d'échecs consécutifs
+  // avant mise en pause automatique, réglable sans redéploiement.
+  FOURNISSEUR_DISJONCTEUR_SEUIL: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(50)
+    .default(5),
 
   // Serrures connectées : Nuki Web API. Sans token, l'adapter se déclare
   // indisponible et le repli manuel (T607) prend le relais à sa place.

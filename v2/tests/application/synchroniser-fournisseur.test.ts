@@ -561,6 +561,72 @@ describe("SynchroniserFournisseur", () => {
     expect(fournisseur.disponibilites).toHaveLength(0);
   });
 
+  it("compte un échec de lecture et ouvre le disjoncteur au seuil", async () => {
+    fournisseur.lectureErreur = new Error("API indisponible");
+    const seuil = 3;
+    const executerAvecSeuil = () =>
+      synchroniser.executer({
+        tenantId: TENANT,
+        logementId: LOGEMENT,
+        maintenant: "2027-01-01",
+        horizonJours: 3,
+        seuilDisjoncteur: seuil,
+      });
+
+    const premier = await executerAvecSeuil();
+    expect(premier.echecsConsecutifs).toBe(1);
+    expect(premier.disjoncteurOuvert).toBe(false);
+
+    const deuxieme = await executerAvecSeuil();
+    expect(deuxieme.echecsConsecutifs).toBe(2);
+    expect(deuxieme.disjoncteurOuvert).toBe(false);
+
+    const troisieme = await executerAvecSeuil();
+    expect(troisieme.echecsConsecutifs).toBe(3);
+    expect(troisieme.disjoncteurOuvert).toBe(true);
+    const affectation = await fournisseurs.trouverAffectation(TENANT, LOGEMENT);
+    expect(affectation?.actif).toBe(false);
+    expect(affectation?.disjoncteurOuvertLe).not.toBeNull();
+  });
+
+  it("remet le disjoncteur à zéro après un succès", async () => {
+    fournisseur.lectureErreur = new Error("API indisponible");
+    await synchroniser.executer({
+      tenantId: TENANT,
+      logementId: LOGEMENT,
+      maintenant: "2027-01-01",
+      horizonJours: 3,
+    });
+    fournisseur.lectureErreur = null;
+    const resultat = await synchroniser.executer({
+      tenantId: TENANT,
+      logementId: LOGEMENT,
+      maintenant: "2027-01-01",
+      horizonJours: 3,
+      force: true,
+    });
+    expect(resultat.statut).toBe("ok");
+    expect(resultat.echecsConsecutifs).toBe(0);
+    const affectation = await fournisseurs.trouverAffectation(TENANT, LOGEMENT);
+    expect(affectation?.actif).toBe(true);
+  });
+
+  it("ne compte pas un problème de configuration comme un échec", async () => {
+    fournisseur = new FournisseurEspion("smoobu");
+    fournisseur.reservations = [];
+    await fournisseurs.affecter({
+      tenantId: TENANT,
+      logementId: LOGEMENT,
+      fournisseurCode: "smoobu",
+      externalPropertyId: "prop-1",
+      externalRoomTypeId: null,
+      externalRatePlanId: null,
+    });
+    const resultat = await executer();
+    expect(resultat.statut).toBe("partiel");
+    expect(resultat.echecsConsecutifs).toBe(0);
+  });
+
   it("pousse les tarifs Channex seulement avec un plan tarifaire", async () => {
     fournisseur = new FournisseurEspion("channex");
     fournisseur.reservations = [];

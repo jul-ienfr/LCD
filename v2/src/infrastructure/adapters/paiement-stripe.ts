@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import type {
   EmpreinteCarte,
   EvenementPaiement,
@@ -11,8 +11,39 @@ import type {
   ResultatRemboursement,
 } from "@/application/ports/paiement";
 import { env } from "@/lib/env";
+import { fetchAvecReessais } from "./http-retry";
 
 const API_STRIPE = "https://api.stripe.com/v1";
+
+/**
+ * Appel Stripe avec la politique de retry/backoff (FR-022). Toutes les
+ * tentatives d'un même appel partagent une clé d'idempotence, donc rejouer
+ * un 429, un 5xx ou une erreur réseau ne peut jamais créer deux sessions
+ * Checkout, deux captures ou deux remboursements.
+ */
+function appelStripe(
+  url: string,
+  init: RequestInit,
+  options: { cleIdempotence?: string; timeoutMs?: number } = {},
+): Promise<Response> {
+  const methode = (init.method ?? "GET").toUpperCase();
+  const entetes = init.headers as Record<string, string> | undefined;
+  return fetchAvecReessais(
+    url,
+    {
+      ...init,
+      headers: {
+        ...entetes,
+        // Stripe n'accepte la clé que sur les écritures ; une lecture est
+        // déjà idempotente par nature.
+        ...(methode === "GET"
+          ? {}
+          : { "Idempotency-Key": options.cleIdempotence ?? randomUUID() }),
+      },
+    },
+    { timeoutMs: options.timeoutMs ?? 20_000 },
+  );
+}
 
 interface ReponseSessionStripe {
   id?: string;
@@ -172,7 +203,7 @@ export function creerPaiementStripe(): Paiement {
         body.set(`payment_intent_data[metadata][${cle}]`, valeur);
       }
 
-      const reponse = await fetch(`${API_STRIPE}/checkout/sessions`, {
+      const reponse = await appelStripe(`${API_STRIPE}/checkout/sessions`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${secretKey}`,
@@ -212,7 +243,7 @@ export function creerPaiementStripe(): Paiement {
         body.set(`metadata[${cle}]`, valeur);
       }
 
-      const reponse = await fetch(`${API_STRIPE}/payment_intents`, {
+      const reponse = await appelStripe(`${API_STRIPE}/payment_intents`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${secretKey}`,
@@ -261,7 +292,7 @@ export function creerPaiementStripe(): Paiement {
         body.set("amount_to_capture", String(montantCentimes));
       }
 
-      const reponse = await fetch(
+      const reponse = await appelStripe(
         `${API_STRIPE}/payment_intents/${encodeURIComponent(empreinteId)}/capture`,
         {
           method: "POST",
@@ -291,7 +322,7 @@ export function creerPaiementStripe(): Paiement {
       if (!/^pi_[A-Za-z0-9]+$/.test(empreinteId)) {
         throw new Error("Identifiant d'empreinte Stripe invalide.");
       }
-      const reponse = await fetch(
+      const reponse = await appelStripe(
         `${API_STRIPE}/payment_intents/${encodeURIComponent(empreinteId)}/cancel`,
         {
           method: "POST",
@@ -336,7 +367,7 @@ export function creerPaiementStripe(): Paiement {
         body.set("amount", String(montantCentimes));
       }
 
-      const reponse = await fetch(`${API_STRIPE}/refunds`, {
+      const reponse = await appelStripe(`${API_STRIPE}/refunds`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${secretKey}`,
@@ -384,7 +415,7 @@ export function creerPaiementStripe(): Paiement {
         }
         let metadata: Record<string, string> = {};
         if (session.payment_intent) {
-          const intention = await fetch(
+          const intention = await appelStripe(
             `${API_STRIPE}/payment_intents/${encodeURIComponent(session.payment_intent)}`,
             { headers: { Authorization: `Bearer ${secretKey}` } },
           );
@@ -436,7 +467,7 @@ export function creerPaiementStripe(): Paiement {
 
       const body = new URLSearchParams();
       body.set("evidence[uncategorized_text]", contenu.slice(0, 20_000));
-      const reponse = await fetch(
+      const reponse = await appelStripe(
         `${API_STRIPE}/disputes/${encodeURIComponent(disputeId)}`,
         {
           method: "POST",
@@ -452,7 +483,7 @@ export function creerPaiementStripe(): Paiement {
         throw new Error(`Stripe litige ${reponse.status} : ${detail.slice(0, 300)}`);
       }
 
-      const fermeture = await fetch(
+      const fermeture = await appelStripe(
         `${API_STRIPE}/disputes/${encodeURIComponent(disputeId)}/close`,
         {
           method: "POST",

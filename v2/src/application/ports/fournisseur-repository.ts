@@ -1,4 +1,5 @@
 import type { SanteConnexion } from "@/domain/canal";
+import type { EffetDisjoncteur } from "@/domain/disjoncteur";
 import type { CodeFournisseur } from "@/domain/fournisseur";
 
 export interface ActivationFournisseur {
@@ -22,8 +23,21 @@ export interface AffectationFournisseur {
   dernierStatut: string | null;
   dernierMessage: string | null;
   derniereEmpreinte: string | null;
+  /**
+   * Disjoncteur (FR-023) : échecs consécutifs et horodatage de la pause
+   * automatique. Optionnels pour ne pas casser les implémentations de test
+   * antérieures aux colonnes `logements_fournisseurs`.
+   */
+  echecsConsecutifs?: number;
+  disjoncteurOuvertLe?: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface DecisionDisjoncteurAffectation {
+  /** Le seuil est atteint : l'affectation vient d'être mise en pause. */
+  ouvert: boolean;
+  echecsConsecutifs: number;
 }
 
 export interface EtatSyncFournisseur {
@@ -47,6 +61,9 @@ export interface LogementAvecFournisseur {
   derniereSync: Date | null;
   dernierStatut: string | null;
   dernierMessage: string | null;
+  /** Disjoncteur (FR-023), pour distinguer une pause automatique. */
+  echecsConsecutifs?: number;
+  disjoncteurOuvertLe?: Date | null;
 }
 
 export interface AffecterFournisseurData {
@@ -92,6 +109,18 @@ export interface FournisseurRepository {
     logementId: string,
     etat: EtatSyncFournisseur,
   ): Promise<void>;
+  /**
+   * Applique le disjoncteur (FR-023) au résultat d'une synchronisation :
+   * incrémente les échecs consécutifs sur effet « echec », remet à zéro sur
+   * « succes », et met l'affectation en pause (`actif = false`) au seuil
+   * atteint. Renvoie la décision appliquée, ou null si l'affectation
+   * n'existe plus ou que la connexion owner est absente.
+   */
+  appliquerDisjoncteur(
+    tenantId: string,
+    logementId: string,
+    signal: { effet: EffetDisjoncteur; seuil: number },
+  ): Promise<DecisionDisjoncteurAffectation | null>;
   /**
    * Santé de connexion de l'affectation (T103). Optionnel : les
    * implémentations antérieures aux colonnes santé de `logements_fournisseurs`

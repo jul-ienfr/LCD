@@ -1,4 +1,5 @@
 import type { EtatBox, RuntimeBox } from "@/application/ports/runtime-box";
+import { fetchAvecReessais } from "./http-retry";
 
 export interface BoxRuntimeConfig {
   baseUrl: string;
@@ -81,10 +82,13 @@ export function creerRuntimeBox(valeurConfig?: string): RuntimeBox {
       const url = new URL(chemin, box.baseUrl);
 
       try {
-        const reponse = await fetch(url, {
-          headers: entetes(box),
-          signal: AbortSignal.timeout(5_000),
-        });
+        // Politique de retry (FR-022) : lecture d'état, donc sans effet de
+        // bord — 429/5xx et erreurs réseau sont rejoués.
+        const reponse = await fetchAvecReessais(
+          url,
+          { headers: entetes(box) },
+          { timeoutMs: 5_000, delaiBaseMs: 300, delaiMaxMs: 3_000 },
+        );
         const corps = await lireJson(reponse);
         return {
           boxId,
@@ -122,15 +126,22 @@ export function creerRuntimeBox(valeurConfig?: string): RuntimeBox {
         corps = payload;
       }
 
-      const reponse = await fetch(new URL(chemin, box.baseUrl), {
-        method: "POST",
-        headers: {
-          ...entetes(box),
-          "Content-Type": "application/json",
+      // Politique de retry (FR-022) : un 429/5xx est un refus explicite, donc
+      // rejouable ; une erreur réseau n'est pas rejouée ici — la commande
+      // (domaine.service Home Assistant, parfois « toggle ») n'a pas de clé
+      // d'idempotence et un timeout peut cacher une exécution réussie.
+      const reponse = await fetchAvecReessais(
+        new URL(chemin, box.baseUrl),
+        {
+          method: "POST",
+          headers: {
+            ...entetes(box),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(corps),
         },
-        body: JSON.stringify(corps),
-        signal: AbortSignal.timeout(10_000),
-      });
+        { timeoutMs: 10_000, rejouerErreurReseau: false },
+      );
 
       if (!reponse.ok) {
         throw new Error(

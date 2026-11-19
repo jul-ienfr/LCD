@@ -278,6 +278,13 @@ export const logementsFournisseurs = pgTable(
     dernierStatut: text("dernier_statut"),
     dernierMessage: text("dernier_message"),
     derniereEmpreinte: text("derniere_empreinte"),
+    // Disjoncteur (spec 006, FR-023) : compteur d'échecs consécutifs et
+    // horodatage de la pause automatique. `disjoncteurOuvertLe` non nul =
+    // l'affectation a été mise en pause par le disjoncteur, pas par un humain.
+    echecsConsecutifs: integer("echecs_consecutifs").notNull().default(0),
+    disjoncteurOuvertLe: timestamp("disjoncteur_ouvert_le", {
+      withTimezone: true,
+    }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

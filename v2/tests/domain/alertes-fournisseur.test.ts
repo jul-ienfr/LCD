@@ -81,4 +81,29 @@ describe("construireAlertesFournisseurs", () => {
       "alerte",
     ]);
   });
+
+  it("signale une pause automatique du disjoncteur même sans santé", () => {
+    const alertes = construireAlertesFournisseurs([
+      logement("a", null, {
+        actif: false,
+        echecsConsecutifs: 5,
+        disjoncteurOuvertLe: new Date("2026-11-19T08:00:00Z"),
+      }),
+    ]);
+    expect(alertes).toHaveLength(1);
+    expect(alertes[0]?.severite).toBe("danger");
+    expect(alertes[0]?.message).toContain("disjoncteur");
+    expect(alertes[0]?.message).toContain("5");
+  });
+
+  it("ne signale pas une pause manuelle sans disjoncteur", () => {
+    const alertes = construireAlertesFournisseurs([
+      logement("a", null, {
+        actif: false,
+        echecsConsecutifs: 0,
+        disjoncteurOuvertLe: null,
+      }),
+    ]);
+    expect(alertes).toHaveLength(0);
+  });
 });

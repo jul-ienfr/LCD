@@ -460,7 +460,13 @@
                         logement.fournisseurCode}
                     </span>
                     {#if !logement.actif}
-                      <span class="ml-2 ui-badge">Suspendu</span>
+                      {#if logement.disjoncteurOuvertLe}
+                        <span class="ml-2 ui-badge ui-badge--alerte">
+                          Pause automatique
+                        </span>
+                      {:else}
+                        <span class="ml-2 ui-badge">Suspendu</span>
+                      {/if}
                     {/if}
                     <p class="mt-2 text-xs text-encre-faine">
                       property: {logement.externalPropertyId ?? "—"}<br />
@@ -496,6 +502,11 @@
                   {#if logement.dernierMessage}
                     <p class="mt-1 max-w-xs text-xs text-encre-faine">
                       {logement.dernierMessage}
+                    </p>
+                  {/if}
+                  {#if logement.disjoncteurOuvertLe}
+                    <p class="mt-1 max-w-xs text-xs text-encre-faine">
+                      Disjoncteur ouvert le {date.format(new Date(logement.disjoncteurOuvertLe))} après {logement.echecsConsecutifs ?? 0} échecs consécutifs. Vérifiez l’intégration puis reprenez : le compteur repart à zéro.
                     </p>
                   {/if}
                 </td>

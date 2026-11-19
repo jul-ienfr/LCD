@@ -2,10 +2,15 @@ import type {
   AffectationFournisseur,
   AffecterFournisseurData,
   ActivationFournisseur,
+  DecisionDisjoncteurAffectation,
   EtatSyncFournisseur,
   FournisseurRepository,
   LogementAvecFournisseur,
 } from "@/application/ports/fournisseur-repository";
+import {
+  deciderDisjoncteur,
+  type EffetDisjoncteur,
+} from "@/domain/disjoncteur";
 import {
   CATALOGUE_FOURNISSEURS,
   type CodeFournisseur,
@@ -70,6 +75,8 @@ export class FournisseurRepositoryMemoire implements FournisseurRepository {
       dernierStatut: null,
       dernierMessage: null,
       derniereEmpreinte: null,
+      echecsConsecutifs: 0,
+      disjoncteurOuvertLe: null,
       createdAt: existante?.createdAt ?? maintenant,
       updatedAt: maintenant,
     };
@@ -89,6 +96,11 @@ export class FournisseurRepositoryMemoire implements FournisseurRepository {
     const affectation = await this.trouverAffectation(tenantId, logementId);
     if (!affectation) return null;
     affectation.actif = actif;
+    if (actif) {
+      // Reprise manuelle : le disjoncteur repart à zéro (FR-023).
+      affectation.echecsConsecutifs = 0;
+      affectation.disjoncteurOuvertLe = null;
+    }
     affectation.updatedAt = new Date();
     return affectation;
   }
@@ -150,5 +162,32 @@ export class FournisseurRepositoryMemoire implements FournisseurRepository {
     affectation.dernierStatut = etat.statut;
     affectation.dernierMessage = etat.message;
     affectation.derniereEmpreinte = etat.empreinte;
+  }
+
+  async appliquerDisjoncteur(
+    tenantId: string,
+    logementId: string,
+    signal: { effet: EffetDisjoncteur; seuil: number },
+  ): Promise<DecisionDisjoncteurAffectation | null> {
+    const affectation = await this.trouverAffectation(tenantId, logementId);
+    if (!affectation) return null;
+    const decision = deciderDisjoncteur({
+      echecsConsecutifs: affectation.echecsConsecutifs ?? 0,
+      effet: signal.effet,
+      seuil: signal.seuil,
+    });
+    affectation.echecsConsecutifs = decision.echecsConsecutifs;
+    const ouvrir = decision.ouvrir && affectation.actif;
+    if (ouvrir) {
+      affectation.actif = false;
+      affectation.disjoncteurOuvertLe = new Date();
+    } else if (decision.reinitialise && affectation.disjoncteurOuvertLe) {
+      affectation.disjoncteurOuvertLe = null;
+    }
+    affectation.updatedAt = new Date();
+    return {
+      ouvert: ouvrir,
+      echecsConsecutifs: decision.echecsConsecutifs,
+    };
   }
 }

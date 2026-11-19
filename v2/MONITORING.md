@@ -60,6 +60,32 @@ donné de heartbeat depuis `BOX_HEARTBEAT_MAX_MINUTES`. Configurer une
 notification (email, ntfy, Slack) et la tester avec un monitor volontairement
 faux.
 
+## Intégrations fournisseurs (disjoncteur)
+
+Tout appel sortant (channel manager, Stripe, email, SMS, WhatsApp, LLM) suit
+une politique de retry/backoff : 429, 5xx et erreurs réseau sont rejoués
+avec un délai croissant plafonné ; les refus métier (4xx) ne sont jamais
+rejoués ; les écritures Stripe portent une clé d'idempotence, donc un rejeu
+ne crée jamais de doublon. Seuil et cadences se règlent par variables
+d'environnement (`FOURNISSEUR_DISJONCTEUR_SEUIL`, défaut 5), sans
+redéploiement.
+
+Après `FOURNISSEUR_DISJONCTEUR_SEUIL` échecs consécutifs sur une affectation,
+le disjoncteur met l'intégration en pause automatique : plus d'ARI poussé
+pour ce logement, le flux iCal reste le mode secours, une alerte critique
+part vers `ALERTE_EMAIL`, et la sonde `sante-fournisseurs` renvoie 503 avec
+la liste `pauses`.
+
+Reprise (tracée dans le journal d'audit) :
+
+1. `/supervision/fournisseurs` → la ligne du logement affiche « Pause
+   automatique » avec la date et le nombre d'échecs ;
+2. vérifier la cause (clé expirée, quota, panne du fournisseur) — le message
+   de la dernière erreur est affiché sur la ligne ;
+3. bouton **Reprendre** : l'affectation repasse active, le compteur
+   d'échecs repart à zéro ; la synchronisation suivante confirme le retour à
+   la normale (l'alerte se referme d'elle-même au premier succès).
+
 ## Logs
 
 - logs JSON sur stdout (`src/lib/logger.ts`) ;
@@ -89,4 +115,6 @@ df -h /var/lib/docker
 - [ ] notification testée (email ou ntfy) ;
 - [ ] alerte sur `db: down`, `schema: pending` et `rls: unsafe` ;
 - [ ] rotation des logs vérifiée (`docker inspect`) ;
+- [ ] alerte critique du disjoncteur fournisseur testée (simuler le seuil
+      d'échecs sur une affectation de recette, vérifier l'email et la pause) ;
 - [ ] revue mensuelle des erreurs Sentry et des incidents.

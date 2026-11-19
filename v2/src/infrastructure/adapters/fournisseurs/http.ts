@@ -8,7 +8,11 @@ export interface RequeteFournisseur {
   corpsBrut?: string;
   timeoutMs: number;
   fetchImpl?: typeof fetch;
-  /** Nombre max de tentatives supplémentaires (défaut 0 = pas de retry). */
+  /**
+   * Nombre max de tentatives supplémentaires. Défaut 2 (politique FR-022) :
+   * tout appel fournisseur réessaie 429/5xx/réseau avec backoff ; passer 0
+   * reste possible pour un appel non rejouable.
+   */
   reessais?: number;
   /** Délai de base entre les tentatives en ms (défaut 500). */
   delaiBaseMs?: number;
@@ -79,7 +83,7 @@ export async function requeteFournisseur<T>(
   requete: RequeteFournisseur,
 ): Promise<T> {
   const fetchImpl = requete.fetchImpl ?? fetch;
-  const maxTentatives = 1 + (requete.reessais ?? 0);
+  const maxTentatives = 1 + (requete.reessais ?? 2);
   const delaiBase = requete.delaiBaseMs ?? 500;
   const delaiMax = requete.delaiMaxMs ?? 8_000;
   const corps =

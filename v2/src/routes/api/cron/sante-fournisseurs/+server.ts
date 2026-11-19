@@ -49,11 +49,27 @@ const handler: RequestHandler = async ({ request }) => {
         },
       ];
     });
+    // Une pause automatique (FR-023) sort l'affectation des actives : elle
+    // n'apparaît plus dans la santé, donc on la rapporte à part — sinon la
+    // sonde dirait « tout va bien » alors qu'une intégration est en panne.
+    const pausesAutomatiques = logements
+      .filter((logement) => logement.disjoncteurOuvertLe)
+      .map((logement) => ({
+        tenantId: logement.tenantId,
+        logementId: logement.logementId,
+        fournisseurCode: logement.fournisseurCode,
+        echecsConsecutifs: logement.echecsConsecutifs ?? 0,
+        disjoncteurOuvertLe: logement.disjoncteurOuvertLe,
+      }));
 
     const enRetard = suivis.filter((entree) => entree.etat === "retard").length;
     const erreurs = suivis.filter((entree) => entree.etat === "erreur").length;
     const jamais = suivis.filter((entree) => entree.etat === "jamais").length;
-    const ok = enRetard === 0 && erreurs === 0 && jamais === 0;
+    const ok =
+      enRetard === 0 &&
+      erreurs === 0 &&
+      jamais === 0 &&
+      pausesAutomatiques.length === 0;
 
     return json(
       {
@@ -62,7 +78,9 @@ const handler: RequestHandler = async ({ request }) => {
         enRetard,
         erreurs,
         jamais,
+        pausesAutomatiques: pausesAutomatiques.length,
         logements: suivis,
+        pauses: pausesAutomatiques,
       },
       { status: ok ? 200 : 503 },
     );

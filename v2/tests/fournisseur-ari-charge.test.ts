@@ -30,6 +30,7 @@ import type {
   LogementAvecFournisseur,
   AffecterFournisseurData,
   AffectationFournisseur,
+  DecisionDisjoncteurAffectation,
   EtatSyncFournisseur,
 } from "@/application/ports/fournisseur-repository";
 import type { ReservationRepository } from "@/application/ports/reservation-repository";
@@ -228,6 +229,10 @@ class FauxFournisseurRepository implements FournisseurRepository {
     _logementId: string,
     _etat: EtatSyncFournisseur,
   ): Promise<void> {}
+
+  async appliquerDisjoncteur(): Promise<DecisionDisjoncteurAffectation | null> {
+    return null;
+  }
 }
 
 class FauxReservationRepository implements ReservationRepository {
@@ -523,6 +528,9 @@ describe("Charge ARI >10 unités", () => {
         return null;
       },
       async enregistrerSync() {},
+      async appliquerDisjoncteur() {
+        return null;
+      },
     };
 
     const importer = new ImporterReservationsFournisseur(

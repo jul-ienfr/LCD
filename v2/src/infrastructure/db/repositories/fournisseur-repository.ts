@@ -3,11 +3,16 @@ import type {
   AffectationFournisseur,
   AffecterFournisseurData,
   ActivationFournisseur,
+  DecisionDisjoncteurAffectation,
   EtatSyncFournisseur,
   FournisseurRepository,
   LogementAvecFournisseur,
 } from "@/application/ports/fournisseur-repository";
 import type { CodeFournisseur } from "@/domain/fournisseur";
+import {
+  deciderDisjoncteur,
+  type EffetDisjoncteur,
+} from "@/domain/disjoncteur";
 import { ErreurMetier } from "@/domain/erreurs";
 import { db, dbAdmin, withTenant } from "../client";
 import {
@@ -33,6 +38,8 @@ function versAffectation(
     dernierStatut: row.dernierStatut,
     dernierMessage: row.dernierMessage,
     derniereEmpreinte: row.derniereEmpreinte,
+    echecsConsecutifs: row.echecsConsecutifs,
+    disjoncteurOuvertLe: row.disjoncteurOuvertLe,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -80,6 +87,8 @@ export class DrizzleFournisseurRepository implements FournisseurRepository {
         derniereSync: logementsFournisseurs.derniereSync,
         dernierStatut: logementsFournisseurs.dernierStatut,
         dernierMessage: logementsFournisseurs.dernierMessage,
+        echecsConsecutifs: logementsFournisseurs.echecsConsecutifs,
+        disjoncteurOuvertLe: logementsFournisseurs.disjoncteurOuvertLe,
       })
       .from(logements)
       .innerJoin(tenants, eq(tenants.id, logements.tenantId))
@@ -104,6 +113,8 @@ export class DrizzleFournisseurRepository implements FournisseurRepository {
       derniereSync: row.derniereSync,
       dernierStatut: row.dernierStatut,
       dernierMessage: row.dernierMessage,
+      echecsConsecutifs: row.echecsConsecutifs ?? 0,
+      disjoncteurOuvertLe: row.disjoncteurOuvertLe ?? null,
     }));
   }
 
@@ -219,7 +230,13 @@ export class DrizzleFournisseurRepository implements FournisseurRepository {
     }
     const [row] = await dbAdmin
       .update(logementsFournisseurs)
-      .set({ actif, updatedAt: new Date() })
+      .set({
+        actif,
+        // Reprise manuelle (FR-023) : le compteur du disjoncteur repart à
+        // zéro, sinon la prochaine erreur rouvrirait immédiatement.
+        ...(actif ? { echecsConsecutifs: 0, disjoncteurOuvertLe: null } : {}),
+        updatedAt: new Date(),
+      })
       .where(
         and(
           eq(logementsFournisseurs.tenantId, tenantId),
@@ -332,5 +349,73 @@ export class DrizzleFournisseurRepository implements FournisseurRepository {
           eq(logementsFournisseurs.logementId, logementId),
         ),
       );
+  }
+
+  async appliquerDisjoncteur(
+    tenantId: string,
+    logementId: string,
+    signal: { effet: EffetDisjoncteur; seuil: number },
+  ): Promise<DecisionDisjoncteurAffectation | null> {
+    if (!dbAdmin) return null;
+    return dbAdmin.transaction(async (tx) => {
+      const [affectation] = await tx
+        .select({
+          echecsConsecutifs: logementsFournisseurs.echecsConsecutifs,
+          actif: logementsFournisseurs.actif,
+          disjoncteurOuvertLe: logementsFournisseurs.disjoncteurOuvertLe,
+        })
+        .from(logementsFournisseurs)
+        .where(
+          and(
+            eq(logementsFournisseurs.tenantId, tenantId),
+            eq(logementsFournisseurs.logementId, logementId),
+          ),
+        )
+        .limit(1)
+        .for("update");
+      if (!affectation) return null;
+
+      const decision = deciderDisjoncteur({
+        echecsConsecutifs: affectation.echecsConsecutifs,
+        effet: signal.effet,
+        seuil: signal.seuil,
+      });
+      // Ouvrir = mettre en pause. Une affectation déjà en pause par un
+      // humain n'est ni rouverte ni re-signalée par le disjoncteur.
+      const ouvrir = decision.ouvrir && affectation.actif;
+      const fermer = decision.reinitialise && affectation.disjoncteurOuvertLe;
+      if (
+        !ouvrir &&
+        !fermer &&
+        decision.echecsConsecutifs === affectation.echecsConsecutifs
+      ) {
+        return {
+          ouvert: false,
+          echecsConsecutifs: affectation.echecsConsecutifs,
+        };
+      }
+
+      await tx
+        .update(logementsFournisseurs)
+        .set({
+          echecsConsecutifs: decision.echecsConsecutifs,
+          ...(ouvrir
+            ? { actif: false, disjoncteurOuvertLe: new Date() }
+            : fermer
+              ? { disjoncteurOuvertLe: null }
+              : {}),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(logementsFournisseurs.tenantId, tenantId),
+            eq(logementsFournisseurs.logementId, logementId),
+          ),
+        );
+      return {
+        ouvert: ouvrir,
+        echecsConsecutifs: decision.echecsConsecutifs,
+      };
+    });
   }
 }

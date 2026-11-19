@@ -5,6 +5,10 @@ import {
 } from "@/application/use-cases/synchroniser-fournisseur";
 import type { AffectationFournisseur } from "@/application/ports/fournisseur-repository";
 import {
+  cleAlerteDisjoncteur,
+  messageAlerteDisjoncteur,
+} from "@/domain/disjoncteur";
+import {
   creerFournisseur,
   fournisseurConfigure,
 } from "@/infrastructure/adapters/fournisseurs";
@@ -21,6 +25,7 @@ import { acquerirVerrouSysteme } from "@/infrastructure/db/verrou-systeme";
 import { jourParis } from "@/lib/date-paris";
 import { env } from "@/lib/env";
 import { logErreur, logInfo } from "@/lib/logger";
+import { notifierAlerte, ouvrirAlerte, resoudreAlerte } from "./alertes-exploitation";
 
 export interface DetailSyncFournisseur {
   tenantId: string;
@@ -72,6 +77,62 @@ async function parConcurrence<T>(
     },
   );
   await Promise.all(workers);
+}
+
+/**
+ * Alerte d'exploitation du disjoncteur (FR-023) : ouverture à la pause
+ * automatique, refermeture dès qu'une synchronisation réussit de nouveau
+ * (cas d'une reprise manuelle suivie d'un succès).
+ */
+async function appliquerAlertesDisjoncteur(
+  affectation: AffectationFournisseur,
+  resultat: {
+    statut: StatutSyncFournisseur | "erreur";
+    disjoncteurOuvert: boolean;
+    echecsConsecutifs: number | null;
+    message: string | null;
+  },
+): Promise<void> {
+  const cle = cleAlerteDisjoncteur(
+    affectation.tenantId,
+    affectation.logementId,
+  );
+  try {
+    if (resultat.disjoncteurOuvert) {
+      const alerte = await ouvrirAlerte({
+        cle,
+        source: "fournisseur-disjoncteur",
+        severite: "critique",
+        message: messageAlerteDisjoncteur({
+          logementNom: null,
+          fournisseurCode: affectation.fournisseurCode,
+          echecsConsecutifs: resultat.echecsConsecutifs ?? 0,
+          derniereErreur: resultat.message,
+        }),
+        runbook: "v2/MONITORING.md",
+        details: {
+          tenantId: affectation.tenantId,
+          logementId: affectation.logementId,
+          fournisseurCode: affectation.fournisseurCode,
+          echecsConsecutifs: resultat.echecsConsecutifs,
+        },
+      });
+      if (alerte) await notifierAlerte(alerte);
+      return;
+    }
+    if (
+      resultat.statut === "ok" ||
+      resultat.statut === "inchange" ||
+      resultat.statut === "lecture_seule"
+    ) {
+      await resoudreAlerte(cle);
+    }
+  } catch (erreur) {
+    logErreur("fournisseur.sync.alerte_disjoncteur", erreur, {
+      tenantId: affectation.tenantId,
+      logementId: affectation.logementId,
+    });
+  }
 }
 
 export async function executerCycleFournisseurs(
@@ -230,6 +291,7 @@ export async function executerCycleFournisseurs(
             horizonJours: env.FOURNISSEUR_SYNC_HORIZON_JOURS,
             joursPasse: env.FOURNISSEUR_SYNC_PAST_DAYS,
             force: options.force,
+            seuilDisjoncteur: env.FOURNISSEUR_DISJONCTEUR_SEUIL,
           });
           details.push({
             ...base,
@@ -239,16 +301,36 @@ export async function executerCycleFournisseurs(
             misAJour: resultat.import.misAJour,
             conflits: resultat.import.conflits,
           });
+          await appliquerAlertesDisjoncteur(affectation, {
+            statut: resultat.statut,
+            disjoncteurOuvert: resultat.disjoncteurOuvert ?? false,
+            echecsConsecutifs: resultat.echecsConsecutifs ?? null,
+            message: resultat.message,
+          });
         } catch (erreur) {
           logErreur("fournisseur.sync.logement", erreur);
+          const message =
+            erreur instanceof Error ? erreur.message : "Erreur inconnue.";
           details.push({
             ...base,
             statut: "erreur",
-            message:
-              erreur instanceof Error ? erreur.message : "Erreur inconnue.",
+            message,
             crees: 0,
             misAJour: 0,
             conflits: 0,
+          });
+          // Le cas d'usage a déjà appliqué le disjoncteur avant de relancer :
+          // on relit l'affectation pour savoir si la pause automatique a eu
+          // lieu, afin de ne pas laisser l'ouverture sans alerte (FR-023).
+          const apres = await fournisseurs
+            .trouverAffectation(affectation.tenantId, affectation.logementId)
+            .catch(() => null);
+          await appliquerAlertesDisjoncteur(affectation, {
+            statut: "erreur",
+            disjoncteurOuvert:
+              !apres?.actif && apres?.disjoncteurOuvertLe != null,
+            echecsConsecutifs: apres?.echecsConsecutifs ?? null,
+            message,
           });
         }
       },

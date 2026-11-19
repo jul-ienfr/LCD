@@ -5,6 +5,11 @@ import {
   tarifsDifferents,
 } from "@/domain/ari-diff";
 import { ajouterJours, dateIsoValide } from "@/domain/calendrier";
+import {
+  SEUIL_DISJONCTEUR_DEFAUT,
+  effetDisjoncteur,
+  type EffetDisjoncteur,
+} from "@/domain/disjoncteur";
 import { sejourValide } from "@/domain/planning";
 import { ErreurMetier } from "@/domain/erreurs";
 import type { CodeFournisseur } from "@/domain/fournisseur";
@@ -46,6 +51,8 @@ export interface SynchroniserFournisseurInput {
   cutoffJours?: number;
   bufferJours?: number;
   force?: boolean;
+  /** Seuil du disjoncteur (FR-023) ; défaut 5 échecs consécutifs. */
+  seuilDisjoncteur?: number;
 }
 
 export type StatutSyncFournisseur =
@@ -63,6 +70,10 @@ export interface ResultatSyncFournisseur {
   restrictions: number;
   import: ResultatImportReservationsFournisseur;
   empreinte: string;
+  /** Disjoncteur (FR-023) : l'affectation vient d'être mise en pause. */
+  disjoncteurOuvert?: boolean;
+  /** Compteur d'échecs consécutifs après application du disjoncteur. */
+  echecsConsecutifs?: number;
 }
 
 const importVide = (): ResultatImportReservationsFournisseur => ({
@@ -97,6 +108,25 @@ export class SynchroniserFournisseur {
     private readonly plans?: PlanTarifaireRepository,
     private readonly tenants?: TenantRepository,
   ) {}
+
+  /**
+   * Applique le disjoncteur (FR-023) après une synchronisation et renvoie
+   * la décision appliquée (null si l'affectation a disparu ou si la
+   * connexion owner est absente).
+   */
+  private async appliquerDisjoncteur(
+    input: SynchroniserFournisseurInput,
+    effet: EffetDisjoncteur,
+  ): Promise<{ ouvert: boolean; echecsConsecutifs: number } | null> {
+    return this.fournisseurs.appliquerDisjoncteur(
+      input.tenantId,
+      input.logementId,
+      {
+        effet,
+        seuil: input.seuilDisjoncteur ?? SEUIL_DISJONCTEUR_DEFAUT,
+      },
+    );
+  }
 
   async executer(
     input: SynchroniserFournisseurInput,
@@ -253,6 +283,10 @@ export class SynchroniserFournisseur {
         message,
         empreinte: null,
       });
+      // La lecture est en échec côté fournisseur (réseau/HTTP après
+      // retries) : c'est une défaillance transitoire, elle compte pour le
+      // disjoncteur (FR-023).
+      const disjoncteur = await this.appliquerDisjoncteur(input, "echec");
       return {
         statut: "partiel",
         message,
@@ -261,6 +295,8 @@ export class SynchroniserFournisseur {
         restrictions: 0,
         import: resultatImport,
         empreinte: "",
+        disjoncteurOuvert: disjoncteur?.ouvert ?? false,
+        echecsConsecutifs: disjoncteur?.echecsConsecutifs,
       };
     }
 
@@ -474,6 +510,7 @@ export class SynchroniserFournisseur {
         message: "Aucun changement ARI.",
         empreinte,
       });
+      const disjoncteur = await this.appliquerDisjoncteur(input, "succes");
       return {
         statut: "inchange",
         message: "Aucun changement ARI.",
@@ -482,6 +519,8 @@ export class SynchroniserFournisseur {
         restrictions: 0,
         import: resultatImport,
         empreinte,
+        disjoncteurOuvert: disjoncteur?.ouvert ?? false,
+        echecsConsecutifs: disjoncteur?.echecsConsecutifs,
       };
     }
 
@@ -676,6 +715,12 @@ export class SynchroniserFournisseur {
         message,
         empreinte: statut === "ok" ? empreinte : null,
       });
+      // Un « partiel » d'ici vient d'un mapping, d'un conflit ou d'une
+      // capacité : le rejouer ne le résoudrait pas, donc effet neutre.
+      const disjoncteur = await this.appliquerDisjoncteur(
+        input,
+        effetDisjoncteur(statut),
+      );
       return {
         statut,
         message,
@@ -684,6 +729,8 @@ export class SynchroniserFournisseur {
         restrictions: restrictionsPoussees,
         import: resultatImport,
         empreinte,
+        disjoncteurOuvert: disjoncteur?.ouvert ?? false,
+        echecsConsecutifs: disjoncteur?.echecsConsecutifs,
       };
     } catch (erreur) {
       const message = messageErreur(erreur);
@@ -692,6 +739,10 @@ export class SynchroniserFournisseur {
         message,
         empreinte: null,
       });
+      // L'échec de push est une défaillance fournisseur : il compte pour le
+      // disjoncteur. Une erreur de comptage ne doit pas masquer l'erreur
+      // d'origine, qui reste celle remontée à l'appelant.
+      await this.appliquerDisjoncteur(input, "echec").catch(() => null);
       throw erreur;
     }
   }

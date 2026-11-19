@@ -109,4 +109,37 @@ describe("adapter Stripe — réservation directe", () => {
     ).rejects.toThrow("invalide");
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("rejoue un 429 avec la même clé d'idempotence (FR-022)", async () => {
+    fetchMock
+      .mockResolvedValueOnce(reponseJson({ error: "rate" }, false, 429))
+      .mockResolvedValueOnce(
+        reponseJson({ id: "re_2", amount: 1_000, status: "succeeded" }),
+      );
+
+    const resultat = await creerPaiementStripe().rembourser?.("pi_429", 1_000);
+    expect(resultat?.id).toBe("re_2");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const cles = fetchMock.mock.calls.map((appel) => {
+      const init = appel[1] as RequestInit;
+      return new Headers(init.headers).get("Idempotency-Key");
+    });
+    expect(cles[0]).toBeTruthy();
+    expect(cles[1]).toBe(cles[0]);
+  });
+
+  it("rejoue un 500 puis relance l'erreur après épuisement", async () => {
+    fetchMock.mockResolvedValue(reponseJson({ error: "boom" }, false, 500));
+    await expect(
+      creerPaiementStripe().creerSession({
+        ref: "echeance-500",
+        montantCentimes: 10_000,
+        devise: "EUR",
+        description: "Solde",
+        successUrl: "https://lcd.test/ok",
+        cancelUrl: "https://lcd.test/ko",
+      }),
+    ).rejects.toThrow("Stripe 500");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });

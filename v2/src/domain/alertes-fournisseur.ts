@@ -23,8 +23,10 @@ type LogementAvecSante = LogementAvecFournisseur & {
 
 /**
  * Transforme la santé fournisseur en alertes lisibles.
- * Règles : erreur = danger, jamais synchronisé = alerte, dernier pull > 15 min
- * = alerte. Les états `ok` et `partiel` ne produisent pas de notification.
+ * Règles : pause automatique du disjoncteur = danger (reprise manuelle
+ * requise, FR-023), erreur = danger, jamais synchronisé = alerte, dernier
+ * pull > 15 min = alerte. Les états `ok` et `partiel` ne produisent pas de
+ * notification.
  */
 export function construireAlertesFournisseurs(
   logements: readonly LogementAvecSante[],
@@ -32,16 +34,29 @@ export function construireAlertesFournisseurs(
   const alertes: AlerteFournisseur[] = [];
 
   for (const logement of logements) {
-    if (!logement.sante || !logement.fournisseurCode) continue;
-    const { etat, ageMinutes } = logement.sante;
+    if (!logement.fournisseurCode) continue;
     const base = {
       id: `${logement.tenantId}:${logement.logementId}`,
       tenantNom: logement.tenantNom,
       logementNom: logement.logementNom,
       logementId: logement.logementId,
       fournisseurCode: logement.fournisseurCode,
-      ageMinutes,
+      ageMinutes: logement.sante?.ageMinutes ?? null,
     };
+
+    // Une pause automatique sort la ligne des affectations actives : la
+    // santé n'est plus calculée, seul le disjoncteur explique l'état.
+    if (logement.disjoncteurOuvertLe) {
+      alertes.push({
+        ...base,
+        severite: "danger",
+        message:
+          `Mise en pause automatique (disjoncteur) après ${logement.echecsConsecutifs ?? 0} échecs consécutifs — reprise manuelle requise.`,
+      });
+      continue;
+    }
+    if (!logement.sante) continue;
+    const { etat, ageMinutes } = logement.sante;
 
     if (etat === "erreur") {
       alertes.push({
