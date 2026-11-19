@@ -15,6 +15,26 @@
         ]
       : [],
   );
+
+  const dateHeure = new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+
+  const libelleEtat: Record<string, string> = {
+    ok: "OK",
+    retard: "En retard",
+    erreur: "En échec",
+    jamais: "Jamais exécutée",
+  };
+
+  function ageTexte(minutes: number | null): string {
+    if (minutes === null) return "—";
+    if (minutes < 60) return `il y a ${minutes} min`;
+    const heures = Math.floor(minutes / 60);
+    if (heures < 48) return `il y a ${heures} h`;
+    return `il y a ${Math.floor(heures / 24)} j`;
+  }
 </script>
 
 <svelte:head>
@@ -35,6 +55,143 @@
       </p>
     </div>
   </header>
+
+  <section class="space-y-3" aria-labelledby="alertes-titre">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 id="alertes-titre" class="text-lg font-semibold">
+        Alertes d’exploitation
+        {#if data.alertes.length > 0}
+          <span class="ui-badge ui-badge--accent ml-2">
+            {data.alertes.length}
+          </span>
+        {/if}
+      </h2>
+      {#if !data.canalAlerteConfigure}
+        <p class="text-xs text-encre-faine">
+          Canal email non configuré (<code>ALERTE_EMAIL</code>) : les alertes
+          restent visibles ici mais ne sont pas notifiées.
+        </p>
+      {/if}
+    </div>
+    {#if data.alertes.length === 0}
+      <p class="ui-carte text-sm text-encre-douce">
+        Aucune alerte ouverte. Les tâches planifiées, le disque, le
+        certificat et la box sont surveillés automatiquement.
+      </p>
+    {:else}
+      <ul class="space-y-2">
+        {#each data.alertes as alerte (alerte.id)}
+          <li
+            class="ui-carte flex flex-wrap items-start justify-between gap-3"
+            class:ui-alerte--danger={alerte.severite === "critique"}
+          >
+            <div class="space-y-1">
+              <p class="font-medium">
+                <span
+                  class="ui-badge {alerte.severite === "critique"
+                    ? "ui-badge--danger"
+                    : ""}"
+                >
+                  {alerte.severite}
+                </span>
+                {alerte.message}
+              </p>
+              <p class="text-xs text-encre-faine">
+                {alerte.source} · ouverte le
+                {dateHeure.format(new Date(alerte.ouverteLe))}
+                {#if alerte.runbook}
+                  · runbook : {alerte.runbook}
+                {/if}
+              </p>
+            </div>
+            <form method="POST" action="?/acquitter" class="shrink-0">
+              <input type="hidden" name="cle" value={alerte.cle} />
+              <button class="ui-bouton ui-bouton--discret" type="submit">
+                Acquitter
+              </button>
+            </form>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </section>
+
+  <section class="space-y-3" aria-labelledby="taches-titre">
+    <h2 id="taches-titre" class="text-lg font-semibold">
+      Tâches planifiées
+    </h2>
+    <p class="text-sm text-encre-douce">
+      Chaque tâche est suivie par son journal d’exécution. Une absence de plus
+      de 2× la cadence ouvre une alerte.
+    </p>
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div role="region" tabindex="0" aria-label="Tableau des tâches planifiées" class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+      <table class="w-full min-w-[720px] text-left text-sm">
+        <thead class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine">
+          <tr>
+            <th class="p-4">Tâche</th>
+            <th class="p-4">État</th>
+            <th class="p-4">Dernière exécution</th>
+            <th class="p-4 text-right">Cadence</th>
+            <th class="p-4 text-right">Seuil d’absence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each data.taches as tache (tache.nom)}
+            <tr class="border-b border-bordure last:border-0">
+              <td class="p-4">
+                <span class="font-medium">{tache.libelle}</span>
+                {#if tache.critique}
+                  <span class="ui-badge ml-2">critique</span>
+                {/if}
+                <br />
+                <span class="text-xs text-encre-faine">{tache.nom}</span>
+              </td>
+              <td class="p-4">
+                <span
+                  class="ui-badge {tache.etat === "erreur"
+                    ? "ui-badge--danger"
+                    : tache.etat === "ok"
+                      ? "ui-badge--accent"
+                      : ""}"
+                >
+                  {libelleEtat[tache.etat] ?? tache.etat}
+                </span>
+              </td>
+              <td class="p-4">
+                {#if tache.derniereExecution}
+                  {ageTexte(tache.ageMinutes)}
+                  <br />
+                  <span class="text-xs text-encre-faine">
+                    {dateHeure.format(new Date(tache.derniereExecution))}
+                    {#if tache.dernierStatut}
+                      · {tache.dernierStatut}
+                    {/if}
+                  </span>
+                {:else}
+                  <span class="text-encre-faine">Aucune</span>
+                {/if}
+              </td>
+              <td class="p-4 text-right tabular-nums">
+                {tache.cadenceMinutes >= 1440
+                  ? `${Math.round(tache.cadenceMinutes / 1440)} j`
+                  : tache.cadenceMinutes >= 60
+                    ? `${Math.round(tache.cadenceMinutes / 60)} h`
+                    : `${tache.cadenceMinutes} min`}
+              </td>
+              <td class="p-4 text-right tabular-nums">
+                {tache.seuilMinutes >= 1440
+                  ? `${Math.round(tache.seuilMinutes / 1440)} j`
+                  : tache.seuilMinutes >= 60
+                    ? `${Math.round(tache.seuilMinutes / 60)} h`
+                    : `${tache.seuilMinutes} min`}
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  </section>
 
   {#if !data.situation}
     <p class="ui-alerte ui-alerte--danger">

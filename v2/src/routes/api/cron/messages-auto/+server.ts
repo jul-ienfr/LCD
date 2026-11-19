@@ -1,8 +1,9 @@
 import { json } from "@sveltejs/kit";
 import { cronSecretValide } from "@/lib/cron-secret";
 import { env } from "@/lib/env";
+import { cronAvecJournal } from "@/lib/server/cron-journal";
 import { executerPlanificationMessages } from "@/lib/server/planificateur-messages";
-import type { RequestHandler } from "./$types";
+import type { RequestHandler } from "@sveltejs/kit";
 
 /**
  * Prépare les brouillons de messages de séjour dus aujourd'hui
@@ -39,5 +40,13 @@ async function executer(request: Request, url: URL) {
   return json({ ok: true, date: date ?? "aujourd'hui", simulation, ...resultat });
 }
 
-export const GET: RequestHandler = async ({ request, url }) => executer(request, url);
-export const POST: RequestHandler = async ({ request, url }) => executer(request, url);
+export const GET: RequestHandler = cronAvecJournal(
+  "messages-auto",
+  ({ request, url }) => executer(request, url),
+  { statutsIgnores: [503] },
+);
+export const POST: RequestHandler = cronAvecJournal(
+  "messages-auto",
+  ({ request, url }) => executer(request, url),
+  { statutsIgnores: [503] },
+);

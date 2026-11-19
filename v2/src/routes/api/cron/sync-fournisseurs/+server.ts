@@ -2,12 +2,13 @@ import { json } from "@sveltejs/kit";
 import { codeFournisseurValide } from "@/domain/fournisseur";
 import { cronSecretValide } from "@/lib/cron-secret";
 import { env } from "@/lib/env";
+import { cronAvecJournal } from "@/lib/server/cron-journal";
 import { traiterDemandesSync } from "@/lib/server/fournisseur-outbox";
 import { executerCycleFournisseurs } from "@/lib/server/fournisseur-sync";
 import { logErreur } from "@/lib/logger";
-import type { RequestHandler } from "./$types";
+import type { RequestHandler } from "@sveltejs/kit";
 
-export const POST: RequestHandler = async ({ request, url }) => {
+const handler: RequestHandler = async ({ request, url }) => {
   if (!env.CRON_SECRET) {
     return json(
       { ok: false, erreur: "CRON_SECRET non configuré." },
@@ -48,5 +49,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 };
 
 // Les planificateurs externes utilisent GET ou POST : même handler, même
-// vérification du secret.
+// vérification du secret. Le 503 « owner indisponible » est une panne
+// d'infrastructure : il reste une erreur de tâche.
+export const POST = cronAvecJournal("sync-fournisseurs", handler);
 export const GET = POST;

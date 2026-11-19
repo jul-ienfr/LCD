@@ -1,4 +1,4 @@
-import type { PageServerLoad } from "./$types";
+import type { Actions, PageServerLoad } from "./$types";
 import {
   lireVersionPubliee,
   listerVersionsApparence,
@@ -10,22 +10,53 @@ import {
   lireSanteDisque,
   lireSanteTls,
 } from "@/lib/server/sante-systeme";
+import {
+  acquitterAlerte,
+  canalAlerteConfigure,
+  listerAlertes,
+} from "@/lib/server/alertes-exploitation";
+import { santeDesTaches } from "@/lib/server/journal-execution";
+import { logErreur } from "@/lib/logger";
+import { redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireSuperAdmin(event);
-  const [version, versions, situation, disque, tls, box] = await Promise.all([
-    lireVersionPubliee(),
-    listerVersionsApparence(5),
-    new DrizzleSupervisionRepository().situation(),
-    lireSanteDisque(),
-    lireSanteTls(),
-    lireSanteBox(),
-  ]);
+  const [version, versions, situation, disque, tls, box, alertes, taches] =
+    await Promise.all([
+      lireVersionPubliee(),
+      listerVersionsApparence(5),
+      new DrizzleSupervisionRepository().situation(),
+      lireSanteDisque(),
+      lireSanteTls(),
+      lireSanteBox(),
+      listerAlertes({ statut: "ouverte", limite: 100 }).catch((erreur) => {
+        logErreur("supervision.alertes", erreur);
+        return [];
+      }),
+      santeDesTaches().catch((erreur) => {
+        logErreur("supervision.taches", erreur);
+        return [];
+      }),
+    ]);
 
   return {
     email: session.user.email,
     situation,
     sante: { disque, tls, box },
+    alertes,
+    canalAlerteConfigure: canalAlerteConfigure(),
+    taches: taches.map((tache) => ({
+      nom: tache.nom,
+      libelle: tache.libelle,
+      cadenceMinutes: tache.cadenceMinutes,
+      critique: tache.critique,
+      runbook: tache.runbook,
+      etat: tache.sante.etat,
+      ageMinutes: tache.sante.ageMinutes,
+      seuilMinutes: tache.sante.seuilMinutes,
+      derniereExecution: tache.derniereExecution?.toISOString() ?? null,
+      dernierStatut: tache.dernierStatut,
+    })),
     version: version
       ? { version: version.version, publieLe: version.publieLe }
       : null,
@@ -37,3 +68,19 @@ export const load: PageServerLoad = async (event) => {
     })),
   };
 };
+
+export const actions = {
+  acquitter: async (event) => {
+    requireSuperAdmin(event);
+    const donnees = await event.request.formData();
+    const cle = String(donnees.get("cle") ?? "");
+    if (cle) {
+      try {
+        await acquitterAlerte(cle);
+      } catch (erreur) {
+        logErreur("supervision.acquitter", erreur, { cle });
+      }
+    }
+    redirect(303, "/supervision?acquittee=1");
+  },
+} satisfies Actions;

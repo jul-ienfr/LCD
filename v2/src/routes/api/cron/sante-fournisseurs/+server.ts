@@ -2,11 +2,12 @@ import { json } from "@sveltejs/kit";
 import { DrizzleFournisseurRepository } from "@/infrastructure/db/repositories/fournisseur-repository";
 import { cronSecretValide } from "@/lib/cron-secret";
 import { env } from "@/lib/env";
+import { cronAvecJournal } from "@/lib/server/cron-journal";
 import { santeLogementFournisseur } from "@/lib/server/fournisseur-sante";
 import { logErreur } from "@/lib/logger";
-import type { RequestHandler } from "./$types";
+import type { RequestHandler } from "@sveltejs/kit";
 
-export const GET: RequestHandler = async ({ request }) => {
+const handler: RequestHandler = async ({ request }) => {
   if (!env.CRON_SECRET) {
     return json(
       { ok: false, erreur: "CRON_SECRET non configuré." },
@@ -75,5 +76,11 @@ export const GET: RequestHandler = async ({ request }) => {
 };
 
 // Les planificateurs externes utilisent GET ou POST : même handler, même
-// vérification du secret.
+// vérification du secret. Une sonde qui rapporte un fournisseur en panne a
+// fait son travail : le 503 est un résultat normal, pas un échec de la
+// tâche (c'est le fournisseur qui est en panne, pas le cron).
+export const GET = cronAvecJournal("sante-fournisseurs", handler, {
+  statutsSucces: [503],
+  statutsIgnores: [503],
+});
 export const POST = GET;

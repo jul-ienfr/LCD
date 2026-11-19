@@ -15,8 +15,9 @@ import {
   messageRelancePaiement,
 } from "@/lib/server/email-reservation";
 import { logErreur } from "@/lib/logger";
+import { cronAvecJournal } from "@/lib/server/cron-journal";
 import { executerRappelsPaiement } from "@/lib/server/planificateur-paiement";
-import type { RequestHandler } from "./$types";
+import type { RequestHandler } from "@sveltejs/kit";
 
 /**
  * Relances de séjour : échéances de paiement J-30 et, si
@@ -125,5 +126,13 @@ async function executer(request: Request, url: URL) {
   }
 }
 
-export const GET: RequestHandler = ({ request, url }) => executer(request, url);
-export const POST: RequestHandler = ({ request, url }) => executer(request, url);
+export const GET: RequestHandler = cronAvecJournal(
+  "relances-sejour",
+  ({ request, url }) => executer(request, url),
+  { statutsIgnores: [503] },
+);
+export const POST: RequestHandler = cronAvecJournal(
+  "relances-sejour",
+  ({ request, url }) => executer(request, url),
+  { statutsIgnores: [503] },
+);

@@ -26,11 +26,12 @@ import { cronSecretValide } from "@/lib/cron-secret";
 import { env } from "@/lib/env";
 import { jourParis } from "@/lib/date-paris";
 import { logErreur, logInfo } from "@/lib/logger";
+import { cronAvecJournal } from "@/lib/server/cron-journal";
 import {
   proprietairesDistincts,
   selectionnerRelevesAGenerer,
 } from "@/application/use-cases/planifier-releves";
-import type { RequestHandler } from "./$types";
+import type { RequestHandler } from "@sveltejs/kit";
 
 async function executer(request: Request, url: URL) {
   if (!env.CRON_SECRET) {
@@ -156,5 +157,13 @@ async function executer(request: Request, url: URL) {
   }
 }
 
-export const GET: RequestHandler = ({ request, url }) => executer(request, url);
-export const POST: RequestHandler = ({ request, url }) => executer(request, url);
+export const GET: RequestHandler = cronAvecJournal(
+  "releves",
+  ({ request, url }) => executer(request, url),
+  { statutsIgnores: [503] },
+);
+export const POST: RequestHandler = cronAvecJournal(
+  "releves",
+  ({ request, url }) => executer(request, url),
+  { statutsIgnores: [503] },
+);

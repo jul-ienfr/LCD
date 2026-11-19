@@ -118,6 +118,30 @@ const schema = z.object({
   // Tâches planifiées (cron OTA, backups déclenchés par HTTP).
   CRON_SECRET: z.string().optional(),
 
+  // Canal d'alerte d'exploitation (spec 006, T-11) : email SMTP existant.
+  // Vide = pas de notification sortante ; l'alerte reste dans la table et
+  // /supervision la montre, et FR-012 la signale comme brique manquante.
+  ALERTE_EMAIL: z.string().default(""),
+  // Délai anti-tempête entre deux notifications d'une même alerte.
+  ALERTE_NOTIFICATION_DELAI_MINUTES: z.coerce
+    .number()
+    .int()
+    .min(5)
+    .max(10_080)
+    .default(360),
+  // Sonde d'absence des tâches planifiées : activée par défaut, cadence
+  // bornée. Elle ne notifie que si ALERTE_EMAIL est configuré.
+  VERIF_TACHES_ENABLED: z
+    .string()
+    .default("true")
+    .transform((v) => v === "true" || v === "1"),
+  VERIF_TACHES_INTERVALLE_MINUTES: z.coerce
+    .number()
+    .int()
+    .min(5)
+    .max(1_440)
+    .default(30),
+
   // Synchronisation ICS automatique. Le planificateur in-process nécessite
   // ICS_SCHEDULER_ENABLED=true sur un serveur persistant ; il reste désactivé
   // sur les plateformes serverless où il ne survivrait pas.

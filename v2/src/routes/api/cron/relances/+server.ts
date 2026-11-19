@@ -11,10 +11,11 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { cronSecretValide } from "@/lib/cron-secret";
 import { jourParis } from "@/lib/date-paris";
 import { env } from "@/lib/env";
+import { cronAvecJournal } from "@/lib/server/cron-journal";
 import { logErreur } from "@/lib/logger";
-import type { RequestHandler } from "./$types";
+import type { RequestHandler } from "@sveltejs/kit";
 
-export const POST: RequestHandler = async ({ request }) => {
+const handler: RequestHandler = async ({ request }) => {
   if (!env.CRON_SECRET) {
     return json({ ok: false, erreur: "CRON_SECRET non configuré." }, { status: 503 });
   }
@@ -66,3 +67,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
   return json({ ok: true, jour, ...total, echecsTenants });
 };
+
+// Journal d'exécution (spec 006, FR-001). Module désactivé (503) = ignoré.
+export const POST = cronAvecJournal("relances", handler, {
+  statutsIgnores: [503],
+});
+export const GET = POST;

@@ -1,6 +1,6 @@
 import { building } from "$app/env";
 import type { RequestEvent } from "@sveltejs/kit";
-import type { Handle } from "@sveltejs/kit/hooks";
+import type { Handle, HandleServerError } from "@sveltejs/kit/hooks";
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { auth } from "@/lib/server/auth";
 import { lireApercu } from "@/lib/server/apercu";
@@ -11,6 +11,9 @@ import {
 } from "@/lib/server/env-production";
 import { demarrerPlanificateurFournisseurs } from "@/lib/server/fournisseur-scheduler";
 import { demarrerPlanificateurIcs } from "@/lib/server/ics-scheduler";
+import { demarrerPlanificateurExploitation } from "@/lib/server/planificateur-exploitation";
+import { genererRequestId } from "@/lib/server/logger";
+import { capturerErreur } from "@/lib/telemetry";
 import { langueRequete } from "@/lib/server/langue";
 import { tenantEnLectureSeule } from "@/lib/server/lecture-seule";
 import { doitBloquerEcriture } from "@/domain/lecture-seule";
@@ -81,9 +84,18 @@ export const init = async () => {
   }
   demarrerPlanificateurIcs();
   demarrerPlanificateurFournisseurs();
+  demarrerPlanificateurExploitation();
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
+  // Identifiant de requête (FR-021) : posé sur chaque requête serveur,
+  // renvoyé en en-tête, journalisé avec chaque erreur et affiché sur la
+  // page d'erreur. Un client peut le citer pour retrouver l'incident.
+  const requestId =
+    event.request.headers.get("x-request-id")?.slice(0, 64) ||
+    genererRequestId();
+  event.locals.requestId = requestId;
+
   if (!building && !estRessource(event.url.pathname)) {
     const session = await auth.api.getSession({
       headers: event.request.headers,
@@ -156,6 +168,8 @@ export const handle: Handle = async ({ event, resolve }) => {
   for (const [cle, valeur] of Object.entries(entetesSecurite(event.url.pathname))) {
     entetes.set(cle, valeur);
   }
+  // L'identifiant de requête suit la réponse : support, journaux, traces.
+  entetes.set("x-request-id", requestId);
   if (cheminWidget(event.url.pathname)) {
     // Le widget doit pouvoir être embarqué sur un site externe.
     entetes.set(
@@ -169,4 +183,48 @@ export const handle: Handle = async ({ event, resolve }) => {
     statusText: reponse.statusText,
     headers: entetes,
   });
+};
+
+/**
+ * Erreurs de page (FR-020) : toute erreur inattendue est journalisée avec
+ * l'identifiant de requête, capturée par Sentry si configuré, et la page
+ * d'erreur reçoit un message court + l'identifiant — jamais une trace.
+ */
+export const handleError: HandleServerError = ({ kind, error, event }) => {
+  const requestId = event.locals.requestId ?? genererRequestId();
+  const statut =
+    kind === "framework" || kind === "validation"
+      ? (error as { status: number }).status
+      : kind === "app"
+        ? ((error as { status?: number }).status ?? 500)
+        : 500;
+  const contexte = {
+    requestId,
+    chemin: event.url.pathname,
+    methode: event.request.method,
+    statut,
+  };
+  if (kind === "unknown" || statut >= 500) {
+    console.error(
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        niveau: "error",
+        message: "erreur.page",
+        ...contexte,
+        erreur:
+          error instanceof Error
+            ? { nom: error.name, message: error.message, stack: error.stack }
+            : { valeur: String(error) },
+      }),
+    );
+    void capturerErreur("erreur.page", error, contexte);
+  }
+  if (kind === "app" || kind === "framework") {
+    return { ...(error as Record<string, unknown>), requestId };
+  }
+  return {
+    status: 500,
+    message: "Une erreur inattendue est survenue. Elle a été enregistrée.",
+    requestId,
+  };
 };

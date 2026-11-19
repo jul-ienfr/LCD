@@ -1,8 +1,9 @@
 import { json } from "@sveltejs/kit";
 import { cronSecretValide } from "@/lib/cron-secret";
 import { env } from "@/lib/env";
+import { cronAvecJournal } from "@/lib/server/cron-journal";
 import { executerImportPricing } from "@/lib/server/planificateur-pricing";
-import type { RequestHandler } from "./$types";
+import type { RequestHandler } from "@sveltejs/kit";
 
 /**
  * Importe les recommandations de prix de tous les logements actifs.
@@ -49,5 +50,13 @@ async function executer(request: Request, url: URL) {
   return json({ ok: true, simulation, ...resultat });
 }
 
-export const GET: RequestHandler = async ({ request, url }) => executer(request, url);
-export const POST: RequestHandler = async ({ request, url }) => executer(request, url);
+export const GET: RequestHandler = cronAvecJournal(
+  "pricing",
+  ({ request, url }) => executer(request, url),
+  { statutsIgnores: [503] },
+);
+export const POST: RequestHandler = cronAvecJournal(
+  "pricing",
+  ({ request, url }) => executer(request, url),
+  { statutsIgnores: [503] },
+);

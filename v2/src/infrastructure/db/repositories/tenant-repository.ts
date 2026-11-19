@@ -99,4 +99,26 @@ export class DrizzleTenantRepository implements TenantRepository {
       return row ? versDomaine(row) : null;
     });
   }
+
+  /** Flags de modules par tenant (spec 006, T011). */
+  async lireFlags(
+    tenantId: string,
+  ): Promise<Record<string, boolean> | null> {
+    const [row] = await db
+      .select({ flags: tenants.flags })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .limit(1);
+    return row?.flags ?? null;
+  }
+
+  async ecrireFlags(
+    tenantId: string,
+    flags: Record<string, boolean>,
+  ): Promise<void> {
+    await db
+      .update(tenants)
+      .set({ flags, updatedAt: new Date() })
+      .where(eq(tenants.id, tenantId));
+  }
 }

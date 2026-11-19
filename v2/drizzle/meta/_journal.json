@@ -736,6 +736,13 @@
       "when": 1795465600000,
       "tag": "0104_migration_v1",
       "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1795552000000,
+      "tag": "0105_exploitation_autonome",
+      "breakpoints": true
     }
   ]
 }

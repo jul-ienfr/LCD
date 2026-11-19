@@ -5,9 +5,10 @@ import { DrizzleMemoireRepository } from "@/infrastructure/db/repositories/memoi
 import { cronSecretValide } from "@/lib/cron-secret";
 import { env } from "@/lib/env";
 import { logErreur } from "@/lib/logger";
-import type { RequestHandler } from "./$types";
+import { cronAvecJournal } from "@/lib/server/cron-journal";
+import type { RequestHandler } from "@sveltejs/kit";
 
-export const POST: RequestHandler = async ({ request }) => {
+const handler: RequestHandler = async ({ request }) => {
   if (!env.CRON_SECRET) {
     return json({ ok: false, erreur: "CRON_SECRET non configuré." }, { status: 503 });
   }
@@ -28,3 +29,6 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({ ok: false, erreur: "Erreur pendant la purge." }, { status: 500 });
   }
 };
+
+// Journal d'exécution (spec 006, FR-001).
+export const POST = cronAvecJournal("memoire", handler);

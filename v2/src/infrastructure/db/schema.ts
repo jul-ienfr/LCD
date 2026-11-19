@@ -40,6 +40,9 @@ export const tenants = pgTable(
       withTimezone: true,
     }),
     lectureSeule: boolean("lecture_seule").notNull().default(false),
+    // Flags de modules par tenant (spec 006, T011) : lus par
+    // `feature-flags.ts`, modifiés par le super-admin sans redéploiement.
+    flags: jsonb("flags").$type<Record<string, boolean>>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -3260,6 +3263,72 @@ export const suiviEvenements = pgTable(
   ],
 );
 
+// Journal d'exécution des tâches planifiées (spec 006, FR-001). Une ligne par
+// exécution, y compris les échecs : c'est la source du contrôle d'absence
+// (2× la cadence, FR-002) et de la vue /supervision. Table plateforme : les
+// tâches sont globales, pas par tenant.
+export const executionsTaches = pgTable(
+  "executions_taches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tache: text("tache").notNull(),
+    declencheur: text("declencheur").notNull().default("cron"),
+    debut: timestamp("debut", { withTimezone: true }).notNull().defaultNow(),
+    fin: timestamp("fin", { withTimezone: true }),
+    statut: text("statut").notNull().default("en_cours"),
+    compteurs: jsonb("compteurs")
+      .$type<Record<string, number>>()
+      .notNull()
+      .default({}),
+    erreur: text("erreur"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("executions_taches_tache_idx").on(t.tache, t.debut),
+    index("executions_taches_debut_idx").on(t.debut),
+  ],
+);
+
+// Alertes d'exploitation (spec 006, FR-003). Une alerte par incident (clé
+// stable), acquittable ; la notification email est anti-tempête via
+// `derniere_notification`. Table plateforme : l'exploitation n'est pas
+// multi-tenant.
+export const alertesExploitation = pgTable(
+  "alertes_exploitation",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    cle: text("cle").notNull(),
+    source: text("source").notNull(),
+    severite: text("severite").notNull().default("avertissement"),
+    message: text("message").notNull(),
+    statut: text("statut").notNull().default("ouverte"),
+    runbook: text("runbook"),
+    details: jsonb("details")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    ouverteLe: timestamp("ouverte_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    derniereNotification: timestamp("derniere_notification", {
+      withTimezone: true,
+    }),
+    derniereNotificationErreur: text("derniere_notification_erreur"),
+    acquitteeLe: timestamp("acquittee_le", { withTimezone: true }),
+    resolueLe: timestamp("resolue_le", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("alertes_exploitation_cle_uq").on(t.cle),
+    index("alertes_exploitation_statut_idx").on(t.statut, t.ouverteLe),
+  ],
+);
+
 // Journal de correspondance V1 → V2 (spec 005, US3). Une ligne par
 // enregistrement source traité ; la clé primaire rend l'import idempotent et
 // interdit deux écritures concurrentes sur la même correspondance.
@@ -3288,6 +3357,11 @@ export const migrationV1 = pgTable(
 );
 
 export type MigrationV1Row = typeof migrationV1.$inferSelect;
+
+export type ExecutionTacheRow = typeof executionsTaches.$inferSelect;
+export type NewExecutionTacheRow = typeof executionsTaches.$inferInsert;
+export type AlerteExploitationRow = typeof alertesExploitation.$inferSelect;
+export type NewAlerteExploitationRow = typeof alertesExploitation.$inferInsert;
 
 export type SuiviConfigurationRow = typeof suiviConfiguration.$inferSelect;
 export type NewSuiviConfigurationRow =
