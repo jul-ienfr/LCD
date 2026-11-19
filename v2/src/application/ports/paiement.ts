@@ -19,6 +19,8 @@ export interface PaiementSession {
 
 export interface EvenementPaiementReussi {
   type: "paiement_reussi";
+  /** Identifiant Stripe de l'événement (`evt_...`), support de la trace FR-024. */
+  evenementId: string;
   sessionId: string;
   montantCentimes: Centimes;
   devise: "EUR";
@@ -39,11 +41,15 @@ export interface LitigeStripe {
 
 export interface EvenementLitige {
   type: "litige";
+  /** Identifiant Stripe de l'événement (`evt_...`), support de la trace FR-024. */
+  evenementId: string;
   litige: LitigeStripe;
 }
 
 export interface EvenementPaiementAutre {
   type: "autre";
+  /** Identifiant Stripe de l'événement (`evt_...`), vide si absent du payload. */
+  evenementId: string;
   sessionId: string;
   montantCentimes: Centimes;
   devise: "EUR";

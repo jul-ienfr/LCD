@@ -750,6 +750,13 @@
       "when": 1795638400000,
       "tag": "0106_fournisseur_disjoncteur",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1795724800000,
+      "tag": "0107_evenements_stripe",
+      "breakpoints": true
     }
   ]
 }

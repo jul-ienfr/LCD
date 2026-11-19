@@ -82,6 +82,8 @@ interface ReponseRemboursement {
 }
 
 interface EvenementStripe {
+  /** Identifiant de l'événement (`evt_...`) : clé de la trace FR-024. */
+  id?: string;
   type?: string;
   data?: { object?: ReponseSessionStripe & ReponseLitige };
 }
@@ -409,6 +411,7 @@ export function creerPaiementStripe(): Paiement {
 
       const evenement = JSON.parse(payload) as EvenementStripe;
       const session = evenement.data?.object;
+      const evenementId = evenement.id?.trim() ?? "";
       if (evenement.type?.startsWith("charge.dispute.")) {
         if (!session?.id || typeof session.amount !== "number") {
           throw new Error("Litige Stripe incomplet.");
@@ -426,6 +429,7 @@ export function creerPaiementStripe(): Paiement {
         }
         return {
           type: "litige",
+          evenementId,
           litige: composerLitigeStripe(session, metadata),
         };
       }
@@ -435,6 +439,7 @@ export function creerPaiementStripe(): Paiement {
       ) {
         return {
           type: "autre",
+          evenementId,
           sessionId: session?.id ?? "",
           montantCentimes: 0,
           devise: "EUR",
@@ -448,6 +453,7 @@ export function creerPaiementStripe(): Paiement {
 
       return {
         type: "paiement_reussi",
+        evenementId,
         sessionId: session.id,
         montantCentimes: session.amount_total,
         devise: "EUR",

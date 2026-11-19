@@ -18,6 +18,10 @@ import {
   verifierBriquesSupervision,
 } from "@/lib/server/alertes-exploitation";
 import { cronAvecJournal } from "@/lib/server/cron-journal";
+import {
+  purgerEvenementsStripe,
+  verifierEchecsEvenementsStripe,
+} from "@/lib/server/evenements-stripe";
 import { purgerJournalExecutions } from "@/lib/server/journal-execution";
 import type { RequestHandler } from "@sveltejs/kit";
 
@@ -33,16 +37,20 @@ const handler: RequestHandler = async ({ request }) => {
   }
 
   try {
-    const [controle, briques] = await Promise.all([
+    const [controle, briques, stripe] = await Promise.all([
       verifierAbsencesTaches(),
       verifierBriquesSupervision(),
+      verifierEchecsEvenementsStripe(),
     ]);
     const purges = await purgerJournalExecutions();
+    const purgesStripe = await purgerEvenementsStripe();
     return json({
       ok: true,
       ...controle,
       briquesManquantes: briques,
+      evenementsStripe: stripe,
       executionsPurgees: purges,
+      evenementsStripePurges: purgesStripe,
     });
   } catch (error) {
     logErreur("cronVerifierTaches", error);

@@ -28,6 +28,19 @@
     jamais: "Jamais exécutée",
   };
 
+  const libelleStatutStripe: Record<string, string> = {
+    recu: "Reçu",
+    traite: "Traité",
+    ignore: "Ignoré",
+    echec: "En échec",
+  };
+
+  const libelleTypeStripe: Record<string, string> = {
+    paiement_reussi: "Paiement",
+    litige: "Litige",
+    autre: "Autre",
+  };
+
   function ageTexte(minutes: number | null): string {
     if (minutes === null) return "—";
     if (minutes < 60) return `il y a ${minutes} min`;
@@ -113,6 +126,122 @@
           </li>
         {/each}
       </ul>
+    {/if}
+  </section>
+
+  <section class="space-y-3" aria-labelledby="stripe-titre">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 id="stripe-titre" class="text-lg font-semibold">
+        Événements Stripe
+        {#if data.evenementsStripe.some((e) => e.statut === "echec")}
+          <span class="ui-badge ui-badge--danger ml-2">
+            {data.evenementsStripe.filter((e) => e.statut === "echec").length}
+            en échec
+          </span>
+        {/if}
+      </h2>
+    </div>
+    <p class="text-sm text-encre-douce">
+      Chaque webhook Stripe est tracé par son identifiant. Un échec se rejoue
+      ici après correction de la cause ; l’alerte correspondante se referme
+      au contrôle suivant.
+    </p>
+    {#if data.evenementsStripe.length === 0}
+      <p class="ui-carte text-sm text-encre-douce">
+        Aucun événement Stripe reçu.
+      </p>
+    {:else}
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div role="region" tabindex="0" aria-label="Tableau des événements Stripe" class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+        <table class="w-full min-w-[760px] text-left text-sm">
+          <thead class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine">
+            <tr>
+              <th class="p-4">Événement</th>
+              <th class="p-4">Statut</th>
+              <th class="p-4">Reçu</th>
+              <th class="p-4">Détail</th>
+              <th class="p-4 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each data.evenementsStripe as evenement (evenement.evenementId)}
+              <tr class="border-b border-bordure last:border-0">
+                <td class="p-4">
+                  <span class="font-medium">
+                    {libelleTypeStripe[evenement.type] ?? evenement.type}
+                  </span>
+                  <br />
+                  <span class="text-xs text-encre-faine">
+                    {evenement.evenementId}
+                    {#if evenement.objetId}
+                      · {evenement.objetId}
+                    {/if}
+                  </span>
+                </td>
+                <td class="p-4">
+                  <span
+                    class="ui-badge {evenement.statut === "echec"
+                      ? "ui-badge--danger"
+                      : evenement.statut === "traite"
+                        ? "ui-badge--accent"
+                        : ""}"
+                  >
+                    {libelleStatutStripe[evenement.statut] ?? evenement.statut}
+                  </span>
+                </td>
+                <td class="p-4">
+                  {dateHeure.format(new Date(evenement.recuLe))}
+                  {#if evenement.tentatives > 1}
+                    <br />
+                    <span class="text-xs text-encre-faine">
+                      {evenement.tentatives} tentatives
+                    </span>
+                  {/if}
+                </td>
+                <td class="p-4">
+                  {#if evenement.erreur}
+                    <span class="text-xs text-danger">{evenement.erreur}</span>
+                  {:else if evenement.rejoueLe}
+                    <span class="text-xs text-encre-faine">
+                      rejoué le {dateHeure.format(new Date(evenement.rejoueLe))}
+                    </span>
+                  {:else}
+                    <span class="text-encre-faine">—</span>
+                  {/if}
+                </td>
+                <td class="p-4 text-right">
+                  {#if evenement.statut === "echec" || evenement.statut === "recu"}
+                    <div class="flex flex-wrap justify-end gap-2">
+                      <form method="POST" action="?/rejouer">
+                        <input
+                          type="hidden"
+                          name="evenementId"
+                          value={evenement.evenementId}
+                        />
+                        <button class="ui-bouton ui-bouton--discret" type="submit">
+                          Rejouer
+                        </button>
+                      </form>
+                      <form method="POST" action="?/ignorerEvenement">
+                        <input
+                          type="hidden"
+                          name="evenementId"
+                          value={evenement.evenementId}
+                        />
+                        <button class="ui-bouton ui-bouton--discret" type="submit">
+                          Ignorer
+                        </button>
+                      </form>
+                    </div>
+                  {:else}
+                    <span class="text-encre-faine">—</span>
+                  {/if}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
     {/if}
   </section>
 

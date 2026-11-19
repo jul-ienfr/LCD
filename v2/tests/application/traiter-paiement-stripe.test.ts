@@ -34,6 +34,7 @@ async function contexte() {
 function evenement(factureId: string): EvenementPaiementReussi {
   return {
     type: "paiement_reussi",
+    evenementId: "evt_test_facture_1",
     sessionId: "cs_test_a1b2c3d4e5",
     montantCentimes: 40_500,
     devise: "EUR",
@@ -78,6 +79,7 @@ describe("TraiterPaiementStripe", () => {
       factures,
     ).executer({
       type: "autre",
+      evenementId: "evt_test_autre_1",
       sessionId: "cs_test_autre",
       montantCentimes: 0,
       devise: "EUR",

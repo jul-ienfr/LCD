@@ -1,16 +1,20 @@
 import { json } from "@sveltejs/kit";
+import type { EvenementPaiement } from "@/application/ports/paiement";
 import { ErreurMetier } from "@/domain/erreurs";
-import { TraiterPaiementStripe } from "@/application/use-cases/traiter-paiement-stripe";
 import { creerPaiementStripe } from "@/infrastructure/adapters/paiement-stripe";
-import { DrizzleFactureRepository } from "@/infrastructure/db/repositories/facture-repository";
-import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paiement-repository";
-import { withTenant } from "@/infrastructure/db/client";
-import { auditLogs } from "@/infrastructure/db/schema";
-import { emettreEvenement } from "@/lib/evenements";
 import { env } from "@/lib/env";
 import { logErreur } from "@/lib/logger";
+import { traiterAvecTrace } from "@/lib/server/evenements-stripe";
 import type { RequestHandler } from "./$types";
 
+/**
+ * Webhook Stripe (spec 006, FR-024) : chaque événement signé est tracé par
+ * son identifiant (`evt_...`) avant traitement.
+ *  - doublon de livraison : rien n'est retraité (ni audit, ni webhook sortant) ;
+ *  - échec : trace `echec` rejouable depuis /supervision, alerte critique
+ *    « stripe:evenements-echec » au prochain contrôle ;
+ *  - erreur transitoire : réponse 500, Stripe redélivre avec backoff.
+ */
 export const POST: RequestHandler = async ({ request }) => {
   if (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET) {
     return json({ ok: false, erreur: "Stripe non configuré." }, { status: 503 });
@@ -19,85 +23,37 @@ export const POST: RequestHandler = async ({ request }) => {
   const payload = await request.text();
   const signature = request.headers.get("stripe-signature") ?? "";
 
+  let evenement: EvenementPaiement;
   try {
-    const evenement = await creerPaiementStripe().verifierEtLireWebhook(payload, signature);
-    if (evenement.type === "litige") {
-      const tenantId = evenement.litige.metadata.tenant_id;
-      if (!tenantId) {
-        logErreur(
-          "webhookStripeLitige",
-          new Error("Litige Stripe sans tenant_id."),
-          { disputeId: evenement.litige.id },
-        );
-        return json({ received: true, ignored: true });
-      }
-      await withTenant(tenantId, (tx) =>
-        tx.insert(auditLogs).values({
-          tenantId,
-          qui: "stripe",
-          action: "facture.litige_stripe",
-          cible:
-            evenement.litige.metadata.facture_id ?? evenement.litige.id,
-          ref: evenement.litige.id,
-          payload: {
-            factureId: evenement.litige.metadata.facture_id ?? null,
-            montantCentimes: evenement.litige.montantCentimes,
-            devise: evenement.litige.devise,
-            motif: evenement.litige.motif,
-            statut: evenement.litige.statut,
-            echeance: evenement.litige.echeance,
-            paymentIntentId: evenement.litige.paymentIntentId,
-          },
-        }),
-      );
-      return json({ received: true, litige: true });
-    }
-    if (evenement.type !== "paiement_reussi") {
-      return json({ received: true, ignored: true });
-    }
+    evenement = await creerPaiementStripe().verifierEtLireWebhook(
+      payload,
+      signature,
+    );
+  } catch (error) {
+    logErreur("webhookStripe", error, {});
+    return json(
+      { ok: false, erreur: "Webhook Stripe invalide." },
+      { status: 400 },
+    );
+  }
 
-    const tenantId = evenement.metadata.tenant_id;
-    if (!tenantId) {
-      return json({ ok: false, erreur: "tenant_id absent." }, { status: 400 });
+  try {
+    const resultat = await traiterAvecTrace(evenement);
+    if (resultat.deja) {
+      return json({ received: true, ignored: true, deja: true });
     }
-
-    const resultat = await new TraiterPaiementStripe(
-      new DrizzlePaiementRepository(),
-      new DrizzleFactureRepository(),
-    ).executer(evenement);
-
-    if (!resultat.ignore) {
-      await withTenant(tenantId, (tx) =>
-        tx.insert(auditLogs).values({
-          tenantId,
-          qui: "stripe",
-          action: "paiement.stripe",
-          cible: resultat.paiement.id,
-          ref: evenement.sessionId,
-          payload: {
-            factureId: evenement.metadata.facture_id,
-            montantCentimes: resultat.paiement.montantCentimes,
-            resteCentimes: resultat.resteCentimes,
-          },
-        }),
-      );
-      await emettreEvenement(tenantId, "paiement.created", {
-        factureId: evenement.metadata.facture_id,
-        paiementId: resultat.paiement.id,
-        montantCentimes: resultat.paiement.montantCentimes,
-        mode: "cb",
-        resteCentimes: resultat.resteCentimes,
-        stripe: true,
-      });
-    }
-
-    return json({ received: true, ignored: resultat.ignore });
+    return json({ received: true, ...(resultat.traitement?.reponse ?? {}) });
   } catch (error) {
     if (error instanceof ErreurMetier) {
-      logErreur("webhookStripeMetier", error, {});
+      logErreur("webhookStripeMetier", error, {
+        evenementId: evenement.evenementId,
+      });
       return json({ received: true, ignored: true });
     }
-    logErreur("webhookStripe", error, {});
-    return json({ ok: false, erreur: "Webhook Stripe invalide." }, { status: 400 });
+    logErreur("webhookStripe", error, { evenementId: evenement.evenementId });
+    return json(
+      { ok: false, erreur: "Traitement du webhook en échec." },
+      { status: 500 },
+    );
   }
 };

@@ -31,6 +31,7 @@ async function contexte() {
 function evenement(echeanceId: string): EvenementPaiementReussi {
   return {
     type: "paiement_reussi",
+    evenementId: "evt_test_echeance_1",
     sessionId: "cs_test_echeance_1",
     montantCentimes: 30_000,
     devise: "EUR",

@@ -3336,6 +3336,44 @@ export const alertesExploitation = pgTable(
   ],
 );
 
+// Trace des événements Stripe (spec 006, FR-024). Une ligne par événement
+// reçu (`evt_...`), clé d'idempotence ; le rejeu des échecs relit l'événement
+// normalisé stocké ici. Table plateforme : Stripe est global, pas par tenant.
+export const evenementsStripe = pgTable(
+  "evenements_stripe",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    evenementId: text("evenement_id").notNull(),
+    type: text("type").notNull(),
+    objetId: text("objet_id"),
+    statut: text("statut").notNull().default("recu"),
+    evenement: jsonb("evenement")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    erreur: text("erreur"),
+    tentatives: integer("tentatives").notNull().default(1),
+    recuLe: timestamp("recu_le", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    derniereTentativeLe: timestamp("derniere_tentative_le", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+    traiteLe: timestamp("traite_le", { withTimezone: true }),
+    rejoueLe: timestamp("rejoue_le", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("evenements_stripe_evenement_id_uq").on(t.evenementId),
+    index("evenements_stripe_statut_idx").on(t.statut, t.recuLe),
+  ],
+);
+
 // Journal de correspondance V1 → V2 (spec 005, US3). Une ligne par
 // enregistrement source traité ; la clé primaire rend l'import idempotent et
 // interdit deux écritures concurrentes sur la même correspondance.
