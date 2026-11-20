@@ -221,3 +221,35 @@ restaurer).
 **Récupération.** Aucun artefact de référence n'est en jeu ; les correctifs du
 jour sont intacts. La passe complète repassera au vert **au déploiement**,
 quand le nettoyage des fixtures sera joué — pas avant.
+
+## R-12 — La CI écrivait dans les relevés de référence des audits
+
+**Symptôme.** `qualite-ergonomie` échoue à « Audit axe (T074) », 1,3 s après le
+démarrage du serveur, code de sortie 2 : « Refus d'écraser le relevé de
+référence baseline-axe.json (déjà présent). » Les quatre routes viennent
+pourtant d'être mesurées vertes (0 violation) dans le même log. Les étapes
+suivantes (cibles, 320 px, rapport, gate) ne tournent jamais.
+
+**Cause.** Le workflow lançait les scripts **sans nommer leur sortie** :
+`node scripts/audit-a11y.mjs` et `node scripts/audit-ergonomie.mjs`. Au premier
+jour de la CI, ça fonctionnait — les `baseline-*.json` n'existaient pas encore
+et se créaient normalement. Depuis le garde-fou R-10, ces relevés de référence
+sont **versionnés** : ils sont donc présents dans le checkout de chaque job, et
+chaque passe de CI tombait sur le refus d'écrasement. Le garde-fou a fait
+exactement son travail ; c'est la CI qui n'a jamais été alignée sur les modes
+documentés (`--verifier`, `AUDIT_FICHIER=apres-…`). Le même piège dormait sur
+l'audit 320 px, juste derrière.
+
+**Parades.**
+
+1. Les étapes de CI nomment leur sortie : `audit-a11y.mjs --verifier` (écrit
+   `apres-axe.json` et joue le gate P1) et `AUDIT_FICHIER=apres-320.json` pour
+   l'audit 320 px.
+2. Garde `tests/ci/workflows.test.ts` : toute étape de `qualite-ergonomie` qui
+   lance un script d'audit doit nommer une sortie `apres-*` (ou utiliser un
+   mode qui n'écrit aucun relevé). Contrôle négatif vérifié : la forme
+   d'origine fait échouer la garde avec un message explicite.
+3. Règle générale : **en CI, un relevé de référence ne se lit que par le
+   gate ; toute mesure écrit en `apres-*`.** Un garde-fou qui protège un
+   fichier versionné transforme toute commande non nommée en échec — c'est
+   voulu, et la CI doit vivre avec.

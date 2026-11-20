@@ -5,7 +5,8 @@
  * couverture : ils empêchent la régression silencieuse qui a laissé la CI
  * rouge pendant des semaines (tests lancés avant le build, seuil de
  * couverture non appliqué, recette e2e non planifiée, workflows planifiés
- * morts parce qu'ils ne vivent que sur une branche non principale).
+ * morts parce qu'ils ne vivent que sur une branche non principale, audits
+ * d'ergonomie qui écrivent dans leur relevé de référence).
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
@@ -19,11 +20,13 @@ interface Etape {
   run?: string;
   uses?: string;
   if?: string;
+  env?: Record<string, string>;
 }
 
 interface Job {
   if?: string;
   steps?: Etape[];
+  env?: Record<string, string>;
 }
 
 interface Workflow {
@@ -226,6 +229,64 @@ describe("serveurs de prévisualisation : port explicite", () => {
       expect(port).toBe(portAttendu);
     },
   );
+});
+
+describe("audits ergonomie en CI : sortie en `apres-*`, jamais `baseline-*`", () => {
+  // Les relevés de référence sont versionnés : en CI, lancer un script
+  // d'audit avec sa sortie par défaut (`baseline-axe.json`,
+  // `baseline-320.json`) heurte le garde-fou R-10 (refus d'écraser un relevé
+  // de référence, code de sortie 2) — c'est ce qui faisait échouer
+  // `qualite-ergonomie` à sa première étape d'audit. Chaque étape doit donc
+  // nommer une sortie `apres-*`, ou un mode qui n'écrit aucun relevé.
+  const workflow = lireWorkflow("qualite-ergonomie.yml") as Workflow & {
+    env?: Record<string, string>;
+  };
+  const jobs = Object.values(workflow.jobs ?? {});
+  const etapes = jobs.flatMap((entree) => entree.steps ?? []);
+
+  function valeurEnv(cle: string): string | undefined {
+    for (const entree of jobs) {
+      const dansJob = entree.env?.[cle];
+      if (dansJob) return dansJob;
+      for (const etape of entree.steps ?? []) {
+        const dansEtape = etape.env?.[cle];
+        if (dansEtape) return dansEtape;
+      }
+    }
+    return workflow.env?.[cle];
+  }
+
+  it("l'audit axe nomme sa sortie en `apres-*`", () => {
+    const porteurs = etapes.filter((etape) =>
+      /scripts\/audit-a11y\.mjs/.test(etape.run ?? ""),
+    );
+    expect(porteurs.length).toBeGreaterThan(0);
+    for (const etape of porteurs) {
+      const commande = etape.run ?? "";
+      // `--verifier`, `--public` et `--staff` écrivent `apres-axe*.json`.
+      const modeSur = /--verifier|--public|--staff/.test(commande);
+      const sortie = etape.env?.AUDIT_OUT_NAME ?? valeurEnv("AUDIT_OUT_NAME");
+      expect(modeSur || Boolean(sortie)).toBe(true);
+      if (sortie) expect(sortie).not.toMatch(/baseline/i);
+    }
+  });
+
+  it("l'audit 320 px nomme sa sortie en `apres-*`", () => {
+    const porteurs = etapes.filter((etape) =>
+      /scripts\/audit-ergonomie\.mjs/.test(etape.run ?? ""),
+    );
+    expect(porteurs.length).toBeGreaterThan(0);
+    for (const etape of porteurs) {
+      const commande = etape.run ?? "";
+      // `--ecrire`, `--verifier` et `--sans-audit` n'écrivent aucun relevé ;
+      // `--staff` et `--public` écrivent `apres-320-*.json`.
+      const sansReleve = /--ecrire|--verifier|--sans-audit/.test(commande);
+      const modePerimetre = /--staff|--public/.test(commande);
+      const sortie = etape.env?.AUDIT_FICHIER ?? valeurEnv("AUDIT_FICHIER");
+      expect(sansReleve || modePerimetre || Boolean(sortie)).toBe(true);
+      if (sortie) expect(sortie).not.toMatch(/baseline/i);
+    }
+  });
 });
 
 describe("build en CI : DATABASE_URL toujours fournie", () => {

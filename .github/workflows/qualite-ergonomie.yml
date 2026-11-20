@@ -117,13 +117,20 @@ jobs:
           done
           echo "le serveur n'a pas démarré"; cat /tmp/lcd-v2.log; exit 1
 
+      # Les relevés de référence (`baseline-*`) sont versionnés : les scripts
+      # d'audit refusent de les écraser (garde-fou R-10) et sortent en code 2.
+      # Chaque passe de CI nomme donc sa sortie en `apres-*` : `--verifier`
+      # pour axe (écrit `apres-axe.json` et joue le gate P1), `AUDIT_FICHIER`
+      # pour l'audit 320 px.
       - name: Audit axe (T074)
-        run: node scripts/audit-a11y.mjs
+        run: node scripts/audit-a11y.mjs --verifier
 
       - name: Audit cibles 44 px et débordement 320 px (T031)
         run: node scripts/mesurer-cibles.mjs
 
       - name: Audit ergonomie 320 px (T005)
+        env:
+          AUDIT_FICHIER: apres-320.json
         run: node scripts/audit-ergonomie.mjs
 
       - name: Rapport agrégé baseline / après (T032 / T093)
