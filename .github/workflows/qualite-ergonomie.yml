@@ -71,9 +71,9 @@ jobs:
       SEED_COMMERCIAL_PASSWORD: ChangeMe-2026!
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -150,7 +150,7 @@ jobs:
 
       - name: Publier les artefacts d'audit
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ergonomie-${{ github.run_id }}
           path: |
