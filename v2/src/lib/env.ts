@@ -142,6 +142,14 @@ const schema = z.object({
     .max(1_440)
     .default(30),
 
+  // Persistance des journaux applicatifs (FR-016) : stdout toujours, table
+  // `journaux_applicatifs` en plus. Activée par défaut ; la désactiver ne
+  // change que la persistance, jamais la sortie stdout.
+  JOURNAUX_PERSISTANCE_ENABLED: z
+    .string()
+    .default("true")
+    .transform((v) => v === "true" || v === "1"),
+
   // Synchronisation ICS automatique. Le planificateur in-process nécessite
   // ICS_SCHEDULER_ENABLED=true sur un serveur persistant ; il reste désactivé
   // sur les plateformes serverless où il ne survivrait pas.

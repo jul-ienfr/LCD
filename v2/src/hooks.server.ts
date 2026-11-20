@@ -11,9 +11,10 @@ import {
 } from "@/lib/server/env-production";
 import { demarrerPlanificateurFournisseurs } from "@/lib/server/fournisseur-scheduler";
 import { demarrerPlanificateurIcs } from "@/lib/server/ics-scheduler";
+import { brancherPersistanceJournaux } from "@/lib/server/journaux";
 import { demarrerPlanificateurExploitation } from "@/lib/server/planificateur-exploitation";
 import { genererRequestId } from "@/lib/server/logger";
-import { capturerErreur } from "@/lib/telemetry";
+import { logErreur } from "@/lib/logger";
 import { langueRequete } from "@/lib/server/langue";
 import { tenantEnLectureSeule } from "@/lib/server/lecture-seule";
 import { doitBloquerEcriture } from "@/domain/lecture-seule";
@@ -87,6 +88,10 @@ export const init = async () => {
       }
     }
   }
+  // FR-016 : les lignes de journal sont persistées (best-effort) avant le
+  // démarrage des planificateurs — leurs lignes de démarrage doivent déjà
+  // être consultables depuis la supervision.
+  brancherPersistanceJournaux();
   demarrerPlanificateurIcs();
   demarrerPlanificateurFournisseurs();
   demarrerPlanificateurExploitation();
@@ -249,8 +254,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 /**
  * Erreurs de page (FR-020) : toute erreur inattendue est journalisée avec
- * l'identifiant de requête, capturée par Sentry si configuré, et la page
- * d'erreur reçoit un message court + l'identifiant — jamais une trace.
+ * l'identifiant de requête (stdout, et table `journaux_applicatifs` via
+ * FR-016), capturée par Sentry si configuré, et la page d'erreur reçoit un
+ * message court + l'identifiant — jamais une trace.
  */
 export const handleError: HandleServerError = ({ kind, error, event }) => {
   const requestId = event.locals.requestId ?? genererRequestId();
@@ -267,19 +273,7 @@ export const handleError: HandleServerError = ({ kind, error, event }) => {
     statut,
   };
   if (kind === "unknown" || statut >= 500) {
-    console.error(
-      JSON.stringify({
-        ts: new Date().toISOString(),
-        niveau: "error",
-        message: "erreur.page",
-        ...contexte,
-        erreur:
-          error instanceof Error
-            ? { nom: error.name, message: error.message, stack: error.stack }
-            : { valeur: String(error) },
-      }),
-    );
-    void capturerErreur("erreur.page", error, contexte);
+    logErreur("erreur.page", error, contexte);
   }
   if (kind === "app" || kind === "framework") {
     return { ...(error as Record<string, unknown>), requestId };

@@ -19,3 +19,7 @@ export const RETENTION_EXECUTIONS_AUTOMATISATION_JOURS = 180;
 
 /** Tentatives de connexion (anti-abus) : 30 jours, blocages actifs conservés. */
 export const RETENTION_TENTATIVES_CONNEXION_JOURS = 30;
+
+/** Journaux applicatifs (FR-016) : 30 jours — de quoi diagnostiquer un
+ *  incident passé sans archiver des traces d'exploitation (plancher SQL : 7). */
+export const RETENTION_JOURNAUX_APPLICATIFS_JOURS = 30;

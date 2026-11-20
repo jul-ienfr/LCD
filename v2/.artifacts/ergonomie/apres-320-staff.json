@@ -69,6 +69,7 @@
     "/supervision/assistant",
     "/supervision/espaces",
     "/supervision/fournisseurs",
+    "/supervision/journaux",
     "/supervision/maintenance",
     "/supervision/modules",
     "/supervision/voir-comme",
@@ -814,6 +815,17 @@
     },
     {
       "route": "/supervision/fournisseurs",
+      "status": 200,
+      "overflowPx": 0,
+      "smallTargets": [],
+      "h1Count": 1,
+      "lang": "fr",
+      "skipLink": true,
+      "imagesWithoutAlt": 0,
+      "unlabeledFields": 0
+    },
+    {
+      "route": "/supervision/journaux",
       "status": 200,
       "overflowPx": 0,
       "smallTargets": [],

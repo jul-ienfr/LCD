@@ -1047,6 +1047,14 @@ async function testerPurgesRetention(owner, app) {
         ('rls-ret-${suffix}-libre', 2, ${ilYA40Jours}, null),
         ('rls-ret-${suffix}-bloque', 5, ${ilYA40Jours}, now() + interval '1 hour')
     `);
+    // Journaux applicatifs (FR-016) : une ligne au-delà de la rétention, une
+    // récente à conserver. Message marqué pour le nettoyage final.
+    await owner.unsafe(`
+      insert into journaux_applicatifs (niveau, message, contexte, created_at)
+      values
+        ('info', 'rls-ret-${suffix}-purge', '{}'::jsonb, ${ilYA40Jours}),
+        ('error', 'rls-ret-${suffix}-recent', '{}'::jsonb, now() - interval '1 day')
+    `);
 
     // Les purges sont appelées par le rôle applicatif : c'est le chemin réel
     // (SECURITY DEFINER borné), pas une suppression directe sous RLS.
@@ -1064,6 +1072,9 @@ async function testerPurgesRetention(owner, app) {
     `;
     const [tentatives] = await app`
       select purger_tentatives_connexion(30)::int as n
+    `;
+    const [journaux] = await app`
+      select purger_journaux_applicatifs(30)::int as n
     `;
 
     const [resteAudit] = await owner`
@@ -1086,6 +1097,10 @@ async function testerPurgesRetention(owner, app) {
       select count(*)::int as n from tentatives_connexion
       where cle like ${`rls-ret-${suffix}-%`}
     `;
+    const [resteJournal] = await owner`
+      select count(*)::int as n from journaux_applicatifs
+      where message like ${`rls-ret-${suffix}-%`}
+    `;
 
     const resultat = {
       auditPurges: audit.n,
@@ -1098,6 +1113,8 @@ async function testerPurgesRetention(owner, app) {
       executionsAutomatisationRestantes: resteAutomatisation.n,
       tentativesPurgees: tentatives.n,
       blocagesActifsConserves: resteTentative.n,
+      journauxPurges: journaux.n,
+      journauxRecentsConserves: resteJournal.n,
     };
     console.log(JSON.stringify(resultat));
 
@@ -1118,6 +1135,11 @@ async function testerPurgesRetention(owner, app) {
     if (tentatives.n !== 1 || resteTentative.n !== 1) {
       throw new Error("Purge des tentatives de connexion non conforme.");
     }
+    // La ligne ancienne part, la récente reste (le marqueur du test n'existe
+    // qu'ici : un seul reste attendu).
+    if (journaux.n < 1 || resteJournal.n !== 1) {
+      throw new Error("Purge des journaux applicatifs non conforme.");
+    }
     console.log(
       "RLS VALIDÉE : purges de rétention bornées, files vivantes préservées.",
     );
@@ -1125,6 +1147,7 @@ async function testerPurgesRetention(owner, app) {
     if (tenantId) {
       await owner`delete from tenants where id = ${tenantId}`;
       await owner`delete from tentatives_connexion where cle like ${`rls-ret-${suffix}-%`}`;
+      await owner`delete from journaux_applicatifs where message like ${`rls-ret-${suffix}-%`}`;
     }
   }
 }

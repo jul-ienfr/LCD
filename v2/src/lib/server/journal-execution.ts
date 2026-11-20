@@ -107,13 +107,19 @@ export interface LigneTacheSupervision {
 }
 
 async function derniereExecutionParTache(): Promise<Map<string, LigneDerniere>> {
-  const lignes = await db.execute<LigneDerniere & Record<string, unknown>>(sql`
-    select distinct on (tache) tache, debut, statut
-    from executions_taches
-    order by tache, debut desc
-  `);
+  // Query builder (pas `db.execute`) : le pilote ne convertit les timestamps
+  // en `Date` que sur ce chemin — `db.execute` les rend en chaîne, et
+  // `evaluerTache` appelle `getTime()` dessus (incident révélé par FR-016).
+  const lignes = await db
+    .selectDistinctOn([executionsTaches.tache], {
+      tache: executionsTaches.tache,
+      debut: executionsTaches.debut,
+      statut: executionsTaches.statut,
+    })
+    .from(executionsTaches)
+    .orderBy(executionsTaches.tache, desc(executionsTaches.debut));
   const map = new Map<string, LigneDerniere>();
-  for (const ligne of lignes as unknown as LigneDerniere[]) {
+  for (const ligne of lignes) {
     map.set(ligne.tache, ligne);
   }
   return map;

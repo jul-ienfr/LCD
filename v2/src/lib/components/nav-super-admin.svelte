@@ -16,6 +16,11 @@
       href: "/supervision/maintenance",
       libelle: "Maintenance",
     },
+    {
+      id: "journaux",
+      href: "/supervision/journaux",
+      libelle: "Journaux applicatifs",
+    },
     { id: "voir-comme", href: "/supervision/voir-comme", libelle: "Voir comme" },
     { id: "journal", href: "/journal", libelle: "Journal global" },
     { id: "systeme", href: "/systeme", libelle: "Système" },

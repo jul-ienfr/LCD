@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   RETENTION_EVENEMENTS_CANAL_JOURS,
   RETENTION_EXECUTIONS_AUTOMATISATION_JOURS,
+  RETENTION_JOURNAUX_APPLICATIFS_JOURS,
   RETENTION_LIVRAISONS_WEBHOOK_JOURS,
   RETENTION_TENTATIVES_CONNEXION_JOURS,
 } from "@/domain/retention";
@@ -18,11 +19,12 @@ function espionnes() {
     livraisonsWebhook: vi.fn<PurgeRetention>().mockResolvedValue(4),
     executionsAutomatisation: vi.fn<PurgeRetention>().mockResolvedValue(5),
     tentativesConnexion: vi.fn<PurgeRetention>().mockResolvedValue(6),
+    journauxApplicatifs: vi.fn<PurgeRetention>().mockResolvedValue(7),
   };
 }
 
 describe("purges de rétention bornée (FR-015)", () => {
-  it("purge les cinq familles et remonte les compteurs", async () => {
+  it("purge les familles déclarées et remonte les compteurs", async () => {
     const injections = espionnes();
 
     const resultat = await purgerRetentions(injections);
@@ -33,6 +35,7 @@ describe("purges de rétention bornée (FR-015)", () => {
       livraisonsWebhook: 4,
       executionsAutomatisation: 5,
       tentativesConnexion: 6,
+      journauxApplicatifs: 7,
       echecs: [],
     });
   });
@@ -57,6 +60,9 @@ describe("purges de rétention bornée (FR-015)", () => {
     expect(injections.tentativesConnexion).toHaveBeenCalledWith(
       RETENTION_TENTATIVES_CONNEXION_JOURS,
     );
+    expect(injections.journauxApplicatifs).toHaveBeenCalledWith(
+      RETENTION_JOURNAUX_APPLICATIFS_JOURS,
+    );
   });
 
   it("une purge en échec ne bloque pas les autres familles", async () => {
@@ -73,6 +79,7 @@ describe("purges de rétention bornée (FR-015)", () => {
     expect(resultat.audit).toBe(2);
     expect(resultat.livraisonsWebhook).toBe(4);
     expect(resultat.executionsAutomatisation).toBe(5);
+    expect(resultat.journauxApplicatifs).toBe(7);
     expect(resultat.evenementsCanal).toBe(0);
     expect(resultat.tentativesConnexion).toBe(0);
     // Toutes les familles ont été tentées, dans l'ordre du référentiel.
@@ -95,7 +102,8 @@ describe("purges de rétention bornée (FR-015)", () => {
         resultat.evenementsCanal +
         resultat.livraisonsWebhook +
         resultat.executionsAutomatisation +
-        resultat.tentativesConnexion,
+        resultat.tentativesConnexion +
+        resultat.journauxApplicatifs,
     ).toBe(0);
   });
 });
@@ -107,6 +115,7 @@ describe("rétentions déclarées (FR-015)", () => {
       RETENTION_LIVRAISONS_WEBHOOK_JOURS,
       RETENTION_EXECUTIONS_AUTOMATISATION_JOURS,
       RETENTION_TENTATIVES_CONNEXION_JOURS,
+      RETENTION_JOURNAUX_APPLICATIFS_JOURS,
     ]) {
       expect(Number.isInteger(jours)).toBe(true);
       expect(jours).toBeGreaterThan(0);

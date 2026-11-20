@@ -51,6 +51,15 @@ function assainir(valeur: unknown, profondeur = 0): unknown {
   return valeur;
 }
 
+/**
+ * Contexte masqué pour tout journal persistant (Sentry, journaux
+ * applicatifs) : mêmes règles partout — clés sensibles remplacées, profondeur
+ * et tailles bornées. Un seul endroit à corriger si la règle change.
+ */
+export function assainirContexte(contexte: unknown): Record<string, unknown> {
+  return assainir(contexte) as Record<string, unknown>;
+}
+
 export function construireEvenementSentry(
   message: string,
   error: unknown,

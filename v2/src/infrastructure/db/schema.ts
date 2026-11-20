@@ -3346,6 +3346,32 @@ export const alertesExploitation = pgTable(
   ],
 );
 
+// Journaux applicatifs (spec 006, FR-016). Les lignes structurées de
+// `logInfo`/`logErreur` (stdout) sont aussi persistées ici pour être lues
+// depuis la supervision, sans SSH. Table plateforme : un incident
+// d'exploitation est global. Le contexte est masqué avant écriture (clés
+// sensibles, cf. `src/lib/telemetry.ts`) et la purge est bornée (0109).
+export const journauxApplicatifs = pgTable(
+  "journaux_applicatifs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    niveau: text("niveau").notNull().default("info"),
+    message: text("message").notNull(),
+    contexte: jsonb("contexte")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    requestId: text("request_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("journaux_applicatifs_created_at_idx").on(t.createdAt),
+    index("journaux_applicatifs_niveau_idx").on(t.niveau, t.createdAt),
+  ],
+);
+
 // Trace des événements Stripe (spec 006, FR-024). Une ligne par événement
 // reçu (`evt_...`), clé d'idempotence ; le rejeu des échecs relit l'événement
 // normalisé stocké ici. Table plateforme : Stripe est global, pas par tenant.
@@ -3417,6 +3443,7 @@ export type ExecutionTacheRow = typeof executionsTaches.$inferSelect;
 export type NewExecutionTacheRow = typeof executionsTaches.$inferInsert;
 export type AlerteExploitationRow = typeof alertesExploitation.$inferSelect;
 export type NewAlerteExploitationRow = typeof alertesExploitation.$inferInsert;
+export type JournalApplicatifRow = typeof journauxApplicatifs.$inferSelect;
 
 export type SuiviConfigurationRow = typeof suiviConfiguration.$inferSelect;
 export type NewSuiviConfigurationRow =

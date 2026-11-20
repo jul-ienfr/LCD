@@ -1,9 +1,9 @@
 /**
- * Purges de rétention bornée (spec 006, FR-015).
+ * Purges de rétention bornée (spec 006, FR-015/FR-016).
  *
- * Cinq familles, une fonction SQL bornée chacune (migration 0108, SECURITY
- * DEFINER : les tables sous RLS ne sont jamais supprimées par un DELETE
- * applicatif direct). Une purge qui échoue ne bloque pas les autres :
+ * Six familles, une fonction SQL bornée chacune (migrations 0108/0109,
+ * SECURITY DEFINER : les tables sous RLS ne sont jamais supprimées par un
+ * DELETE applicatif direct). Une purge qui échoue ne bloque pas les autres :
  * chaque famille est isolée, l'échec est tracé et remonté dans `echecs`.
  *
  * Appelé par le cron `/api/cron/verifier-taches` et par le planificateur
@@ -14,6 +14,7 @@ import { sql } from "drizzle-orm";
 import {
   RETENTION_EVENEMENTS_CANAL_JOURS,
   RETENTION_EXECUTIONS_AUTOMATISATION_JOURS,
+  RETENTION_JOURNAUX_APPLICATIFS_JOURS,
   RETENTION_LIVRAISONS_WEBHOOK_JOURS,
   RETENTION_TENTATIVES_CONNEXION_JOURS,
 } from "@/domain/retention";
@@ -27,6 +28,7 @@ export interface ResultatPurgesRetention {
   livraisonsWebhook: number;
   executionsAutomatisation: number;
   tentativesConnexion: number;
+  journauxApplicatifs: number;
   /** Tables dont la purge a échoué (les autres ont tourné). */
   echecs: string[];
 }
@@ -40,6 +42,7 @@ export interface PurgesRetentionInjectees {
   livraisonsWebhook?: PurgeRetention;
   executionsAutomatisation?: PurgeRetention;
   tentativesConnexion?: PurgeRetention;
+  journauxApplicatifs?: PurgeRetention;
 }
 
 async function compter(lignes: unknown): Promise<number> {
@@ -84,6 +87,14 @@ async function purgerTentativesConnexion(jours: number): Promise<number> {
   );
 }
 
+async function purgerJournauxApplicatifs(jours: number): Promise<number> {
+  return compter(
+    await db.execute(
+      sql`select purger_journaux_applicatifs(${jours}) as supprimees`,
+    ),
+  );
+}
+
 export async function purgerRetentions(
   injectees: PurgesRetentionInjectees = {},
 ): Promise<ResultatPurgesRetention> {
@@ -123,6 +134,12 @@ export async function purgerRetentions(
       purge: injectees.tentativesConnexion ?? purgerTentativesConnexion,
       jours: RETENTION_TENTATIVES_CONNEXION_JOURS,
     },
+    {
+      cle: "journauxApplicatifs",
+      table: "journaux_applicatifs",
+      purge: injectees.journauxApplicatifs ?? purgerJournauxApplicatifs,
+      jours: RETENTION_JOURNAUX_APPLICATIFS_JOURS,
+    },
   ];
 
   const resultat: ResultatPurgesRetention = {
@@ -131,6 +148,7 @@ export async function purgerRetentions(
     livraisonsWebhook: 0,
     executionsAutomatisation: 0,
     tentativesConnexion: 0,
+    journauxApplicatifs: 0,
     echecs: [],
   };
 
