@@ -199,6 +199,35 @@ describe("npm ci prépare les types (alias @/ pour tsx)", () => {
   });
 });
 
+describe("serveurs de prévisualisation : port explicite", () => {
+  // adapter-node écoute sur PORT (3000 par défaut) : un workflow qui attend
+  // BASE_URL (4173) sans exporter PORT voit le serveur démarrer ailleurs et
+  // la sonde échoue en boucle.
+  it.each(["qualite-ergonomie.yml", "v2-recette-quotidienne.yml"])(
+    "%s aligne PORT sur l'URL attendue",
+    (nom) => {
+      const workflow = lireWorkflow(nom) as Workflow & {
+        env?: Record<string, string>;
+      };
+      const portAttendu = (workflow.env?.BASE_URL ?? "http://127.0.0.1:4173")
+        .split(":")
+        .pop();
+      const porteur = Object.values(workflow.jobs ?? {}).find((entree) =>
+        (entree.steps ?? []).some((etape) =>
+          /node build/.test(etape.run ?? ""),
+        ),
+      ) as (Job & { env?: Record<string, string> }) | undefined;
+      if (!porteur) return;
+      const etape = (porteur.steps ?? []).find((s) =>
+        /node build/.test(s.run ?? ""),
+      ) as (Etape & { env?: Record<string, string> }) | undefined;
+      const port =
+        etape?.env?.PORT ?? porteur.env?.PORT ?? workflow.env?.PORT ?? "3000";
+      expect(port).toBe(portAttendu);
+    },
+  );
+});
+
 describe("build en CI : DATABASE_URL toujours fournie", () => {
   // `vite build` force NODE_ENV=production et le build refuse de s'exécuter
   // sans DATABASE_URL : tout workflow qui construit la v2 doit la fournir.
