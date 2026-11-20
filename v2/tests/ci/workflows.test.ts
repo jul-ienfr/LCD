@@ -186,6 +186,19 @@ describe("ci (V1) : ne se déclenche plus sur les chemins de la v2", () => {
   });
 });
 
+describe("npm ci prépare les types (alias @/ pour tsx)", () => {
+  // `tsx` résout l'alias `@/…` via `node_modules/$app/tsconfig.json`, un
+  // placeholder que seul `svelte-kit sync` crée. Sans le script `prepare`,
+  // un `db:seed` lancé avant tout `typecheck` échoue en CI
+  // (`Cannot find package '@/lib'`) alors qu'il passe en local.
+  it("le script prepare lance svelte-kit sync", () => {
+    const pkg = JSON.parse(
+      readFileSync(new URL("package.json", racineV2), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    expect(pkg.scripts?.prepare ?? "").toContain("svelte-kit sync");
+  });
+});
+
 describe("build en CI : DATABASE_URL toujours fournie", () => {
   // `vite build` force NODE_ENV=production et le build refuse de s'exécuter
   // sans DATABASE_URL : tout workflow qui construit la v2 doit la fournir.
