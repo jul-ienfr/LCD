@@ -54,6 +54,13 @@ rôles, seeds, build, suite e2e — rejoue quotidiennement la chaîne de release
 sur la branche principale (`v2-recette-quotidienne.yml`, 04:00 UTC, aussi
 déclenchable manuellement).
 
+Les mises à jour de dépendances sont proposées automatiquement par Dependabot
+(`.github/dependabot.yml`, hebdomadaire sur `v2`, mineures et correctifs
+groupés) : chaque proposition touche `v2/**` ou `.github/workflows/**`, donc
+`v2-ci` la prouve avant toute fusion (FR-011, SC-014). Les alertes de
+vulnérabilité et les correctifs de sécurité Dependabot sont activés sur le
+dépôt.
+
 Les tests E2E couvrent les parcours publics, la connexion, l’apparence
 (brouillon, aperçu signé, publication, retour arrière), le chargement de toutes
 les routes staff et publiques avec et sans JavaScript, et la dégradation sans

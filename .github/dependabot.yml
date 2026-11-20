@@ -1,0 +1,57 @@
+# Propositions de mises à jour de dépendances (spec 006, FR-011 / SC-014).
+#
+# Le bot ouvre ses PR sur la branche `v2` (branche par défaut du dépôt) :
+# chaque proposition touche `v2/**` ou `.github/workflows/**`, donc `v2-ci`
+# la prouve — types, schéma, migrations, tests, couverture (seuil 80 %) et
+# build. La fusion reste un geste humain, une fois la CI verte.
+#
+# Les alertes de vulnérabilité et les correctifs de sécurité Dependabot sont
+# activés sur le dépôt : une CVE suit le même chemin (PR + CI).
+#
+# Les montées mineures et correctifs partent groupées (une PR lisible par
+# semaine) ; les montées majeures restent des PR individuelles, à relire.
+#
+# `web/` (pile V1, gelée par AGENTS.md) est volontairement absent : ses
+# propositions ne seraient prouvées par aucune CI (sa batterie lab est rouge
+# sur ses propres chemins, préexistant) et rouvriraient du code gelé.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /v2
+    target-branch: v2
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 5
+    groups:
+      mineures-et-correctifs:
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: dependances
+      include: scope
+    labels:
+      - dependances
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: v2
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: dependances
+      include: scope
+    labels:
+      - dependances

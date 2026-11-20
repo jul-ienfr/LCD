@@ -1,12 +1,13 @@
 /**
- * Garde-fous de la chaîne d'intégration (FR-030, spec 006).
+ * Garde-fous de la chaîne d'intégration (FR-030 et FR-011, spec 006).
  *
  * Ces tests lisent les workflows GitHub Actions et la configuration de
  * couverture : ils empêchent la régression silencieuse qui a laissé la CI
  * rouge pendant des semaines (tests lancés avant le build, seuil de
  * couverture non appliqué, recette e2e non planifiée, workflows planifiés
  * morts parce qu'ils ne vivent que sur une branche non principale, audits
- * d'ergonomie qui écrivent dans leur relevé de référence).
+ * d'ergonomie qui écrivent dans leur relevé de référence, mises à jour de
+ * dépendances qui ne seraient pas prouvées par la CI).
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
@@ -364,4 +365,65 @@ describe("migrations sur base neuve : le rôle applicatif existe d'abord", () =>
       expect(iRole).toBeLessThan(iMigrate);
     },
   );
+});
+
+describe("mises à jour de dépendances proposées automatiquement (FR-011)", () => {
+  // FR-011 / SC-014 : une mise à jour de dépendance passe du bot à
+  // l'application sans veille manuelle. La proposition est automatique
+  // (Dependabot, `.github/dependabot.yml`) ; la preuve est la CI de la v2,
+  // qui tourne sur chaque proposition parce qu'elle vit dans `v2/` et
+  // `.github/workflows/`.
+  const config = parse(
+    readFileSync(new URL("../dependabot.yml", dossierWorkflows), "utf8"),
+  ) as {
+    version?: number;
+    updates?: {
+      "package-ecosystem"?: string;
+      directory?: string;
+      "target-branch"?: string;
+      schedule?: { interval?: string };
+      "open-pull-requests-limit"?: number;
+    }[];
+  };
+
+  it("couvre les dépendances npm de la v2, sur la branche de la CI", () => {
+    expect(config.version).toBe(2);
+    const npm = (config.updates ?? []).find(
+      (entree) => entree["package-ecosystem"] === "npm",
+    );
+    expect(npm).toBeTruthy();
+    expect(npm?.directory).toBe("/v2");
+    expect(npm?.["target-branch"]).toBe("v2");
+  });
+
+  it("propose au moins chaque semaine, sans inonder la revue", () => {
+    expect((config.updates ?? []).length).toBeGreaterThan(0);
+    for (const entree of config.updates ?? []) {
+      expect(entree.schedule?.interval).toBe("weekly");
+      expect(entree["open-pull-requests-limit"] ?? 0).toBeGreaterThan(0);
+    }
+  });
+
+  it("suit aussi les actions GitHub des workflows", () => {
+    const actions = (config.updates ?? []).find(
+      (entree) => entree["package-ecosystem"] === "github-actions",
+    );
+    expect(actions).toBeTruthy();
+    expect(actions?.directory).toBe("/");
+  });
+
+  it("chaque proposition est prouvée par v2-ci (chemins et branches)", () => {
+    const workflow = lireWorkflow("v2-ci.yml");
+    const push = workflow.on?.push as
+      | { branches?: string[]; paths?: string[] }
+      | undefined;
+    const pull = workflow.on?.pull_request as { paths?: string[] } | undefined;
+    // Les branches Dependabot poussent dans le dépôt : `push` toutes
+    // branches + `pull_request` sur ces chemins couvrent les deux formes.
+    expect(push?.branches).toContain("**");
+    for (const paths of [push?.paths ?? [], pull?.paths ?? []]) {
+      expect(paths).toContain("v2/**");
+      expect(paths).toContain(".github/workflows/**");
+    }
+  });
 });
