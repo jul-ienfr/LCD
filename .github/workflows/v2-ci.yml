@@ -28,7 +28,7 @@ jobs:
   secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Détection de secrets (gitleaks)
@@ -42,7 +42,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Contrôle de fraîcheur documentaire
         run: pwsh ./deploy/test-docs.ps1
 
@@ -72,8 +72,8 @@ jobs:
       BETTER_AUTH_SECRET: ci-only-change-me-please-32chars-min
       BETTER_AUTH_URL: http://localhost:3000
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -92,7 +92,7 @@ jobs:
         run: npm run test:coverage
       - name: Publier le résumé de couverture
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: couverture
           path: v2/coverage/coverage-summary.json
@@ -141,8 +141,8 @@ jobs:
       SEED_COMMERCIAL_EMAIL: commercial@lcd.test
       SEED_COMMERCIAL_PASSWORD: ChangeMe-2026!
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -243,7 +243,7 @@ jobs:
 
       - name: Publier le rapport e2e
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-${{ github.ref_name }}
           path: |
@@ -253,7 +253,7 @@ jobs:
           retention-days: 30
 
       - name: Publier le build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lcd-build-${{ github.ref_name }}
           path: v2/build
