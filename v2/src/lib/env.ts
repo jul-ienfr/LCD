@@ -261,7 +261,8 @@ const schema = z.object({
     .default("false")
     .transform((v) => v === "true" || v === "1"),
 
-  // Rétention du journal d'audit (purge manuelle, jamais automatique).
+  // Rétention du journal d'audit : plancher de 365 jours, appliqué par la
+  // purge planifiée (FR-015) comme par la purge manuelle confirmée.
   AUDIT_RETENTION_JOURS: z.coerce
     .number()
     .int()

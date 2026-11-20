@@ -56,8 +56,12 @@ describe("migration 0107 : événements Stripe (FR-024)", () => {
   });
 
   it("est déclarée dans le journal des migrations, à la suite de 0106", () => {
-    const derniere = journal.entries.at(-1);
-    expect(derniere?.tag).toBe("0107_evenements_stripe");
-    expect(derniere?.idx).toBe(106 + 1);
+    const idx = journal.entries.findIndex(
+      (entree) => entree.tag === "0107_evenements_stripe",
+    );
+    expect(idx).toBeGreaterThan(0);
+    expect(journal.entries[idx]?.idx).toBe(106 + 1);
+    // Déclarée après 0106 : l'ordre du journal est celui d'application.
+    expect(journal.entries[idx - 1]?.tag).toBe("0106_fournisseur_disjoncteur");
   });
 });

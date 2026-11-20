@@ -94,6 +94,11 @@ Reprise (tracée dans le journal d'audit) :
   service, soit ~140 Mo maximum par service ;
 - rétention des événements de suivi : purge applicative
   `npm run db:purge-suivi` (cron) ;
+- rétention bornée (FR-015) : purges planifiées à chaque contrôle des tâches
+  (`/api/cron/verifier-taches`, 30 min) — audit ≥ 365 jours, événements canal
+  180 j, livraisons webhook 90 j, exécutions d'automatisation 180 j,
+  tentatives de connexion 30 j ; une purge en échec est journalisée
+  (`retention.purge`) sans bloquer les autres ;
 - ne jamais journaliser de secret : le logger masque les clés sensibles, et
   `SEED_*` doit être retiré après l'initialisation.
 

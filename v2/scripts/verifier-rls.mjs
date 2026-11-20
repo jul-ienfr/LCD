@@ -954,6 +954,181 @@ async function testerIsolationClesApiIntegrations(owner, app) {
   }
 }
 
+async function testerPurgesRetention(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  let tenantId = null;
+  try {
+    const [fournisseur] = await owner`
+      select code from fournisseurs_canaux order by code limit 1
+    `;
+    if (!fournisseur) {
+      throw new Error("Aucun fournisseur seedé : lancez le seed.");
+    }
+
+    const [tenant] = await owner`
+      insert into tenants (slug, nom)
+      values (${`rls-retention-${suffix}`}, 'RLS retention')
+      returning id
+    `;
+    tenantId = tenant.id;
+    const [logement] = await owner`
+      insert into logements (tenant_id, code, nom)
+      values (${tenantId}, ${`rls-retention-${suffix}`}, 'RLS retention')
+      returning id
+    `;
+    const [mapping] = await owner`
+      insert into logements_fournisseurs
+        (tenant_id, logement_id, fournisseur_code, actif)
+      values (${tenantId}, ${logement.id}, ${fournisseur.code}, false)
+      returning id
+    `;
+    const [webhook] = await owner`
+      insert into webhooks (tenant_id, libelle, url, secret, events)
+      values (${tenantId}, 'RLS retention', ${`https://rls-${suffix}.example.fr/hook`},
+              'secret-rls-retention', 'reservation.created')
+      returning id
+    `;
+    const [automatisation] = await owner`
+      insert into automatisations (tenant_id, code, libelle, declencheur, modele)
+      values (${tenantId}, ${`rls-retention-${suffix}`}, 'RLS retention',
+              'j-1', 'Bonjour {{voyageur}}, message de test.')
+      returning id
+    `;
+    const [reservation] = await owner`
+      insert into reservations
+        (tenant_id, logement_id, ref, debut, fin, statut, montant_centimes)
+      values
+        (${tenantId}, ${logement.id}, ${`RLS-RET-${suffix}`},
+         '2027-05-01', '2027-05-05', 'confirmee', 50000)
+      returning id
+    `;
+
+    // Jeu de données daté : deux lignes par famille, une à purger, une à
+    // conserver (statut protégé). L'audit porte une ligne plus récente que le
+    // plancher de 365 jours, qui doit survivre même si on demande 30 jours.
+    const ilYA200Jours = "now() - interval '200 days'";
+    const ilYA400Jours = "now() - interval '400 days'";
+    const ilYA40Jours = "now() - interval '40 days'";
+
+    await owner.unsafe(`
+      insert into audit_logs (tenant_id, qui, action, created_at) values
+        ('${tenantId}', 'rls', 'retention.vieille', ${ilYA400Jours}),
+        ('${tenantId}', 'rls', 'retention.recente', ${ilYA200Jours})
+    `);
+    await owner.unsafe(`
+      insert into evenements_canal
+        (tenant_id, logement_fournisseur_id, fournisseur_code, type,
+         cle_idempotence, statut, created_at)
+      values
+        ('${tenantId}', '${mapping.id}', '${fournisseur.code}', 'webhook',
+         'rls-ret-${suffix}-purge', 'traite', ${ilYA200Jours}),
+        ('${tenantId}', '${mapping.id}', '${fournisseur.code}', 'webhook',
+         'rls-ret-${suffix}-erreur', 'erreur', ${ilYA200Jours})
+    `);
+    await owner.unsafe(`
+      insert into webhook_deliveries
+        (tenant_id, webhook_id, event_type, statut, created_at, updated_at)
+      values
+        ('${tenantId}', '${webhook.id}', 'reservation.created', 'success',
+         ${ilYA200Jours}, ${ilYA200Jours}),
+        ('${tenantId}', '${webhook.id}', 'reservation.created', 'pending',
+         ${ilYA200Jours}, ${ilYA200Jours})
+    `);
+    await owner.unsafe(`
+      insert into executions_automatisation
+        (tenant_id, automatisation_id, reservation_id, ref, statut, created_at)
+      values
+        ('${tenantId}', '${automatisation.id}', '${reservation.id}',
+         'rls-ret-${suffix}', 'brouillon', ${ilYA200Jours})
+    `);
+    await owner.unsafe(`
+      insert into tentatives_connexion (cle, echecs, dernier_echec, bloque_jusqua)
+      values
+        ('rls-ret-${suffix}-libre', 2, ${ilYA40Jours}, null),
+        ('rls-ret-${suffix}-bloque', 5, ${ilYA40Jours}, now() + interval '1 hour')
+    `);
+
+    // Les purges sont appelées par le rôle applicatif : c'est le chemin réel
+    // (SECURITY DEFINER borné), pas une suppression directe sous RLS.
+    const [audit] = await app`
+      select purger_audit_logs(30)::int as n
+    `;
+    const [canal] = await app`
+      select purger_evenements_canal(30)::int as n
+    `;
+    const [webhooks] = await app`
+      select purger_livraisons_webhook(30)::int as n
+    `;
+    const [automatisations] = await app`
+      select purger_executions_automatisation(30)::int as n
+    `;
+    const [tentatives] = await app`
+      select purger_tentatives_connexion(30)::int as n
+    `;
+
+    const [resteAudit] = await owner`
+      select count(*)::int as n from audit_logs
+      where tenant_id = ${tenantId} and action like 'retention.%'
+    `;
+    const [resteCanal] = await owner`
+      select count(*)::int as n from evenements_canal
+      where tenant_id = ${tenantId} and statut = 'erreur'
+    `;
+    const [resteWebhook] = await owner`
+      select count(*)::int as n from webhook_deliveries
+      where tenant_id = ${tenantId} and statut = 'pending'
+    `;
+    const [resteAutomatisation] = await owner`
+      select count(*)::int as n from executions_automatisation
+      where tenant_id = ${tenantId}
+    `;
+    const [resteTentative] = await owner`
+      select count(*)::int as n from tentatives_connexion
+      where cle like ${`rls-ret-${suffix}-%`}
+    `;
+
+    const resultat = {
+      auditPurges: audit.n,
+      auditRecentsConserves: resteAudit.n,
+      evenementsCanalPurges: canal.n,
+      evenementsCanalErreurConserves: resteCanal.n,
+      livraisonsPurgees: webhooks.n,
+      livraisonsEnAttenteConservees: resteWebhook.n,
+      executionsAutomatisationPurgees: automatisations.n,
+      executionsAutomatisationRestantes: resteAutomatisation.n,
+      tentativesPurgees: tentatives.n,
+      blocagesActifsConserves: resteTentative.n,
+    };
+    console.log(JSON.stringify(resultat));
+
+    // Le plancher de 365 jours est respecté : la ligne de 200 jours survit à
+    // une demande de 30 jours, celle de 400 jours est supprimée.
+    if (audit.n !== 1 || resteAudit.n !== 1) {
+      throw new Error("Purge d'audit non conforme (plancher 365 jours).");
+    }
+    if (canal.n !== 1 || resteCanal.n !== 1) {
+      throw new Error("Purge des événements canal non conforme.");
+    }
+    if (webhooks.n !== 1 || resteWebhook.n !== 1) {
+      throw new Error("Purge des livraisons webhook non conforme.");
+    }
+    if (automatisations.n !== 1 || resteAutomatisation.n !== 0) {
+      throw new Error("Purge des exécutions d'automatisation non conforme.");
+    }
+    if (tentatives.n !== 1 || resteTentative.n !== 1) {
+      throw new Error("Purge des tentatives de connexion non conforme.");
+    }
+    console.log(
+      "RLS VALIDÉE : purges de rétention bornées, files vivantes préservées.",
+    );
+  } finally {
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+      await owner`delete from tentatives_connexion where cle like ${`rls-ret-${suffix}-%`}`;
+    }
+  }
+}
+
 async function verifierRlsTablesSite(owner) {
   for (const table of [
     "sites_tenants",
@@ -1111,6 +1286,7 @@ async function main() {
       await testerIsolationGuideEtSerrure(owner, app);
       await testerIsolationDemandesExtraAvis(owner, app);
       await testerIsolationClesApiIntegrations(owner, app);
+      await testerPurgesRetention(owner, app);
     } finally {
       if (logementTemporaire) {
         await owner`delete from logements where id = ${logementTemporaire}`;

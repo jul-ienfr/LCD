@@ -379,6 +379,8 @@ export const evenementsCanal = pgTable(
       t.fournisseurCode,
       t.createdAt,
     ),
+    // Purge de rétention (FR-015) : filtre sur la seule date.
+    index("evenements_canal_date_idx").on(t.createdAt),
   ],
 );
 
@@ -530,6 +532,8 @@ export const webhookDeliveries = pgTable(
       t.tenantId,
       t.createdAt,
     ),
+    // Purge de rétention (FR-015) : filtre sur la seule date.
+    index("webhook_deliveries_date_idx").on(t.createdAt),
   ],
 );
 
@@ -1127,6 +1131,8 @@ export const executionsAutomatisation = pgTable(
       t.automatisationId,
       t.createdAt,
     ),
+    // Purge de rétention (FR-015) : filtre sur la seule date.
+    index("executions_automatisation_date_idx").on(t.createdAt),
   ],
 );
 
@@ -1580,7 +1586,11 @@ export const auditLogs = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("audit_logs_tenant_date_idx").on(t.tenantId, t.createdAt)],
+  (t) => [
+    index("audit_logs_tenant_date_idx").on(t.tenantId, t.createdAt),
+    // Purge de rétention (FR-015) : filtre sur la seule date.
+    index("audit_logs_date_idx").on(t.createdAt),
+  ],
 );
 
 export const idempotencyKeys = pgTable(

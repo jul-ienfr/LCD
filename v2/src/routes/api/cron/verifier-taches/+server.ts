@@ -23,6 +23,7 @@ import {
   verifierEchecsEvenementsStripe,
 } from "@/lib/server/evenements-stripe";
 import { purgerJournalExecutions } from "@/lib/server/journal-execution";
+import { purgerRetentions } from "@/lib/server/retention";
 import type { RequestHandler } from "@sveltejs/kit";
 
 const handler: RequestHandler = async ({ request }) => {
@@ -44,6 +45,9 @@ const handler: RequestHandler = async ({ request }) => {
     ]);
     const purges = await purgerJournalExecutions();
     const purgesStripe = await purgerEvenementsStripe();
+    // Rétention bornée des cinq familles de traces (FR-015). Une famille en
+    // échec n'empêche pas les autres : elle est listée dans `echecs`.
+    const retentions = await purgerRetentions();
     return json({
       ok: true,
       ...controle,
@@ -51,6 +55,7 @@ const handler: RequestHandler = async ({ request }) => {
       evenementsStripe: stripe,
       executionsPurgees: purges,
       evenementsStripePurges: purgesStripe,
+      retentionsPurgees: retentions,
     });
   } catch (error) {
     logErreur("cronVerifierTaches", error);

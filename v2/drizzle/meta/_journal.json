@@ -757,6 +757,13 @@
       "when": 1795724800000,
       "tag": "0107_evenements_stripe",
       "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "7",
+      "when": 1795811200000,
+      "tag": "0108_retention_bornee",
+      "breakpoints": true
     }
   ]
 }
