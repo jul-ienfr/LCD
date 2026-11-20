@@ -22,6 +22,8 @@ export interface TraductionsDispatch {
   retirerOffre: string;
   choisir: string;
   messagePlaceholder: string;
+  prestatairePour: (ref: string) => string;
+  messagePour: (ref: string) => string;
   proposer: string;
   enCours: string;
   nonDispatchable: string;
@@ -56,6 +58,8 @@ const FR: TraductionsDispatch = {
   retirerOffre: "Retirer l’offre",
   choisir: "Choisir…",
   messagePlaceholder: "Créneau, consignes…",
+  prestatairePour: (ref) => `Prestataire pour ${ref}`,
+  messagePour: (ref) => `Message pour ${ref}`,
   proposer: "Proposer",
   enCours: "En cours",
   nonDispatchable: "Non dispatchable",
@@ -105,6 +109,8 @@ const EN: TraductionsDispatch = {
   retirerOffre: "Withdraw offer",
   choisir: "Choose…",
   messagePlaceholder: "Slot, instructions…",
+  prestatairePour: (ref) => `Provider for ${ref}`,
+  messagePour: (ref) => `Message for ${ref}`,
   proposer: "Offer",
   enCours: "In progress",
   nonDispatchable: "Not dispatchable",
@@ -154,6 +160,8 @@ const ES: TraductionsDispatch = {
   retirerOffre: "Retirar la oferta",
   choisir: "Elegir…",
   messagePlaceholder: "Franja, instrucciones…",
+  prestatairePour: (ref) => `Proveedor para ${ref}`,
+  messagePour: (ref) => `Mensaje para ${ref}`,
   proposer: "Proponer",
   enCours: "En curso",
   nonDispatchable: "No disponible para dispatch",
@@ -203,6 +211,8 @@ const IT: TraductionsDispatch = {
   retirerOffre: "Ritirare l’offerta",
   choisir: "Scegliere…",
   messagePlaceholder: "Fascia oraria, istruzioni…",
+  prestatairePour: (ref) => `Fornitore per ${ref}`,
+  messagePour: (ref) => `Messaggio per ${ref}`,
   proposer: "Proporre",
   enCours: "In corso",
   nonDispatchable: "Non disponibile per dispatch",
@@ -252,6 +262,8 @@ const DE: TraductionsDispatch = {
   retirerOffre: "Angebot zurückziehen",
   choisir: "Auswählen…",
   messagePlaceholder: "Zeitfenster, Hinweise…",
+  prestatairePour: (ref) => `Dienstleister für ${ref}`,
+  messagePour: (ref) => `Nachricht für ${ref}`,
   proposer: "Anbieten",
   enCours: "Läuft",
   nonDispatchable: "Nicht dispatchbar",

@@ -260,6 +260,11 @@ Puis :
 3. supprimer tout compte de démonstration ;
 4. `curl -fsS https://$DOMAIN/api/ready` → `schema: ok`, `rls: ok`.
 
+Les espaces suivants se créent **depuis l'interface** : `/supervision/espaces`
+(tenant + compte administrateur + premier logement, sans SSH). La création est
+tracée dans le journal d'audit du nouvel espace ; si une étape échoue, l'espace
+est supprimé automatiquement — jamais d'espace à moitié créé.
+
 ## 8. Migrations
 
 Les migrations sont une tâche séparée, dans un conteneur `tools` éphémère, avec

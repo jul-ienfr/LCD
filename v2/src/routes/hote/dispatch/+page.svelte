@@ -96,13 +96,23 @@
                     <form class="space-y-2" method="POST" action="?/proposer">
                       <input name="missionId" type="hidden" value={mission.id} />
                       <input name="ref" type="hidden" value={mission.refOffre} />
-                      <select class="ui-champ text-xs" name="prestataireId" required>
+                      <select
+                        aria-label={t.prestatairePour(mission.ref)}
+                        class="ui-champ text-xs"
+                        name="prestataireId"
+                        required
+                      >
                         <option value="">{t.choisir}</option>
                         {#each data.prestataires as prestataire (prestataire.id)}
                           <option value={prestataire.id}>{prestataire.name}</option>
                         {/each}
                       </select>
-                      <input class="ui-champ text-xs" name="message" placeholder={t.messagePlaceholder} />
+                      <input
+                        aria-label={t.messagePour(mission.ref)}
+                        class="ui-champ text-xs"
+                        name="message"
+                        placeholder={t.messagePlaceholder}
+                      />
                       <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">{t.proposer}</button>
                     </form>
                   {:else}

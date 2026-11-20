@@ -1172,6 +1172,83 @@ async function verifierRlsTablesSite(owner) {
   }
 }
 
+/**
+ * FR-018 : la création d'un espace complet doit passer par la connexion
+ * applicative (en production, la connexion owner n'est pas montée). On crée
+ * tenant + compte + logement comme le fait `CreerEspace`, on vérifie le
+ * résultat, puis la compensation (suppression du tenant, cascade).
+ */
+async function testerCreationEspaceApp(owner, app) {
+  const suffix = randomUUID().slice(0, 12);
+  const slug = `rls-espace-${suffix}`;
+  let tenantId = null;
+  try {
+    const [tenant] = await app`
+      insert into tenants (slug, nom)
+      values (${slug}, 'RLS espace')
+      returning id
+    `;
+    tenantId = tenant.id;
+
+    await app`
+      insert into users (id, tenant_id, name, email, role, actif)
+      values (
+        ${randomUUID()}, ${tenantId}, 'RLS espace',
+        ${`rls-espace-${suffix}@lcd.test`}, 'admin', true
+      )
+    `;
+    await app`select set_config('app.tenant_id', ${tenantId}, false)`;
+    await app`
+      insert into logements (tenant_id, code, nom)
+      values (${tenantId}, ${`log-${suffix}`}, 'RLS espace')
+    `;
+
+    const [comptes] = await app`
+      select count(*)::int as n from users where tenant_id = ${tenantId}
+    `;
+    const [logements] = await app`
+      select count(*)::int as n from logements where tenant_id = ${tenantId}
+    `;
+    console.log(
+      JSON.stringify({
+        espace: slug,
+        comptes: comptes.n,
+        logements: logements.n,
+      }),
+    );
+    if (comptes.n !== 1 || logements.n !== 1) {
+      throw new Error(
+        "FR-018 : création d'espace incomplète via la connexion applicative.",
+      );
+    }
+
+    // Compensation : la suppression du tenant emporte comptes et logements.
+    await app`select set_config('app.tenant_id', '00000000-0000-4000-8000-000000000000', false)`;
+    await app`delete from tenants where id = ${tenantId}`;
+    tenantId = null;
+
+    const [resteTenant] = await app`
+      select count(*)::int as n from tenants where slug = ${slug}
+    `;
+    const [resteCompte] = await owner`
+      select count(*)::int as n from users where email = ${`rls-espace-${suffix}@lcd.test`}
+    `;
+    const [resteLogement] = await owner`
+      select count(*)::int as n from logements where code = ${`log-${suffix}`}
+    `;
+    if (resteTenant.n !== 0 || resteCompte.n !== 0 || resteLogement.n !== 0) {
+      throw new Error("FR-018 : compensation d'espace incomplète.");
+    }
+    console.log(
+      "FR-018 VALIDÉE : espace créé puis compensé via la connexion applicative (tenants/users hors RLS, logement sous app.tenant_id).",
+    );
+  } finally {
+    if (tenantId) {
+      await owner`delete from tenants where id = ${tenantId}`;
+    }
+  }
+}
+
 async function main() {
   if (!ownerUrl || !appUrl) {
     throw new Error(
@@ -1286,6 +1363,7 @@ async function main() {
       await testerIsolationGuideEtSerrure(owner, app);
       await testerIsolationDemandesExtraAvis(owner, app);
       await testerIsolationClesApiIntegrations(owner, app);
+      await testerCreationEspaceApp(owner, app);
       await testerPurgesRetention(owner, app);
     } finally {
       if (logementTemporaire) {

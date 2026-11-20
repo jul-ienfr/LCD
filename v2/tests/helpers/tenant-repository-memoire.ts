@@ -1,4 +1,5 @@
 import type {
+  CreerTenantData,
   EntiteData,
   TenantRepository,
 } from "@/application/ports/tenant-repository";
@@ -23,6 +24,40 @@ export class TenantRepositoryMemoire implements TenantRepository {
     return this.rows
       .filter((tenant) => tenant.statut === "actif")
       .map((tenant) => tenant.id);
+  }
+
+  async creer(data: CreerTenantData): Promise<Tenant> {
+    const maintenant = new Date();
+    const tenant: Tenant = {
+      id: crypto.randomUUID(),
+      slug: data.slug,
+      nom: data.nom,
+      nature: "nom_propre",
+      regime: "micro_bic_non_classe",
+      tva: "non",
+      siren: null,
+      adresse: null,
+      mentionsLegales: null,
+      statut: "actif",
+      ventesSuspendues: false,
+      ventesSuspenduesMotif: null,
+      ventesSuspenduesLe: null,
+      lectureSeule: false,
+      createdAt: maintenant,
+      updatedAt: maintenant,
+    };
+    this.rows.push(tenant);
+    return tenant;
+  }
+
+  async supprimer(tenantId: string): Promise<void> {
+    const index = this.rows.findIndex((tenant) => tenant.id === tenantId);
+    if (index >= 0) this.rows.splice(index, 1);
+  }
+
+  /** Utilitaire de test : instantané de tous les espaces connus. */
+  async lister(): Promise<Tenant[]> {
+    return [...this.rows];
   }
 
   async mettreAJourEntite(

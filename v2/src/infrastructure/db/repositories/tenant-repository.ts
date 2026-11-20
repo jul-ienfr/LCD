@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import type {
+  CreerTenantData,
   EntiteData,
   TenantRepository,
 } from "@/application/ports/tenant-repository";
@@ -55,6 +56,29 @@ export class DrizzleTenantRepository implements TenantRepository {
       .from(tenants)
       .where(eq(tenants.statut, "actif"));
     return rows.map((row) => row.id);
+  }
+
+  /**
+   * `tenants` n'est pas sous RLS : la connexion applicative suffit, y compris
+   * en production où la connexion owner n'est pas montée (FR-018).
+   */
+  async creer(data: CreerTenantData): Promise<Tenant> {
+    const [row] = await db
+      .insert(tenants)
+      .values({ slug: data.slug, nom: data.nom })
+      .returning();
+    if (!row) throw new Error("Création du tenant : aucune ligne retournée.");
+    return versDomaine(row);
+  }
+
+  async supprimer(tenantId: string): Promise<void> {
+    await db.delete(tenants).where(eq(tenants.id, tenantId));
+  }
+
+  /** Liste des espaces, la plus récente création comprise (FR-018). */
+  async lister(): Promise<Tenant[]> {
+    const rows = await db.select().from(tenants).orderBy(asc(tenants.nom));
+    return rows.map(versDomaine);
   }
 
   async mettreAJourEntite(

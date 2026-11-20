@@ -352,7 +352,7 @@
           </div>
 
           <details class="border-t border-encre-faine/20 pt-4">
-            <summary class="cursor-pointer text-sm font-medium">
+            <summary class="flex min-h-11 cursor-pointer items-center text-sm font-medium">
               {t.modifierCanal}
             </summary>
             <form method="POST" action="?/modifier" class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -440,7 +440,7 @@
             </form>
 
             <details class="mt-4">
-              <summary class="cursor-pointer text-sm text-danger">
+              <summary class="flex min-h-11 cursor-pointer items-center text-sm text-danger">
                 {t.supprimerCanal}
               </summary>
               <p class="mt-2 text-sm text-encre-douce">

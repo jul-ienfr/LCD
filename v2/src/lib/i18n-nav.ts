@@ -12,6 +12,7 @@ export interface TraductionsNavigation {
   plus: string;
   supervision: string;
   apparence: string;
+  espaces: string;
   maintenance: string;
   langue: string;
   navigationPrincipale: string;
@@ -79,6 +80,7 @@ const FR: TraductionsNavigation = {
   plus: "Plus",
   supervision: "Supervision plateforme",
   apparence: "Apparence",
+  espaces: "Espaces",
   maintenance: "Maintenance",
   langue: "Langue",
   navigationPrincipale: "Navigation principale",
@@ -150,6 +152,7 @@ const EN: TraductionsNavigation = {
   plus: "More",
   supervision: "Platform supervision",
   apparence: "Appearance",
+  espaces: "Spaces",
   maintenance: "Maintenance",
   langue: "Language",
   navigationPrincipale: "Main navigation",
@@ -221,6 +224,7 @@ const ES: TraductionsNavigation = {
   plus: "Más",
   supervision: "Supervisión de la plataforma",
   apparence: "Apariencia",
+  espaces: "Espacios",
   maintenance: "Mantenimiento",
   langue: "Idioma",
   navigationPrincipale: "Navegación principal",
@@ -292,6 +296,7 @@ const IT: TraductionsNavigation = {
   plus: "Altro",
   supervision: "Supervisione della piattaforma",
   apparence: "Aspetto",
+  espaces: "Spazi",
   maintenance: "Manutenzione",
   langue: "Lingua",
   navigationPrincipale: "Navigazione principale",
@@ -363,6 +368,7 @@ const DE: TraductionsNavigation = {
   plus: "Mehr",
   supervision: "Plattformaufsicht",
   apparence: "Darstellung",
+  espaces: "Bereiche",
   maintenance: "Wartung",
   langue: "Sprache",
   navigationPrincipale: "Hauptnavigation",

@@ -141,6 +141,15 @@ const PREFIXES_STAFF = ["hote", "supervision", "support", "presta"];
  */
 const ROUTES_PUBLIQUES_EXCLUES = ["login", "two-factor"];
 
+/**
+ * Routes staff qui redirigent volontairement (alias historiques) : les mesurer
+ * revient à mesurer leur destination. `/hote/design` renvoie vers
+ * `/supervision/apparence`, déjà couverte. Les autres redirections détectées
+ * pendant l'audit (`redirigeVers`) restent des écarts : elles signalent une
+ * session sans le rôle requis, donc une mesure faussée.
+ */
+const ROUTES_STAFF_REDIRIGEES = ["hote/design"];
+
 async function routesPubliques() {
   const racine = path.join(racineDepot, "v2", "src", "routes");
   const trouvees = [];
@@ -174,7 +183,12 @@ async function routesStaff() {
   async function parcourir(dossier, segments) {
     const entrees = await readdir(dossier, { withFileTypes: true });
     if (entrees.some((entree) => entree.isFile() && entree.name === "+page.svelte")) {
-      if (segments.length > 0) trouvees.push(`/${segments.join("/")}`);
+      if (segments.length > 0) {
+        const chemin = segments.join("/");
+        if (!ROUTES_STAFF_REDIRIGEES.includes(chemin)) {
+          trouvees.push(`/${chemin}`);
+        }
+      }
     }
     for (const entree of entrees) {
       if (!entree.isDirectory()) continue;
@@ -311,6 +325,17 @@ async function auditerRoute(page, route) {
     status = response?.status() ?? null;
     await page.waitForTimeout(400);
 
+    /**
+     * Garde de redirection : une route qui aboutit ailleurs (session sans le
+     * rôle requis, par exemple) mesurerait la page d'arrivée — souvent la
+     * connexion — et donnerait un bilan faussement propre. La route est
+     * marquée `redirigeVers` et comptée comme écart par le gate.
+     */
+    const cheminFinal = new URL(page.url()).pathname.replace(/\/+$/, "") || "/";
+    const cheminAttendu = route.replace(/\/+$/, "") || "/";
+    const redirigeVers =
+      cheminFinal === cheminAttendu ? null : cheminFinal;
+
     const cibles = await mesurerCiblesPage(page, { seuilPx });
     const audit = await page.evaluate(() => {
       const doc = document.documentElement;
@@ -349,12 +374,13 @@ async function auditerRoute(page, route) {
     });
 
     console.log(
-      `${route} status=${status} overflow=${cibles.overflowPx}px h1=${audit.h1Count} lang=${audit.lang} skip=${audit.skipLink} small=${cibles.smallTargets.length} unlabeled=${audit.unlabeledFields} imgAlt=${audit.imagesWithoutAlt}`,
+      `${route} status=${status} overflow=${cibles.overflowPx}px h1=${audit.h1Count} lang=${audit.lang} skip=${audit.skipLink} small=${cibles.smallTargets.length} unlabeled=${audit.unlabeledFields} imgAlt=${audit.imagesWithoutAlt}${redirigeVers ? ` REDIRIGÉ -> ${redirigeVers}` : ""}`,
     );
 
     return {
       route,
       status,
+      ...(redirigeVers ? { redirigeVers } : {}),
       overflowPx: cibles.overflowPx,
       smallTargets: cibles.smallTargets.map((cible) => ({
         tag: cible.tag,
@@ -453,6 +479,7 @@ if ((staff || public_) && !ecrire && !verifier) {
     (r) => (r.smallTargets ?? []).length > 0,
   );
   const sansEtiquette = donnees.results.filter((r) => (r.unlabeledFields ?? 0) > 0);
+  const redirigees = donnees.results.filter((r) => r.redirigeVers);
   const total = donnees.results.reduce(
     (n, r) => n + (r.smallTargets ?? []).length,
     0,
@@ -462,9 +489,13 @@ if ((staff || public_) && !ecrire && !verifier) {
     0,
   );
   console.log(
-    `\nBilan ${perimetre} 320 px : ${donnees.results.length} routes, ${total} cible(s) < ${seuilPx} px, ${enDebordement.length} débordement(s), ${enErreur.length} erreur(s), ${totalSansEtiquette} champ(s) sans étiquette.`,
+    `\nBilan ${perimetre} 320 px : ${donnees.results.length} routes, ${total} cible(s) < ${seuilPx} px, ${enDebordement.length} débordement(s), ${enErreur.length} erreur(s), ${totalSansEtiquette} champ(s) sans étiquette, ${redirigees.length} route(s) redirigée(s).`,
   );
   for (const route of enErreur) console.error(`  ${route.route} → HTTP ${route.status}`);
+  for (const route of redirigees)
+    console.error(
+      `  ${route.route} → redirigée vers ${route.redirigeVers} : mesurée à tort (session sans le rôle requis ?)`,
+    );
   for (const route of enDebordement)
     console.error(`  ${route.route} → débordement ${route.overflowPx} px`);
   for (const route of avecCibles)
@@ -477,6 +508,7 @@ if ((staff || public_) && !ecrire && !verifier) {
     );
   if (
     enErreur.length +
+      redirigees.length +
       enDebordement.length +
       avecCibles.length +
       sansEtiquette.length >
@@ -486,7 +518,7 @@ if ((staff || public_) && !ecrire && !verifier) {
     process.exit(1);
   }
   console.log(
-    `Gate ${perimetre} : OK (0 cible, 0 débordement, 0 erreur, 0 champ sans étiquette).`,
+    `Gate ${perimetre} : OK (0 cible, 0 débordement, 0 erreur, 0 champ sans étiquette, 0 redirection).`,
   );
   process.exit(0);
 }

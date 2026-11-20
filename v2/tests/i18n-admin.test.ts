@@ -117,6 +117,8 @@ describe("i18n administration et planning", () => {
     );
     expect(traductionsIntegrations("de").okEnregistre("HA")).toContain("HA");
     expect(traductionsDispatch("it").missionsAVenir(3)).toContain("3");
+    expect(traductionsDispatch("it").prestatairePour("MIS-1")).toContain("MIS-1");
+    expect(traductionsDispatch("it").messagePour("MIS-1")).toContain("MIS-1");
     expect(traductionsPhrases("es").phrasesDe("Villa")).toContain("Villa");
     expect(traductionsTourisme("de").lieux(4)).toContain("4");
     expect(traductionsTranquillite("it").carnetDe("Casa", 2)).toContain("Casa");

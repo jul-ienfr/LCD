@@ -9,6 +9,7 @@
       libelle: "Fournisseurs",
     },
     { id: "tenants", href: "/supervision", libelle: "Vue d’ensemble" },
+    { id: "espaces", href: "/supervision/espaces", libelle: "Espaces" },
     { id: "modules", href: "/supervision/modules", libelle: "Modules" },
     {
       id: "maintenance",
