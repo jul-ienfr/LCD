@@ -10,6 +10,11 @@
     },
     { id: "tenants", href: "/supervision", libelle: "Vue d’ensemble" },
     { id: "modules", href: "/supervision/modules", libelle: "Modules" },
+    {
+      id: "maintenance",
+      href: "/supervision/maintenance",
+      libelle: "Maintenance",
+    },
     { id: "voir-comme", href: "/supervision/voir-comme", libelle: "Voir comme" },
     { id: "journal", href: "/journal", libelle: "Journal global" },
     { id: "systeme", href: "/systeme", libelle: "Système" },

@@ -17,6 +17,11 @@ import { capturerErreur } from "@/lib/telemetry";
 import { langueRequete } from "@/lib/server/langue";
 import { tenantEnLectureSeule } from "@/lib/server/lecture-seule";
 import { doitBloquerEcriture } from "@/domain/lecture-seule";
+import { doitSuspendreMaintenance } from "@/domain/maintenance";
+import { lireMaintenance } from "@/lib/server/maintenance";
+import { pageMaintenance } from "@/lib/server/page-maintenance";
+import { apparencePourRequete } from "@/lib/server/apparence";
+import { estSuperAdmin } from "@/lib/server/session";
 
 const estRessource = (chemin: string): boolean =>
   chemin.startsWith("/_app/") ||
@@ -101,6 +106,63 @@ export const handle: Handle = async ({ event, resolve }) => {
       headers: event.request.headers,
     });
     event.locals.session = session as App.Locals["session"];
+  }
+
+  // FR-017 : mode maintenance global. La suspension précède tout routage :
+  // le super-admin (et les sondes, crons, webhooks, la connexion) restent
+  // joignables pour constater, corriger et rouvrir sans redéploiement.
+  if (!building && !estRessource(event.url.pathname)) {
+    const etatMaintenance = await lireMaintenance();
+    if (
+      doitSuspendreMaintenance({
+        chemin: event.url.pathname,
+        actif: etatMaintenance.actif,
+        superAdmin: estSuperAdmin(event.locals.session),
+      })
+    ) {
+      // Les clients machine (API partenaires) reçoivent un 503 JSON, pas une
+      // page HTML : le code et le corps disent la même chose.
+      if (event.url.pathname.startsWith("/api/")) {
+        return new Response(
+          JSON.stringify({
+            error: {
+              code: "MAINTENANCE",
+              message:
+                etatMaintenance.message ??
+                "Le service est en maintenance ; réessayez dans quelques minutes.",
+            },
+          }),
+          {
+            status: 503,
+            headers: {
+              "content-type": "application/json; charset=utf-8",
+              "retry-after": "120",
+              "cache-control": "no-store",
+              "x-request-id": requestId,
+            },
+          },
+        );
+      }
+      const { apparence } = await apparencePourRequete(event);
+      return new Response(
+        pageMaintenance({
+          etat: etatMaintenance,
+          apparence,
+          langue: langueRequete(event),
+          requestId,
+        }),
+        {
+          status: 503,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+            "retry-after": "120",
+            "cache-control": "no-store",
+            "x-request-id": requestId,
+            ...entetesSecurite(event.url.pathname),
+          },
+        },
+      );
+    }
   }
 
   if (

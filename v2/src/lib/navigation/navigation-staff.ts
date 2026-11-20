@@ -68,6 +68,7 @@ const ROLES_GARDES: Record<string, readonly RoleUtilisateur[]> = {
   "/hote/tranquillite": ["super_admin", "admin", "hote", "operateur"],
   "/hote/utilisateurs": ["super_admin", "admin"],
   "/supervision/apparence": ["super_admin"],
+  "/supervision/maintenance": ["super_admin"],
 };
 
 /**
@@ -300,6 +301,11 @@ const NAVIGATION_BRUT: NavigationStaff = {
             {
               href: "/supervision/apparence",
               cle: "apparence",
+              roles: ["super_admin"],
+            },
+            {
+              href: "/supervision/maintenance",
+              cle: "maintenance",
               roles: ["super_admin"],
             },
           ],

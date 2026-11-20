@@ -12,6 +12,7 @@ export interface TraductionsNavigation {
   plus: string;
   supervision: string;
   apparence: string;
+  maintenance: string;
   langue: string;
   navigationPrincipale: string;
   apercuLectureSeule: (role: string) => string;
@@ -78,6 +79,7 @@ const FR: TraductionsNavigation = {
   plus: "Plus",
   supervision: "Supervision plateforme",
   apparence: "Apparence",
+  maintenance: "Maintenance",
   langue: "Langue",
   navigationPrincipale: "Navigation principale",
   apercuLectureSeule: (role) => `Aperçu lecture seule — rôle « ${role} ». Toute écriture est bloquée.`,
@@ -148,6 +150,7 @@ const EN: TraductionsNavigation = {
   plus: "More",
   supervision: "Platform supervision",
   apparence: "Appearance",
+  maintenance: "Maintenance",
   langue: "Language",
   navigationPrincipale: "Main navigation",
   apercuLectureSeule: (role) => `Read-only preview — “${role}” role. All writes are blocked.`,
@@ -218,6 +221,7 @@ const ES: TraductionsNavigation = {
   plus: "Más",
   supervision: "Supervisión de la plataforma",
   apparence: "Apariencia",
+  maintenance: "Mantenimiento",
   langue: "Idioma",
   navigationPrincipale: "Navegación principal",
   apercuLectureSeule: (role) => `Vista previa de solo lectura — rol «${role}». Toda escritura está bloqueada.`,
@@ -288,6 +292,7 @@ const IT: TraductionsNavigation = {
   plus: "Altro",
   supervision: "Supervisione della piattaforma",
   apparence: "Aspetto",
+  maintenance: "Manutenzione",
   langue: "Lingua",
   navigationPrincipale: "Navigazione principale",
   apercuLectureSeule: (role) => `Anteprima sola lettura — ruolo «${role}». Ogni scrittura è bloccata.`,
@@ -358,6 +363,7 @@ const DE: TraductionsNavigation = {
   plus: "Mehr",
   supervision: "Plattformaufsicht",
   apparence: "Darstellung",
+  maintenance: "Wartung",
   langue: "Sprache",
   navigationPrincipale: "Hauptnavigation",
   apercuLectureSeule: (role) => `Schreibgeschützte Vorschau — Rolle „${role}“. Alle Schreibvorgänge sind gesperrt.`,

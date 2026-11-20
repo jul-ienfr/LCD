@@ -370,6 +370,7 @@ accompagnée d'un plan de retour.
 | Disque plein | purger logs/backups anciens, augmenter le volume | migrer le volume |
 | E-mails en spam | vérifier SPF/DKIM/DMARC, réputation | changer de fournisseur |
 | Crons en double | vérifier qu'un seul déclencheur est actif | désactiver l'in-process ou le cron |
+| Site suspendu « Maintenance » (503) | `/supervision/maintenance` → « Rouvrir le site » (le super-admin n'est jamais suspendu) | si la page ne répond pas, retirer la clé `maintenance` de `parametres_site` |
 | Fuite de secret | révoquer, rotation, redéployer | journal + notification |
 
 Journal d'incident : date, détection, impact, actions, durée, cause racine,

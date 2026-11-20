@@ -64,6 +64,7 @@ const STAFF = [
   "/systeme",
   "/supervision",
   "/supervision/apparence",
+  "/supervision/maintenance",
   "/supervision/voir-comme",
 ];
 

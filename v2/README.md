@@ -183,6 +183,19 @@ importée.
   `/`, `/login`, `/reserver` et `/voyageur` chargent **0,1 Ko** de JavaScript
   applicatif (hors service worker), grâce à `csr = false`.
 
+## Mode maintenance global
+
+`/supervision/maintenance` suspend le site proprement, sans redéploiement :
+activation en deux étapes (message optionnel + confirmation), désactivation en
+un geste, audit des deux transitions. Les visiteurs reçoivent une page dédiée
+en **503** (thème publié, cinq langues, sans JavaScript) ; `/api/*` répond un
+**503 JSON**. Restent joignables : la supervision et la connexion (le
+super-admin n'est jamais suspendu), les sondes (`/api/health`, `/api/ready`,
+`/api/metrics`), la résolution de domaine, les tâches planifiées et les
+webhooks entrants — aucune sauvegarde ni donnée n'est perdue pendant la
+suspension. L'état vit dans `parametres_site` (clé `maintenance`) : en cas de
+doute, la retirer rouvre le site.
+
 ## Channel manager
 
 `/hote/planning/canaux` centralise les plateformes d’un logement : une fiche par
