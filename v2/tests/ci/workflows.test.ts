@@ -47,6 +47,21 @@ function indexEtape(steps: Etape[], motif: RegExp): number {
   return steps.findIndex((etape) => motif.test(etape.run ?? ""));
 }
 
+/**
+ * Position d'une commande dans le script concaténé de toutes les étapes :
+ * deux commandes d'une même étape multi-lignes gardent un ordre mesurable.
+ */
+function positionCommande(steps: Etape[], motif: RegExp): number {
+  let position = 0;
+  for (const etape of steps) {
+    const script = etape.run ?? "";
+    const trouve = script.search(motif);
+    if (trouve >= 0) return position + trouve;
+    position += script.length + 1;
+  }
+  return -1;
+}
+
 describe("v2-ci : build avant tests et couverture mesurée", () => {
   const workflow = lireWorkflow("v2-ci.yml");
   const web = job(workflow, "web");
@@ -197,4 +212,53 @@ describe("build en CI : DATABASE_URL toujours fournie", () => {
     const envWorkflow = workflow.env ?? {};
     expect(envJob.DATABASE_URL ?? envWorkflow.DATABASE_URL).toBeTruthy();
   });
+});
+
+describe("migrations sur base neuve : le rôle applicatif existe d'abord", () => {
+  // Deux migrations accordent des droits à `lcd_app` sans garde `IF EXISTS`
+  // (0062, 0103) : sur une base neuve, `db:migrate` échoue si le rôle n'a pas
+  // été créé avant. Tout job qui migre une base vierge doit créer le rôle
+  // d'abord.
+  const workflowsAvecMigrations = [
+    "v2-ci.yml",
+    "v2-recette-quotidienne.yml",
+    "qualite-ergonomie.yml",
+  ];
+
+  it("les migrations non gardées sont bien celles connues", () => {
+    const nonGardees: string[] = [];
+    for (const nom of [
+      "0062_lyrical_pride.sql",
+      "0103_domaine_public.sql",
+    ]) {
+      const sql = readFileSync(
+        new URL(`drizzle/${nom}`, racineV2),
+        "utf8",
+      );
+      if (!/IF EXISTS \(SELECT 1 FROM pg_roles/.test(sql)) nonGardees.push(nom);
+    }
+    expect(nonGardees).toEqual([
+      "0062_lyrical_pride.sql",
+      "0103_domaine_public.sql",
+    ]);
+  });
+
+  it.each(workflowsAvecMigrations)(
+    "%s crée le rôle avant de migrer",
+    (nom) => {
+      const workflow = lireWorkflow(nom);
+      const porteur = Object.values(workflow.jobs ?? {}).find((entree) =>
+        (entree.steps ?? []).some((etape) =>
+          /npm run db:migrate/.test(etape.run ?? ""),
+        ),
+      ) as Job | undefined;
+      expect(porteur).toBeTruthy();
+      const steps = porteur?.steps ?? [];
+      const iRole = positionCommande(steps, /npm run db:role-app/);
+      const iMigrate = positionCommande(steps, /npm run db:migrate/);
+      expect(iRole).toBeGreaterThanOrEqual(0);
+      expect(iMigrate).toBeGreaterThanOrEqual(0);
+      expect(iRole).toBeLessThan(iMigrate);
+    },
+  );
 });

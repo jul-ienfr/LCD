@@ -157,6 +157,11 @@ jobs:
       - name: Cohérence du schéma
         run: npm run db:check
 
+      # Le rôle applicatif précède les migrations : deux migrations accordent
+      # des droits à `lcd_app` (0062, 0103) sans garde `IF EXISTS`.
+      - name: Rôle applicatif
+        run: npm run db:role-app
+
       - name: Migrations
         run: npm run db:migrate
 
@@ -165,9 +170,6 @@ jobs:
 
       - name: Seed logements de démonstration
         run: npm run db:seed-demo
-
-      - name: Rôle applicatif
-        run: npm run db:role-app
 
       - name: RLS
         env:

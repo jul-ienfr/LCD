@@ -87,10 +87,10 @@ jobs:
 
       - name: Base migrée et seedée (le build exige DATABASE_URL)
         run: |
+          npm run db:role-app
           npm run db:migrate
           npm run db:seed
           npm run db:seed-demo
-          npm run db:role-app
 
       # Le build précède les tests : `tests/budget-js.test.ts` garde le poids
       # des chunks produits et échoue sans build.

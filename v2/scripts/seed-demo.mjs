@@ -68,7 +68,8 @@ await sql.begin(async (tx) => {
       await tx`
         insert into tarifs (tenant_id, logement_id, date, prix_centimes, source)
         values (${tenant.id}, ${logement.id}, ${jourIso}, ${demo.prix}, 'manuel')
-        on conflict (tenant_id, logement_id, date) do update set
+        on conflict (tenant_id, logement_id, date) where plan_tarifaire_id is null
+        do update set
           prix_centimes = excluded.prix_centimes,
           updated_at = now()
       `;
