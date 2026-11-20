@@ -3,7 +3,7 @@
 ```text
 Statut : ACTIF
 Propriétaire : équipe produit
-Dernière vérification : 2026-11-14
+Dernière vérification : 2026-11-20
 Remplace / remplacé par : web/ (V1, gelée)
 Source de vérité : v2/src, v2/package.json
 ```
@@ -42,9 +42,17 @@ Un compte super-admin dédié peut être créé avec
 ```bash
 npm run check       # svelte-check + sync
 npm test            # Vitest (domaine, application, infrastructure)
+npm run test:coverage   # Vitest + couverture, seuil 80 % (domain + application)
 npm run build
 npm run test:e2e    # Playwright (serveur lancé automatiquement)
 ```
+
+En CI, le build précède toujours les tests (la garde de budget JS lit
+`build/client`) et la couverture est mesurée avec un seuil de 80 % sur
+`src/domain` + `src/application` (SC-013). Une recette complète — migrations,
+rôles, seeds, build, suite e2e — rejoue quotidiennement la chaîne de release
+sur la branche principale (`v2-recette-quotidienne.yml`, 04:00 UTC, aussi
+déclenchable manuellement).
 
 Les tests E2E couvrent les parcours publics, la connexion, l’apparence
 (brouillon, aperçu signé, publication, retour arrière), le chargement de toutes

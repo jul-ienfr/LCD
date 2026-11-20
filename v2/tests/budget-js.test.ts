@@ -5,7 +5,8 @@
  * Les routes publiques et voyageur utilisent `csr = false` et ne chargent
  * aucun îlot obligatoire. Ce test vérifie statiquement le poids des assets
  * JS produits par `npm run build` (dossier build/client). Il est sauté si
- * le build n'existe pas (lancer `npm run build` avant).
+ * le build n'existe pas (lancer `npm run build` avant) ; en CI, un build
+ * absent fait échouer le fichier : l'ordre build → tests y est garanti.
  *
  * La mesure fine par route se fait avec `npm run measure:js` (serveur requis)
  * ; ce test garde une garde statique exécutable en CI sans serveur.
@@ -78,8 +79,13 @@ describe("budget JS (garde statique sur le build)", () => {
     expect(BUDGET_WIDGET_KO).toBeLessThan(50);
   });
 
-  it.skipIf(buildPresent)("build absent — lancé après npm run build", () => {
-    // Marker explicite : sans build, la garde statique ne peut pas s'exercer.
-    expect(buildPresent).toBe(true);
-  });
+  it.skipIf(buildPresent || !process.env.CI)(
+    "build absent en CI — ordonner npm run build avant les tests",
+    () => {
+      // Marqueur : en CI, un build absent signifie que l'étape de build a été
+      // retirée ou réordonnée ; sans lui, la garde statique serait
+      // silencieusement sautée. En local, le fichier passe sans build.
+      expect(buildPresent).toBe(true);
+    },
+  );
 });

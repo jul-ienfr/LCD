@@ -12,7 +12,7 @@ on:
       - "specs/**"
       - "deploy/**"
       - "README.md"
-      - ".github/workflows/v2-ci.yml"
+      - ".github/workflows/**"
       - ".gitleaks.toml"
   pull_request:
     paths:
@@ -21,7 +21,7 @@ on:
       - "specs/**"
       - "deploy/**"
       - "README.md"
-      - ".github/workflows/v2-ci.yml"
+      - ".github/workflows/**"
       - ".gitleaks.toml"
 
 jobs:
@@ -80,11 +80,23 @@ jobs:
           cache-dependency-path: v2/package-lock.json
       - run: npm ci
       - run: npm run typecheck
-      - run: npm test
       - run: npm run db:check
       - run: npm run db:role-app
       - run: npm run db:test-migrations
+      # Le build précède les tests : `tests/budget-js.test.ts` garde le poids
+      # des chunks produits (constitution III) et échoue sans build.
       - run: npm run build
+      # Couverture mesurée avec seuil (SC-013, FR-030) : 80 % minimum sur
+      # `src/domain` et `src/application` ; sous le seuil, la CI échoue.
+      - name: Tests unitaires et couverture (seuil 80 %, SC-013)
+        run: npm run test:coverage
+      - name: Publier le résumé de couverture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: couverture
+          path: v2/coverage/coverage-summary.json
+          if-no-files-found: ignore
 
   # Recette de release : déclenchée uniquement par un tag `v*`.
   # Reproduit, depuis zéro, l'environnement complet (migrations, rôles, seeds),
@@ -116,6 +128,9 @@ jobs:
       APP_ROLE_PASSWORD: release-app-role-password-24-chars
       BETTER_AUTH_SECRET: ci-only-change-me-please-32chars-min
       BETTER_AUTH_URL: http://127.0.0.1:4173
+      # Les specs e2e appellent des routes cron (police, relevés) : le serveur
+      # de production et les tests doivent partager la même valeur.
+      CRON_SECRET: release-only-cron-secret-32-characters-min
       SEED_ADMIN_EMAIL: admin@lcd.test
       SEED_ADMIN_PASSWORD: ChangeMe-2026!
       SEED_TENANT_SLUG: lcd
@@ -139,9 +154,6 @@ jobs:
       - name: Types
         run: npm run typecheck
 
-      - name: Tests unitaires
-        run: npm test
-
       - name: Cohérence du schéma
         run: npm run db:check
 
@@ -164,6 +176,11 @@ jobs:
 
       - name: Build production
         run: npm run build
+
+      # Après le build : la garde de budget JS lit `build/client` ;
+      # la couverture est mesurée avec le même seuil qu'en CI (SC-013).
+      - name: Tests unitaires et couverture
+        run: npm run test:coverage
 
       - name: Smoke test HTTP (build de production)
         env:

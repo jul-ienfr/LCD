@@ -1,13 +1,32 @@
-# LCD — CI : build + lint + tests web + batterie lab.
+# LCD — CI : build + lint + tests web + batterie lab (pile V1).
 #
-# Déclenchement : push + PR. La batterie lab exige Docker (runner avec
-# Docker) : `docker compose up -d --build` puis `tests_lab.py` (100 % verte
-# exigée, comme en local). Le front exige Node 24 (voir web/README).
+# Déclenchement : push + PR, uniquement sur les chemins de la pile V1
+# (`web/`, `lab/`, `custom/`, `homeassistant/`, `deploy/`) : les changements
+# de la v2 sont couverts par `v2-ci.yml`. La batterie lab exige Docker
+# (runner avec Docker) : `docker compose up -d --build` puis `tests_lab.py`
+# (100 % verte exigée, comme en local). Le front exige Node 24 (voir
+# web/README).
 name: ci
 
 on:
   push:
+    paths:
+      - "web/**"
+      - "lab/**"
+      - "custom/**"
+      - "homeassistant/**"
+      - "deploy/**"
+      - "secrets.yaml.example"
+      - ".github/workflows/ci.yml"
   pull_request:
+    paths:
+      - "web/**"
+      - "lab/**"
+      - "custom/**"
+      - "homeassistant/**"
+      - "deploy/**"
+      - "secrets.yaml.example"
+      - ".github/workflows/ci.yml"
 
 jobs:
   web:

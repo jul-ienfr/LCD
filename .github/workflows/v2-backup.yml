@@ -7,6 +7,10 @@ on:
 
 jobs:
   backup:
+    # Avant go-live, aucune base de production n'existe : le job est ignoré
+    # proprement tant que l'application n'est pas déployée (variable
+    # LCD_APP_URL, Settings → Variables), au lieu d'échouer chaque nuit.
+    if: vars.LCD_APP_URL != ''
     runs-on: ubuntu-latest
     defaults:
       run:

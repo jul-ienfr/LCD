@@ -1,0 +1,126 @@
+name: v2-recette-quotidienne
+
+# FR-030 (spec 006) : les tests e2e s'exécutent au moins une fois par jour sur
+# la branche principale. Cette recette rejoue, depuis zéro, l'environnement
+# complet (migrations, rôles, seeds, build de production) puis la suite e2e —
+# la répétition générale quotidienne du job `release` de `v2-ci.yml`.
+# GitHub n'exécute les `schedule` que depuis la branche par défaut du dépôt.
+on:
+  schedule:
+    # 04:00 UTC (05:00/06:00 à Paris), après la sauvegarde de 02:00 UTC.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v2-recette-quotidienne
+  cancel-in-progress: false
+
+jobs:
+  recette:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: v2
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: lcd
+          POSTGRES_PASSWORD: lcd
+          POSTGRES_DB: lcd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lcd -d lcd"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+      MIGRATION_DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+      APP_ROLE_PASSWORD: recette-app-role-password-24-chars
+      BETTER_AUTH_SECRET: ci-only-change-me-please-32chars-min
+      BETTER_AUTH_URL: http://127.0.0.1:4173
+      # Les specs e2e appellent des routes cron (police, relevés) : le serveur
+      # de production et les tests doivent partager la même valeur.
+      CRON_SECRET: recette-only-cron-secret-32-characters-min
+      SEED_ADMIN_EMAIL: admin@lcd.test
+      SEED_ADMIN_PASSWORD: ChangeMe-2026!
+      SEED_TENANT_SLUG: lcd
+      SEED_PRESTA_EMAIL: presta@lcd.test
+      SEED_PRESTA_PASSWORD: ChangeMe-2026!
+      SEED_PROPRIO_EMAIL: proprio@lcd.test
+      SEED_PROPRIO_PASSWORD: ChangeMe-2026!
+      SEED_COMMERCIAL_EMAIL: commercial@lcd.test
+      SEED_COMMERCIAL_PASSWORD: ChangeMe-2026!
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+
+      - name: Dépendances
+        run: npm ci
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Cohérence du schéma
+        run: npm run db:check
+
+      - name: Migrations
+        run: npm run db:migrate
+
+      - name: Seed admin et rôles
+        run: npm run db:seed
+
+      - name: Seed logements de démonstration
+        run: npm run db:seed-demo
+
+      - name: Rôle applicatif
+        run: npm run db:role-app
+
+      - name: RLS
+        env:
+          DATABASE_URL: postgres://lcd_app:recette-app-role-password-24-chars@127.0.0.1:5432/lcd
+        run: npm run db:test-rls
+
+      - name: Build production
+        run: npm run build
+
+      - name: Tests unitaires et couverture (seuil 80 %, SC-013)
+        run: npm run test:coverage
+
+      - name: Navigateur Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Suite e2e (build de production)
+        env:
+          CI: "true"
+          PW_SERVEUR: prod
+          PW_PORT: "4173"
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
+          APP_URL: http://127.0.0.1:4173
+          BETTER_AUTH_URL: http://127.0.0.1:4173
+          ENQUIRY_ENABLED: "true"
+          DATABASE_URL: postgres://lcd_app:recette-app-role-password-24-chars@127.0.0.1:5432/lcd
+          MIGRATION_DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+        run: npm run test:e2e
+
+      - name: Publier le rapport e2e
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-quotidien-${{ github.run_id }}
+          path: |
+            v2/playwright-report
+            v2/test-results
+          if-no-files-found: ignore
+          retention-days: 14

@@ -7,6 +7,9 @@ on:
 
 jobs:
   livrer:
+    # Le job est ignoré proprement tant que la variable LCD_APP_URL n'est pas
+    # configurée (Settings → Variables) : pas d'échec horaire avant go-live.
+    if: vars.LCD_APP_URL != ''
     runs-on: ubuntu-latest
     steps:
       - name: Vérifier le secret

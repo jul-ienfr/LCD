@@ -39,6 +39,36 @@ jobs:
     defaults:
       run:
         working-directory: v2
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: lcd
+          POSTGRES_PASSWORD: lcd
+          POSTGRES_DB: lcd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lcd -d lcd"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+      MIGRATION_DATABASE_URL: postgres://lcd:lcd@127.0.0.1:5432/lcd
+      APP_ROLE_PASSWORD: ergonomie-app-role-password-24-chars
+      BETTER_AUTH_SECRET: ci-only-change-me-please-32chars-min
+      BETTER_AUTH_URL: http://127.0.0.1:4173
+      CRON_SECRET: ergonomie-only-cron-secret-32-characters-min
+      SEED_ADMIN_EMAIL: admin@lcd.test
+      SEED_ADMIN_PASSWORD: ChangeMe-2026!
+      SEED_TENANT_SLUG: lcd
+      SEED_PRESTA_EMAIL: presta@lcd.test
+      SEED_PRESTA_PASSWORD: ChangeMe-2026!
+      SEED_PROPRIO_EMAIL: proprio@lcd.test
+      SEED_PROPRIO_PASSWORD: ChangeMe-2026!
+      SEED_COMMERCIAL_EMAIL: commercial@lcd.test
+      SEED_COMMERCIAL_PASSWORD: ChangeMe-2026!
 
     steps:
       - uses: actions/checkout@v4
@@ -55,15 +85,28 @@ jobs:
       - name: Installer Chromium (Playwright)
         run: npx playwright install --with-deps chromium
 
+      - name: Base migrée et seedée (le build exige DATABASE_URL)
+        run: |
+          npm run db:migrate
+          npm run db:seed
+          npm run db:seed-demo
+          npm run db:role-app
+
+      # Le build précède les tests : `tests/budget-js.test.ts` garde le poids
+      # des chunks produits et échoue sans build.
+      - name: Build (adapter-node)
+        run: npm run build
+
       - name: Types et tests unitaires (dont garde-fous de thème)
         run: |
           npm run typecheck
           npm test
 
-      - name: Build (adapter-node)
-        run: npm run build
-
       - name: Démarrer le serveur de prévisualisation
+        env:
+          DATABASE_URL: postgres://lcd_app:ergonomie-app-role-password-24-chars@127.0.0.1:5432/lcd
+          APP_URL: http://127.0.0.1:4173
+          ENQUIRY_ENABLED: "true"
         run: |
           nohup node build > /tmp/lcd-v2.log 2>&1 &
           for i in $(seq 1 60); do
