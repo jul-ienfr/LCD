@@ -167,6 +167,28 @@ class ReservationsMemoire implements ReservationRepository {
   async listerParMois() {
     return this.items;
   }
+  async listerPage(
+    _tenantId: string,
+    options: Parameters<ReservationRepository["listerPage"]>[1],
+  ) {
+    return this.items.slice(
+      options.decalage,
+      options.decalage + options.limite,
+    );
+  }
+  async compter() {
+    return this.items.length;
+  }
+  async rechercher(_tenantId: string, terme: string, limite: number) {
+    const q = terme.toLowerCase();
+    return this.items
+      .filter((r) => r.ref.toLowerCase().includes(q))
+      .slice(0, limite);
+  }
+  async listerParIds(_tenantId: string, ids: readonly string[]) {
+    const cherches = new Set(ids);
+    return this.items.filter((r) => cherches.has(r.id));
+  }
   async chevauche(_t: string, _l: string, debut: string, fin: string) {
     return this.items.some((r) => r.debut < fin && debut < r.fin);
   }

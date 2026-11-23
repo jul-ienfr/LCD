@@ -1,8 +1,10 @@
+import { ajouterJours } from "@/domain/calendrier";
 import { genererCalendrierIcs } from "@/domain/ics-export";
 import { DrizzleBlocageRepository } from "@/infrastructure/db/repositories/blocage-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { verifierTokenCalendrier } from "@/lib/calendrier-token";
+import { jourParis } from "@/lib/date-paris";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ params, url }) => {
@@ -26,9 +28,21 @@ export const GET: RequestHandler = async ({ params, url }) => {
     });
   }
 
+  // FR-026 : export borné à la fenêtre utile du calendrier (12 mois passés,
+  // 24 mois à venir) plutôt que tout l'historique du tenant.
+  const horizonDebut = ajouterJours(jourParis(), -365);
+  const horizonFin = ajouterJours(jourParis(), 730);
   const [reservations, blocages] = await Promise.all([
-    new DrizzleReservationRepository().listerTous(payload.tenantId),
-    new DrizzleBlocageRepository().listerTous(payload.tenantId),
+    new DrizzleReservationRepository().listerParMois(
+      payload.tenantId,
+      horizonDebut,
+      horizonFin,
+    ),
+    new DrizzleBlocageRepository().listerParMois(
+      payload.tenantId,
+      horizonDebut,
+      horizonFin,
+    ),
   ]);
 
   const evenements = [

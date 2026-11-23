@@ -1,9 +1,25 @@
-﻿import { dateIsoValide } from "@/domain/calendrier";
+﻿import type { FiltreReservations } from "@/application/ports/reservation-repository";
+import { dateIsoValide } from "@/domain/calendrier";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { authentifierApi, erreurApi } from "@/lib/server/api-auth";
-import { erreurInterne, reponseListe } from "@/lib/server/api-v1";
+import {
+  erreurInterne,
+  parametresPagination,
+  reponseListePaginee,
+} from "@/lib/server/api-v1";
 import type { RequestHandler } from "./$types";
 
+/**
+ * API v1 — liste des réservations (portée tenant).
+ *
+ * Filtres (compatibilité historique) :
+ *   - `logementId` (optionnel)
+ *   - `debut` et/ou `fin` (AAAA-MM-JJ) : séjours chevauchant la plage
+ *
+ * FR-026 : filtre, tri, `limit` et `offset` sont appliqués en SQL ; le total
+ * vient d'un compteur SQL, jamais d'un chargement complet suivi d'un filtre
+ * en mémoire.
+ */
 export const GET: RequestHandler = async ({ request, url, locals }) => {
   const auth = await authentifierApi({ request, url, locals }, "reservations:lire");
   if (!auth.ok) return auth.reponse;
@@ -14,7 +30,7 @@ export const GET: RequestHandler = async ({ request, url, locals }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "ParamÃ¨tre Â« debut Â» au format AAAA-MM-JJ requis.",
+      "Paramètre « debut » au format AAAA-MM-JJ requis.",
       auth.requestId,
       auth.headers,
     );
@@ -23,7 +39,7 @@ export const GET: RequestHandler = async ({ request, url, locals }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "ParamÃ¨tre Â« fin Â» au format AAAA-MM-JJ requis.",
+      "Paramètre « fin » au format AAAA-MM-JJ requis.",
       auth.requestId,
       auth.headers,
     );
@@ -32,26 +48,38 @@ export const GET: RequestHandler = async ({ request, url, locals }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "La date de fin doit Ãªtre postÃ©rieure Ã  la date de dÃ©but.",
+      "La date de fin doit être postérieure à la date de début.",
       auth.requestId,
       auth.headers,
     );
   }
 
   try {
-    const reservations =
-      await new DrizzleReservationRepository().listerTous(auth.cle.tenantId);
+    const { page, limite } = parametresPagination(url);
     const logementId = url.searchParams.get("logementId")?.trim() || null;
-    const filtrees = reservations.filter(
-      (reservation) =>
-        (!logementId || reservation.logementId === logementId) &&
-        (!debut || reservation.fin > debut) &&
-        (!fin || reservation.debut < fin),
-    );
+    const filtre: FiltreReservations = {};
+    if (logementId) filtre.logementId = logementId;
+    if (debut || fin) {
+      filtre.periode = {
+        debut: debut ?? "0000-01-01",
+        fin: fin ?? "9999-12-31",
+      };
+    }
 
-    return reponseListe(
+    const repo = new DrizzleReservationRepository();
+    const [reservations, total] = await Promise.all([
+      repo.listerPage(auth.cle.tenantId, {
+        ...filtre,
+        limite,
+        decalage: (page - 1) * limite,
+        ordre: "debut-asc",
+      }),
+      repo.compter(auth.cle.tenantId, filtre),
+    ]);
+
+    return reponseListePaginee(
       url,
-      filtrees.map((reservation) => ({
+      reservations.map((reservation) => ({
         id: reservation.id,
         ref: reservation.ref,
         logementId: reservation.logementId,
@@ -63,6 +91,7 @@ export const GET: RequestHandler = async ({ request, url, locals }) => {
         source: reservation.source,
         updatedAt: reservation.updatedAt.toISOString(),
       })),
+      total,
       auth.requestId,
       auth.headers,
     );
@@ -70,5 +99,3 @@ export const GET: RequestHandler = async ({ request, url, locals }) => {
     return erreurInterne(auth.requestId, auth.headers, erreur);
   }
 };
-
-

@@ -53,16 +53,21 @@ export const load: PageServerLoad = async (event) => {
 
   const rapportsRepo = new DrizzleRapportsRepository();
 
-  const [reservationsPeriode, mandats, reservationsToutes, impayes] =
-    await Promise.all([
-      rapportsRepo.listerReservationsPeriode(tenantId, premier, dernierExclu),
-      rapportsRepo.listerLogementsAvecMandat(tenantId),
-      new DrizzleReservationRepository().listerTous(tenantId),
-      new DrizzleEcheancesPaiementRepository().listerEnRetard(
-        tenantId,
-        dernierExclu,
-      ),
-    ]);
+  const [reservationsPeriode, mandats, impayes] = await Promise.all([
+    rapportsRepo.listerReservationsPeriode(tenantId, premier, dernierExclu),
+    rapportsRepo.listerLogementsAvecMandat(tenantId),
+    new DrizzleEcheancesPaiementRepository().listerEnRetard(
+      tenantId,
+      dernierExclu,
+    ),
+  ]);
+  // FR-026 : les alertes n'ont besoin que des réservations référencées par
+  // les échéances en retard, pas de tout l'historique du tenant.
+  const reservationsToutes =
+    await new DrizzleReservationRepository().listerParIds(
+      tenantId,
+      impayes.map((echeance) => echeance.reservationId),
+    );
 
   // --- KPIs ---
   const reservationsNonAnnulees = reservationsPeriode.filter(

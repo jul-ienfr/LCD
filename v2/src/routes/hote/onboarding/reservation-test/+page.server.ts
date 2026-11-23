@@ -28,7 +28,14 @@ export const load: PageServerLoad = async (event) => {
   const tenantId = tenantIdDeSession(session);
   const [logements, reservations] = await Promise.all([
     new DrizzleLogementRepository().listerParTenant(tenantId),
-    new DrizzleReservationRepository().listerTous(tenantId),
+    // FR-026 : recherche bornée côté SQL sur le préfixe des séjours de test
+    // (50 lignes max), puis les 10 plus récents sont retenus.
+    new DrizzleReservationRepository().listerPage(tenantId, {
+      recherche: "TEST-",
+      limite: 50,
+      decalage: 0,
+      ordre: "debut-desc",
+    }),
   ]);
   const actifs = logements.filter((logement) => logement.statut === "actif");
   const parId = new Map(logements.map((logement) => [logement.id, logement]));
@@ -39,10 +46,6 @@ export const load: PageServerLoad = async (event) => {
     demain: ajouterJours(jourParis(), 7),
     surlendemain: ajouterJours(jourParis(), 9),
     tests: reservations
-      .filter(
-        (reservation) =>
-          reservation.source === "test" || reservation.ref.startsWith("TEST-"),
-      )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, 10)
       .map((reservation) => ({

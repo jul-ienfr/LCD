@@ -8,6 +8,7 @@
  *
  * `page` commence à 1, `limite` est bornée à 200 (défaut 50).
  */
+import { bornerPage, nombreDePages } from "@/domain/pagination";
 import { logErreur } from "@/lib/logger";
 import { erreurApi } from "./api-auth";
 
@@ -17,18 +18,14 @@ export interface ParametresPagination {
   offset: number;
 }
 
-function entier(valeur: string | null, defaut: number): number {
-  const nombre = Number.parseInt(valeur ?? "", 10);
-  return Number.isFinite(nombre) ? nombre : defaut;
-}
-
 export function parametresPagination(url: URL): ParametresPagination {
-  const page = Math.max(1, entier(url.searchParams.get("page"), 1));
-  const limite = Math.min(
-    200,
-    Math.max(1, entier(url.searchParams.get("limite"), 50)),
+  // FR-026 : une seule source de bornes (`bornerPage`), partagée avec les
+  // écrans — jamais de `limit`/`offset` fabriqués à la main.
+  const bornee = bornerPage(
+    Number.parseInt(url.searchParams.get("page") ?? "", 10),
+    Number.parseInt(url.searchParams.get("limite") ?? "", 10),
   );
-  return { page, limite, offset: (page - 1) * limite };
+  return { page: bornee.page, limite: bornee.taille, offset: bornee.decalage };
 }
 
 function entetesJson(
@@ -59,6 +56,33 @@ export function reponseListe<T>(
         limite,
         total,
         pages: Math.max(1, Math.ceil(total / limite)),
+      },
+    }),
+    { status: 200, headers: entetesJson(requestId, headers) },
+  );
+}
+
+/**
+ * Réponse d'une liste déjà paginée côté SQL (FR-026) : `total` vient du
+ * compteur SQL et les lignes reçues sont la page demandée — aucun découpage
+ * en mémoire.
+ */
+export function reponseListePaginee<T>(
+  url: URL,
+  lignes: readonly T[],
+  total: number,
+  requestId: string,
+  headers: Record<string, string>,
+): Response {
+  const { page, limite } = parametresPagination(url);
+  return new Response(
+    JSON.stringify({
+      data: lignes,
+      pagination: {
+        page,
+        limite,
+        total,
+        pages: nombreDePages(total, limite),
       },
     }),
     { status: 200, headers: entetesJson(requestId, headers) },

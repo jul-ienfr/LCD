@@ -45,15 +45,18 @@ export const load: PageServerLoad = async (event) => {
     logement.id,
   );
   const aujourdHui = aujourdHuiIso();
-  const sejours = (
-    await new DrizzleReservationRepository().listerTous(tenantId)
-  )
-    .filter(
-      (reservation) =>
-        reservation.logementId === logement.id && reservation.fin >= aujourdHui,
-    )
-    .sort((a, b) => a.fin.localeCompare(b.fin))
-    .slice(0, 8);
+  // FR-026 : filtre logement + séjours non terminés appliqués en SQL, avec
+  // une borne de 8 lignes, au lieu de charger tout le tenant en mémoire.
+  const sejours = await new DrizzleReservationRepository().listerPage(
+    tenantId,
+    {
+      logementId: logement.id,
+      finMin: aujourdHui,
+      limite: 8,
+      decalage: 0,
+      ordre: "fin-asc",
+    },
+  );
   const sejourChoisi = sejours.find(
     (reservation) => reservation.id === event.url.searchParams.get("reservation"),
   );

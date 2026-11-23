@@ -37,12 +37,17 @@ export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
   const tenantId = tenantIdDeSession(session);
 
-  const [extras, logements, commandes, reservations] = await Promise.all([
+  const [extras, logements, commandes] = await Promise.all([
     new DrizzleExtraRepository().listerTous(tenantId),
     new DrizzleLogementRepository().listerParTenant(tenantId),
     new DrizzleCommandeExtraRepository().listerParTenant(tenantId),
-    new DrizzleReservationRepository().listerTous(tenantId),
   ]);
+  // FR-026 : seules les réservations référencées par les commandes affichées
+  // sont chargées, pas tout l'historique du tenant.
+  const reservations = await new DrizzleReservationRepository().listerParIds(
+    tenantId,
+    commandes.map((commande) => commande.reservationId),
+  );
 
   const parExtra = new Map(extras.map((extra) => [extra.id, extra]));
   const parLogement = new Map(logements.map((logement) => [logement.id, logement]));

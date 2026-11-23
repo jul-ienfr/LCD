@@ -242,6 +242,18 @@ class FauxReservationRepository implements ReservationRepository {
   async listerParMois(): Promise<Reservation[]> {
     return [];
   }
+  async listerPage(): Promise<Reservation[]> {
+    return [];
+  }
+  async compter(): Promise<number> {
+    return 0;
+  }
+  async rechercher(): Promise<Reservation[]> {
+    return [];
+  }
+  async listerParIds(): Promise<Reservation[]> {
+    return [];
+  }
   async chevauche(): Promise<boolean> {
     return false;
   }

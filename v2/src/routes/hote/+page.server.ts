@@ -245,34 +245,21 @@ export const load: PageServerLoad = async (event) => {
     erreurs.recherche = "Recherche trop longue : 64 caractères au maximum.";
   }
 
-  const terme = recherche.toLocaleLowerCase("fr");
   const rechercheActive = recherche.length >= 2 && !erreurs.recherche;
   /* La recherche porte sur tous les séjours du tenant, pas seulement le mois
-     affiché : sinon elle ne trouverait rien hors du mois courant. */
+     affiché. FR-026 : filtre et limite sont appliqués en SQL (8 résultats),
+     jamais un chargement complet suivi d'un filtre en mémoire. */
   const reservationsRecherche = rechercheActive
-    ? await new DrizzleReservationRepository().listerTous(tenantId)
+    ? await new DrizzleReservationRepository().rechercher(tenantId, recherche, 8)
     : [];
-  const resultats: ResultatRechercheTableauBord[] = rechercheActive
-    ? reservationsRecherche
-        .filter((reservation) => {
-          const champs = [
-            reservation.ref,
-            reservation.clientNom ?? "",
-            reservation.clientEmail ?? "",
-            nomLogement(reservation.logementId),
-          ];
-          return champs.some((champ) =>
-            champ.toLocaleLowerCase("fr").includes(terme),
-          );
-        })
-        .slice(0, 8)
-        .map((reservation) => ({
-          id: reservation.id,
-          titre: reservation.clientNom ?? reservation.ref,
-          detail: `${nomLogement(reservation.logementId)} · ${reservation.debut} → ${reservation.fin} · ${reservation.ref}`,
-          href: `/hote/planning?mois=${reservation.debut.slice(0, 7)}`,
-        }))
-    : [];
+  const resultats: ResultatRechercheTableauBord[] = reservationsRecherche.map(
+    (reservation) => ({
+      id: reservation.id,
+      titre: reservation.clientNom ?? reservation.ref,
+      detail: `${nomLogement(reservation.logementId)} · ${reservation.debut} → ${reservation.fin} · ${reservation.ref}`,
+      href: `/hote/planning?mois=${reservation.debut.slice(0, 7)}`,
+    }),
+  );
 
   const actionsFiltrees = (() => {
     const parPriorite = [...actions].sort(

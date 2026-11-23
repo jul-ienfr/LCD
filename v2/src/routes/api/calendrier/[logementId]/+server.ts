@@ -69,9 +69,21 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
     fluxCibleId = fluxCanal?.id ?? null;
   }
 
+  // FR-026 : export borné à la fenêtre utile du calendrier (12 mois passés,
+  // 24 mois à venir) plutôt que tout l'historique du tenant.
+  const horizonDebut = ajouterJours(jourParis(), -365);
+  const horizonFin = ajouterJours(jourParis(), 730);
   const [reservations, blocages, tenant] = await Promise.all([
-    new DrizzleReservationRepository().listerTous(payload.tenantId),
-    new DrizzleBlocageRepository().listerTous(payload.tenantId),
+    new DrizzleReservationRepository().listerParMois(
+      payload.tenantId,
+      horizonDebut,
+      horizonFin,
+    ),
+    new DrizzleBlocageRepository().listerParMois(
+      payload.tenantId,
+      horizonDebut,
+      horizonFin,
+    ),
     new DrizzleTenantRepository().trouver(payload.tenantId),
   ]);
 

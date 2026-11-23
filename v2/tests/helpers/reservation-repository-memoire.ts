@@ -4,10 +4,60 @@ import type {
 } from "@/application/ports/reservation-fournisseur-repository";
 import type {
   CreerReservationData,
+  FiltreReservations,
+  OptionsListeReservations,
   ReservationRepository,
 } from "@/application/ports/reservation-repository";
 import type { Reservation } from "@/domain/reservation";
 import { sejoursSeChevauchent } from "@/domain/planning";
+
+/** Équivalent mémoire de `conditionsFiltre` (FR-026), sans jointure logement. */
+function correspondAuFiltre(
+  reservation: Reservation,
+  tenantId: string,
+  filtre: FiltreReservations | undefined,
+): boolean {
+  if (reservation.tenantId !== tenantId) return false;
+  if (!filtre) return true;
+  if (filtre.logementId && reservation.logementId !== filtre.logementId) {
+    return false;
+  }
+  if (
+    filtre.periode &&
+    !(reservation.debut < filtre.periode.fin && reservation.fin > filtre.periode.debut)
+  ) {
+    return false;
+  }
+  if (filtre.finMin && reservation.fin < filtre.finMin) return false;
+  if (filtre.debutMax && reservation.debut > filtre.debutMax) return false;
+  if (filtre.statut && reservation.statut !== filtre.statut) return false;
+  const terme = filtre.recherche?.trim().toLowerCase();
+  if (terme) {
+    const champs = [
+      reservation.ref,
+      reservation.clientNom,
+      reservation.clientEmail,
+    ];
+    if (!champs.some((champ) => champ?.toLowerCase().includes(terme))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function trierReservations(
+  rows: Reservation[],
+  ordre: OptionsListeReservations["ordre"],
+): Reservation[] {
+  const copie = [...rows];
+  if (ordre === "debut-desc") {
+    return copie.sort((a, b) => b.debut.localeCompare(a.debut));
+  }
+  if (ordre === "fin-asc") {
+    return copie.sort((a, b) => a.fin.localeCompare(b.fin));
+  }
+  return copie.sort((a, b) => a.debut.localeCompare(b.debut));
+}
 
 export class ReservationRepositoryMemoire
   implements ReservationRepository, ReservationFournisseurRepository
@@ -46,6 +96,53 @@ export class ReservationRepositoryMemoire
   ): Promise<Reservation[]> {
     return this.rows.filter(
       (r) => r.tenantId === tenantId && r.debut < fin && r.fin > debut,
+    );
+  }
+
+  async listerPage(
+    tenantId: string,
+    options: OptionsListeReservations,
+  ): Promise<Reservation[]> {
+    const limite = Math.max(1, Math.min(200, Math.trunc(options.limite)));
+    const decalage = Math.max(0, Math.trunc(options.decalage));
+    const correspondantes = this.rows.filter((r) =>
+      correspondAuFiltre(r, tenantId, options),
+    );
+    return trierReservations(correspondantes, options.ordre).slice(
+      decalage,
+      decalage + limite,
+    );
+  }
+
+  async compter(
+    tenantId: string,
+    filtre: FiltreReservations = {},
+  ): Promise<number> {
+    return this.rows.filter((r) => correspondAuFiltre(r, tenantId, filtre))
+      .length;
+  }
+
+  async rechercher(
+    tenantId: string,
+    terme: string,
+    limite: number,
+  ): Promise<Reservation[]> {
+    const borne = Math.max(1, Math.min(50, Math.trunc(limite)));
+    return trierReservations(
+      this.rows.filter((r) =>
+        correspondAuFiltre(r, tenantId, { recherche: terme }),
+      ),
+      "debut-asc",
+    ).slice(0, borne);
+  }
+
+  async listerParIds(
+    tenantId: string,
+    ids: readonly string[],
+  ): Promise<Reservation[]> {
+    const cherches = new Set(ids);
+    return this.rows.filter(
+      (r) => r.tenantId === tenantId && cherches.has(r.id),
     );
   }
 

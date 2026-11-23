@@ -101,22 +101,24 @@ export const load: PageServerLoad = async (event) => {
   if (!logement) error(404, "Logement introuvable");
 
   const aujourdhui = jourParis();
+  // FR-026 : séjours à venir du seul logement, bornés côté SQL.
   const [acces, reservations] = await Promise.all([
     new DrizzleAccesSerrureRepository().listerParLogement(
       tenantId,
       logement.id,
     ),
-    new DrizzleReservationRepository().listerTous(tenantId),
+    new DrizzleReservationRepository().listerPage(tenantId, {
+      logementId: logement.id,
+      finMin: aujourdhui,
+      limite: 50,
+      decalage: 0,
+      ordre: "debut-asc",
+    }),
   ]);
 
-  const aVenir = reservations
-    .filter(
-      (reservation) =>
-        reservation.logementId === logement.id &&
-        reservation.statut !== "annulee" &&
-        reservation.fin >= aujourdhui,
-    )
-    .sort((a, b) => a.debut.localeCompare(b.debut));
+  const aVenir = reservations.filter(
+    (reservation) => reservation.statut !== "annulee",
+  );
 
   const serrureDisponible = creerSerrureNuki().estDisponible();
 

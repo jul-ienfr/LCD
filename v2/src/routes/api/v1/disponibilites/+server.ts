@@ -61,8 +61,13 @@ export const GET: RequestHandler = async ({ request, url, locals }) => {
       );
     }
 
-    const reservations =
-      await new DrizzleReservationRepository().listerTous(auth.cle.tenantId);
+    // FR-026 : chargement borné à la fenêtre demandée (366 nuits max) au
+    // lieu de tout l'historique du tenant.
+    const reservations = await new DrizzleReservationRepository().listerParMois(
+      auth.cle.tenantId,
+      debut,
+      fin,
+    );
     const occupants = reservations.filter(
       (reservation) =>
         reservation.logementId === logementId &&

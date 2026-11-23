@@ -9,12 +9,17 @@ export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
   const tenantId = tenantIdDeSession(session);
 
-  const [fiches, logements, reservations] = await Promise.all([
+  const [fiches, logements] = await Promise.all([
     new DrizzleFichesPoliceRepository().lister(tenantId, 200),
     new DrizzleLogementRepository().listerParTenant(tenantId),
-    new DrizzleReservationRepository().listerTous(tenantId),
   ]);
 
+  // FR-026 : on ne charge que les réservations réellement référencées par
+  // les fiches affichées, pas l'historique complet du tenant.
+  const reservations = await new DrizzleReservationRepository().listerParIds(
+    tenantId,
+    fiches.map((fiche) => fiche.reservationId),
+  );
   const nomLogement = new Map(logements.map((logement) => [logement.id, logement.nom]));
   const refSejour = new Map(reservations.map((reservation) => [reservation.id, reservation.ref]));
 

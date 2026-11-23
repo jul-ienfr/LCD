@@ -51,18 +51,24 @@ export const load: PageServerLoad = async (event) => {
     }
   }
 
-  for (const reservation of await new DrizzleReservationRepository().listerTous(
+  // FR-026 : seul le statut utile est lu, et la requête est bornée côté SQL.
+  const brouillons = await new DrizzleReservationRepository().listerPage(
     tenantId,
-  )) {
-    if (reservation.statut === "brouillon") {
-      notifications.push({
-        type: "reservation",
-        libelle: `Réservation à confirmer — ${reservation.ref}`,
-        detail: `${reservation.clientNom ?? "Voyageur"} · du ${reservation.debut} au ${reservation.fin}`,
-        href: "/hote/planning",
-        date: reservation.debut,
-      });
-    }
+    {
+      statut: "brouillon",
+      limite: 100,
+      decalage: 0,
+      ordre: "debut-desc",
+    },
+  );
+  for (const reservation of brouillons) {
+    notifications.push({
+      type: "reservation",
+      libelle: `Réservation à confirmer — ${reservation.ref}`,
+      detail: `${reservation.clientNom ?? "Voyageur"} · du ${reservation.debut} au ${reservation.fin}`,
+      href: "/hote/planning",
+      date: reservation.debut,
+    });
   }
 
   const retard = await new DrizzleEcheancesPaiementRepository().listerEnRetard(

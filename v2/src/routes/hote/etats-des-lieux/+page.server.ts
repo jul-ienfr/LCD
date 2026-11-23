@@ -66,16 +66,18 @@ export const load: PageServerLoad = async (event) => {
     logements[0];
   if (!logement) throw new Error("Aucun logement disponible.");
 
-  const [biens, reservations, etats] = await Promise.all([
+  const [biens, reservationsDuLogement, etats] = await Promise.all([
     new DrizzleBiensRepository().listerParLogement(tenantId, logement.id),
-    new DrizzleReservationRepository().listerTous(tenantId),
+    // FR-026 : filtre et borne côté SQL (40 derniers séjours du logement),
+    // au lieu de charger tout le tenant puis de trier en mémoire.
+    new DrizzleReservationRepository().listerPage(tenantId, {
+      logementId: logement.id,
+      limite: 40,
+      decalage: 0,
+      ordre: "debut-desc",
+    }),
     new DrizzleEtatsDesLieuxRepository().listerParTenant(tenantId),
   ]);
-
-  const reservationsDuLogement = reservations
-    .filter((reservation) => reservation.logementId === logement.id)
-    .sort((a, b) => b.debut.localeCompare(a.debut))
-    .slice(0, 40);
   const reservationParId = new Map(
     reservationsDuLogement.map((reservation) => [reservation.id, reservation]),
   );
