@@ -18,7 +18,6 @@ import {
   formaterDuree,
   formaterEcart,
 } from "@/domain/pointage";
-import { LIBELLES_STATUT_PREUVE } from "@/domain/preuve-intervention";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleDispatchRepository } from "@/infrastructure/db/repositories/dispatch-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
@@ -33,12 +32,6 @@ import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
 const STATUTS: StatutMission[] = ["planifiee", "en_cours", "terminee", "annulee"];
-const LIBELLES: Record<StatutMission, string> = {
-  planifiee: "Planifiée",
-  en_cours: "En cours",
-  terminee: "Terminée",
-  annulee: "Annulée",
-};
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["presta", "admin", "hote"]);
@@ -89,6 +82,8 @@ export const load: PageServerLoad = async (event) => {
     nom: session.user.name,
     email: session.user.email,
     estPresta: session.user.role === "presta",
+    // Retour d'action (FR-038) : la page traduit ces codes ; aucune action ne
+    // redirige sans code, le test `presta-retours` verrouille cette règle.
     ok: event.url.searchParams.get("ok"),
     erreur: event.url.searchParams.get("erreur"),
     missions: missions.map((mission) => {
@@ -104,8 +99,7 @@ export const load: PageServerLoad = async (event) => {
         date: mission.date,
         heure: mission.heure,
         statut: mission.statut,
-        statutLibelle: LIBELLES[mission.statut],
-        logement: parLogement.get(mission.logementId)?.nom ?? "Logement",
+        logement: parLogement.get(mission.logementId)?.nom ?? null,
         transitions: TRANSITIONS_MISSION[mission.statut],
         // Pointage FR-031 : horodatages serveur, source et comparaison.
         pointage: etatPointage(mission),
@@ -127,7 +121,6 @@ export const load: PageServerLoad = async (event) => {
             : formaterEcart(ecartDureeMinutes(reelle, prevue)),
         // Cycle de preuve (FR-032/FR-033) : état, motif de refus, historique.
         preuve: mission.preuveStatut,
-        preuveLibelle: LIBELLES_STATUT_PREUVE[mission.preuveStatut],
         preuveMotif: mission.preuveMotifRefus,
         preuveSoumiseLe: mission.preuveSoumiseLe
           ? horodatage(mission.preuveSoumiseLe)
@@ -143,7 +136,6 @@ export const load: PageServerLoad = async (event) => {
         historique: (historiques.get(mission.id) ?? []).map((etape) => ({
           id: etape.id,
           statut: etape.vers,
-          libelle: LIBELLES_STATUT_PREUVE[etape.vers],
           motif: etape.motif,
           qui: etape.qui,
           le: horodatage(etape.createdAt),
@@ -156,14 +148,27 @@ export const load: PageServerLoad = async (event) => {
         id: offre.id,
         ref: offre.ref,
         message: offre.message,
+        // Valeurs brutes : la page compose la ligne dans la langue servie.
         mission: mission
-          ? `${mission.ref} — ${mission.date}${mission.heure ? ` ${mission.heure}` : ""} · ${parLogement.get(mission.logementId)?.nom ?? ""}`
-          : "Mission à venir",
+          ? {
+              ref: mission.ref,
+              date: mission.date,
+              heure: mission.heure || null,
+              logement: parLogement.get(mission.logementId)?.nom ?? null,
+            }
+          : null,
       };
     }),
   };
 };
 
+/*
+ * Retour d'action (FR-038, spec 006) : chaque action redirige vers l'espace
+ * avec un code de succès (`?ok=`) ou d'échec (`?erreur=`), que la page traduit
+ * (`i18n-presta`). Aucun chemin ne rend la main sans code : le test
+ * `tests/ergonomie/presta-retours.test.ts` relit ce fichier et refuse une
+ * action silencieuse comme un code absent du dictionnaire.
+ */
 export const actions = {
   statut: async (event) => {
     const session = requireRole(event, ["presta", "admin", "hote"]);
@@ -171,16 +176,18 @@ export const actions = {
     const donnees = await event.request.formData();
     const missionId = String(donnees.get("missionId") ?? "");
     const statut = String(donnees.get("statut") ?? "") as StatutMission;
-    if (!missionId || !STATUTS.includes(statut)) redirect(303, "/presta");
+    if (!missionId || !STATUTS.includes(statut)) {
+      redirect(303, "/presta?erreur=statut");
+    }
 
     try {
       const mission = await new DrizzleMissionRepository().trouverParId(
         tenantId,
         missionId,
       );
-      if (!mission) redirect(303, "/presta");
+      if (!mission) redirect(303, "/presta?erreur=statut");
       if (session.user.role === "presta" && mission.assignedUserId !== session.user.id) {
-        redirect(303, "/presta");
+        redirect(303, "/presta?erreur=droits");
       }
       const miseAJour = await new ChangerStatutMission(
         new DrizzleMissionRepository(),
@@ -206,9 +213,11 @@ export const actions = {
       if (isRedirect(error)) throw error;
       if (!(error instanceof ErreurMetier)) {
         logErreur("presta.statut", error, { tenantId, missionId });
+        redirect(303, "/presta?erreur=inattendu");
       }
+      redirect(303, "/presta?erreur=statut");
     }
-    redirect(303, "/presta");
+    redirect(303, "/presta?ok=statut");
   },
 
   pointage: async (event) => {
@@ -218,18 +227,18 @@ export const actions = {
     const missionId = String(donnees.get("missionId") ?? "");
     const sens = String(donnees.get("sens") ?? "") as SensPointage;
     if (!missionId || (sens !== "debut" && sens !== "fin")) {
-      redirect(303, "/presta");
+      redirect(303, "/presta?erreur=pointage");
     }
 
     try {
       const repo = new DrizzleMissionRepository();
       const mission = await repo.trouverParId(tenantId, missionId);
-      if (!mission) redirect(303, "/presta");
+      if (!mission) redirect(303, "/presta?erreur=pointage");
       if (
         session.user.role === "presta" &&
         mission.assignedUserId !== session.user.id
       ) {
-        redirect(303, "/presta");
+        redirect(303, "/presta?erreur=droits");
       }
       // FR-031 : horodatage serveur ; l'horodatage local n'est accepté que
       // fourni par un client revenu en ligne après une coupure.
@@ -271,9 +280,14 @@ export const actions = {
       if (isRedirect(error)) throw error;
       if (!(error instanceof ErreurMetier)) {
         logErreur("presta.pointage", error, { tenantId, missionId });
+        redirect(303, "/presta?erreur=inattendu");
       }
+      redirect(303, "/presta?erreur=pointage");
     }
-    redirect(303, "/presta");
+    redirect(
+      303,
+      sens === "debut" ? "/presta?ok=pointage_debut" : "/presta?ok=pointage_fin",
+    );
   },
 
   preuve: async (event) => {
@@ -281,17 +295,17 @@ export const actions = {
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
     const missionId = String(donnees.get("missionId") ?? "");
-    if (!missionId) redirect(303, "/presta");
+    if (!missionId) redirect(303, "/presta?erreur=preuve");
 
     try {
       const repo = new DrizzleMissionRepository();
       const mission = await repo.trouverParId(tenantId, missionId);
-      if (!mission) redirect(303, "/presta");
+      if (!mission) redirect(303, "/presta?erreur=preuve");
       if (
         session.user.role === "presta" &&
         mission.assignedUserId !== session.user.id
       ) {
-        redirect(303, "/presta");
+        redirect(303, "/presta?erreur=droits");
       }
       const resultat = await new SoumettrePreuveIntervention(
         repo,
@@ -342,16 +356,16 @@ export const actions = {
     const id = String(donnees.get("id") ?? "");
     const decision = String(donnees.get("decision") ?? "");
     if (decision !== "accepter" && decision !== "refuser") {
-      redirect(303, "/presta");
+      redirect(303, "/presta?erreur=dispatch");
     }
     try {
       const dispatch = await new DrizzleDispatchRepository().trouverParId(
         tenantId,
         id,
       );
-      if (!dispatch) redirect(303, "/presta");
+      if (!dispatch) redirect(303, "/presta?erreur=dispatch");
       if (session.user.role === "presta" && dispatch.prestataireId !== session.user.id) {
-        redirect(303, "/presta");
+        redirect(303, "/presta?erreur=droits");
       }
       const misAJour = await new RepondreDispatch(
         new DrizzleDispatchRepository(),
@@ -372,8 +386,15 @@ export const actions = {
       if (isRedirect(error)) throw error;
       if (!(error instanceof ErreurMetier)) {
         logErreur("presta.dispatch", error, { tenantId, cible: id });
+        redirect(303, "/presta?erreur=inattendu");
       }
+      redirect(303, "/presta?erreur=dispatch");
     }
-    redirect(303, "/presta");
+    redirect(
+      303,
+      decision === "accepter"
+        ? "/presta?ok=dispatch_accepte"
+        : "/presta?ok=dispatch_refuse",
+    );
   },
 } satisfies Actions;
