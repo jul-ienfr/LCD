@@ -1,11 +1,11 @@
-import { DrizzleLogementProprietaireRepository } from "@/infrastructure/db/repositories/logement-proprietaire-repository";
+﻿import { DrizzleLogementProprietaireRepository } from "@/infrastructure/db/repositories/logement-proprietaire-repository";
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
 import { authentifierApi } from "@/lib/server/api-auth";
 import { erreurInterne, reponseListe } from "@/lib/server/api-v1";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ request, url }) => {
-  const auth = await authentifierApi({ request, url }, "proprietaires:lire");
+export const GET: RequestHandler = async ({ request, url, locals }) => {
+  const auth = await authentifierApi({ request, url, locals }, "proprietaires:lire");
   if (!auth.ok) return auth.reponse;
 
   try {
@@ -41,3 +41,5 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurInterne(auth.requestId, auth.headers, erreur);
   }
 };
+
+

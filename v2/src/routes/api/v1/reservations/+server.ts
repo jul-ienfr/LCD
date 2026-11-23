@@ -1,11 +1,11 @@
-import { dateIsoValide } from "@/domain/calendrier";
+﻿import { dateIsoValide } from "@/domain/calendrier";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { authentifierApi, erreurApi } from "@/lib/server/api-auth";
 import { erreurInterne, reponseListe } from "@/lib/server/api-v1";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ request, url }) => {
-  const auth = await authentifierApi({ request, url }, "reservations:lire");
+export const GET: RequestHandler = async ({ request, url, locals }) => {
+  const auth = await authentifierApi({ request, url, locals }, "reservations:lire");
   if (!auth.ok) return auth.reponse;
 
   const debut = url.searchParams.get("debut")?.trim() || null;
@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "Paramètre « debut » au format AAAA-MM-JJ requis.",
+      "ParamÃ¨tre Â« debut Â» au format AAAA-MM-JJ requis.",
       auth.requestId,
       auth.headers,
     );
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "Paramètre « fin » au format AAAA-MM-JJ requis.",
+      "ParamÃ¨tre Â« fin Â» au format AAAA-MM-JJ requis.",
       auth.requestId,
       auth.headers,
     );
@@ -32,7 +32,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "La date de fin doit être postérieure à la date de début.",
+      "La date de fin doit Ãªtre postÃ©rieure Ã  la date de dÃ©but.",
       auth.requestId,
       auth.headers,
     );
@@ -70,3 +70,5 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurInterne(auth.requestId, auth.headers, erreur);
   }
 };
+
+

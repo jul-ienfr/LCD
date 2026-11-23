@@ -1,11 +1,11 @@
-import { moisValide } from "@/domain/calendrier";
+﻿import { moisValide } from "@/domain/calendrier";
 import { DrizzleRelevesProprietairesRepository } from "@/infrastructure/db/repositories/releves-repository";
 import { authentifierApi, erreurApi } from "@/lib/server/api-auth";
 import { erreurInterne, reponseListe } from "@/lib/server/api-v1";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ request, url }) => {
-  const auth = await authentifierApi({ request, url }, "releves:lire");
+export const GET: RequestHandler = async ({ request, url, locals }) => {
+  const auth = await authentifierApi({ request, url, locals }, "releves:lire");
   if (!auth.ok) return auth.reponse;
 
   const moisDebut = url.searchParams.get("moisDebut")?.trim() || undefined;
@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "Paramètre « moisDebut » au format AAAA-MM requis.",
+      "ParamÃ¨tre Â« moisDebut Â» au format AAAA-MM requis.",
       auth.requestId,
       auth.headers,
     );
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "Paramètre « moisFin » au format AAAA-MM requis.",
+      "ParamÃ¨tre Â« moisFin Â» au format AAAA-MM requis.",
       auth.requestId,
       auth.headers,
     );
@@ -57,3 +57,5 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurInterne(auth.requestId, auth.headers, erreur);
   }
 };
+
+

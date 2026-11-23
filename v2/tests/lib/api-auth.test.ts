@@ -140,6 +140,25 @@ describe("API v1 — authentification", () => {
     expect(resultat.headers["x-request-id"]).toBe("req-test-123");
   });
 
+  it("reprend le requestId posé par les hooks (locals) et le renvoie", async () => {
+    const { cle, entite } = cleDeTest();
+    const base = requete(cle, { "x-request-id": "req-entete-client" });
+    const resultat = await authentifierApi(
+      { ...base, locals: { requestId: "req-hooks-serveur" } },
+      "logements:lire",
+      {
+        repo: depot(entite),
+        journaliser: async () => {},
+      },
+    );
+    expect(resultat.ok).toBe(true);
+    if (!resultat.ok) return;
+    // Un seul identifiant par requête : l'en-tête de réponse et le corps
+    // doivent citer celui des hooks, pas un UUID régénéré par l'API (FR-021).
+    expect(resultat.requestId).toBe("req-hooks-serveur");
+    expect(resultat.headers["x-request-id"]).toBe("req-hooks-serveur");
+  });
+
   it("renvoie 429 au-delà de la limite de la fenêtre", async () => {
     const { cle, entite } = cleDeTest();
     const limiteur = creerRateLimiter({ max: 2, fenetreMs: 60_000 });

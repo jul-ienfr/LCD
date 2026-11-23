@@ -1,4 +1,4 @@
-import { ajouterJours, dateIsoValide, nuitsEntre } from "@/domain/calendrier";
+﻿import { ajouterJours, dateIsoValide, nuitsEntre } from "@/domain/calendrier";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { authentifierApi, erreurApi } from "@/lib/server/api-auth";
@@ -12,8 +12,8 @@ import type { RequestHandler } from "./$types";
 
 const FENETRE_MAX_JOURS = 366;
 
-export const GET: RequestHandler = async ({ request, url }) => {
-  const auth = await authentifierApi({ request, url }, "disponibilites:lire");
+export const GET: RequestHandler = async ({ request, url, locals }) => {
+  const auth = await authentifierApi({ request, url, locals }, "disponibilites:lire");
   if (!auth.ok) return auth.reponse;
 
   const logementId = parametreRequis(
@@ -40,7 +40,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      `La fenêtre doit couvrir de 1 à ${FENETRE_MAX_JOURS} nuits.`,
+      `La fenÃªtre doit couvrir de 1 Ã  ${FENETRE_MAX_JOURS} nuits.`,
       auth.requestId,
       auth.headers,
     );
@@ -89,3 +89,5 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurInterne(auth.requestId, auth.headers, erreur);
   }
 };
+
+

@@ -40,6 +40,8 @@ const limiteurGlobal = creerRateLimiter({
 export interface RequeteApi {
   request: Request;
   url: URL;
+  /** Locaux SvelteKit fournis par le routeur (incluent requestId). */
+  locals?: { requestId?: string };
 }
 
 export interface OptionsAuthApi {
@@ -102,6 +104,8 @@ function bearer(entete: string | null): string | null {
 }
 
 function requestIdDe(requete: RequeteApi): string {
+  const depuisLocals = requete.locals?.requestId?.trim() ?? "";
+  if (depuisLocals && depuisLocals.length <= 100) return depuisLocals;
   const fourni = requete.request.headers.get("x-request-id")?.trim();
   if (fourni && fourni.length <= 100) return fourni;
   return randomUUID();

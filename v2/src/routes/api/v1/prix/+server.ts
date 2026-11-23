@@ -1,4 +1,4 @@
-import { dateIsoValide, nuitsEntre } from "@/domain/calendrier";
+﻿import { dateIsoValide, nuitsEntre } from "@/domain/calendrier";
 import { DrizzleTarifRepository } from "@/infrastructure/db/repositories/tarif-repository";
 import { authentifierApi, erreurApi } from "@/lib/server/api-auth";
 import {
@@ -9,8 +9,8 @@ import {
 } from "@/lib/server/api-v1";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ request, url }) => {
-  const auth = await authentifierApi({ request, url }, "prix:lire");
+export const GET: RequestHandler = async ({ request, url, locals }) => {
+  const auth = await authentifierApi({ request, url, locals }, "prix:lire");
   if (!auth.ok) return auth.reponse;
 
   const logementId = parametreRequis(
@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurApi(
       400,
       "parametre_invalide",
-      "La date de fin doit être postérieure à la date de début.",
+      "La date de fin doit Ãªtre postÃ©rieure Ã  la date de dÃ©but.",
       auth.requestId,
       auth.headers,
     );
@@ -66,3 +66,5 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurInterne(auth.requestId, auth.headers, erreur);
   }
 };
+
+

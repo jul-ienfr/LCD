@@ -1,10 +1,10 @@
-import { authentifierApi } from "@/lib/server/api-auth";
+﻿import { authentifierApi } from "@/lib/server/api-auth";
 import { erreurInterne, reponseListe } from "@/lib/server/api-v1";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ request, url }) => {
-  const auth = await authentifierApi({ request, url }, "logements:lire");
+export const GET: RequestHandler = async ({ request, url, locals }) => {
+  const auth = await authentifierApi({ request, url, locals }, "logements:lire");
   if (!auth.ok) return auth.reponse;
 
   try {
@@ -31,3 +31,5 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return erreurInterne(auth.requestId, auth.headers, erreur);
   }
 };
+
+
