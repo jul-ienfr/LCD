@@ -1,7 +1,7 @@
 /**
  * Purges de rétention bornée (spec 006, FR-015/FR-016).
  *
- * Six familles, une fonction SQL bornée chacune (migrations 0108/0109,
+ * Sept familles, une fonction SQL bornée chacune (migrations 0108/0109/0110,
  * SECURITY DEFINER : les tables sous RLS ne sont jamais supprimées par un
  * DELETE applicatif direct). Une purge qui échoue ne bloque pas les autres :
  * chaque famille est isolée, l'échec est tracé et remonté dans `echecs`.
@@ -14,6 +14,7 @@ import { sql } from "drizzle-orm";
 import {
   RETENTION_EVENEMENTS_CANAL_JOURS,
   RETENTION_EXECUTIONS_AUTOMATISATION_JOURS,
+  RETENTION_JOBS_OUTBOX_JOURS,
   RETENTION_JOURNAUX_APPLICATIFS_JOURS,
   RETENTION_LIVRAISONS_WEBHOOK_JOURS,
   RETENTION_TENTATIVES_CONNEXION_JOURS,
@@ -29,6 +30,7 @@ export interface ResultatPurgesRetention {
   executionsAutomatisation: number;
   tentativesConnexion: number;
   journauxApplicatifs: number;
+  jobsOutbox: number;
   /** Tables dont la purge a échoué (les autres ont tourné). */
   echecs: string[];
 }
@@ -43,6 +45,7 @@ export interface PurgesRetentionInjectees {
   executionsAutomatisation?: PurgeRetention;
   tentativesConnexion?: PurgeRetention;
   journauxApplicatifs?: PurgeRetention;
+  jobsOutbox?: PurgeRetention;
 }
 
 async function compter(lignes: unknown): Promise<number> {
@@ -95,6 +98,14 @@ async function purgerJournauxApplicatifs(jours: number): Promise<number> {
   );
 }
 
+async function purgerJobsOutbox(jours: number): Promise<number> {
+  return compter(
+    await db.execute(
+      sql`select purger_jobs_outbox(${jours}) as supprimees`,
+    ),
+  );
+}
+
 export async function purgerRetentions(
   injectees: PurgesRetentionInjectees = {},
 ): Promise<ResultatPurgesRetention> {
@@ -140,6 +151,12 @@ export async function purgerRetentions(
       purge: injectees.journauxApplicatifs ?? purgerJournauxApplicatifs,
       jours: RETENTION_JOURNAUX_APPLICATIFS_JOURS,
     },
+    {
+      cle: "jobsOutbox",
+      table: "jobs_outbox",
+      purge: injectees.jobsOutbox ?? purgerJobsOutbox,
+      jours: RETENTION_JOBS_OUTBOX_JOURS,
+    },
   ];
 
   const resultat: ResultatPurgesRetention = {
@@ -149,6 +166,7 @@ export async function purgerRetentions(
     executionsAutomatisation: 0,
     tentativesConnexion: 0,
     journauxApplicatifs: 0,
+    jobsOutbox: 0,
     echecs: [],
   };
 

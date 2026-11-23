@@ -771,6 +771,13 @@
       "when": 1795897600000,
       "tag": "0109_journaux_applicatifs",
       "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1795984000000,
+      "tag": "0110_jobs_outbox",
+      "breakpoints": true
     }
   ]
 }

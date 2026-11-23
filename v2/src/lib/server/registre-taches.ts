@@ -156,6 +156,14 @@ export const TACHES_PLANIFIEES: readonly TachePlanifiee[] = [
     runbook: "v2/MONITORING.md",
     critique: true,
   },
+  {
+    nom: "jobs-outbox",
+    libelle: "File de jobs durable (drain, retries, purges)",
+    cadenceMinutes: MINUTES.cinq,
+    route: "/api/cron/jobs-outbox",
+    runbook: "v2/runbook-production.md §crons",
+    critique: true,
+  },
 ] as const;
 
 export function tacheParNom(nom: string): TachePlanifiee | null {

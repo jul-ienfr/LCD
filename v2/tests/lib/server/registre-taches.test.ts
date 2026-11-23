@@ -8,7 +8,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 describe("référentiel des tâches planifiées (006 FR-001)", () => {
-  it("déclare les quinze tâches suivies, noms uniques", () => {
+  it("déclare les seize tâches suivies, noms uniques", () => {
     const noms = TACHES_PLANIFIEES.map((tache) => tache.nom);
     expect(new Set(noms).size).toBe(noms.length);
     expect(noms).toContain("purge-police");
@@ -22,7 +22,8 @@ describe("référentiel des tâches planifiées (006 FR-001)", () => {
     expect(noms).toContain("sauvegarde");
     expect(noms).toContain("restauration-controle");
     expect(noms).toContain("verifier-taches");
-    expect(TACHES_PLANIFIEES.length).toBe(15);
+    expect(noms).toContain("jobs-outbox");
+    expect(TACHES_PLANIFIEES.length).toBe(16);
   });
 
   it("chaque route déclarée existe réellement dans src/routes/api/cron", () => {
@@ -56,6 +57,7 @@ describe("référentiel des tâches planifiées (006 FR-001)", () => {
       "/api/cron/relances-sejour",
       "/api/cron/releves",
       "/api/cron/verifier-taches",
+      "/api/cron/jobs-outbox",
     ];
     for (const route of routesConnues) {
       expect(routesDeclarees.has(route), `${route} non déclarée`).toBe(true);

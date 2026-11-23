@@ -3,6 +3,7 @@ import { logErreur, logInfo } from "@/lib/logger";
 import { executerReconciliationFournisseurs } from "./fournisseur-reconciliation";
 import { traiterDemandesSync } from "./fournisseur-outbox";
 import { executerCycleFournisseurs } from "./fournisseur-sync";
+import { drainerJobsOutbox } from "./outbox-jobs";
 
 let timer: NodeJS.Timeout | null = null;
 let timerReconciliation: NodeJS.Timeout | null = null;
@@ -53,6 +54,12 @@ export function demarrerPlanificateurFournisseurs(): void {
         const demandes = await traiterDemandesSync({ limite: 20 });
         if (demandes.total > 0) {
           logInfo("fournisseur.scheduler.demandes", { ...demandes });
+        }
+        // FR-025 : la file durable est drainée à chaque tick, même si la
+        // minuterie accélératrice a été perdue par un redémarrage.
+        const jobs = await drainerJobsOutbox({ limite: 20 });
+        if (jobs.reclames > 0) {
+          logInfo("fournisseur.scheduler.jobs-outbox", { ...jobs });
         }
         if (Date.now() >= prochaineExecution) {
           await executerCycleFournisseurs();

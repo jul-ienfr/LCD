@@ -1,8 +1,9 @@
 import { TraiterDemandesSync } from "@/application/use-cases/traiter-demandes-sync";
+import { QueueOutbox } from "@/infrastructure/adapters/queue-outbox";
 import { DrizzleDemandeSyncRepository } from "@/infrastructure/db/repositories/demande-sync-repository";
 import { logErreur, logInfo } from "@/lib/logger";
 import { executerCycleFournisseurs } from "./fournisseur-sync";
-import { PlanificateurSync } from "./planificateur-sync";
+import { drainerJobsOutbox } from "./outbox-jobs";
 
 export async function traiterDemandesSync(
   options: {
@@ -45,47 +46,41 @@ export async function traiterDemandesSync(
   }
 }
 
-const planificateur = new PlanificateurSync(async ({ tenantId, logementId }) => {
-  try {
-    const demandes = await traiterDemandesSync({ tenantId, logementId });
-    if (
-      demandes.ignoree ||
-      !demandes.ownerDisponible ||
-      demandes.total > 0
-    ) {
-      return { total: demandes.total, erreurs: demandes.echecs };
-    }
-
-    const resultat = await executerCycleFournisseurs({
-      tenantId,
-      logementId,
-    });
-    if (resultat.total > 0) {
-      logInfo("fournisseur.sync.declenche", {
-        tenantId,
-        logementId,
-        total: resultat.total,
-        erreurs: resultat.erreurs,
-      });
-    }
-    return { total: resultat.total, erreurs: resultat.erreurs };
-  } catch (erreur) {
-    logErreur("fournisseur.sync.declenche", erreur);
-    return { total: 0, erreurs: 1 };
-  }
-});
+/**
+ * Debounce durable (FR-025). La demande est écrite dans `demandes_sync`
+ * (source de vérité, révisée) et un job idempotent est posé dans
+ * `jobs_outbox`. La minuterie ne fait qu'avancer la latence : si le processus
+ * redémarre, le job reste dû et le planificateur ou le cron le reprend.
+ */
+const queue = new QueueOutbox();
 
 export function planifierSyncFournisseur(
   tenantId: string,
   logementId: string,
-  delaiMs?: number,
+  delaiMs = 1_500,
 ): void {
+  const delai = Math.max(0, delaiMs);
   void new DrizzleDemandeSyncRepository()
     .enregistrer(tenantId, logementId)
+    .then(() =>
+      queue.enqueue(
+        "fournisseur.sync",
+        { tenantId, logementId },
+        {
+          idempotencyKey: `fournisseur.sync:${tenantId}:${logementId}`,
+          runAt: new Date(Date.now() + delai),
+        },
+      ),
+    )
+    .then(() => {
+      const timer = setTimeout(() => {
+        void drainerJobsOutbox({ limite: 5 }).catch((erreur) => {
+          logErreur("fournisseur.outbox.drain", erreur);
+        });
+      }, delai + 50);
+      timer.unref?.();
+    })
     .catch((erreur) => {
       logErreur("fournisseur.demande.enregistrement", erreur);
-    })
-    .finally(() => {
-      planificateur.planifier(tenantId, logementId, delaiMs);
     });
 }

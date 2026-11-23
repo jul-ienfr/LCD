@@ -23,3 +23,6 @@ export const RETENTION_TENTATIVES_CONNEXION_JOURS = 30;
 /** Journaux applicatifs (FR-016) : 30 jours — de quoi diagnostiquer un
  *  incident passé sans archiver des traces d'exploitation (plancher SQL : 7). */
 export const RETENTION_JOURNAUX_APPLICATIFS_JOURS = 30;
+
+/** Jobs de la file durable (FR-025/FR-026) : 30 jours d'historique terminal. */
+export const RETENTION_JOBS_OUTBOX_JOURS = 30;

@@ -468,6 +468,45 @@ export const verrousSysteme = pgTable("verrous_systeme", {
   expireLe: timestamp("expire_le", { withTimezone: true }).notNull(),
 });
 
+// File de jobs durable (spec 006, FR-025). Table plateforme : un job porte son
+// tenant dans `payload`. Écriture avant exécution, réclamation à bail
+// (`en_cours` + `verrouille_jusqua`), retry avec backoff, `echec` visible en
+// supervision. `cle_idempotence` unique (hors NULL) : un rejeu debounce met à
+// jour la même ligne au lieu d'en créer une seconde.
+export const jobsOutbox = pgTable(
+  "jobs_outbox",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    nom: text("nom").notNull(),
+    payload: jsonb("payload")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    cleIdempotence: text("cle_idempotence"),
+    statut: text("statut").notNull().default("en_attente"),
+    tentatives: integer("tentatives").notNull().default(0),
+    tentativesMax: integer("tentatives_max").notNull().default(5),
+    disponibleA: timestamp("disponible_a", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    verrouilleJusqua: timestamp("verrouille_jusqua", { withTimezone: true }),
+    derniereErreur: text("derniere_erreur"),
+    termineLe: timestamp("termine_le", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("jobs_outbox_cle_idempotence_uq").on(t.cleIdempotence),
+    index("jobs_outbox_statut_disponible_idx").on(t.statut, t.disponibleA),
+    index("jobs_outbox_nom_idx").on(t.nom),
+  ],
+);
+
 export const webhooks = pgTable(
   "webhooks",
   {
