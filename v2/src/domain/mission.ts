@@ -7,6 +7,8 @@ export type StatutMission =
   | "en_cours"
   | "terminee"
   | "annulee";
+/** Origine de l'horodatage d'un pointage (FR-031). */
+export type SourcePointage = "serveur" | "hors_ligne";
 
 export interface Mission {
   id: MissionId;
@@ -20,6 +22,16 @@ export interface Mission {
   heure: string | null; // HH:MM
   statut: StatutMission;
   notes: string | null;
+  /** Durée prévue en minutes ; `null` = défaut du type (domain/pointage). */
+  dureePrevueMinutes: number | null;
+  /** Pointage serveur (FR-031) : horodatage retenu et sa source. */
+  debutReel: Date | null;
+  finReelle: Date | null;
+  debutReelSource: SourcePointage | null;
+  finReelleSource: SourcePointage | null;
+  /** Instant où le serveur a reçu le pointage (diffère si hors ligne). */
+  debutReelRecuLe: Date | null;
+  finReelleRecuLe: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

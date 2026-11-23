@@ -127,6 +127,23 @@
             <p class="mt-1 text-sm text-encre-douce">
               {mission.date}{mission.heure ? ` ${mission.heure}` : ""} · {mission.logement} · {mission.prestataire}
             </p>
+            {#if mission.pointage !== "non_commence"}
+              <p class="mt-1 text-sm">
+                {#if mission.finReelle}
+                  {t.pointageFin(mission.debutReel ?? "?", mission.finReelle)}
+                {:else}
+                  {t.pointageDebut(mission.debutReel ?? "?")}
+                {/if}
+                {#if mission.debutHorsLigne || mission.finHorsLigne}
+                  <span class="text-encre-faine">· {t.pointageHorsLigne}</span>
+                {/if}
+              </p>
+              {#if mission.dureeReelle !== null}
+                <p class="mt-1 text-sm text-encre-douce">
+                  {t.dureeReelle(mission.dureeReelle, mission.dureePrevue, mission.ecart ?? "")}
+                </p>
+              {/if}
+            {/if}
             {#if mission.notes}
               <p class="mt-1 text-sm text-encre-faine">{mission.notes}</p>
             {/if}

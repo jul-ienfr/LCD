@@ -61,14 +61,75 @@
               <span class="ui-etiquette">{mission.statutLibelle}</span>
               <code class="text-xs text-encre-faine">{mission.statut}</code>
             </div>
-            <div class="mt-3 flex flex-wrap gap-2">
-              {#each mission.transitions as statut (statut)}
+
+            {#if mission.pointage === "non_commence"}
+              <p class="mt-2 text-sm text-encre-douce">Durée prévue : {mission.dureePrevue}</p>
+            {:else}
+              <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                <div>
+                  <dt class="text-xs uppercase tracking-wide text-encre-faine">Début pointé</dt>
+                  <dd>
+                    {mission.debutReel}
+                    {#if mission.debutSource === "hors_ligne"}
+                      <span class="text-xs text-encre-faine">hors ligne, reçu le {mission.debutRecuLe}</span>
+                    {/if}
+                  </dd>
+                </div>
+                {#if mission.finReelle}
+                  <div>
+                    <dt class="text-xs uppercase tracking-wide text-encre-faine">Fin pointée</dt>
+                    <dd>
+                      {mission.finReelle}
+                      {#if mission.finSource === "hors_ligne"}
+                        <span class="text-xs text-encre-faine">hors ligne, reçu le {mission.finRecuLe}</span>
+                      {/if}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs uppercase tracking-wide text-encre-faine">Durée réelle</dt>
+                    <dd>{mission.dureeReelle} <span class="text-encre-faine">(prévu {mission.dureePrevue})</span></dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs uppercase tracking-wide text-encre-faine">Écart</dt>
+                    <dd>{mission.ecart}</dd>
+                  </div>
+                {/if}
+              </dl>
+            {/if}
+
+            <div class="mt-3 flex flex-wrap items-end gap-3">
+              {#if mission.pointage === "non_commence" && (mission.statut === "planifiee" || mission.statut === "en_cours")}
+                <form class="space-y-2" method="POST" action="?/pointage">
+                  <input type="hidden" name="missionId" value={mission.id} />
+                  <input type="hidden" name="sens" value="debut" />
+                  <button class="ui-bouton ui-bouton--primaire ui-bouton--petit" type="submit">Pointer le début</button>
+                  <details class="text-xs text-encre-douce">
+                    <summary class="cursor-pointer">Pointage fait hors ligne ?</summary>
+                    <label class="mt-2 block space-y-1">
+                      <span>Heure réelle du pointage</span>
+                      <input class="ui-champ" name="horodatageLocal" type="datetime-local" />
+                    </label>
+                  </details>
+                </form>
+              {:else if mission.pointage === "en_cours" && mission.statut === "en_cours"}
+                <form class="space-y-2" method="POST" action="?/pointage">
+                  <input type="hidden" name="missionId" value={mission.id} />
+                  <input type="hidden" name="sens" value="fin" />
+                  <button class="ui-bouton ui-bouton--primaire ui-bouton--petit" type="submit">Pointer la fin</button>
+                  <details class="text-xs text-encre-douce">
+                    <summary class="cursor-pointer">Pointage fait hors ligne ?</summary>
+                    <label class="mt-2 block space-y-1">
+                      <span>Heure réelle du pointage</span>
+                      <input class="ui-champ" name="horodatageLocal" type="datetime-local" />
+                    </label>
+                  </details>
+                </form>
+              {/if}
+              {#each mission.transitions.filter((statut) => statut === "annulee") as statut (statut)}
                 <form method="POST" action="?/statut">
                   <input type="hidden" name="missionId" value={mission.id} />
                   <input type="hidden" name="statut" value={statut} />
-                  <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">
-                    {statut === "en_cours" ? "Commencer" : statut === "terminee" ? "Terminer" : "Annuler"}
-                  </button>
+                  <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">Annuler la mission</button>
                 </form>
               {/each}
             </div>

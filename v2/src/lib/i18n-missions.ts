@@ -28,6 +28,10 @@ export interface TraductionsMissions {
   creerMission: string;
   missionsMois: string;
   aucuneMission: string;
+  pointageDebut: (heure: string) => string;
+  pointageFin: (debut: string, fin: string) => string;
+  pointageHorsLigne: string;
+  dureeReelle: (reelle: string, prevue: string, ecart: string) => string;
   typesMission: { menage: string; maintenance: string; accueil: string; autre: string };
 }
 
@@ -36,30 +40,55 @@ const COMMUNS_FR = {
   type: "Type", date: "Date", heureFacultatif: "Heure (facultatif)",
   reservationLiee: "Réservation liée (facultatif)", aucune: "Aucune",
   notesFacultatif: "Notes (facultatif)",
+  pointageDebut: (heure: string) => `Pointage débuté à ${heure}`,
+  pointageFin: (debut: string, fin: string) => `Pointage ${debut} → ${fin}`,
+  pointageHorsLigne: "hors ligne",
+  dureeReelle: (reelle: string, prevue: string, ecart: string) =>
+    `Durée réelle ${reelle} · prévu ${prevue} · écart ${ecart}`,
 };
 const COMMUNS_EN = {
   logement: "Property", prestataire: "Provider", reference: "Reference",
   type: "Type", date: "Date", heureFacultatif: "Time (optional)",
   reservationLiee: "Linked booking (optional)", aucune: "None",
   notesFacultatif: "Notes (optional)",
+  pointageDebut: (heure: string) => `Check-in at ${heure}`,
+  pointageFin: (debut: string, fin: string) => `Check-in ${debut} → ${fin}`,
+  pointageHorsLigne: "offline capture",
+  dureeReelle: (reelle: string, prevue: string, ecart: string) =>
+    `Actual duration ${reelle} · planned ${prevue} · deviation ${ecart}`,
 };
 const COMMUNS_ES = {
   logement: "Alojamiento", prestataire: "Prestador", reference: "Referencia",
   type: "Tipo", date: "Fecha", heureFacultatif: "Hora (opcional)",
   reservationLiee: "Reserva vinculada (opcional)", aucune: "Ninguna",
   notesFacultatif: "Notas (opcional)",
+  pointageDebut: (heure: string) => `Entrada registrada a las ${heure}`,
+  pointageFin: (debut: string, fin: string) => `Registro ${debut} → ${fin}`,
+  pointageHorsLigne: "captura sin conexión",
+  dureeReelle: (reelle: string, prevue: string, ecart: string) =>
+    `Duración real ${reelle} · prevista ${prevue} · desviación ${ecart}`,
 };
 const COMMUNS_IT = {
   logement: "Alloggio", prestataire: "Fornitore", reference: "Riferimento",
   type: "Tipo", date: "Data", heureFacultatif: "Ora (facoltativo)",
   reservationLiee: "Prenotazione collegata (facoltativo)", aucune: "Nessuna",
   notesFacultatif: "Note (facoltativo)",
+  pointageDebut: (heure: string) => `Ingresso registrato alle ${heure}`,
+  pointageFin: (debut: string, fin: string) => `Registrazione ${debut} → ${fin}`,
+  pointageHorsLigne: "registrazione offline",
+  dureeReelle: (reelle: string, prevue: string, ecart: string) =>
+    `Durata reale ${reelle} · prevista ${prevue} · scostamento ${ecart}`,
 };
 const COMMUNS_DE = {
   logement: "Unterkunft", prestataire: "Dienstleister", reference: "Referenz",
   type: "Typ", date: "Datum", heureFacultatif: "Uhrzeit (optional)",
   reservationLiee: "Verknüpfte Buchung (optional)", aucune: "Keine",
   notesFacultatif: "Notizen (optional)",
+  pointageDebut: (heure: string) => `Beginn erfasst um ${heure}`,
+  pointageFin: (debut: string, fin: string) => `Stempelung ${debut} → ${fin}`,
+  pointageHorsLigne: "offline erfasst",
+  dureeReelle: (reelle: string, prevue: string, ecart: string) =>
+    `Ist-Dauer ${reelle} · geplant ${prevue} · Abweichung ${ecart}`,
 };
 
 const FR: TraductionsMissions = {

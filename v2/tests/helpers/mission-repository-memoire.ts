@@ -21,6 +21,13 @@ export class MissionRepositoryMemoire implements MissionRepository {
       heure: data.heure,
       statut: "planifiee",
       notes: data.notes,
+      dureePrevueMinutes: null,
+      debutReel: null,
+      finReelle: null,
+      debutReelSource: null,
+      finReelleSource: null,
+      debutReelRecuLe: null,
+      finReelleRecuLe: null,
       createdAt: maintenant,
       updatedAt: maintenant,
     };
@@ -78,6 +85,36 @@ export class MissionRepositoryMemoire implements MissionRepository {
     if (!mission) return null;
     mission.assignedUserId = userId;
     mission.updatedAt = new Date();
+    return mission;
+  }
+
+  async pointerDebut(
+    tenantId: string,
+    id: string,
+    pointage: { at: Date; source: Mission["debutReelSource"]; recuLe: Date },
+  ): Promise<Mission | null> {
+    const mission = await this.trouverParId(tenantId, id);
+    if (!mission) return null;
+    mission.debutReel = pointage.at;
+    mission.debutReelSource = pointage.source;
+    mission.debutReelRecuLe = pointage.recuLe;
+    mission.statut = "en_cours";
+    mission.updatedAt = pointage.recuLe;
+    return mission;
+  }
+
+  async pointerFin(
+    tenantId: string,
+    id: string,
+    pointage: { at: Date; source: Mission["finReelleSource"]; recuLe: Date },
+  ): Promise<Mission | null> {
+    const mission = await this.trouverParId(tenantId, id);
+    if (!mission) return null;
+    mission.finReelle = pointage.at;
+    mission.finReelleSource = pointage.source;
+    mission.finReelleRecuLe = pointage.recuLe;
+    mission.statut = "terminee";
+    mission.updatedAt = pointage.recuLe;
     return mission;
   }
 }

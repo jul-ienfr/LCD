@@ -9,6 +9,14 @@ import {
 } from "@/domain/calendrier";
 import { ErreurMetier } from "@/domain/erreurs";
 import { TYPES_MISSION, type TypeMission } from "@/domain/mission";
+import {
+  dureePrevueMinutes,
+  dureeReelleMinutes,
+  ecartDureeMinutes,
+  etatPointage,
+  formaterDuree,
+  formaterEcart,
+} from "@/domain/pointage";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMissionRepository } from "@/infrastructure/db/repositories/mission-repository";
@@ -16,6 +24,7 @@ import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/r
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsMissions } from "@/lib/i18n-missions";
+import { heureParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
@@ -93,17 +102,33 @@ export const load: PageServerLoad = async (event) => {
     types: TYPES_MISSION.map((type) => ({ id: type, libelle: t.typesMission[type] })),
     dateDefaut: mois === moisCourant() ? new Date().toISOString().slice(0, 10) : premier,
     refDefaut: prochainRef(missions, Number(mois.slice(0, 4))),
-    missions: missions.map((mission) => ({
-      id: mission.id,
-      ref: mission.ref,
-      type: LIBELLES_TYPE[mission.type],
-      statut: mission.statut,
-      date: mission.date,
-      heure: mission.heure,
-      logement: parLogement.get(mission.logementId)?.nom ?? mission.logementId,
-      prestataire: parUser.get(mission.assignedUserId)?.name ?? mission.assignedUserId,
-      notes: mission.notes,
-    })),
+    missions: missions.map((mission) => {
+      const prevue = dureePrevueMinutes(mission.type, mission.dureePrevueMinutes);
+      const reelle =
+        mission.debutReel && mission.finReelle
+          ? dureeReelleMinutes(mission.debutReel, mission.finReelle)
+          : null;
+      return {
+        id: mission.id,
+        ref: mission.ref,
+        type: LIBELLES_TYPE[mission.type],
+        statut: mission.statut,
+        date: mission.date,
+        heure: mission.heure,
+        logement: parLogement.get(mission.logementId)?.nom ?? mission.logementId,
+        prestataire: parUser.get(mission.assignedUserId)?.name ?? mission.assignedUserId,
+        notes: mission.notes,
+        // Pointage FR-031 : horodatages serveur, source et écart de durée.
+        pointage: etatPointage(mission),
+        debutReel: mission.debutReel ? heureParis(mission.debutReel) : null,
+        finReelle: mission.finReelle ? heureParis(mission.finReelle) : null,
+        debutHorsLigne: mission.debutReelSource === "hors_ligne",
+        finHorsLigne: mission.finReelleSource === "hors_ligne",
+        dureePrevue: formaterDuree(prevue),
+        dureeReelle: reelle === null ? null : formaterDuree(reelle),
+        ecart: reelle === null ? null : formaterEcart(ecartDureeMinutes(reelle, prevue)),
+      };
+    }),
     ok: event.url.searchParams.get("ok"),
     okRef: event.url.searchParams.get("ref"),
     okDate: event.url.searchParams.get("date"),

@@ -3,7 +3,7 @@ import type {
   CreerMissionData,
   MissionRepository,
 } from "@/application/ports/mission-repository";
-import type { Mission } from "@/domain/mission";
+import type { Mission, SourcePointage } from "@/domain/mission";
 import { withTenant } from "../client";
 import { missions } from "../schema";
 
@@ -20,6 +20,13 @@ function versDomaine(row: typeof missions.$inferSelect): Mission {
     heure: row.heure,
     statut: row.statut as Mission["statut"],
     notes: row.notes,
+    dureePrevueMinutes: row.dureePrevueMinutes,
+    debutReel: row.debutReel,
+    finReelle: row.finReelle,
+    debutReelSource: row.debutReelSource as Mission["debutReelSource"],
+    finReelleSource: row.finReelleSource as Mission["finReelleSource"],
+    debutReelRecuLe: row.debutReelRecuLe,
+    finReelleRecuLe: row.finReelleRecuLe,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -124,6 +131,46 @@ export class DrizzleMissionRepository implements MissionRepository {
       await tx
         .update(missions)
         .set({ assignedUserId: userId, updatedAt: new Date() })
+        .where(and(eq(missions.tenantId, tenantId), eq(missions.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async pointerDebut(
+    tenantId: string,
+    id: string,
+    pointage: { at: Date; source: SourcePointage; recuLe: Date },
+  ): Promise<Mission | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(missions)
+        .set({
+          debutReel: pointage.at,
+          debutReelSource: pointage.source,
+          debutReelRecuLe: pointage.recuLe,
+          statut: "en_cours",
+          updatedAt: new Date(),
+        })
+        .where(and(eq(missions.tenantId, tenantId), eq(missions.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async pointerFin(
+    tenantId: string,
+    id: string,
+    pointage: { at: Date; source: SourcePointage; recuLe: Date },
+  ): Promise<Mission | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(missions)
+        .set({
+          finReelle: pointage.at,
+          finReelleSource: pointage.source,
+          finReelleRecuLe: pointage.recuLe,
+          statut: "terminee",
+          updatedAt: new Date(),
+        })
         .where(and(eq(missions.tenantId, tenantId), eq(missions.id, id)));
     });
     return this.trouverParId(tenantId, id);

@@ -1,4 +1,4 @@
-import type { Mission } from "@/domain/mission";
+import type { Mission, SourcePointage } from "@/domain/mission";
 
 export interface CreerMissionData {
   tenantId: string;
@@ -33,5 +33,28 @@ export interface MissionRepository {
     tenantId: string,
     id: string,
     userId: string,
+  ): Promise<Mission | null>;
+  /**
+   * Pointage début (FR-031) : enregistre l'horodatage retenu, sa source et
+   * l'instant de réception serveur, et passe la mission `en_cours`.
+   */
+  pointerDebut(
+    tenantId: string,
+    id: string,
+    pointage: {
+      at: Date;
+      source: SourcePointage;
+      recuLe: Date;
+    },
+  ): Promise<Mission | null>;
+  /** Pointage fin : clôt la mission (`terminee`). */
+  pointerFin(
+    tenantId: string,
+    id: string,
+    pointage: {
+      at: Date;
+      source: SourcePointage;
+      recuLe: Date;
+    },
   ): Promise<Mission | null>;
 }

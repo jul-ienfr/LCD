@@ -945,6 +945,15 @@ export const missions = pgTable(
     heure: text("heure"),
     statut: text("statut").notNull().default("planifiee"),
     notes: text("notes"),
+    // Pointage terrain (spec 006, FR-031) : horodatage retenu, source et
+    // instant de réception serveur (diffère après un pointage hors ligne).
+    dureePrevueMinutes: integer("duree_prevue_minutes"),
+    debutReel: timestamp("debut_reel", { withTimezone: true }),
+    finReelle: timestamp("fin_reelle", { withTimezone: true }),
+    debutReelSource: text("debut_reel_source"),
+    finReelleSource: text("fin_reelle_source"),
+    debutReelRecuLe: timestamp("debut_reel_recu_le", { withTimezone: true }),
+    finReelleRecuLe: timestamp("fin_reelle_recu_le", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
