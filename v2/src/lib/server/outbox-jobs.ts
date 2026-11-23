@@ -17,7 +17,11 @@
  */
 
 import { and, eq, lte, sql } from "drizzle-orm";
-import { apresEchec, BAIL_JOB_MINUTES, LIMITE_LOT_JOBS } from "@/domain/jobs-outbox";
+import {
+  apresEchec,
+  BAIL_JOB_MINUTES,
+  LIMITE_LOT_JOBS,
+} from "@/domain/jobs-outbox";
 import { db } from "@/infrastructure/db/client";
 import { jobsOutbox } from "@/infrastructure/db/schema";
 import { logErreur, logInfo } from "@/lib/logger";
@@ -36,7 +40,9 @@ export function enregistrerHandlerJob(nom: string, handler: HandlerJob): void {
 const handlersIntegres: Record<string, HandlerJob> = {
   // Debounce de synchronisation fournisseur : la demande durable vit dans
   // `demandes_sync` (révision), ce job n'est que le déclencheur rejouable.
-  "fournisseur.sync": async (payload) => {
+  "fournisseur.sync": async (payload): Promise<
+    { compteurs?: Record<string, number> } | void
+  > => {
     const tenantId = typeof payload.tenantId === "string" ? payload.tenantId : "";
     const logementId =
       typeof payload.logementId === "string" ? payload.logementId : "";
@@ -86,13 +92,13 @@ export interface ResultatDrain {
   restants: number;
 }
 
-interface LigneReclamee {
+type LigneReclamee = {
   id: string;
   nom: string;
   payload: Record<string, unknown>;
   tentatives: number;
   tentatives_max: number;
-}
+};
 
 function messageErreur(erreur: unknown): string {
   const message = erreur instanceof Error ? erreur.message : String(erreur);
@@ -119,10 +125,7 @@ async function reprendreBauxExpires(maintenant: Date): Promise<number> {
 }
 
 /** Réclame atomiquement un lot de jobs dus. */
-async function reclamerJobs(
-  limite: number,
-  maintenant: Date,
-): Promise<LigneReclamee[]> {
+async function reclamerJobs(limite: number): Promise<LigneReclamee[]> {
   const lignes = await db.execute<LigneReclamee>(sql`
     with reclamables as (
       select id
@@ -176,7 +179,7 @@ export async function drainerJobsOutbox(
 
   let lot: LigneReclamee[];
   try {
-    lot = await reclamerJobs(limite, maintenant);
+    lot = await reclamerJobs(limite);
   } catch (erreur) {
     logErreur("jobs-outbox.reclamation", erreur);
     return resultat;

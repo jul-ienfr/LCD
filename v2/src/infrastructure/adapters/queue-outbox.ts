@@ -47,6 +47,7 @@ export class QueueOutbox implements Queue {
           },
         })
         .returning({ id: jobsOutbox.id });
+      if (!ligne) throw new Error("Insertion du job sans identifiant retourné.");
       return ligne.id;
     }
 
@@ -54,6 +55,7 @@ export class QueueOutbox implements Queue {
       .insert(jobsOutbox)
       .values(valeurs)
       .returning({ id: jobsOutbox.id });
+    if (!ligne) throw new Error("Insertion du job sans identifiant retourné.");
     return ligne.id;
   }
 

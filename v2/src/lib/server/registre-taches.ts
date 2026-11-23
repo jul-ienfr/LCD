@@ -158,10 +158,10 @@ export const TACHES_PLANIFIEES: readonly TachePlanifiee[] = [
   },
   {
     nom: "jobs-outbox",
-    libelle: "File de jobs durable (drain, retries, purges)",
+    libelle: "File de jobs durable (drain et reprises)",
     cadenceMinutes: MINUTES.cinq,
     route: "/api/cron/jobs-outbox",
-    runbook: "v2/runbook-production.md §crons",
+    runbook: "runbook-production.md §crons",
     critique: true,
   },
 ] as const;

@@ -186,6 +186,8 @@ in-process est actif, ne pas appeler le cron HTTP correspondant.
 | Relevés propriétaires | `/api/cron/releves` | 1er du mois 06:00 | cron système |
 | Purge police | `/api/cron/purge-police` | quotidien 04:00 | cron système |
 | Mémoire assistant | `/api/cron/memoire` | quotidien 04:30 | cron système |
+| Contrôle d'absence des tâches | `/api/cron/verifier-taches` | 30 min | **in-process** (`VERIF_TACHES_ENABLED=true`), cron système sinon |
+| File de jobs durable | `/api/cron/jobs-outbox` | 5 min | cron système (aussi drainée à chaque tick fournisseur) |
 | Sauvegarde | `db:backup` | quotidien 02:00 | cron système ou workflow |
 
 Exemple de crontab (à adapter, une ligne par tâche) :
@@ -201,6 +203,7 @@ Exemple de crontab (à adapter, une ligne par tâche) :
 0 8 * * *   curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://$DOMAIN/api/cron/relances-sejour
 0 * * * *   curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://$DOMAIN/api/cron/webhooks
 0 6 1 * *   curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://$DOMAIN/api/cron/releves
+*/5 * * * * curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://$DOMAIN/api/cron/jobs-outbox
 ```
 
 Le secret ne doit pas apparaître en clair dans la crontab : utiliser un fichier
