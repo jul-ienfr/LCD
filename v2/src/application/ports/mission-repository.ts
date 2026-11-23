@@ -57,4 +57,24 @@ export interface MissionRepository {
       recuLe: Date;
     },
   ): Promise<Mission | null>;
+  /**
+   * Cycle de preuve (FR-032) : soumission, validation, refus motivé. Le refus
+   * conserve son motif, la validation son auteur ; la resoumission efface le
+   * motif précédent.
+   */
+  soumettrePreuve(
+    tenantId: string,
+    id: string,
+    soumission: { le: Date },
+  ): Promise<Mission | null>;
+  validerPreuve(
+    tenantId: string,
+    id: string,
+    validation: { le: Date; par: string },
+  ): Promise<Mission | null>;
+  refuserPreuve(
+    tenantId: string,
+    id: string,
+    refus: { le: Date; par: string; motif: string },
+  ): Promise<Mission | null>;
 }

@@ -4,6 +4,7 @@ import type {
   MissionRepository,
 } from "@/application/ports/mission-repository";
 import type { Mission, SourcePointage } from "@/domain/mission";
+import { statutPreuve } from "@/domain/preuve-intervention";
 import { withTenant } from "../client";
 import { missions } from "../schema";
 
@@ -27,6 +28,11 @@ function versDomaine(row: typeof missions.$inferSelect): Mission {
     finReelleSource: row.finReelleSource as Mission["finReelleSource"],
     debutReelRecuLe: row.debutReelRecuLe,
     finReelleRecuLe: row.finReelleRecuLe,
+    preuveStatut: statutPreuve(row.preuveStatut),
+    preuveMotifRefus: row.preuveMotifRefus,
+    preuveSoumiseLe: row.preuveSoumiseLe,
+    preuveValideeLe: row.preuveValideeLe,
+    preuveValideePar: row.preuveValideePar,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -169,6 +175,64 @@ export class DrizzleMissionRepository implements MissionRepository {
           finReelleSource: pointage.source,
           finReelleRecuLe: pointage.recuLe,
           statut: "terminee",
+          updatedAt: new Date(),
+        })
+        .where(and(eq(missions.tenantId, tenantId), eq(missions.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async soumettrePreuve(
+    tenantId: string,
+    id: string,
+    soumission: { le: Date },
+  ): Promise<Mission | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(missions)
+        .set({
+          preuveStatut: "soumise",
+          preuveSoumiseLe: soumission.le,
+          // La resoumission après refus efface le motif précédent.
+          preuveMotifRefus: null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(missions.tenantId, tenantId), eq(missions.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async validerPreuve(
+    tenantId: string,
+    id: string,
+    validation: { le: Date; par: string },
+  ): Promise<Mission | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(missions)
+        .set({
+          preuveStatut: "validee",
+          preuveValideeLe: validation.le,
+          preuveValideePar: validation.par,
+          preuveMotifRefus: null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(missions.tenantId, tenantId), eq(missions.id, id)));
+    });
+    return this.trouverParId(tenantId, id);
+  }
+
+  async refuserPreuve(
+    tenantId: string,
+    id: string,
+    refus: { le: Date; par: string; motif: string },
+  ): Promise<Mission | null> {
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(missions)
+        .set({
+          preuveStatut: "refusee",
+          preuveMotifRefus: refus.motif,
           updatedAt: new Date(),
         })
         .where(and(eq(missions.tenantId, tenantId), eq(missions.id, id)));

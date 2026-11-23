@@ -954,6 +954,13 @@ export const missions = pgTable(
     finReelleSource: text("fin_reelle_source"),
     debutReelRecuLe: timestamp("debut_reel_recu_le", { withTimezone: true }),
     finReelleRecuLe: timestamp("fin_reelle_recu_le", { withTimezone: true }),
+    // Cycle de preuve de l'intervention (spec 006, FR-032/FR-033) : soumise →
+    // validée ou refusée (motif obligatoire) → reprise.
+    preuveStatut: text("preuve_statut").notNull().default("a_soumettre"),
+    preuveMotifRefus: text("preuve_motif_refus"),
+    preuveSoumiseLe: timestamp("preuve_soumise_le", { withTimezone: true }),
+    preuveValideeLe: timestamp("preuve_validee_le", { withTimezone: true }),
+    preuveValideePar: text("preuve_validee_par"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -966,6 +973,31 @@ export const missions = pgTable(
     uniqueIndex("missions_tenant_ref_uq").on(t.tenantId, t.ref),
     index("missions_tenant_date_idx").on(t.tenantId, t.date),
     index("missions_presta_idx").on(t.tenantId, t.assignedUserId, t.date),
+  ],
+);
+
+// Historique du cycle de preuve (spec 006, FR-032) : une ligne par passage
+// (soumission, validation, refus avec son motif), jamais modifiée.
+export const preuvesInterventionTransitions = pgTable(
+  "preuves_intervention_transitions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    missionId: uuid("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    de: text("de"),
+    vers: text("vers").notNull(),
+    motif: text("motif"),
+    qui: text("qui").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("preuves_transitions_mission_idx").on(t.tenantId, t.missionId, t.createdAt),
   ],
 );
 

@@ -1,6 +1,10 @@
 import { isRedirect, redirect } from "@sveltejs/kit";
 import { CreerMission } from "@/application/use-cases/creer-mission";
 import {
+  RefuserPreuveIntervention,
+  ValiderPreuveIntervention,
+} from "@/application/use-cases/preuve-intervention";
+import {
   ajouterJours,
   decalerMois,
   joursDuMois,
@@ -17,14 +21,21 @@ import {
   formaterDuree,
   formaterEcart,
 } from "@/domain/pointage";
+import {
+  MOTIF_REFUS_MAX,
+  MOTIF_REFUS_MIN,
+  validerMotifRefus,
+} from "@/domain/preuve-intervention";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMissionRepository } from "@/infrastructure/db/repositories/mission-repository";
+import { DrizzlePreuveInterventionRepository } from "@/infrastructure/db/repositories/preuve-intervention-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsMissions } from "@/lib/i18n-missions";
-import { heureParis } from "@/lib/date-paris";
+import { emettreEvenement } from "@/lib/evenements";
+import { heureParis, jourParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
@@ -68,6 +79,13 @@ export const load: PageServerLoad = async (event) => {
     ),
     new DrizzleMissionRepository().listerParMois(tenantId, premier, dernier),
   ]);
+  // Historique des preuves en une requête pour tout le mois affiché (FR-027).
+  const historiques = await new DrizzlePreuveInterventionRepository()
+    .listerParMissions(
+      tenantId,
+      missions.map((mission) => mission.id),
+    );
+  const horodatage = (date: Date) => `${jourParis(date)} ${heureParis(date)}`;
 
   const parUser = new Map(prestataires.map((utilisateur) => [utilisateur.id, utilisateur]));
   const parLogement = new Map(logements.map((logement) => [logement.id, logement]));
@@ -127,9 +145,30 @@ export const load: PageServerLoad = async (event) => {
         dureePrevue: formaterDuree(prevue),
         dureeReelle: reelle === null ? null : formaterDuree(reelle),
         ecart: reelle === null ? null : formaterEcart(ecartDureeMinutes(reelle, prevue)),
+        // Cycle de preuve (FR-032/FR-033) : à valider ou refuser, motif, et
+        // historique complet des passages.
+        preuve: mission.preuveStatut,
+        preuveSoumiseLe: mission.preuveSoumiseLe
+          ? horodatage(mission.preuveSoumiseLe)
+          : null,
+        preuveValideeLe: mission.preuveValideeLe
+          ? horodatage(mission.preuveValideeLe)
+          : null,
+        preuveValideePar: mission.preuveValideePar,
+        preuveMotif: mission.preuveMotifRefus,
+        preuveAHacher: mission.preuveStatut === "soumise",
+        historique: (historiques.get(mission.id) ?? []).map((etape) => ({
+          id: etape.id,
+          statut: etape.vers,
+          motif: etape.motif,
+          qui: etape.qui,
+          le: horodatage(etape.createdAt),
+        })),
       };
     }),
     ok: event.url.searchParams.get("ok"),
+    motifRefusMin: MOTIF_REFUS_MIN,
+    motifRefusMax: MOTIF_REFUS_MAX,
     okRef: event.url.searchParams.get("ref"),
     okDate: event.url.searchParams.get("date"),
     erreur: event.url.searchParams.get("erreur"),
@@ -204,6 +243,83 @@ export const actions = {
       }
       logErreur("missions.creer", error, { tenantId });
       redirect(303, `/hote/missions?mois=${mois}&erreur=inattendu`);
+    }
+  },
+
+  preuve: async (event) => {
+    const session = requireRole(event, ["admin", "hote"]);
+    const tenantId = tenantIdDeSession(session);
+    const donnees = await event.request.formData();
+    const missionId = texte(donnees, "missionId");
+    const decision = texte(donnees, "decision");
+    const mois = texte(donnees, "mois") || moisCourant();
+    const retour = `/hote/missions?mois=${mois}`;
+    if (!missionId || (decision !== "valider" && decision !== "refuser")) {
+      redirect(303, retour);
+    }
+    // Le motif est obligatoire : on le contrôle avant l'appel pour rendre un
+    // message précis à la gérante (le cas d'usage le revérifie).
+    const motif = texte(donnees, "motif");
+    if (decision === "refuser") {
+      try {
+        validerMotifRefus(motif);
+      } catch {
+        redirect(303, `${retour}&erreur=preuve_motif`);
+      }
+    }
+
+    try {
+      const repo = new DrizzleMissionRepository();
+      const preuves = new DrizzlePreuveInterventionRepository();
+      const maintenant = new Date();
+      const resultat =
+        decision === "valider"
+          ? await new ValiderPreuveIntervention(repo, preuves).executer({
+              tenantId,
+              missionId,
+              qui: session.user.email,
+              maintenant,
+            })
+          : await new RefuserPreuveIntervention(repo, preuves).executer({
+              tenantId,
+              missionId,
+              motif,
+              qui: session.user.email,
+              maintenant,
+            });
+      await withTenant(tenantId, (tx) =>
+        tx.insert(auditLogs).values({
+          tenantId,
+          qui: session.user.email,
+          action: "mission.preuve",
+          cible: resultat.mission.id,
+          ref: resultat.mission.ref,
+          payload: {
+            de: resultat.transition.de,
+            vers: resultat.transition.vers,
+            motif: resultat.transition.motif,
+          },
+        }),
+      );
+      await emettreEvenement(tenantId, "mission.status", {
+        missionId: resultat.mission.id,
+        ref: resultat.mission.ref,
+        statut: resultat.mission.statut,
+        preuve: resultat.mission.preuveStatut,
+        logementId: resultat.mission.logementId,
+        date: resultat.mission.date,
+      });
+      redirect(
+        303,
+        `${retour}&ok=${decision === "valider" ? "preuve_validee" : "preuve_refusee"}`,
+      );
+    } catch (error) {
+      if (isRedirect(error)) throw error;
+      if (error instanceof ErreurMetier) {
+        redirect(303, `${retour}&erreur=preuve_etat`);
+      }
+      logErreur("missions.preuve", error, { tenantId, missionId });
+      redirect(303, `${retour}&erreur=inattendu`);
     }
   },
 } satisfies Actions;

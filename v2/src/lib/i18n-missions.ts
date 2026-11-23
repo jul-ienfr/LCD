@@ -32,6 +32,22 @@ export interface TraductionsMissions {
   pointageFin: (debut: string, fin: string) => string;
   pointageHorsLigne: string;
   dureeReelle: (reelle: string, prevue: string, ecart: string) => string;
+  preuveStatuts: {
+    a_soumettre: string;
+    soumise: string;
+    validee: string;
+    refusee: string;
+  };
+  preuveSoumiseLe: (le: string) => string;
+  preuveValideeLe: (le: string, qui: string) => string;
+  preuveMotif: (motif: string) => string;
+  preuveHistorique: string;
+  validerPreuve: string;
+  refuserPreuve: string;
+  motifRefus: string;
+  motifRefusAide: (min: number, max: number) => string;
+  okPreuveValidee: string;
+  okPreuveRefusee: string;
   typesMission: { menage: string; maintenance: string; accueil: string; autre: string };
 }
 
@@ -45,6 +61,23 @@ const COMMUNS_FR = {
   pointageHorsLigne: "hors ligne",
   dureeReelle: (reelle: string, prevue: string, ecart: string) =>
     `Durée réelle ${reelle} · prévu ${prevue} · écart ${ecart}`,
+  preuveStatuts: {
+    a_soumettre: "Preuve à soumettre",
+    soumise: "Preuve à valider",
+    validee: "Preuve validée",
+    refusee: "Preuve en reprise",
+  },
+  preuveSoumiseLe: (le: string) => `Soumise le ${le}`,
+  preuveValideeLe: (le: string, qui: string) => `Validée le ${le} par ${qui}`,
+  preuveMotif: (motif: string) => `Refus : ${motif}`,
+  preuveHistorique: "Historique de la preuve",
+  validerPreuve: "Valider la preuve",
+  refuserPreuve: "Refuser",
+  motifRefus: "Motif du refus (obligatoire)",
+  motifRefusAide: (min: number, max: number) =>
+    `${min} à ${max} caractères ; ce motif est visible par l’intervenant.`,
+  okPreuveValidee: "Preuve validée.",
+  okPreuveRefusee: "Preuve refusée : le motif a été transmis à l’intervenant.",
 };
 const COMMUNS_EN = {
   logement: "Property", prestataire: "Provider", reference: "Reference",
@@ -56,6 +89,23 @@ const COMMUNS_EN = {
   pointageHorsLigne: "offline capture",
   dureeReelle: (reelle: string, prevue: string, ecart: string) =>
     `Actual duration ${reelle} · planned ${prevue} · deviation ${ecart}`,
+  preuveStatuts: {
+    a_soumettre: "Proof to submit",
+    soumise: "Proof awaiting validation",
+    validee: "Proof validated",
+    refusee: "Proof returned",
+  },
+  preuveSoumiseLe: (le: string) => `Submitted on ${le}`,
+  preuveValideeLe: (le: string, qui: string) => `Validated on ${le} by ${qui}`,
+  preuveMotif: (motif: string) => `Rejection: ${motif}`,
+  preuveHistorique: "Proof history",
+  validerPreuve: "Validate proof",
+  refuserPreuve: "Reject",
+  motifRefus: "Reason for rejection (required)",
+  motifRefusAide: (min: number, max: number) =>
+    `${min} to ${max} characters; the provider sees this reason.`,
+  okPreuveValidee: "Proof validated.",
+  okPreuveRefusee: "Proof rejected: the reason was sent to the provider.",
 };
 const COMMUNS_ES = {
   logement: "Alojamiento", prestataire: "Prestador", reference: "Referencia",
@@ -67,6 +117,23 @@ const COMMUNS_ES = {
   pointageHorsLigne: "captura sin conexión",
   dureeReelle: (reelle: string, prevue: string, ecart: string) =>
     `Duración real ${reelle} · prevista ${prevue} · desviación ${ecart}`,
+  preuveStatuts: {
+    a_soumettre: "Prueba por enviar",
+    soumise: "Prueba pendiente de validación",
+    validee: "Prueba validada",
+    refusee: "Prueba devuelta",
+  },
+  preuveSoumiseLe: (le: string) => `Enviada el ${le}`,
+  preuveValideeLe: (le: string, qui: string) => `Validada el ${le} por ${qui}`,
+  preuveMotif: (motif: string) => `Rechazo: ${motif}`,
+  preuveHistorique: "Historial de la prueba",
+  validerPreuve: "Validar la prueba",
+  refuserPreuve: "Rechazar",
+  motifRefus: "Motivo del rechazo (obligatorio)",
+  motifRefusAide: (min: number, max: number) =>
+    `${min} a ${max} caracteres; el prestador ve este motivo.`,
+  okPreuveValidee: "Prueba validada.",
+  okPreuveRefusee: "Prueba rechazada: el motivo se envió al prestador.",
 };
 const COMMUNS_IT = {
   logement: "Alloggio", prestataire: "Fornitore", reference: "Riferimento",
@@ -78,6 +145,23 @@ const COMMUNS_IT = {
   pointageHorsLigne: "registrazione offline",
   dureeReelle: (reelle: string, prevue: string, ecart: string) =>
     `Durata reale ${reelle} · prevista ${prevue} · scostamento ${ecart}`,
+  preuveStatuts: {
+    a_soumettre: "Prova da inviare",
+    soumise: "Prova in attesa di validazione",
+    validee: "Prova validata",
+    refusee: "Prova rinviata",
+  },
+  preuveSoumiseLe: (le: string) => `Inviata il ${le}`,
+  preuveValideeLe: (le: string, qui: string) => `Validata il ${le} da ${qui}`,
+  preuveMotif: (motif: string) => `Rifiuto: ${motif}`,
+  preuveHistorique: "Cronologia della prova",
+  validerPreuve: "Validare la prova",
+  refuserPreuve: "Rifiutare",
+  motifRefus: "Motivo del rifiuto (obbligatorio)",
+  motifRefusAide: (min: number, max: number) =>
+    `${min} a ${max} caratteri; il fornitore vede questo motivo.`,
+  okPreuveValidee: "Prova validata.",
+  okPreuveRefusee: "Prova rifiutata: il motivo è stato inviato al fornitore.",
 };
 const COMMUNS_DE = {
   logement: "Unterkunft", prestataire: "Dienstleister", reference: "Referenz",
@@ -89,6 +173,23 @@ const COMMUNS_DE = {
   pointageHorsLigne: "offline erfasst",
   dureeReelle: (reelle: string, prevue: string, ecart: string) =>
     `Ist-Dauer ${reelle} · geplant ${prevue} · Abweichung ${ecart}`,
+  preuveStatuts: {
+    a_soumettre: "Nachweis offen",
+    soumise: "Nachweis zur Prüfung",
+    validee: "Nachweis bestätigt",
+    refusee: "Nachweis zurückgegeben",
+  },
+  preuveSoumiseLe: (le: string) => `Eingereicht am ${le}`,
+  preuveValideeLe: (le: string, qui: string) => `Bestätigt am ${le} von ${qui}`,
+  preuveMotif: (motif: string) => `Ablehnung: ${motif}`,
+  preuveHistorique: "Verlauf des Nachweises",
+  validerPreuve: "Nachweis bestätigen",
+  refuserPreuve: "Ablehnen",
+  motifRefus: "Ablehnungsgrund (erforderlich)",
+  motifRefusAide: (min: number, max: number) =>
+    `${min} bis ${max} Zeichen; der Dienstleister sieht diesen Grund.`,
+  okPreuveValidee: "Nachweis bestätigt.",
+  okPreuveRefusee: "Nachweis abgelehnt: der Grund wurde übermittelt.",
 };
 
 const FR: TraductionsMissions = {
@@ -104,6 +205,10 @@ const FR: TraductionsMissions = {
     type: "Type de mission invalide.", logement: "Logement introuvable.",
     prestataire: "Prestataire introuvable ou inactif.",
     reservation: "Réservation introuvable pour ce logement.",
+    preuve_motif:
+      "Motif de refus obligatoire : 10 à 1000 caractères, visible par l’intervenant.",
+    preuve_etat:
+      "Cette preuve ne peut pas être validée ou refusée : elle n’est pas en attente de validation.",
     inattendu: "Erreur inattendue. Réessayez.",
   },
   aucunPrestataire: "Aucun prestataire actif. Créez un utilisateur de rôle presta avant d’assigner une mission.",
@@ -127,6 +232,10 @@ const EN: TraductionsMissions = {
     type: "Invalid task type.", logement: "Property not found.",
     prestataire: "Provider not found or inactive.",
     reservation: "Booking not found for this property.",
+    preuve_motif:
+      "A rejection reason is required: 10 to 1000 characters, shown to the provider.",
+    preuve_etat:
+      "This proof cannot be validated or rejected: it is not awaiting validation.",
     inattendu: "Unexpected error. Try again.",
   },
   aucunPrestataire: "No active provider. Create a user with the presta role before assigning a task.",
@@ -150,6 +259,10 @@ const ES: TraductionsMissions = {
     type: "Tipo de misión no válido.", logement: "Alojamiento no encontrado.",
     prestataire: "Prestador no encontrado o inactivo.",
     reservation: "Reserva no encontrada para este alojamiento.",
+    preuve_motif:
+      "El motivo del rechazo es obligatorio: de 10 a 1000 caracteres, visible para el prestador.",
+    preuve_etat:
+      "Esta prueba no se puede validar ni rechazar: no está pendiente de validación.",
     inattendu: "Error inesperado. Inténtelo de nuevo.",
   },
   aucunPrestataire: "Ningún prestador activo. Cree un usuario con rol presta antes de asignar una misión.",
@@ -173,6 +286,10 @@ const IT: TraductionsMissions = {
     type: "Tipo di incarico non valido.", logement: "Alloggio non trovato.",
     prestataire: "Fornitore non trovato o inattivo.",
     reservation: "Prenotazione non trovata per questo alloggio.",
+    preuve_motif:
+      "Il motivo del rifiuto è obbligatorio: da 10 a 1000 caratteri, visibile al fornitore.",
+    preuve_etat:
+      "Questa prova non può essere validata né rifiutata: non è in attesa di validazione.",
     inattendu: "Errore imprevisto. Riprovare.",
   },
   aucunPrestataire: "Nessun fornitore attivo. Crei un utente con ruolo presta prima di assegnare un incarico.",
@@ -196,6 +313,10 @@ const DE: TraductionsMissions = {
     type: "Ungültiger Auftragstyp.", logement: "Unterkunft nicht gefunden.",
     prestataire: "Dienstleister nicht gefunden oder inaktiv.",
     reservation: "Buchung für diese Unterkunft nicht gefunden.",
+    preuve_motif:
+      "Ablehnungsgrund erforderlich: 10 bis 1000 Zeichen, für den Dienstleister sichtbar.",
+    preuve_etat:
+      "Dieser Nachweis kann nicht bestätigt oder abgelehnt werden: er ist nicht zur Prüfung offen.",
     inattendu: "Unerwarteter Fehler. Versuchen Sie es erneut.",
   },
   aucunPrestataire: "Kein aktiver Dienstleister. Erstellen Sie einen Benutzer mit der Rolle presta, bevor Sie einen Auftrag zuweisen.",

@@ -2,6 +2,15 @@
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
+
+  const MESSAGES_OK: Record<string, string> = {
+    preuve: "Preuve soumise à validation.",
+  };
+  const MESSAGES_ERREUR: Record<string, string> = {
+    preuve:
+      "Preuve non soumise : la mission doit être terminée (fin pointée) et sa preuve pas déjà en attente ou validée.",
+    inattendu: "Erreur inattendue. Réessayez.",
+  };
 </script>
 
 <svelte:head>
@@ -20,6 +29,13 @@
       <form method="POST" action="/logout"><button class="ui-bouton ui-bouton--fantome ui-bouton--petit" type="submit">Quitter</button></form>
     </div>
   </header>
+
+  {#if data.ok}
+    <p class="ui-alerte ui-alerte--ok" role="status">{MESSAGES_OK[data.ok ?? ""] ?? "Action enregistrée."}</p>
+  {/if}
+  {#if data.erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">{MESSAGES_ERREUR[data.erreur ?? ""] ?? MESSAGES_ERREUR.inattendu}</p>
+  {/if}
 
   {#if data.offres.length > 0}
     <section class="space-y-3">
@@ -95,6 +111,42 @@
                   </div>
                 {/if}
               </dl>
+            {/if}
+
+            {#if mission.statut !== "annulee"}
+              <div class="mt-3 space-y-2 border-t border-bordure pt-3">
+                <p class="flex flex-wrap items-center gap-2 text-sm">
+                  <span class="ui-etiquette">{mission.preuveLibelle}</span>
+                  {#if mission.preuveSoumiseLe}
+                    <span class="text-encre-faine">soumise le {mission.preuveSoumiseLe}</span>
+                  {/if}
+                  {#if mission.preuveValideeLe}
+                    <span class="text-encre-faine">validée le {mission.preuveValideeLe} par {mission.preuveValideePar}</span>
+                  {/if}
+                </p>
+                {#if mission.preuve === "refusee" && mission.preuveMotif}
+                  <p class="ui-alerte ui-alerte--danger" role="alert">
+                    Refus à corriger : {mission.preuveMotif}
+                  </p>
+                {/if}
+                {#if mission.peutSoumettre}
+                  <form method="POST" action="?/preuve">
+                    <input type="hidden" name="missionId" value={mission.id} />
+                    <button class="ui-bouton ui-bouton--primaire ui-bouton--petit" type="submit">
+                      {mission.preuve === "refusee" ? "Corriger et resoumettre" : "Soumettre la preuve"}
+                    </button>
+                  </form>
+                {/if}
+                {#if mission.historique.length > 0}
+                  <ol class="space-y-1 text-xs text-encre-douce">
+                    {#each mission.historique as etape (etape.id)}
+                      <li>
+                        {etape.libelle} — {etape.le} · {etape.qui}{#if etape.motif} : {etape.motif}{/if}
+                      </li>
+                    {/each}
+                  </ol>
+                {/if}
+              </div>
             {/if}
 
             <div class="mt-3 flex flex-wrap items-end gap-3">

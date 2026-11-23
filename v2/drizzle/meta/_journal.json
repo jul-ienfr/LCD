@@ -785,6 +785,13 @@
       "when": 1796070400000,
       "tag": "0111_missions_pointage",
       "breakpoints": true
+    },
+    {
+      "idx": 112,
+      "version": "7",
+      "when": 1796156800000,
+      "tag": "0112_preuves_intervention",
+      "breakpoints": true
     }
   ]
 }

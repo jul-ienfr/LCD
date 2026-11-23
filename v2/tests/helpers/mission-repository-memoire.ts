@@ -28,6 +28,11 @@ export class MissionRepositoryMemoire implements MissionRepository {
       finReelleSource: null,
       debutReelRecuLe: null,
       finReelleRecuLe: null,
+      preuveStatut: "a_soumettre",
+      preuveMotifRefus: null,
+      preuveSoumiseLe: null,
+      preuveValideeLe: null,
+      preuveValideePar: null,
       createdAt: maintenant,
       updatedAt: maintenant,
     };
@@ -115,6 +120,48 @@ export class MissionRepositoryMemoire implements MissionRepository {
     mission.finReelleRecuLe = pointage.recuLe;
     mission.statut = "terminee";
     mission.updatedAt = pointage.recuLe;
+    return mission;
+  }
+
+  async soumettrePreuve(
+    tenantId: string,
+    id: string,
+    soumission: { le: Date },
+  ): Promise<Mission | null> {
+    const mission = await this.trouverParId(tenantId, id);
+    if (!mission) return null;
+    mission.preuveStatut = "soumise";
+    mission.preuveSoumiseLe = soumission.le;
+    mission.preuveMotifRefus = null;
+    mission.updatedAt = soumission.le;
+    return mission;
+  }
+
+  async validerPreuve(
+    tenantId: string,
+    id: string,
+    validation: { le: Date; par: string },
+  ): Promise<Mission | null> {
+    const mission = await this.trouverParId(tenantId, id);
+    if (!mission) return null;
+    mission.preuveStatut = "validee";
+    mission.preuveValideeLe = validation.le;
+    mission.preuveValideePar = validation.par;
+    mission.preuveMotifRefus = null;
+    mission.updatedAt = validation.le;
+    return mission;
+  }
+
+  async refuserPreuve(
+    tenantId: string,
+    id: string,
+    refus: { le: Date; par: string; motif: string },
+  ): Promise<Mission | null> {
+    const mission = await this.trouverParId(tenantId, id);
+    if (!mission) return null;
+    mission.preuveStatut = "refusee";
+    mission.preuveMotifRefus = refus.motif;
+    mission.updatedAt = refus.le;
     return mission;
   }
 }

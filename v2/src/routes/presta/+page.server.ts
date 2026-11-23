@@ -5,6 +5,7 @@ import {
   PointerMission,
   type SensPointage,
 } from "@/application/use-cases/pointer-mission";
+import { SoumettrePreuveIntervention } from "@/application/use-cases/preuve-intervention";
 import { ajouterJours } from "@/domain/calendrier";
 import { ErreurMetier } from "@/domain/erreurs";
 import { TRANSITIONS_MISSION, type StatutMission } from "@/domain/mission";
@@ -17,10 +18,12 @@ import {
   formaterDuree,
   formaterEcart,
 } from "@/domain/pointage";
+import { LIBELLES_STATUT_PREUVE } from "@/domain/preuve-intervention";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleDispatchRepository } from "@/infrastructure/db/repositories/dispatch-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMissionRepository } from "@/infrastructure/db/repositories/mission-repository";
+import { DrizzlePreuveInterventionRepository } from "@/infrastructure/db/repositories/preuve-intervention-repository";
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { heureParis, jourParis } from "@/lib/date-paris";
@@ -74,11 +77,20 @@ export const load: PageServerLoad = async (event) => {
   const parMission = new Map(
     missionsPourOffres.map((mission) => [mission.id, mission]),
   );
+  // Historique des preuves en une requête pour toutes les missions listées.
+  const historiques = await new DrizzlePreuveInterventionRepository()
+    .listerParMissions(
+      tenantId,
+      missions.map((mission) => mission.id),
+    );
+  const horodatage = (date: Date) => `${jourParis(date)} ${heureParis(date)}`;
 
   return {
     nom: session.user.name,
     email: session.user.email,
     estPresta: session.user.role === "presta",
+    ok: event.url.searchParams.get("ok"),
+    erreur: event.url.searchParams.get("erreur"),
     missions: missions.map((mission) => {
       const prevue = dureePrevueMinutes(mission.type, mission.dureePrevueMinutes);
       const reelle =
@@ -113,6 +125,29 @@ export const load: PageServerLoad = async (event) => {
           reelle === null
             ? null
             : formaterEcart(ecartDureeMinutes(reelle, prevue)),
+        // Cycle de preuve (FR-032/FR-033) : état, motif de refus, historique.
+        preuve: mission.preuveStatut,
+        preuveLibelle: LIBELLES_STATUT_PREUVE[mission.preuveStatut],
+        preuveMotif: mission.preuveMotifRefus,
+        preuveSoumiseLe: mission.preuveSoumiseLe
+          ? horodatage(mission.preuveSoumiseLe)
+          : null,
+        preuveValideeLe: mission.preuveValideeLe
+          ? horodatage(mission.preuveValideeLe)
+          : null,
+        preuveValideePar: mission.preuveValideePar,
+        peutSoumettre:
+          mission.statut === "terminee" &&
+          (mission.preuveStatut === "a_soumettre" ||
+            mission.preuveStatut === "refusee"),
+        historique: (historiques.get(mission.id) ?? []).map((etape) => ({
+          id: etape.id,
+          statut: etape.vers,
+          libelle: LIBELLES_STATUT_PREUVE[etape.vers],
+          motif: etape.motif,
+          qui: etape.qui,
+          le: horodatage(etape.createdAt),
+        })),
       };
     }),
     offres: offres.map((offre) => {
@@ -239,6 +274,65 @@ export const actions = {
       }
     }
     redirect(303, "/presta");
+  },
+
+  preuve: async (event) => {
+    const session = requireRole(event, ["presta", "admin", "hote"]);
+    const tenantId = tenantIdDeSession(session);
+    const donnees = await event.request.formData();
+    const missionId = String(donnees.get("missionId") ?? "");
+    if (!missionId) redirect(303, "/presta");
+
+    try {
+      const repo = new DrizzleMissionRepository();
+      const mission = await repo.trouverParId(tenantId, missionId);
+      if (!mission) redirect(303, "/presta");
+      if (
+        session.user.role === "presta" &&
+        mission.assignedUserId !== session.user.id
+      ) {
+        redirect(303, "/presta");
+      }
+      const resultat = await new SoumettrePreuveIntervention(
+        repo,
+        new DrizzlePreuveInterventionRepository(),
+      ).executer({
+        tenantId,
+        missionId,
+        qui: session.user.email,
+        maintenant: new Date(),
+      });
+      await withTenant(tenantId, (tx) =>
+        tx.insert(auditLogs).values({
+          tenantId,
+          qui: session.user.email,
+          action: "mission.preuve",
+          cible: resultat.mission.id,
+          ref: resultat.mission.ref,
+          payload: {
+            de: resultat.transition.de,
+            vers: resultat.transition.vers,
+            motif: resultat.transition.motif,
+          },
+        }),
+      );
+      await emettreEvenement(tenantId, "mission.status", {
+        missionId: resultat.mission.id,
+        ref: resultat.mission.ref,
+        statut: resultat.mission.statut,
+        preuve: resultat.mission.preuveStatut,
+        logementId: resultat.mission.logementId,
+        date: resultat.mission.date,
+      });
+      redirect(303, "/presta?ok=preuve");
+    } catch (error) {
+      if (isRedirect(error)) throw error;
+      if (error instanceof ErreurMetier) {
+        redirect(303, "/presta?erreur=preuve");
+      }
+      logErreur("presta.preuve", error, { tenantId, missionId });
+      redirect(303, "/presta?erreur=inattendu");
+    }
   },
 
   dispatch: async (event) => {

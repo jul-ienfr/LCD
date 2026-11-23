@@ -1,4 +1,5 @@
 import { dateIsoValide } from "./calendrier";
+import type { StatutPreuve } from "./preuve-intervention";
 
 export type MissionId = string;
 export type TypeMission = "menage" | "maintenance" | "accueil" | "autre";
@@ -32,6 +33,12 @@ export interface Mission {
   /** Instant où le serveur a reçu le pointage (diffère si hors ligne). */
   debutReelRecuLe: Date | null;
   finReelleRecuLe: Date | null;
+  /** Cycle de preuve de l'intervention (FR-032/FR-033). */
+  preuveStatut: StatutPreuve;
+  preuveMotifRefus: string | null;
+  preuveSoumiseLe: Date | null;
+  preuveValideeLe: Date | null;
+  preuveValideePar: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

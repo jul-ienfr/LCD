@@ -30,8 +30,12 @@
   </div>
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">
-      {#if data.okRef && data.okDate}
+    <p class="ui-alerte ui-alerte--ok" role="status">
+      {#if data.ok === "preuve_validee"}
+        {t.okPreuveValidee}
+      {:else if data.ok === "preuve_refusee"}
+        {t.okPreuveRefusee}
+      {:else if data.okRef && data.okDate}
         {t.creeePour(data.okRef, data.okDate)}
       {:else}
         {t.creee}
@@ -39,7 +43,7 @@
     </p>
   {/if}
   {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger">{t.erreurs[data.erreur] ?? data.erreur}</p>
+    <p class="ui-alerte ui-alerte--danger" role="alert">{t.erreurs[data.erreur] ?? data.erreur}</p>
   {/if}
 
   {#if data.prestataires.length === 0}
@@ -147,6 +151,77 @@
             {#if mission.notes}
               <p class="mt-1 text-sm text-encre-faine">{mission.notes}</p>
             {/if}
+
+            <div class="mt-3 space-y-2 border-t border-bordure pt-3">
+              {#if mission.preuve === "soumise"}
+                <span class="ui-badge ui-badge--accent">{t.preuveStatuts.soumise}</span>
+              {:else}
+                <span class="ui-badge">{t.preuveStatuts[mission.preuve]}</span>
+              {/if}
+              {#if mission.preuveSoumiseLe}
+                <span class="ml-2 text-xs text-encre-faine">{t.preuveSoumiseLe(mission.preuveSoumiseLe)}</span>
+              {/if}
+              {#if mission.preuveValideeLe && mission.preuveValideePar}
+                <span class="ml-2 text-xs text-encre-faine">
+                  {t.preuveValideeLe(mission.preuveValideeLe, mission.preuveValideePar)}
+                </span>
+              {/if}
+              {#if mission.preuve === "refusee" && mission.preuveMotif}
+                <p class="ui-alerte ui-alerte--danger">{t.preuveMotif(mission.preuveMotif)}</p>
+              {/if}
+
+              {#if mission.preuveAHacher}
+                <form class="space-y-2" method="POST" action="?/preuve">
+                  <input type="hidden" name="missionId" value={mission.id} />
+                  <input type="hidden" name="mois" value={data.mois} />
+                  <label class="block space-y-1">
+                    <span class="ui-label">{t.motifRefus}</span>
+                    <textarea
+                      class="ui-champ min-h-16"
+                      name="motif"
+                      minlength={data.motifRefusMin}
+                      maxlength={data.motifRefusMax}
+                    ></textarea>
+                    <span class="text-xs text-encre-faine">
+                      {t.motifRefusAide(data.motifRefusMin, data.motifRefusMax)}
+                    </span>
+                  </label>
+                  <div class="flex flex-wrap gap-2">
+                    <button
+                      class="ui-bouton ui-bouton--primaire ui-bouton--petit"
+                      type="submit"
+                      name="decision"
+                      value="valider"
+                    >
+                      {t.validerPreuve}
+                    </button>
+                    <button
+                      class="ui-bouton ui-bouton--secondaire ui-bouton--petit"
+                      type="submit"
+                      name="decision"
+                      value="refuser"
+                    >
+                      {t.refuserPreuve}
+                    </button>
+                  </div>
+                </form>
+              {/if}
+
+              {#if mission.historique.length > 0}
+                <details>
+                  <summary class="cursor-pointer text-xs text-encre-douce">
+                    {t.preuveHistorique} ({mission.historique.length})
+                  </summary>
+                  <ol class="mt-1 space-y-1 text-xs text-encre-douce">
+                    {#each mission.historique as etape (etape.id)}
+                      <li>
+                        {t.preuveStatuts[etape.statut]} — {etape.le} · {etape.qui}{#if etape.motif} : {etape.motif}{/if}
+                      </li>
+                    {/each}
+                  </ol>
+                </details>
+              {/if}
+            </div>
           </li>
         {/each}
       </ul>
