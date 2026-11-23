@@ -69,6 +69,14 @@ class PhotosPreuveMemoire implements PhotoPreuveRepository {
       (photo) => photo.tenantId === tenantId && photo.menageId === menageId,
     );
   }
+  async listerParLogement(tenantId: string, logementId: string) {
+    return this.photos
+      .filter(
+        (photo) =>
+          photo.tenantId === tenantId && photo.logementId === logementId,
+      )
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
   async trouverParId(tenantId: string, id: string) {
     return (
       this.photos.find(

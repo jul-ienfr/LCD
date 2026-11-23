@@ -806,6 +806,13 @@
       "when": 1796329600000,
       "tag": "0114_inventaire_photos_reference",
       "breakpoints": true
+    },
+    {
+      "idx": 115,
+      "version": "7",
+      "when": 1796416000000,
+      "tag": "0115_visibilite_preuves_proprietaire",
+      "breakpoints": true
     }
   ]
 }

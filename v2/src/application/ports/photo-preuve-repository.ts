@@ -29,6 +29,11 @@ export interface CreerPhotoPreuveData {
 
 export interface PhotoPreuveRepository {
   listerParMenage(tenantId: string, menageId: string): Promise<PhotoPreuve[]>;
+  /** Photos d'un logement, de la plus récente à la plus ancienne (FR-037). */
+  listerParLogement(
+    tenantId: string,
+    logementId: string,
+  ): Promise<PhotoPreuve[]>;
   trouverParId(tenantId: string, id: string): Promise<PhotoPreuve | null>;
   totalOctetsParLogement(tenantId: string, logementId: string): Promise<number>;
   listerPlusAnciennes(

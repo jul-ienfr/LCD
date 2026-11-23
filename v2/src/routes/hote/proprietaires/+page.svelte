@@ -15,6 +15,7 @@
     notes: t.msgNotes,
     logement: t.msgLogement,
     proprietaire: t.msgProprietaire,
+    visibilite: t.msgVisibilite,
     inattendu: t.msgInattendu,
   });
 </script>
@@ -108,6 +109,15 @@
             <span class="ui-label">{t.finFacultatif}</span>
             <input class="ui-champ" name="dateFin" type="date" />
           </label>
+          <label class="space-y-2">
+            <span class="ui-label">{t.visibilitePreuves}</span>
+            <select class="ui-champ" name="visibilitePreuves">
+              {#each data.visibilites as visibilite (visibilite.id)}
+                <option value={visibilite.id}>{t.visibilites[visibilite.id] ?? visibilite.id}</option>
+              {/each}
+            </select>
+            <span class="text-xs text-encre-faine">{t.aideVisibilite}</span>
+          </label>
         </div>
         <label class="block space-y-2">
           <span class="ui-label">{t.notesFacultatif}</span>
@@ -136,6 +146,7 @@
                 · {t.statuts[assignation.statut] ?? assignation.statut}
                 · {t.commission.replace(" (%)", "")} {assignation.commission}
                 · {t.chargesCourt} {assignation.charges}/{t.chargesMois}
+                · {t.visibilitePreuves} : {t.visibilites[assignation.visibilite] ?? assignation.visibilite}
               </p>
               {#if assignation.dateDebut || assignation.dateFin}
                 <p class="text-xs text-encre-faine">

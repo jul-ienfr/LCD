@@ -9,6 +9,11 @@ import {
   STATUTS_MANDAT,
   statutMandatValide,
 } from "@/domain/mandat";
+import {
+  VISIBILITE_PREUVES_DEFAUT,
+  VISIBILITES_PREUVES,
+  visibilitePreuvesValide,
+} from "@/domain/visibilite-proprietaire";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleLogementProprietaireRepository } from "@/infrastructure/db/repositories/logement-proprietaire-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
@@ -62,9 +67,11 @@ export const load: PageServerLoad = async (event) => {
       dateDebut: assignation.dateDebut,
       dateFin: assignation.dateFin,
       notes: assignation.notes,
+      visibilite: assignation.visibilitePreuves,
     })),
     modes: MODES_MANDAT.map((mode) => ({ id: mode })),
     statuts: STATUTS_MANDAT.map((statut) => ({ id: statut })),
+    visibilites: VISIBILITES_PREUVES.map((valeur) => ({ id: valeur })),
     ok: event.url.searchParams.get("ok"),
     okProprietaire: event.url.searchParams.get("proprietaire"),
     okLogement: event.url.searchParams.get("logement"),
@@ -88,7 +95,13 @@ export const actions = {
     const dateDebut = texte(donnees, "dateDebut") || null;
     const dateFin = texte(donnees, "dateFin") || null;
     const notes = texte(donnees, "notes") || null;
+    // Visibilité des preuves côté propriétaire (FR-037) : absente → défaut.
+    const visibiliteSaisie = texte(donnees, "visibilitePreuves");
+    const visibilite = visibiliteSaisie || VISIBILITE_PREUVES_DEFAUT;
 
+    if (!visibilitePreuvesValide(visibilite)) {
+      redirect(303, "/hote/proprietaires?erreur=visibilite");
+    }
     if (!commissionBpValide(commissionBp)) {
       redirect(303, "/hote/proprietaires?erreur=commission");
     }
@@ -129,6 +142,7 @@ export const actions = {
           dateDebut,
           dateFin,
           notes,
+          visibilitePreuves: visibilite,
         },
       );
 
@@ -146,6 +160,7 @@ export const actions = {
             chargesMensuellesCentimes,
             mode,
             statut,
+            visibilitePreuves: visibilite,
           },
         }),
       );

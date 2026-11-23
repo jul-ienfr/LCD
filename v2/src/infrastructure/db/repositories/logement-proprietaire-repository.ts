@@ -5,6 +5,10 @@ import type {
   MandatData,
 } from "@/application/ports/logement-proprietaire-repository";
 import type { Logement } from "@/domain/logement";
+import {
+  VISIBILITE_PREUVES_DEFAUT,
+  visibilitePreuves,
+} from "@/domain/visibilite-proprietaire";
 import { withTenant } from "../client";
 import { logementProprietaires, logements } from "../schema";
 
@@ -73,6 +77,7 @@ export class DrizzleLogementProprietaireRepository
           dateDebut: logementProprietaires.dateDebut,
           dateFin: logementProprietaires.dateFin,
           notes: logementProprietaires.notes,
+          visibilitePreuves: logementProprietaires.visibilitePreuves,
         })
         .from(logementProprietaires)
         .where(eq(logementProprietaires.tenantId, tenantId));
@@ -80,6 +85,7 @@ export class DrizzleLogementProprietaireRepository
         ...row,
         mode: row.mode as AssignationProprietaire["mode"],
         statut: row.statut as AssignationProprietaire["statut"],
+        visibilitePreuves: visibilitePreuves(row.visibilitePreuves),
       }));
     });
   }
@@ -90,6 +96,7 @@ export class DrizzleLogementProprietaireRepository
     userId: string,
     data: MandatData,
   ): Promise<void> {
+    const visibilite = data.visibilitePreuves ?? VISIBILITE_PREUVES_DEFAUT;
     await withTenant(tenantId, async (tx) => {
       await tx
         .insert(logementProprietaires)
@@ -104,6 +111,7 @@ export class DrizzleLogementProprietaireRepository
           dateDebut: data.dateDebut,
           dateFin: data.dateFin,
           notes: data.notes,
+          visibilitePreuves: visibilite,
         })
         .onConflictDoUpdate({
           target: [
@@ -119,6 +127,7 @@ export class DrizzleLogementProprietaireRepository
             dateDebut: data.dateDebut,
             dateFin: data.dateFin,
             notes: data.notes,
+            visibilitePreuves: visibilite,
           },
         });
     });

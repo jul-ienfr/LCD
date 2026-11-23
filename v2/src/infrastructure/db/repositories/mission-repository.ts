@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
 import type {
   CreerMissionData,
   MissionRepository,
@@ -96,6 +96,29 @@ export class DrizzleMissionRepository implements MissionRepository {
           ),
         )
         .orderBy(asc(missions.date), asc(missions.heure));
+      return rows.map(versDomaine);
+    });
+  }
+
+  /**
+   * Interventions d'un logement (FR-037) : le propriétaire lit la preuve de son
+   * bien, la plus récente d'abord.
+   */
+  async listerParLogement(
+    tenantId: string,
+    logementId: string,
+  ): Promise<Mission[]> {
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(missions)
+        .where(
+          and(
+            eq(missions.tenantId, tenantId),
+            eq(missions.logementId, logementId),
+          ),
+        )
+        .orderBy(desc(missions.date), asc(missions.ref));
       return rows.map(versDomaine);
     });
   }

@@ -1,5 +1,6 @@
 import type { Logement } from "@/domain/logement";
 import type { ModeMandat, StatutMandat } from "@/domain/mandat";
+import type { VisibilitePreuves } from "@/domain/visibilite-proprietaire";
 
 export interface AssignationProprietaire {
   logementId: string;
@@ -11,6 +12,8 @@ export interface AssignationProprietaire {
   dateDebut: string | null;
   dateFin: string | null;
   notes: string | null;
+  /** Ce que le propriétaire voit des interventions (FR-037). */
+  visibilitePreuves: VisibilitePreuves;
 }
 
 export interface MandatData {
@@ -21,6 +24,8 @@ export interface MandatData {
   dateDebut: string | null;
   dateFin: string | null;
   notes: string | null;
+  /** Absent = réglage par défaut (résumé des interventions). */
+  visibilitePreuves?: VisibilitePreuves;
 }
 
 export interface LogementProprietaireRepository {

@@ -38,8 +38,13 @@ export interface TraductionsProprietaires {
   chargesMois: string;
   retirer: string;
   espaceProprio: string;
+  /** Visibilité des preuves d'intervention (spec 006, FR-037). */
+  visibilitePreuves: string;
+  aideVisibilite: string;
+  msgVisibilite: string;
   modes: Record<string, string>;
   statuts: Record<string, string>;
+  visibilites: Record<string, string>;
   dates: (debut: string | null, fin: string | null) => string;
 }
 
@@ -63,6 +68,7 @@ const FR: TraductionsProprietaires = {
   msgLogement: "Logement introuvable.",
   msgProprietaire: "Propriétaire introuvable ou inactif.",
   msgInattendu: "Erreur inattendue. Réessayez.",
+  msgVisibilite: "Visibilité des preuves invalide.",
   aucunProprietaire:
     "Aucun propriétaire actif. Créez un utilisateur de rôle proprietaire.",
   enregistrerMandat: "Enregistrer un mandat",
@@ -84,11 +90,19 @@ const FR: TraductionsProprietaires = {
   chargesMois: "mois",
   retirer: "Retirer",
   espaceProprio: "Espace propriétaire",
+  visibilitePreuves: "Visibilité des preuves",
+  aideVisibilite:
+    "Ce que le propriétaire voit des interventions de ce logement : masquées, résumé (date, type, état de la preuve) ou détail avec pointage et photos. Les photos ne sortent qu’au niveau « détail et photos ».",
   modes: {
     propre: "Bien propre (0 commission)",
     mandat_tiers: "Mandat tiers",
   },
   statuts: { actif: "Actif", suspendu: "Suspendu" },
+  visibilites: {
+    masquee: "Preuves masquées",
+    resume: "Résumé des interventions",
+    complete: "Détail et photos",
+  },
   dates: (debut, fin) => {
     if (debut && fin) return `Du ${debut} au ${fin}`;
     if (debut) return `Depuis le ${debut}`;
@@ -117,6 +131,7 @@ const EN: TraductionsProprietaires = {
   msgLogement: "Property not found.",
   msgProprietaire: "Owner not found or inactive.",
   msgInattendu: "Unexpected error. Try again.",
+  msgVisibilite: "Invalid evidence visibility.",
   aucunProprietaire:
     "No active owner. Create a user with the proprietaire role.",
   enregistrerMandat: "Save a mandate",
@@ -138,8 +153,16 @@ const EN: TraductionsProprietaires = {
   chargesMois: "month",
   retirer: "Remove",
   espaceProprio: "Owner area",
+  visibilitePreuves: "Evidence visibility",
+  aideVisibilite:
+    "What the owner sees of the jobs done on this property: hidden, summary (date, type, evidence state) or full detail with time tracking and photos. Photos are only served at “detail and photos” level.",
   modes: { propre: "Own property (0 commission)", mandat_tiers: "Third-party mandate" },
   statuts: { actif: "Active", suspendu: "Suspended" },
+  visibilites: {
+    masquee: "Evidence hidden",
+    resume: "Job summary",
+    complete: "Detail and photos",
+  },
   dates: (debut, fin) => {
     if (debut && fin) return `From ${debut} to ${fin}`;
     if (debut) return `Since ${debut}`;
@@ -168,6 +191,7 @@ const ES: TraductionsProprietaires = {
   msgLogement: "Alojamiento no encontrado.",
   msgProprietaire: "Propietario no encontrado o inactivo.",
   msgInattendu: "Error inesperado. Inténtelo de nuevo.",
+  msgVisibilite: "Visibilidad de las pruebas no válida.",
   aucunProprietaire:
     "Ningún propietario activo. Cree un usuario con el rol proprietaire.",
   enregistrerMandat: "Registrar un mandato",
@@ -189,8 +213,16 @@ const ES: TraductionsProprietaires = {
   chargesMois: "mes",
   retirer: "Retirar",
   espaceProprio: "Área del propietario",
+  visibilitePreuves: "Visibilidad de las pruebas",
+  aideVisibilite:
+    "Lo que el propietario ve de las intervenciones de este alojamiento: ocultas, resumen (fecha, tipo, estado de la prueba) o detalle con registro horario y fotos. Las fotos solo se sirven en el nivel «detalle y fotos».",
   modes: { propre: "Bien propio (0 comisión)", mandat_tiers: "Mandato de terceros" },
   statuts: { actif: "Activo", suspendu: "Suspendido" },
+  visibilites: {
+    masquee: "Pruebas ocultas",
+    resume: "Resumen de las intervenciones",
+    complete: "Detalle y fotos",
+  },
   dates: (debut, fin) => {
     if (debut && fin) return `Del ${debut} al ${fin}`;
     if (debut) return `Desde el ${debut}`;
@@ -219,6 +251,7 @@ const IT: TraductionsProprietaires = {
   msgLogement: "Alloggio non trovato.",
   msgProprietaire: "Proprietario non trovato o inattivo.",
   msgInattendu: "Errore imprevisto. Riprovare.",
+  msgVisibilite: "Visibilità delle prove non valida.",
   aucunProprietaire:
     "Nessun proprietario attivo. Creare un utente con ruolo proprietaire.",
   enregistrerMandat: "Registrare un mandato",
@@ -240,8 +273,16 @@ const IT: TraductionsProprietaires = {
   chargesMois: "mese",
   retirer: "Rimuovere",
   espaceProprio: "Area proprietario",
+  visibilitePreuves: "Visibilità delle prove",
+  aideVisibilite:
+    "Ciò che il proprietario vede degli interventi su questo alloggio: nascoste, riepilogo (data, tipo, stato della prova) o dettaglio con timbratura e foto. Le foto sono servite solo al livello «dettaglio e foto».",
   modes: { propre: "Immobile proprio (0 commissione)", mandat_tiers: "Mandato di terzi" },
   statuts: { actif: "Attivo", suspendu: "Sospeso" },
+  visibilites: {
+    masquee: "Prove nascoste",
+    resume: "Riepilogo degli interventi",
+    complete: "Dettaglio e foto",
+  },
   dates: (debut, fin) => {
     if (debut && fin) return `Dal ${debut} al ${fin}`;
     if (debut) return `Dal ${debut}`;
@@ -270,6 +311,7 @@ const DE: TraductionsProprietaires = {
   msgLogement: "Unterkunft nicht gefunden.",
   msgProprietaire: "Eigentümer nicht gefunden oder inaktiv.",
   msgInattendu: "Unerwarteter Fehler. Versuchen Sie es erneut.",
+  msgVisibilite: "Ungültige Sichtbarkeit der Nachweise.",
   aucunProprietaire:
     "Kein aktiver Eigentümer. Legen Sie einen Benutzer mit der Rolle proprietaire an.",
   enregistrerMandat: "Mandat anlegen",
@@ -291,8 +333,16 @@ const DE: TraductionsProprietaires = {
   chargesMois: "Monat",
   retirer: "Entfernen",
   espaceProprio: "Eigentümerbereich",
+  visibilitePreuves: "Sichtbarkeit der Nachweise",
+  aideVisibilite:
+    "Was der Eigentümer von den Einsätzen in dieser Unterkunft sieht: verborgen, Zusammenfassung (Datum, Art, Nachweisstatus) oder Detail mit Zeiterfassung und Fotos. Fotos werden nur auf der Stufe „Detail und Fotos“ ausgeliefert.",
   modes: { propre: "Eigene Immobilie (0 Provision)", mandat_tiers: "Drittmandat" },
   statuts: { actif: "Aktiv", suspendu: "Ausgesetzt" },
+  visibilites: {
+    masquee: "Nachweise verborgen",
+    resume: "Zusammenfassung der Einsätze",
+    complete: "Detail und Fotos",
+  },
   dates: (debut, fin) => {
     if (debut && fin) return `Vom ${debut} bis ${fin}`;
     if (debut) return `Seit ${debut}`;

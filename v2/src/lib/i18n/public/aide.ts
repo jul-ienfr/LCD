@@ -102,7 +102,7 @@ const FR: TraductionsAide = {
     {
       role: "Propriétaire",
       acces:
-        "Relevé de ses logements, charges, commissions et documents, en lecture seule.",
+        "Relevé de ses logements, charges, commissions et documents, en lecture seule, plus les interventions de ses logements et leurs preuves photo selon la visibilité réglée par le mandat.",
     },
     {
       role: "Commercial",
@@ -117,7 +117,7 @@ const FR: TraductionsAide = {
   espaces: [
     {
       chemin: "/hote",
-      roles: "Administrateur, hôte",
+      roles: "Administrateur, hôte, comptable",
       contenu:
         "Tableau de bord : indicateurs, arrivées et départs, tâches du jour, raccourcis.",
     },
@@ -135,9 +135,21 @@ const FR: TraductionsAide = {
     },
     {
       chemin: "/hote/menage",
-      roles: "Administrateur, hôte, prestataire",
+      roles: "Administrateur, hôte",
       contenu:
         "Ménages à faire, checklists, preuves photo, temps pointé et clôture.",
+    },
+    {
+      chemin: "/presta",
+      roles: "Administrateur, hôte, prestataire",
+      contenu:
+        "Interventions assignées : pointage du début et de la fin, photos avant/après, soumission de la preuve et suivi des refus à corriger.",
+    },
+    {
+      chemin: "/proprio",
+      roles: "Administrateur, hôte, propriétaire",
+      contenu:
+        "Relevé de mandat et relevés archivés, plus les interventions du logement — et leurs photos — quand la visibilité réglée par le mandat les ouvre. Lecture seule.",
     },
     {
       chemin: "/reserver",
@@ -221,7 +233,7 @@ const EN: TraductionsAide = {
     {
       role: "Owner",
       acces:
-        "Statement of their properties, costs, commissions and documents, read-only.",
+        "Statement of their properties, costs, commissions and documents, read-only, plus the jobs done on their properties and their photo evidence when the mandate's visibility setting opens them.",
     },
     {
       role: "Sales",
@@ -236,7 +248,7 @@ const EN: TraductionsAide = {
   espaces: [
     {
       chemin: "/hote",
-      roles: "Administrator, host",
+      roles: "Administrator, host, accountant",
       contenu: "Dashboard: key figures, arrivals and departures, today's tasks, shortcuts.",
     },
     {
@@ -252,9 +264,21 @@ const EN: TraductionsAide = {
     },
     {
       chemin: "/hote/menage",
-      roles: "Administrator, host, service provider",
+      roles: "Administrator, host",
       contenu:
         "Cleanings to do, checklists, photo evidence, tracked time and sign-off.",
+    },
+    {
+      chemin: "/presta",
+      roles: "Administrator, host, service provider",
+      contenu:
+        "Assigned jobs: start and end time tracking, before/after photos, submitting the evidence and following up rejected jobs.",
+    },
+    {
+      chemin: "/proprio",
+      roles: "Administrator, host, owner",
+      contenu:
+        "Mandate statement and archived statements, plus the property's jobs — and their photos — when the mandate's visibility setting opens them. Read-only.",
     },
     {
       chemin: "/reserver",
@@ -338,7 +362,7 @@ const ES: TraductionsAide = {
     {
       role: "Propietario",
       acces:
-        "Extracto de sus alojamientos, gastos, comisiones y documentos, solo lectura.",
+        "Extracto de sus alojamientos, gastos, comisiones y documentos, solo lectura, además de las intervenciones de sus alojamientos y sus fotos de prueba según la visibilidad configurada en el mandato.",
     },
     {
       role: "Comercial",
@@ -353,7 +377,7 @@ const ES: TraductionsAide = {
   espaces: [
     {
       chemin: "/hote",
-      roles: "Administrador, anfitrión",
+      roles: "Administrador, anfitrión, contable",
       contenu:
         "Panel: indicadores, llegadas y salidas, tareas del día, accesos directos.",
     },
@@ -371,9 +395,21 @@ const ES: TraductionsAide = {
     },
     {
       chemin: "/hote/menage",
-      roles: "Administrador, anfitrión, proveedor",
+      roles: "Administrador, anfitrión",
       contenu:
         "Limpiezas pendientes, listas de comprobación, fotos de prueba, tiempo registrado y cierre.",
+    },
+    {
+      chemin: "/presta",
+      roles: "Administrador, anfitrión, proveedor",
+      contenu:
+        "Intervenciones asignadas: registro del inicio y del fin, fotos antes/después, envío de la prueba y seguimiento de los rechazos por corregir.",
+    },
+    {
+      chemin: "/proprio",
+      roles: "Administrador, anfitrión, propietario",
+      contenu:
+        "Extracto del mandato y extractos archivados, además de las intervenciones del alojamiento —y sus fotos— cuando la visibilidad configurada las abre. Solo lectura.",
     },
     {
       chemin: "/reserver",
@@ -457,7 +493,7 @@ const IT: TraductionsAide = {
     {
       role: "Proprietario",
       acces:
-        "Estratto dei suoi alloggi, costi, commissioni e documenti, in sola lettura.",
+        "Estratto dei suoi alloggi, costi, commissioni e documenti, in sola lettura, oltre agli interventi dei suoi alloggi e alle relative prove fotografiche secondo la visibilità impostata dal mandato.",
     },
     {
       role: "Commerciale",
@@ -472,7 +508,7 @@ const IT: TraductionsAide = {
   espaces: [
     {
       chemin: "/hote",
-      roles: "Amministratore, host",
+      roles: "Amministratore, host, contabile",
       contenu:
         "Dashboard: indicatori, arrivi e partenze, attività del giorno, scorciatoie.",
     },
@@ -490,9 +526,21 @@ const IT: TraductionsAide = {
     },
     {
       chemin: "/hote/menage",
-      roles: "Amministratore, host, fornitore",
+      roles: "Amministratore, host",
       contenu:
         "Pulizie da fare, checklist, prove fotografiche, tempo registrato e chiusura.",
+    },
+    {
+      chemin: "/presta",
+      roles: "Amministratore, host, fornitore",
+      contenu:
+        "Interventi assegnati: timbratura di inizio e fine, foto prima/dopo, invio della prova e seguito dei rifiuti da correggere.",
+    },
+    {
+      chemin: "/proprio",
+      roles: "Amministratore, host, proprietario",
+      contenu:
+        "Estratto del mandato ed estratti archiviati, più gli interventi dell’alloggio — e le relative foto — quando la visibilità impostata li apre. Sola lettura.",
     },
     {
       chemin: "/reserver",
@@ -576,7 +624,7 @@ const DE: TraductionsAide = {
     {
       role: "Eigentümer",
       acces:
-        "Abrechnung seiner Unterkünfte, Kosten, Provisionen und Dokumente, nur lesend.",
+        "Abrechnung seiner Unterkünfte, Kosten, Provisionen und Dokumente, nur lesend, dazu die Einsätze seiner Unterkünfte und deren Fotobelege gemäß der im Mandat eingestellten Sichtbarkeit.",
     },
     {
       role: "Vertrieb",
@@ -591,7 +639,7 @@ const DE: TraductionsAide = {
   espaces: [
     {
       chemin: "/hote",
-      roles: "Administrator, Gastgeber",
+      roles: "Administrator, Gastgeber, Buchhalter",
       contenu:
         "Übersicht: Kennzahlen, An- und Abreisen, Tagesaufgaben, Verknüpfungen.",
     },
@@ -609,9 +657,21 @@ const DE: TraductionsAide = {
     },
     {
       chemin: "/hote/menage",
-      roles: "Administrator, Gastgeber, Dienstleister",
+      roles: "Administrator, Gastgeber",
       contenu:
         "Offene Reinigungen, Checklisten, Fotobelege, erfasste Zeit und Abschluss.",
+    },
+    {
+      chemin: "/presta",
+      roles: "Administrator, Gastgeber, Dienstleister",
+      contenu:
+        "Zugewiesene Einsätze: Stempeln von Beginn und Ende, Vorher-/Nachher-Fotos, Einreichen des Nachweises und Nachverfolgung abgelehnter Einsätze.",
+    },
+    {
+      chemin: "/proprio",
+      roles: "Administrator, Gastgeber, Eigentümer",
+      contenu:
+        "Mandatsabrechnung und archivierte Abrechnungen, dazu die Einsätze der Unterkunft — und deren Fotos — wenn die im Mandat eingestellte Sichtbarkeit sie öffnet. Nur lesend.",
     },
     {
       chemin: "/reserver",

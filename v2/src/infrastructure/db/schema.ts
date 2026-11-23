@@ -905,6 +905,9 @@ export const logementProprietaires = pgTable(
     dateDebut: date("date_debut", { mode: "string" }),
     dateFin: date("date_fin", { mode: "string" }),
     notes: text("notes"),
+    // Ce que le propriétaire voit des interventions de ce logement (FR-037) :
+    // `masquee`, `resume` (défaut) ou `complete` (détail et photos).
+    visibilitePreuves: text("visibilite_preuves").notNull().default("resume"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

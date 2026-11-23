@@ -33,6 +33,9 @@
       <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/exports/proprio?mois=${data.mois}`}>Export CSV</a>
       <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/api/proprio/releve?mois=${data.mois}`}>Relevé PDF</a>
       <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href="/proprio/releves">Relevés archivés</a>
+      {#if data.estProprietaire}
+        <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href="/proprio/preuves">Preuves des interventions</a>
+      {/if}
     </div>
 
     <section class={data.estProprietaire ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "grid gap-4 sm:grid-cols-3"}>

@@ -63,7 +63,7 @@ describe("dictionnaire de l'aide", () => {
       expect(AIDE[langue].limites, langue).toHaveLength(5);
       expect(AIDE[langue].rolesEntetes, langue).toHaveLength(2);
       expect(AIDE[langue].espacesEntetes, langue).toHaveLength(3);
-      expect(AIDE[langue].espaces, langue).toHaveLength(7);
+      expect(AIDE[langue].espaces, langue).toHaveLength(9);
     }
   });
 
@@ -76,6 +76,8 @@ describe("dictionnaire de l'aide", () => {
     }
     expect(chemins).toContain("/reserver");
     expect(chemins).toContain("/voyageur");
+    expect(chemins).toContain("/presta");
+    expect(chemins).toContain("/proprio");
   });
 
   it("garde le gabarit {nom} du titre SEO (remplacé par l'identité)", () => {

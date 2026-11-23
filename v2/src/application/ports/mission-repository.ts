@@ -23,6 +23,8 @@ export interface MissionRepository {
     tenantId: string,
     assignedUserId: string,
   ): Promise<Mission[]>;
+  /** Interventions d'un logement (FR-037), les plus récentes d'abord. */
+  listerParLogement(tenantId: string, logementId: string): Promise<Mission[]>;
   trouverParId(tenantId: string, id: string): Promise<Mission | null>;
   changerStatut(
     tenantId: string,

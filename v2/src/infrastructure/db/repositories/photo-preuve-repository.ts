@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import type {
   CreerPhotoPreuveData,
   PhotoPreuve,
@@ -40,6 +40,26 @@ export class DrizzlePhotoPreuveRepository implements PhotoPreuveRepository {
           ),
         )
         .orderBy(asc(photosMenage.createdAt));
+      return rows.map(versDomaine);
+    });
+  }
+
+  /** Photos d'un logement (FR-037), la plus récente d'abord. */
+  async listerParLogement(
+    tenantId: string,
+    logementId: string,
+  ): Promise<PhotoPreuve[]> {
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(photosMenage)
+        .where(
+          and(
+            eq(photosMenage.tenantId, tenantId),
+            eq(photosMenage.logementId, logementId),
+          ),
+        )
+        .orderBy(desc(photosMenage.createdAt));
       return rows.map(versDomaine);
     });
   }

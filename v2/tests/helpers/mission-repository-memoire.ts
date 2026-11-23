@@ -60,6 +60,15 @@ export class MissionRepositoryMemoire implements MissionRepository {
     );
   }
 
+  async listerParLogement(
+    tenantId: string,
+    logementId: string,
+  ): Promise<Mission[]> {
+    return this.rows.filter(
+      (m) => m.tenantId === tenantId && m.logementId === logementId,
+    );
+  }
+
   async trouverParId(
     tenantId: string,
     id: string,
