@@ -2,9 +2,9 @@ import { readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import postgres from "postgres";
 
-// La RLS de `photos_menage` masque les lignes à la connexion applicative :
-// une lecture partielle ferait passer toutes les photos pour orphelines.
-// La purge exige donc explicitement la connexion owner.
+// La RLS de `photos_menage` et `photos_reference` masque les lignes à la
+// connexion applicative : une lecture partielle ferait passer toutes les photos
+// pour orphelines. La purge exige donc explicitement la connexion owner.
 const url = process.env.MIGRATION_DATABASE_URL?.trim();
 if (!url) {
   console.error(
@@ -57,6 +57,8 @@ const sql = postgres(url, {
 try {
   const lignes = await sql<{ chemin: string }[]>`
     select chemin from photos_menage
+    union all
+    select chemin from photos_reference
   `;
   const references = new Set(lignes.map((ligne) => ligne.chemin));
   if (references.size === 0 && process.env.PURGE_VIDE !== "1") {

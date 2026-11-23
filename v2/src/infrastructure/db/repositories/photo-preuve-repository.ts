@@ -16,6 +16,7 @@ function versDomaine(row: typeof photosMenage.$inferSelect): PhotoPreuve {
     logementId: row.logementId,
     ref: row.ref,
     phase: row.phase as PhasePhoto,
+    piece: row.piece,
     chemin: row.chemin,
     contentType: row.contentType,
     tailleOctets: row.tailleOctets,

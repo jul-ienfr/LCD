@@ -171,6 +171,12 @@
       <a class="ui-lien-action" href={`/hote/menage/referentiel?logement=${data.logement.id}`}>
         {t.reglerReferentiel}
       </a>
+      <a
+        class="ui-lien-action"
+        href={`/hote/menage/photos-reference?logement=${data.logement.id}`}
+      >
+        {t.gererInventaire}
+      </a>
     </nav>
   {/if}
 </main>

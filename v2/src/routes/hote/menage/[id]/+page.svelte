@@ -133,6 +133,7 @@
     <div>
       <h2 class="text-lg font-semibold">{t.photosPreuve}</h2>
       <p class="text-sm text-encre-douce">{t.photosAide(data.photoMaxMo)}</p>
+      <p class="text-sm text-encre-douce">{t.piecesPhotoAide}</p>
     </div>
 
     <form
@@ -142,12 +143,21 @@
       class="space-y-3"
     >
       <input type="hidden" name="id" value={data.menage.id} />
-      <div class="grid gap-3 sm:grid-cols-2">
+      <div class="grid gap-3 sm:grid-cols-3">
         <label class="ui-champ-groupe">
           <span class="ui-label">{t.phase}</span>
           <select class="ui-champ" name="phase">
             <option value="avant">{t.avant}</option>
             <option value="apres">{t.apres}</option>
+          </select>
+        </label>
+        <label class="ui-champ-groupe">
+          <span class="ui-label">{t.piecePhoto}</span>
+          <select class="ui-champ" name="piece">
+            <option value="">{t.sansPiece}</option>
+            {#each data.piecesPhoto as piece (piece)}
+              <option value={piece}>{piece}</option>
+            {/each}
           </select>
         </label>
         <label class="ui-champ-groupe">
@@ -173,13 +183,13 @@
             <a href={photo.url} target="_blank" rel="noreferrer">
               <img
                 src={photo.url}
-                alt={`${photo.phaseLabel} — ${data.menage.ref}`}
+                alt={`${photo.phaseLabel}${photo.piece ? ` · ${photo.piece}` : ""} — ${data.menage.ref}`}
                 loading="lazy"
                 class="aspect-square w-full rounded-controle object-cover"
               />
             </a>
             <p class="text-xs text-encre-douce">
-              {photo.phaseLabel} · {photo.tailleMo} Mo
+              {photo.phaseLabel}{photo.piece ? ` · ${photo.piece}` : ` · ${t.sansPiece}`} · {photo.tailleMo} Mo
             </p>
             <form method="POST" action="?/supprimerPhoto">
               <input type="hidden" name="id" value={data.menage.id} />
@@ -257,6 +267,15 @@
     </a>
     <a class="ui-lien-action" href={`/hote/menage/referentiel?logement=${data.logement.id}`}>
       {t.reglerReferentiel}
+    </a>
+    <a class="ui-lien-action" href={`/hote/menage/${data.menage.id}/comparaison`}>
+      {t.voirComparaison}
+    </a>
+    <a
+      class="ui-lien-action"
+      href={`/hote/menage/photos-reference?logement=${data.logement.id}`}
+    >
+      {t.gererInventaire}
     </a>
     <a class="ui-lien-action" href={`/hote/etats-des-lieux?logement=${data.logement.id}`}>
       {t.etatsDesLieux}

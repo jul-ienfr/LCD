@@ -4,6 +4,7 @@ import {
   validerPhoto,
   type PhasePhoto,
 } from "@/domain/photo-preuve";
+import { validerPiecePhoto } from "@/domain/photo-reference";
 import { ErreurMetier } from "@/domain/erreurs";
 import type { MenagesRepository } from "../ports/menages-repository";
 import type {
@@ -16,6 +17,8 @@ export interface AjouterPhotoPreuveInput {
   tenantId: string;
   menageId: string;
   phase: string;
+  /** Pièce photographiée (FR-036) ; facultative pour les envois rapides. */
+  piece?: string;
   contentType: string;
   octets: Uint8Array;
 }
@@ -49,6 +52,7 @@ export class AjouterPhotoPreuve {
       throw new ErreurMetier("PHOTO_INVALIDE", "Phase de photo inconnue.");
     }
     const phase: PhasePhoto = input.phase;
+    const piece = validerPiecePhoto(input.piece);
 
     const total = await this.photos.totalOctetsParLogement(
       input.tenantId,
@@ -82,6 +86,7 @@ export class AjouterPhotoPreuve {
         logementId: menage.logementId,
         ref,
         phase,
+        piece,
         chemin,
         contentType,
         tailleOctets: input.octets.byteLength,

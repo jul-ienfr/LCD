@@ -101,11 +101,16 @@ export const load: PageServerLoad = async (event) => {
     avancement,
     pieces,
     avancementParPiece,
+    /** Pièces du logement proposées au rattachement d'une photo (FR-036). */
+    piecesPhoto: pieces
+      .map((entree) => entree.piece)
+      .filter((piece) => piece !== ""),
     photos: photos.map((photo) => ({
       id: photo.id,
       url: `/api/photos/${photo.id}`,
       phase: photo.phase,
       phaseLabel: LIBELLES_PHASE_PHOTO[photo.phase],
+      piece: photo.piece,
       tailleMo: (photo.tailleOctets / 1024 / 1024).toFixed(1),
       creeLe: photo.createdAt.toISOString(),
     })),
@@ -235,6 +240,7 @@ export const actions = {
         tenantId,
         menageId: id,
         phase: String(donnees.get("phase") ?? ""),
+        piece: String(donnees.get("piece") ?? ""),
         contentType: fichier.type,
         octets: new Uint8Array(await fichier.arrayBuffer()),
       });
@@ -249,6 +255,7 @@ export const actions = {
           payload: {
             photoId: resultat.photo.id,
             phase: resultat.photo.phase,
+            piece: resultat.photo.piece,
             tailleOctets: resultat.photo.tailleOctets,
             evincees: resultat.evincees,
           },

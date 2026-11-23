@@ -129,17 +129,44 @@ describe("ajout d’une photo de preuve", () => {
       tenantId: TENANT,
       menageId: MENAGE,
       phase: "avant",
+      piece: "Cuisine",
       contentType: "image/jpeg",
       octets,
     });
 
     expect(resultat.evincees).toBe(0);
     expect(resultat.photo.phase).toBe("avant");
+    expect(resultat.photo.piece).toBe("Cuisine");
     expect(resultat.photo.chemin).toMatch(
       new RegExp(`^${TENANT}/${LOGEMENT}/${MENAGE}/photo-.*\\.jpg$`),
     );
     expect(stockage.fichiers.get(resultat.photo.chemin)).toEqual(octets);
     expect(photos.photos).toHaveLength(1);
+  });
+
+  it("accepte une photo sans pièce (envoi rapide hors ligne)", async () => {
+    const resultat = await ajouter.executer({
+      tenantId: TENANT,
+      menageId: MENAGE,
+      phase: "apres",
+      contentType: "image/jpeg",
+      octets: new Uint8Array([1]),
+    });
+
+    expect(resultat.photo.piece).toBe("");
+  });
+
+  it("normalise la pièce fournie", async () => {
+    const resultat = await ajouter.executer({
+      tenantId: TENANT,
+      menageId: MENAGE,
+      phase: "avant",
+      piece: "  Sanitaires  ",
+      contentType: "image/jpeg",
+      octets: new Uint8Array([1]),
+    });
+
+    expect(resultat.photo.piece).toBe("Sanitaires");
   });
 
   it("refuse un format non accepté", async () => {
@@ -176,6 +203,7 @@ describe("ajout d’une photo de preuve", () => {
         logementId: LOGEMENT,
         ref: `ancienne-${index}`,
         phase: phase as "avant" | "apres",
+        piece: "",
         chemin: `ancienne-${index}.jpg`,
         contentType: "image/jpeg",
         tailleOctets: troisGo,

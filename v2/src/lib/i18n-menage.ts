@@ -1,3 +1,4 @@
+import type { EtatComparaisonPiece } from "@/domain/photo-reference";
 import type { Langue } from "./i18n";
 import { masquerFonctions, resoudreLangue } from "./i18n-staff";
 
@@ -87,6 +88,44 @@ export interface TraductionsMenage {
   cout: string;
   duree: string;
   enregistrerEvaluation: string;
+  piecesPhotoAide: string;
+  piecePhoto: string;
+  sansPiece: string;
+  voirComparaison: string;
+  titrePageComparaison: (nom: string) => string;
+  espaceComparaison: (ref: string) => string;
+  comparaisonTitre: (nom: string) => string;
+  comparaisonDescription: string;
+  bilanComparaison: (
+    pieces: number,
+    avecPhotos: number,
+    comparables: number,
+  ) => string;
+  retourMenage: string;
+  gererInventaire: string;
+  colReference: string;
+  colPreuve: string;
+  aucunePhotoReference: string;
+  aucunePhotoPreuve: string;
+  sansLegendePhoto: string;
+  comparaisonVide: string;
+  etatsComparaison: Record<EtatComparaisonPiece, string>;
+  titrePageInventairePhotos: string;
+  espaceInventairePhotos: string;
+  inventairePhotosTitre: string;
+  inventairePhotosDescription: string;
+  inventairePhotosLimites: (
+    photosParPiece: number,
+    piece: number,
+    legende: number,
+    poidsMo: number,
+  ) => string;
+  photoReferenceAjoutee: string;
+  photoReferenceSupprimee: string;
+  ajouterPhotoReference: string;
+  ajouterPhotoReferenceAide: string;
+  legende: string;
+  photosDeLaPiece: (nb: number, max: number) => string;
   etatsDesLieux: string;
   entretien: string;
   tableauBord: string;
@@ -154,6 +193,44 @@ const FR: TraductionsMenage = {
   evaluationAide: "Score qualité, coût réel et durée — réservés au suivi interne.",
   score: "Score (1-5)", nonRenseigne: "Non renseigné", cout: "Coût (€)",
   duree: "Durée (min)", enregistrerEvaluation: "Enregistrer l’évaluation",
+  piecesPhotoAide:
+    "Rattachez la photo à une pièce pour la comparer à l’inventaire de référence.",
+  piecePhoto: "Pièce (optionnel)", sansPiece: "Sans pièce",
+  voirComparaison: "Comparer à la référence",
+  titrePageComparaison: (nom) => `Comparaison photos — ${nom}`,
+  espaceComparaison: (ref) => `Espace hôte · Ménage · Comparaison · ${ref}`,
+  comparaisonTitre: (nom) => `Référence et preuves — ${nom}`,
+  comparaisonDescription:
+    "Côte à côte, pièce par pièce : l’inventaire de référence du logement et les photos prises pendant l’intervention.",
+  bilanComparaison: (pieces, avecPhotos, comparables) =>
+    `${pieces} pièce${pieces > 1 ? "s" : ""} suivie${pieces > 1 ? "s" : ""} · ${avecPhotos} avec au moins une photo · ${comparables} comparable${comparables > 1 ? "s" : ""} des deux côtés.`,
+  retourMenage: "← Retour au ménage",
+  gererInventaire: "Gérer l’inventaire photo",
+  colReference: "Référence", colPreuve: "Preuve d’intervention",
+  aucunePhotoReference: "Aucune photo de référence pour cette pièce.",
+  aucunePhotoPreuve: "Aucune photo de preuve pour cette pièce.",
+  sansLegendePhoto: "Sans légende",
+  comparaisonVide: "Aucune pièce à comparer pour ce ménage.",
+  etatsComparaison: {
+    comparaison: "Comparaison possible",
+    preuve_manquante: "Preuve manquante",
+    reference_manquante: "Référence manquante",
+    vide: "Aucune photo",
+  },
+  titrePageInventairePhotos: "Inventaire photo — LCD Parc",
+  espaceInventairePhotos: "Espace hôte · Exploitation · Inventaire photo",
+  inventairePhotosTitre: "Inventaire photo de référence",
+  inventairePhotosDescription:
+    "Les photos de référence du logement, pièce par pièce : elles servent de point de comparaison aux preuves d’intervention.",
+  inventairePhotosLimites: (photosParPiece, piece, legende, poidsMo) =>
+    `Jusqu’à ${photosParPiece} photos par pièce, ${piece} caractères pour la pièce, ${legende} pour la légende, ${poidsMo} Mo par photo.`,
+  photoReferenceAjoutee: "Photo de référence ajoutée.",
+  photoReferenceSupprimee: "Photo de référence supprimée.",
+  ajouterPhotoReference: "Ajouter une photo de référence",
+  ajouterPhotoReferenceAide:
+    "Choisissez la pièce, une légende si utile, puis la photo (JPEG, PNG ou WebP).",
+  legende: "Légende",
+  photosDeLaPiece: (nb, max) => `${nb} / ${max} photos`,
   etatsDesLieux: "États des lieux", entretien: "Entretien", tableauBord: "Tableau de bord",
 };
 
@@ -219,6 +296,44 @@ const EN: TraductionsMenage = {
   evaluationAide: "Quality score, actual cost and duration — internal tracking only.",
   score: "Score (1-5)", nonRenseigne: "Not set", cout: "Cost (€)",
   duree: "Duration (min)", enregistrerEvaluation: "Save evaluation",
+  piecesPhotoAide:
+    "Link the photo to a room so it can be compared with the reference inventory.",
+  piecePhoto: "Room (optional)", sansPiece: "No room",
+  voirComparaison: "Compare with the reference",
+  titrePageComparaison: (nom) => `Photo comparison — ${nom}`,
+  espaceComparaison: (ref) => `Staff area · Cleaning · Comparison · ${ref}`,
+  comparaisonTitre: (nom) => `Reference and proof — ${nom}`,
+  comparaisonDescription:
+    "Side by side, room by room: the property’s reference inventory and the photos taken during the intervention.",
+  bilanComparaison: (pieces, avecPhotos, comparables) =>
+    `${pieces} room${pieces === 1 ? "" : "s"} tracked · ${avecPhotos} with at least one photo · ${comparables} comparable on both sides.`,
+  retourMenage: "← Back to the cleaning",
+  gererInventaire: "Manage the photo inventory",
+  colReference: "Reference", colPreuve: "Intervention proof",
+  aucunePhotoReference: "No reference photo for this room.",
+  aucunePhotoPreuve: "No proof photo for this room.",
+  sansLegendePhoto: "No caption",
+  comparaisonVide: "No room to compare for this cleaning.",
+  etatsComparaison: {
+    comparaison: "Comparable",
+    preuve_manquante: "Proof missing",
+    reference_manquante: "Reference missing",
+    vide: "No photo",
+  },
+  titrePageInventairePhotos: "Photo inventory — LCD Parc",
+  espaceInventairePhotos: "Staff area · Operations · Photo inventory",
+  inventairePhotosTitre: "Reference photo inventory",
+  inventairePhotosDescription:
+    "The property’s reference photos, room by room: they are the comparison point for intervention proof.",
+  inventairePhotosLimites: (photosParPiece, piece, legende, poidsMo) =>
+    `Up to ${photosParPiece} photos per room, ${piece} characters for the room, ${legende} for the caption, ${poidsMo} MB per photo.`,
+  photoReferenceAjoutee: "Reference photo added.",
+  photoReferenceSupprimee: "Reference photo deleted.",
+  ajouterPhotoReference: "Add a reference photo",
+  ajouterPhotoReferenceAide:
+    "Pick the room, a caption if useful, then the photo (JPEG, PNG or WebP).",
+  legende: "Caption",
+  photosDeLaPiece: (nb, max) => `${nb} / ${max} photos`,
   etatsDesLieux: "Inventory checks", entretien: "Maintenance", tableauBord: "Dashboard",
 };
 
@@ -284,6 +399,45 @@ const ES: TraductionsMenage = {
   evaluationAide: "Puntuación de calidad, coste real y duración — solo para seguimiento interno.",
   score: "Puntuación (1-5)", nonRenseigne: "Sin indicar", cout: "Coste (€)",
   duree: "Duración (min)", enregistrerEvaluation: "Guardar evaluación",
+  piecesPhotoAide:
+    "Vincule la foto a una estancia para compararla con el inventario de referencia.",
+  piecePhoto: "Estancia (opcional)", sansPiece: "Sin estancia",
+  voirComparaison: "Comparar con la referencia",
+  titrePageComparaison: (nom) => `Comparación de fotos — ${nom}`,
+  espaceComparaison: (ref) => `Área profesional · Limpieza · Comparación · ${ref}`,
+  comparaisonTitre: (nom) => `Referencia y pruebas — ${nom}`,
+  comparaisonDescription:
+    "Lado a lado, estancia por estancia: el inventario de referencia del alojamiento y las fotos tomadas durante la intervención.",
+  bilanComparaison: (pieces, avecPhotos, comparables) =>
+    `${pieces} estancia${pieces === 1 ? "" : "s"} seguida${pieces === 1 ? "" : "s"} · ${avecPhotos} con al menos una foto · ${comparables} comparable${comparables === 1 ? "" : "s"} por ambos lados.`,
+  retourMenage: "← Volver a la limpieza",
+  gererInventaire: "Gestionar el inventario de fotos",
+  colReference: "Referencia", colPreuve: "Prueba de intervención",
+  aucunePhotoReference: "Ninguna foto de referencia para esta estancia.",
+  aucunePhotoPreuve: "Ninguna foto de prueba para esta estancia.",
+  sansLegendePhoto: "Sin leyenda",
+  comparaisonVide: "Ninguna estancia que comparar para esta limpieza.",
+  etatsComparaison: {
+    comparaison: "Comparable",
+    preuve_manquante: "Falta la prueba",
+    reference_manquante: "Falta la referencia",
+    vide: "Ninguna foto",
+  },
+  titrePageInventairePhotos: "Inventario fotográfico — LCD Parc",
+  espaceInventairePhotos:
+    "Área profesional · Explotación · Inventario fotográfico",
+  inventairePhotosTitre: "Inventario fotográfico de referencia",
+  inventairePhotosDescription:
+    "Las fotos de referencia del alojamiento, estancia por estancia: son el punto de comparación de las pruebas de intervención.",
+  inventairePhotosLimites: (photosParPiece, piece, legende, poidsMo) =>
+    `Hasta ${photosParPiece} fotos por estancia, ${piece} caracteres para la estancia, ${legende} para la leyenda, ${poidsMo} MB por foto.`,
+  photoReferenceAjoutee: "Foto de referencia añadida.",
+  photoReferenceSupprimee: "Foto de referencia eliminada.",
+  ajouterPhotoReference: "Añadir una foto de referencia",
+  ajouterPhotoReferenceAide:
+    "Elija la estancia, una leyenda si es útil y luego la foto (JPEG, PNG o WebP).",
+  legende: "Leyenda",
+  photosDeLaPiece: (nb, max) => `${nb} / ${max} fotos`,
   etatsDesLieux: "Inventarios", entretien: "Mantenimiento", tableauBord: "Panel",
 };
 
@@ -349,6 +503,44 @@ const IT: TraductionsMenage = {
   evaluationAide: "Punteggio qualità, costo reale e durata — solo per il monitoraggio interno.",
   score: "Punteggio (1-5)", nonRenseigne: "Non indicato", cout: "Costo (€)",
   duree: "Durata (min)", enregistrerEvaluation: "Salva valutazione",
+  piecesPhotoAide:
+    "Colleghi la foto a un locale per confrontarla con l’inventario di riferimento.",
+  piecePhoto: "Locale (facoltativo)", sansPiece: "Senza locale",
+  voirComparaison: "Confronta con il riferimento",
+  titrePageComparaison: (nom) => `Confronto foto — ${nom}`,
+  espaceComparaison: (ref) => `Area professionale · Pulizia · Confronto · ${ref}`,
+  comparaisonTitre: (nom) => `Riferimento e prove — ${nom}`,
+  comparaisonDescription:
+    "Affiancate, locale per locale: l’inventario di riferimento dell’alloggio e le foto scattate durante l’intervento.",
+  bilanComparaison: (pieces, avecPhotos, comparables) =>
+    `${pieces} local${pieces === 1 ? "e" : "i"} seguito/i · ${avecPhotos} con almeno una foto · ${comparables} confrontabil${comparables === 1 ? "e" : "i"} su entrambi i lati.`,
+  retourMenage: "← Torna alla pulizia",
+  gererInventaire: "Gestisci l’inventario foto",
+  colReference: "Riferimento", colPreuve: "Prova d’intervento",
+  aucunePhotoReference: "Nessuna foto di riferimento per questo locale.",
+  aucunePhotoPreuve: "Nessuna foto di prova per questo locale.",
+  sansLegendePhoto: "Senza didascalia",
+  comparaisonVide: "Nessun locale da confrontare per questa pulizia.",
+  etatsComparaison: {
+    comparaison: "Confrontabile",
+    preuve_manquante: "Manca la prova",
+    reference_manquante: "Manca il riferimento",
+    vide: "Nessuna foto",
+  },
+  titrePageInventairePhotos: "Inventario foto — LCD Parc",
+  espaceInventairePhotos: "Area professionale · Operazioni · Inventario foto",
+  inventairePhotosTitre: "Inventario foto di riferimento",
+  inventairePhotosDescription:
+    "Le foto di riferimento dell’alloggio, locale per locale: sono il punto di confronto delle prove d’intervento.",
+  inventairePhotosLimites: (photosParPiece, piece, legende, poidsMo) =>
+    `Fino a ${photosParPiece} foto per locale, ${piece} caratteri per il locale, ${legende} per la didascalia, ${poidsMo} MB per foto.`,
+  photoReferenceAjoutee: "Foto di riferimento aggiunta.",
+  photoReferenceSupprimee: "Foto di riferimento eliminata.",
+  ajouterPhotoReference: "Aggiungi una foto di riferimento",
+  ajouterPhotoReferenceAide:
+    "Scelga il locale, una didascalia se utile, poi la foto (JPEG, PNG o WebP).",
+  legende: "Didascalia",
+  photosDeLaPiece: (nb, max) => `${nb} / ${max} foto`,
   etatsDesLieux: "Inventari", entretien: "Manutenzione", tableauBord: "Dashboard",
 };
 
@@ -414,6 +606,44 @@ const DE: TraductionsMenage = {
   evaluationAide: "Qualitätsbewertung, tatsächliche Kosten und Dauer — nur zur internen Nachverfolgung.",
   score: "Bewertung (1-5)", nonRenseigne: "Nicht angegeben", cout: "Kosten (€)",
   duree: "Dauer (Min.)", enregistrerEvaluation: "Bewertung speichern",
+  piecesPhotoAide:
+    "Ordnen Sie das Foto einem Raum zu, damit es mit dem Referenzinventar verglichen werden kann.",
+  piecePhoto: "Raum (optional)", sansPiece: "Ohne Raum",
+  voirComparaison: "Mit der Referenz vergleichen",
+  titrePageComparaison: (nom) => `Fotovergleich — ${nom}`,
+  espaceComparaison: (ref) => `Profibereich · Reinigung · Vergleich · ${ref}`,
+  comparaisonTitre: (nom) => `Referenz und Nachweise — ${nom}`,
+  comparaisonDescription:
+    "Nebeneinander, Raum für Raum: das Referenzinventar der Unterkunft und die während des Einsatzes aufgenommenen Fotos.",
+  bilanComparaison: (pieces, avecPhotos, comparables) =>
+    `${pieces} Raum/Räume erfasst · ${avecPhotos} mit mindestens einem Foto · ${comparables} auf beiden Seiten vergleichbar.`,
+  retourMenage: "← Zurück zur Reinigung",
+  gererInventaire: "Fotoinventar verwalten",
+  colReference: "Referenz", colPreuve: "Einsatznachweis",
+  aucunePhotoReference: "Kein Referenzfoto für diesen Raum.",
+  aucunePhotoPreuve: "Kein Nachweisfoto für diesen Raum.",
+  sansLegendePhoto: "Ohne Beschriftung",
+  comparaisonVide: "Kein Raum zum Vergleichen für diese Reinigung.",
+  etatsComparaison: {
+    comparaison: "Vergleichbar",
+    preuve_manquante: "Nachweis fehlt",
+    reference_manquante: "Referenz fehlt",
+    vide: "Kein Foto",
+  },
+  titrePageInventairePhotos: "Fotoinventar — LCD Parc",
+  espaceInventairePhotos: "Profibereich · Betrieb · Fotoinventar",
+  inventairePhotosTitre: "Referenz-Fotoinventar",
+  inventairePhotosDescription:
+    "Die Referenzfotos der Unterkunft, Raum für Raum: sie sind der Vergleichspunkt für Einsatznachweise.",
+  inventairePhotosLimites: (photosParPiece, piece, legende, poidsMo) =>
+    `Bis zu ${photosParPiece} Fotos pro Raum, ${piece} Zeichen für den Raum, ${legende} für die Beschriftung, ${poidsMo} MB pro Foto.`,
+  photoReferenceAjoutee: "Referenzfoto hinzugefügt.",
+  photoReferenceSupprimee: "Referenzfoto gelöscht.",
+  ajouterPhotoReference: "Referenzfoto hinzufügen",
+  ajouterPhotoReferenceAide:
+    "Wählen Sie den Raum, bei Bedarf eine Beschriftung, dann das Foto (JPEG, PNG oder WebP).",
+  legende: "Beschriftung",
+  photosDeLaPiece: (nb, max) => `${nb} / ${max} Fotos`,
   etatsDesLieux: "Inventarprüfungen", entretien: "Wartung", tableauBord: "Dashboard",
 };
 

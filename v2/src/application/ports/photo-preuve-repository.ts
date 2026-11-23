@@ -7,6 +7,8 @@ export interface PhotoPreuve {
   logementId: string;
   ref: string;
   phase: PhasePhoto;
+  /** Pièce photographiée (FR-036) ; `""` pour les photos antérieures. */
+  piece: string;
   chemin: string;
   contentType: string;
   tailleOctets: number;
@@ -19,6 +21,7 @@ export interface CreerPhotoPreuveData {
   logementId: string;
   ref: string;
   phase: PhasePhoto;
+  piece: string;
   chemin: string;
   contentType: string;
   tailleOctets: number;

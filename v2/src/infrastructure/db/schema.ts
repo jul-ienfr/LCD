@@ -2375,6 +2375,8 @@ export const photosMenage = pgTable(
       .references(() => logements.id, { onDelete: "cascade" }),
     ref: text("ref").notNull(),
     phase: text("phase").notNull(),
+    /** Pièce photographiée (FR-036) ; `''` pour les photos antérieures. */
+    piece: text("piece").notNull().default(""),
     chemin: text("chemin").notNull(),
     contentType: text("content_type").notNull(),
     tailleOctets: integer("taille_octets").notNull(),
@@ -2392,6 +2394,45 @@ export const photosMenage = pgTable(
     ),
   ],
 );
+
+/**
+ * Inventaire photo de référence par pièce (spec 006, FR-036) : au plus
+ * `PHOTOS_REFERENCE_PAR_PIECE_MAX` photos par pièce d'un logement, chacune
+ * avec sa légende.
+ */
+export const photosReference = pgTable(
+  "photos_reference",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    piece: text("piece").notNull(),
+    ref: text("ref").notNull(),
+    chemin: text("chemin").notNull(),
+    contentType: text("content_type").notNull(),
+    tailleOctets: integer("taille_octets").notNull(),
+    legende: text("legende").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("photos_reference_tenant_ref_uq").on(t.tenantId, t.ref),
+    index("photos_reference_tenant_logement_piece_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.piece,
+      t.createdAt,
+    ),
+  ],
+);
+
+export type PhotoReferenceRow = typeof photosReference.$inferSelect;
+export type NewPhotoReferenceRow = typeof photosReference.$inferInsert;
 
 export const entretiens = pgTable(
   "entretiens",
