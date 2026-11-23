@@ -214,6 +214,8 @@ describe("T067 — filtrage par rôle sans fuite", () => {
       "/hote": ["admin", "hote", "comptable"],
       "/hote/acces": ["admin"],
       "/hote/utilisateurs": ["admin"],
+      "/hote/missions": ["admin", "hote", "operateur"],
+      "/hote/intervenants": ["admin", "hote", "operateur"],
       "/hote/messages/fils": ["admin", "hote", "operateur"],
       "/hote/compta": ["admin", "hote", "comptable"],
       "/hote/factures": ["admin", "hote", "comptable"],

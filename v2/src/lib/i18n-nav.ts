@@ -38,6 +38,7 @@ export interface TraductionsNavigation {
   etatsDesLieux: string;
   entretien: string;
   missions: string;
+  intervenants: string;
   dispatch: string;
   cautions: string;
   extras: string;
@@ -107,6 +108,7 @@ const FR: TraductionsNavigation = {
   etatsDesLieux: "États des lieux",
   entretien: "Entretien",
   missions: "Missions",
+  intervenants: "Intervenants",
   dispatch: "Dispatch",
   cautions: "Cautions",
   extras: "Extras",
@@ -180,6 +182,7 @@ const EN: TraductionsNavigation = {
   etatsDesLieux: "Inventory checks",
   entretien: "Maintenance",
   missions: "Tasks",
+  intervenants: "Providers",
   dispatch: "Dispatch",
   cautions: "Deposits",
   extras: "Extras",
@@ -253,6 +256,7 @@ const ES: TraductionsNavigation = {
   etatsDesLieux: "Inventarios",
   entretien: "Mantenimiento",
   missions: "Misiones",
+  intervenants: "Prestadores",
   dispatch: "Asignación",
   cautions: "Fianzas",
   extras: "Extras",
@@ -326,6 +330,7 @@ const IT: TraductionsNavigation = {
   etatsDesLieux: "Stati dei luoghi",
   entretien: "Manutenzione",
   missions: "Incarichi",
+  intervenants: "Fornitori",
   dispatch: "Assegnazione",
   cautions: "Cauzioni",
   extras: "Extra",
@@ -399,6 +404,7 @@ const DE: TraductionsNavigation = {
   etatsDesLieux: "Zustandsberichte",
   entretien: "Wartung",
   missions: "Aufträge",
+  intervenants: "Dienstleister",
   dispatch: "Disposition",
   cautions: "Kautionen",
   extras: "Extras",

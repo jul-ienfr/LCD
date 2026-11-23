@@ -37,6 +37,7 @@ const ROLES_GARDES: Record<string, readonly RoleUtilisateur[]> = {
   "/hote/installation": ["super_admin", "admin", "hote", "operateur"],
   "/hote/integrations": ["super_admin", "admin", "hote", "operateur"],
   "/hote/inventaire": ["super_admin", "admin", "hote", "operateur"],
+  "/hote/intervenants": ["super_admin", "admin", "hote", "operateur"],
   "/hote/logements": ["super_admin", "admin", "hote", "operateur"],
   "/hote/menage": ["super_admin", "admin", "hote", "operateur"],
   "/hote/messages": ["super_admin", "admin", "hote", "operateur"],
@@ -137,6 +138,7 @@ const NAVIGATION_BRUT: NavigationStaff = {
             { href: "/hote/etats-des-lieux", cle: "etatsDesLieux" },
             { href: "/hote/entretien", cle: "entretien" },
             { href: "/hote/missions", cle: "missions" },
+            { href: "/hote/intervenants", cle: "intervenants" },
             { href: "/hote/dispatch", cle: "dispatch" },
             {
               href: "/hote/cautions",

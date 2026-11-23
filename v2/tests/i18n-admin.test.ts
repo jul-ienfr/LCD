@@ -34,6 +34,7 @@ import { traductionsEtatsDesLieux } from "@/lib/i18n-etats-des-lieux";
 import { traductionsPlanningImport } from "@/lib/i18n-planning-import";
 import { traductionsDetails } from "@/lib/i18n-details";
 import { traductionsNavigation } from "@/lib/i18n-nav";
+import { traductionsIntervenants } from "@/lib/i18n-intervenants";
 
 function chaines(valeur: unknown): string[] {
   if (typeof valeur === "string") return [valeur];
@@ -82,6 +83,7 @@ describe("i18n administration et planning", () => {
         traductionsPlanningImport(langue),
         traductionsDetails(langue),
         traductionsNavigation(langue),
+        traductionsIntervenants(langue),
       ]) {
         const valeurs = chaines(dictionnaire);
         expect(valeurs.length).toBeGreaterThan(5);
@@ -98,6 +100,7 @@ describe("i18n administration et planning", () => {
     expect(traductionsSecurite("fr").expireLe("01/01")).toContain("01/01");
     expect(traductionsMenage("de").photosAide(8)).toContain("8");
     expect(traductionsMissions("it").titre("marzo")).toContain("marzo");
+    expect(traductionsIntervenants("de").scoreSur(82)).toBe("82/100");
     expect(traductionsFactures("en").aRelancer(2)).toContain("2");
     expect(traductionsCompta("de").sejours(3)).toContain("3");
     expect(traductionsFinance("it").doubleAide("300 €")).toContain("300");
