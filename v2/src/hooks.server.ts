@@ -15,7 +15,8 @@ import { brancherPersistanceJournaux } from "@/lib/server/journaux";
 import { demarrerPlanificateurExploitation } from "@/lib/server/planificateur-exploitation";
 import { genererRequestId } from "@/lib/server/logger";
 import { logErreur } from "@/lib/logger";
-import { langueRequete } from "@/lib/server/langue";
+import { COOKIE_LANGUE, langueRequete } from "@/lib/server/langue";
+import { cachePublic, enteteCacheHtml } from "@/lib/server/cache-http";
 import { tenantEnLectureSeule } from "@/lib/server/lecture-seule";
 import { doitBloquerEcriture } from "@/domain/lecture-seule";
 import { doitSuspendreMaintenance } from "@/domain/maintenance";
@@ -237,6 +238,23 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
   // L'identifiant de requête suit la réponse : support, journaux, traces.
   entetes.set("x-request-id", requestId);
+  // FR-028 : cache public réservé aux pages vitrine anonymes ; toute réponse
+  // personnalisée (session, cookie de langue, écriture de cookie) est
+  // `private, no-store`. Une route qui a déjà posé son cache garde la main.
+  const cacheControl = enteteCacheHtml({
+    chemin: event.url.pathname,
+    methode: event.request.method,
+    statut: reponse.status,
+    contentType: reponse.headers.get("content-type"),
+    aSession: Boolean(event.locals.session),
+    aCookieLangue: Boolean(event.cookies.get(COOKIE_LANGUE)),
+    aSetCookie: reponse.headers.has("set-cookie"),
+    cacheControlExistant: reponse.headers.get("cache-control"),
+  });
+  if (cacheControl) {
+    entetes.set("Cache-Control", cacheControl);
+    if (cachePublic(cacheControl)) entetes.set("Vary", "Cookie");
+  }
   if (cheminWidget(event.url.pathname)) {
     // Le widget doit pouvoir être embarqué sur un site externe.
     entetes.set(
