@@ -264,6 +264,21 @@ export class FilsVoyageurRepositoryMemoire implements FilsVoyageurRepository {
     );
   }
 
+  async listerPiecesJointesParMessages(
+    tenantId: string,
+    messageIds: readonly string[],
+  ): Promise<Map<string, PieceJointeMessage[]>> {
+    const ids = new Set(messageIds);
+    const parMessage = new Map<string, PieceJointeMessage[]>();
+    for (const piece of this.piecesJointes) {
+      if (piece.tenantId !== tenantId || !ids.has(piece.messageId)) continue;
+      const liste = parMessage.get(piece.messageId) ?? [];
+      liste.push(piece);
+      parMessage.set(piece.messageId, liste);
+    }
+    return parMessage;
+  }
+
   async trouverPieceJointe(
     tenantId: string,
     pieceId: string,

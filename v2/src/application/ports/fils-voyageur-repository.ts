@@ -160,6 +160,15 @@ export interface FilsVoyageurRepository {
     tenantId: string,
     messageId: string,
   ): Promise<PieceJointeMessage[]>;
+  /**
+   * Pièces jointes de plusieurs messages en une seule requête (FR-027) :
+   * évite un `listerPiecesJointes` par message à l'ouverture d'un fil.
+   * Les identifiants sans pièce jointe sont absents de la map.
+   */
+  listerPiecesJointesParMessages(
+    tenantId: string,
+    messageIds: readonly string[],
+  ): Promise<Map<string, PieceJointeMessage[]>>;
   trouverPieceJointe(
     tenantId: string,
     id: string,

@@ -167,26 +167,56 @@ export function creerAppliqueur(tenantId: string) {
   });
 }
 
-/**
- * Nuits vendues et revenus d'une période, pour le calcul du RevPAR.
- * Seules les réservations confirmées, en séjour ou terminées comptent.
- */
-export async function donneesPeriode(
-  tenantId: string,
-  logementId: string,
-  debut: string,
-  fin: string,
-): Promise<{ jours: number; nuitsVendues: number; revenusCentimes: number }> {
-  const jours = Math.max(
+/** Nuits vendues et revenus d'une période, pour le calcul du RevPAR. */
+export interface DonneesPeriode {
+  jours: number;
+  nuitsVendues: number;
+  revenusCentimes: number;
+}
+
+function nombreDeJoursPeriode(debut: string, fin: string): number {
+  return Math.max(
     0,
     Math.round(
       (Date.parse(`${fin}T00:00:00.000Z`) - Date.parse(`${debut}T00:00:00.000Z`)) /
         86_400_000,
     ),
   );
+}
+
+/**
+ * FR-027 : nuits vendues et revenus de plusieurs logements en une seule
+ * requête groupée, au lieu d'un `donneesPeriode` par logement (comparaison
+ * RevPar de l'écran prix). Chaque logement demandé figure dans la map, avec
+ * des compteurs à zéro s'il n'a aucune réservation sur la période.
+ * Seules les réservations confirmées, en séjour ou terminées comptent.
+ */
+export async function donneesPeriodeParLogements(
+  tenantId: string,
+  logementIds: readonly string[],
+  debut: string,
+  fin: string,
+): Promise<Map<string, DonneesPeriode>> {
+  const jours = nombreDeJoursPeriode(debut, fin);
+  const ids = [...new Set(logementIds)].slice(0, 200);
+  const resultat = new Map<string, DonneesPeriode>();
+  for (const id of ids) {
+    resultat.set(id, { jours, nuitsVendues: 0, revenusCentimes: 0 });
+  }
+  if (ids.length === 0) return resultat;
+
   return withTenant(tenantId, async (tx) => {
-    const [row] = await tx.execute<{ nuits: number; revenus: number }>(sql`
+    const liste = sql.join(
+      ids.map((id) => sql`${id}::uuid`),
+      sql`, `,
+    );
+    const rows = await tx.execute<{
+      logementId: string;
+      nuits: number;
+      revenus: number;
+    }>(sql`
       select
+        r.logement_id::text as "logementId",
         coalesce(sum(
           least(r.fin::date, ${fin}::date) - greatest(r.debut::date, ${debut}::date)
         ), 0)::int as nuits,
@@ -200,17 +230,46 @@ export async function donneesPeriode(
         ), 0)::int as revenus
       from reservations r
       where r.tenant_id = ${tenantId}::uuid
-        and r.logement_id = ${logementId}::uuid
+        and r.logement_id in (${liste})
         and r.statut in ('confirmee', 'en_sejour', 'terminee')
         and r.debut::date < ${fin}::date
         and r.fin::date > ${debut}::date
+      group by r.logement_id
     `);
-    return {
-      jours,
-      nuitsVendues: Number(row?.nuits ?? 0),
-      revenusCentimes: Number(row?.revenus ?? 0),
-    };
+    for (const row of rows) {
+      resultat.set(row.logementId, {
+        jours,
+        nuitsVendues: Number(row.nuits ?? 0),
+        revenusCentimes: Number(row.revenus ?? 0),
+      });
+    }
+    return resultat;
   });
+}
+
+/**
+ * Nuits vendues et revenus d'une période sur un seul logement.
+ * Seules les réservations confirmées, en séjour ou terminées comptent.
+ */
+export async function donneesPeriode(
+  tenantId: string,
+  logementId: string,
+  debut: string,
+  fin: string,
+): Promise<DonneesPeriode> {
+  const parLogement = await donneesPeriodeParLogements(
+    tenantId,
+    [logementId],
+    debut,
+    fin,
+  );
+  return (
+    parLogement.get(logementId) ?? {
+      jours: nombreDeJoursPeriode(debut, fin),
+      nuitsVendues: 0,
+      revenusCentimes: 0,
+    }
+  );
 }
 
 /** Cron : protégé par `PRICING_IMPORT_ENABLED` (faux par défaut). */

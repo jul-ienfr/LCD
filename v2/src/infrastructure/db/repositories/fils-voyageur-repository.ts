@@ -470,6 +470,38 @@ export class DrizzleFilsVoyageurRepository implements FilsVoyageurRepository {
     });
   }
 
+  /**
+   * FR-027 : une seule requête pour les pièces jointes de tous les messages
+   * d'un fil, au lieu d'un `listerPiecesJointes` par message.
+   */
+  async listerPiecesJointesParMessages(
+    tenantId: string,
+    messageIds: readonly string[],
+  ): Promise<Map<string, PieceJointeMessage[]>> {
+    const parMessage = new Map<string, PieceJointeMessage[]>();
+    if (messageIds.length === 0) return parMessage;
+    const ids = [...new Set(messageIds)].slice(0, 500);
+    return withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select()
+        .from(piecesJointesMessage)
+        .where(
+          and(
+            eq(piecesJointesMessage.tenantId, tenantId),
+            inArray(piecesJointesMessage.messageId, ids),
+          ),
+        )
+        .orderBy(asc(piecesJointesMessage.createdAt));
+      for (const row of rows) {
+        const piece = versPieceJointe(row);
+        const liste = parMessage.get(piece.messageId) ?? [];
+        liste.push(piece);
+        parMessage.set(piece.messageId, liste);
+      }
+      return parMessage;
+    });
+  }
+
   async trouverPieceJointe(
     tenantId: string,
     id: string,

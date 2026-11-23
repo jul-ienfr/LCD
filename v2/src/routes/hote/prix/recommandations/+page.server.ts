@@ -18,7 +18,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { formaterEuros } from "@/lib/format";
 import { jourParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
-import { donneesPeriode } from "@/lib/server/planificateur-pricing";
+import { donneesPeriodeParLogements } from "@/lib/server/planificateur-pricing";
 import {
   ecartCumuleDecisions,
   indicateursPeriode,
@@ -61,6 +61,18 @@ async function construireComparaisonRevPar(
 ) {
   const avantDebut = ajouterJours(aujourdHui, -30);
   const apresFin = ajouterJours(aujourdHui, 30);
+  // FR-027 : un seul chargement groupé pour tous les logements comparés.
+  const logementsRetenus = logements.slice(0, 20);
+  const donneesAvant = await donneesPeriodeParLogements(
+    tenantId,
+    logementsRetenus.map((logement) => logement.id),
+    avantDebut,
+    aujourdHui,
+  );
+  const ecart = ecartCumuleDecisions(decisions);
+  const joursRetenus = decisions.filter(
+    (decision) => decision.prixActuelCentimes !== null,
+  ).length;
   const lignes: {
     logementId: string;
     logementNom: string;
@@ -70,15 +82,15 @@ async function construireComparaisonRevPar(
     comparable: boolean;
   }[] = [];
 
-  for (const logement of logements.slice(0, 20)) {
-    const avant = await donneesPeriode(tenantId, logement.id, avantDebut, aujourdHui);
+  for (const logement of logementsRetenus) {
+    const avant = donneesAvant.get(logement.id) ?? {
+      jours: 0,
+      nuitsVendues: 0,
+      revenusCentimes: 0,
+    };
     const indicateursAvant = indicateursPeriode(avant);
     const revParAvant = indicateursAvant.revParCentimes ?? 0;
     // Projection : mêmes nuits vendues qu'en réalisé, prix appliqués.
-    const ecart = ecartCumuleDecisions(decisions);
-    const joursRetenus = decisions.filter(
-      (decision) => decision.prixActuelCentimes !== null,
-    ).length;
     const revParApres =
       avant.jours === 0
         ? null

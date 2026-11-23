@@ -66,17 +66,17 @@ export const load: PageServerLoad = async (event) => {
   if (!fil) throw error(404, "Fil introuvable.");
 
   const messages = await depot.listerMessages(tenantId, fil.id);
-  const pieces = [];
-  for (const message of messages) {
-    pieces.push({
-      messageId: message.id,
-      elements: await depot.listerPiecesJointes(tenantId, message.id),
-    });
-  }
+  // FR-027 : une requête pour toutes les pièces jointes du fil.
+  const piecesParMessage = await depot.listerPiecesJointesParMessages(
+    tenantId,
+    messages.map((message) => message.id),
+  );
+  const pieces = messages.map((message) => ({
+    messageId: message.id,
+    elements: piecesParMessage.get(message.id) ?? [],
+  }));
   const logement = fil.logementId
-    ? ((await new DrizzleLogementRepository().listerParTenant(tenantId)).find(
-        (l) => l.id === fil.logementId,
-      ) ?? null)
+    ? await new DrizzleLogementRepository().trouverParId(tenantId, fil.logementId)
     : null;
   const configuration = await lireConfigurationAssistant(
     new DrizzleParametresSiteRepository(),
