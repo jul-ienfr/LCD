@@ -1,4 +1,6 @@
 import {
+  aplatirPieces,
+  checklistDepuisReferentiel,
   refMenageValide,
   statutMenageValide,
   validerMenage,
@@ -8,8 +10,10 @@ import {
 import { ErreurMetier } from "@/domain/erreurs";
 import type { ConsommablesRepository } from "../ports/consommables-repository";
 import type { LogementRepository } from "../ports/logement-repository";
+import type { MenageReferentielRepository } from "../ports/menage-referentiel-repository";
 import type { MenagesRepository } from "../ports/menages-repository";
 import type { ReservationRepository } from "../ports/reservation-repository";
+import { ConfigurerReferentielMenage } from "./menage-referentiel";
 import { ConsommerRotation } from "./stocks";
 
 export interface PlanifierMenageInput {
@@ -19,7 +23,7 @@ export interface PlanifierMenageInput {
   ref: string;
   date: string;
   notes?: string;
-  taches?: readonly { libelle: string; fait?: boolean }[];
+  taches?: readonly { piece?: string; libelle: string; fait?: boolean }[];
 }
 
 export class PlanifierMenage {
@@ -27,6 +31,7 @@ export class PlanifierMenage {
     private readonly menages: MenagesRepository,
     private readonly reservations: ReservationRepository,
     private readonly logements: LogementRepository,
+    private readonly referentiels: MenageReferentielRepository,
   ) {}
 
   async executer(input: PlanifierMenageInput): Promise<Menage> {
@@ -61,10 +66,26 @@ export class PlanifierMenage {
       }
     }
 
+    // FR-035 : sans checklist fournie, le ménage part du référentiel du
+    // logement (ou du modèle LCD Parc s'il n'a jamais été configuré). La
+    // checklist est copiée : cocher un ménage ne touche jamais le modèle.
+    const taches =
+      input.taches ??
+      aplatirPieces(
+        checklistDepuisReferentiel(
+          (
+            await new ConfigurerReferentielMenage(this.referentiels).lister(
+              input.tenantId,
+              input.logementId,
+            )
+          ).pieces,
+        ),
+      );
+
     const valide = validerMenage({
       date: input.date,
       notes: input.notes,
-      taches: input.taches,
+      taches,
     });
 
     return this.menages.creer({
@@ -83,7 +104,7 @@ export interface EnregistrerMenageInput {
   id: string;
   statut: string;
   notes?: string;
-  taches: readonly { libelle: string; fait?: boolean }[];
+  taches: readonly { piece?: string; libelle: string; fait?: boolean }[];
   qui: string;
 }
 

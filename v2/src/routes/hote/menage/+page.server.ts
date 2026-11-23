@@ -1,14 +1,18 @@
 import { fail, isRedirect, redirect } from "@sveltejs/kit";
 import { PlanifierMenage } from "@/application/use-cases/menage";
+import { ConfigurerReferentielMenage } from "@/application/use-cases/menage-referentiel";
 import { aujourdHuiIso } from "@/application/use-cases/inventaire";
 import { ErreurMetier } from "@/domain/erreurs";
 import {
   avancementMenage,
+  avancementPieces,
   LIBELLES_STATUT_MENAGE,
+  piecesDepuisTaches,
   statistiquesMenage,
 } from "@/domain/menage";
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
+import { DrizzleMenageReferentielRepository } from "@/infrastructure/db/repositories/menage-referentiel-repository";
 import { DrizzleMenagesRepository } from "@/infrastructure/db/repositories/menages-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
@@ -36,6 +40,7 @@ export const load: PageServerLoad = async (event) => {
       sejours: [],
       sejourChoisi: null,
       menages: [],
+      referentiel: null,
       statistiques: { scoreMoyen: null, coutMoyenCentimes: null, dureeMoyenneMinutes: null, alerteQualite: false },
     };
   }
@@ -44,6 +49,11 @@ export const load: PageServerLoad = async (event) => {
     tenantId,
     logement.id,
   );
+  // FR-035 : la checklist d'un nouveau ménage part du référentiel du logement
+  // (le modèle LCD Parc tant qu'aucune version n'a été enregistrée).
+  const referentiel = await new ConfigurerReferentielMenage(
+    new DrizzleMenageReferentielRepository(),
+  ).lister(tenantId, logement.id);
   const aujourdHui = aujourdHuiIso();
   // FR-026 : filtre logement + séjours non terminés appliqués en SQL, avec
   // une borne de 8 lignes, au lieu de charger tout le tenant en mémoire.
@@ -80,11 +90,13 @@ export const load: PageServerLoad = async (event) => {
       : null,
     menages: menages.map((menage) => {
       const avancement = avancementMenage(menage.taches);
+      const parPiece = avancementPieces(piecesDepuisTaches(menage.taches));
       return {
         id: menage.id,
         date: menage.date,
         sejour: menage.reservationId ? "Séjour lié" : "Sans séjour",
         avancement: `${avancement.faites} / ${avancement.total}`,
+        pieces: `${parPiece.pieces.filter((piece) => piece.complete).length} / ${parPiece.pieces.length}`,
         statut: LIBELLES_STATUT_MENAGE[menage.statut],
         notes: menage.notes || "—",
         score: menage.score === null ? "—" : `${menage.score} / 5`,
@@ -92,6 +104,14 @@ export const load: PageServerLoad = async (event) => {
         duree: menage.dureeMinutes === null ? "—" : `${menage.dureeMinutes} min`,
       };
     }),
+    referentiel: {
+      personnalise: referentiel.personnalise,
+      pieces: referentiel.pieces.length,
+      taches: referentiel.pieces.reduce(
+        (total, piece) => total + piece.taches.length,
+        0,
+      ),
+    },
     statistiques: statistiquesMenage(menages),
   };
 };
@@ -108,6 +128,7 @@ export const actions = {
         new DrizzleMenagesRepository(),
         new DrizzleReservationRepository(),
         new DrizzleLogementRepository(),
+        new DrizzleMenageReferentielRepository(),
       ).executer({
         tenantId,
         logementId,

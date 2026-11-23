@@ -2316,12 +2316,47 @@ export const menageTaches = pgTable(
     menageId: uuid("menage_id")
       .notNull()
       .references(() => menages.id, { onDelete: "cascade" }),
+    piece: text("piece").notNull().default(""),
     libelle: text("libelle").notNull(),
     fait: boolean("fait").notNull().default(false),
     ordre: integer("ordre").notNull().default(0),
   },
   (t) => [
     index("menage_taches_tenant_menage_idx").on(t.tenantId, t.menageId),
+  ],
+);
+
+export const menageReferentiels = pgTable(
+  "menage_referentiels",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    logementId: uuid("logement_id")
+      .notNull()
+      .references(() => logements.id, { onDelete: "cascade" }),
+    piece: text("piece").notNull(),
+    pieceOrdre: integer("piece_ordre").notNull().default(0),
+    libelle: text("libelle").notNull(),
+    ordre: integer("ordre").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("menage_referentiels_tenant_logement_piece_libelle_uq").on(
+      t.tenantId,
+      t.logementId,
+      t.piece,
+      t.libelle,
+    ),
+    index("menage_referentiels_tenant_logement_idx").on(
+      t.tenantId,
+      t.logementId,
+      t.pieceOrdre,
+      t.ordre,
+    ),
   ],
 );
 
@@ -2473,6 +2508,8 @@ export type MenageRow = typeof menages.$inferSelect;
 export type NewMenageRow = typeof menages.$inferInsert;
 export type MenageTacheRow = typeof menageTaches.$inferSelect;
 export type NewMenageTacheRow = typeof menageTaches.$inferInsert;
+export type MenageReferentielRow = typeof menageReferentiels.$inferSelect;
+export type NewMenageReferentielRow = typeof menageReferentiels.$inferInsert;
 export type QuestionnaireRow = typeof questionnaires.$inferSelect;
 export type NewQuestionnaireRow = typeof questionnaires.$inferInsert;
 export type PhraseRow = typeof phrases.$inferSelect;

@@ -21,6 +21,14 @@
       <p class="text-encre-douce">
         {t.detailResume(data.menage.date, data.menage.statutLabel, data.avancement.faites, data.avancement.total, data.avancement.pourcentage)}
       </p>
+      {#if data.avancementParPiece.pieces.length > 0}
+        <p class="text-sm text-encre-faine">
+          {t.piecesResume(
+            data.avancementParPiece.pieces.filter((piece) => piece.complete).length,
+            data.avancementParPiece.pieces.length,
+          )}
+        </p>
+      {/if}
     </div>
     <a class="ui-lien-action text-sm" href={`/hote/menage?logement=${data.logement.id}`}>
       {t.tousMenages}
@@ -56,26 +64,42 @@
       <form method="POST" action="?/enregistrer" class="space-y-4">
         <input type="hidden" name="id" value={data.menage.id} />
 
-        <fieldset class="space-y-2">
-          <legend class="text-sm font-semibold">{t.checklist}</legend>
-          {#each data.menage.taches as tache, index (index)}
-            <label
-              class="flex min-h-11 min-w-11 items-center gap-3 rounded-controle border border-bordure p-3 text-sm"
-            >
-              <input
-                type="checkbox"
-                name={`tache-${index}`}
-                defaultChecked={tache.fait}
-              />
-              <input
-                class="ui-champ flex-1"
-                name={`libelle-${index}`}
-                defaultValue={tache.libelle}
-                maxlength="120"
-              />
-            </label>
+        <div class="space-y-4">
+          {#each data.pieces as piece (piece.piece === "" ? "~sans-piece" : piece.piece)}
+            {@const avancementPiece = data.avancementParPiece.pieces.find(
+              (entree) => entree.piece === piece.piece,
+            )}
+            <fieldset class="space-y-2 rounded-controle border border-bordure p-3">
+              <legend class="text-sm font-semibold">
+                {piece.piece === "" ? t.pieceGenerale : piece.piece}
+                {#if avancementPiece}
+                  <span class="font-normal text-encre-faine">
+                    {t.pieceAvancement(avancementPiece.faites, avancementPiece.total)}
+                    {#if avancementPiece.complete}· {t.pieceComplete}{/if}
+                  </span>
+                {/if}
+              </legend>
+              {#each piece.taches as tache (tache.index)}
+                <label
+                  class="flex min-h-11 min-w-11 items-center gap-3 rounded-controle border border-bordure p-3 text-sm"
+                >
+                  <input type="hidden" name={`piece-${tache.index}`} value={piece.piece} />
+                  <input
+                    type="checkbox"
+                    name={`tache-${tache.index}`}
+                    defaultChecked={tache.fait}
+                  />
+                  <input
+                    class="ui-champ flex-1"
+                    name={`libelle-${tache.index}`}
+                    defaultValue={tache.libelle}
+                    maxlength="120"
+                  />
+                </label>
+              {/each}
+            </fieldset>
           {/each}
-        </fieldset>
+        </div>
 
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="ui-champ-groupe">
@@ -230,6 +254,9 @@
   <nav class="flex flex-wrap gap-4 text-sm">
     <a class="ui-lien-action" href={`/hote/menage?logement=${data.logement.id}`}>
       {t.tousMenages}
+    </a>
+    <a class="ui-lien-action" href={`/hote/menage/referentiel?logement=${data.logement.id}`}>
+      {t.reglerReferentiel}
     </a>
     <a class="ui-lien-action" href={`/hote/etats-des-lieux?logement=${data.logement.id}`}>
       {t.etatsDesLieux}

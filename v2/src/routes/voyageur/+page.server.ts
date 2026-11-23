@@ -33,6 +33,7 @@ import { DrizzleIncidentRepository } from "@/infrastructure/db/repositories/inci
 import { DrizzleLieuxTourismeRepository } from "@/infrastructure/db/repositories/lieux-tourisme-repository";
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { DrizzleMemoireRepository } from "@/infrastructure/db/repositories/memoire-repository";
+import { DrizzleMenageReferentielRepository } from "@/infrastructure/db/repositories/menage-referentiel-repository";
 import { DrizzleMenagesRepository } from "@/infrastructure/db/repositories/menages-repository";
 import { DrizzlePreferencesSejourRepository } from "@/infrastructure/db/repositories/preferences-sejour-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
@@ -286,6 +287,7 @@ export const actions = {
           new DrizzleMenagesRepository(),
           new DrizzleReservationRepository(),
           new DrizzleLogementRepository(),
+          new DrizzleMenageReferentielRepository(),
         ).executer({
           tenantId: payload.tenantId,
           logementId: reservation.logementId,

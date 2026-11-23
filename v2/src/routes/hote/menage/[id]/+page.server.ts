@@ -7,7 +7,9 @@ import { AjouterPhotoPreuve } from "@/application/use-cases/ajouter-photo-preuve
 import { ErreurMetier } from "@/domain/erreurs";
 import {
   avancementMenage,
+  avancementPieces,
   LIBELLES_STATUT_MENAGE,
+  piecesDepuisTaches,
   STATUTS_MENAGE,
 } from "@/domain/menage";
 import {
@@ -29,12 +31,13 @@ import type { Actions, PageServerLoad } from "./$types";
 
 function tachesDepuisFormulaire(
   donnees: FormData,
-): { libelle: string; fait: boolean }[] {
-  const taches: { libelle: string; fait: boolean }[] = [];
+): { piece: string; libelle: string; fait: boolean }[] {
+  const taches: { piece: string; libelle: string; fait: boolean }[] = [];
   for (let index = 0; ; index += 1) {
     const libelle = donnees.get(`libelle-${index}`);
     if (libelle === null) break;
     taches.push({
+      piece: String(donnees.get(`piece-${index}`) ?? ""),
       libelle: String(libelle),
       fait: donnees.get(`tache-${index}`) === "on",
     });
@@ -60,6 +63,16 @@ export const load: PageServerLoad = async (event) => {
     menage.logementId,
   );
   const avancement = avancementMenage(menage.taches);
+  // FR-035 : la checklist se coche pièce par pièce — les lignes sont groupées
+  // par pièce, dans l'ordre du référentiel du logement, avec l'index de
+  // formulaire de chaque ligne (les champs repartent dans cet ordre au save).
+  const piecesGroupees = piecesDepuisTaches(menage.taches);
+  let indexLigne = 0;
+  const pieces = piecesGroupees.map((piece) => ({
+    piece: piece.piece,
+    taches: piece.taches.map((tache) => ({ ...tache, index: indexLigne++ })),
+  }));
+  const avancementParPiece = avancementPieces(piecesGroupees);
   const photos = await new DrizzlePhotoPreuveRepository().listerParMenage(
     tenantId,
     menage.id,
@@ -86,6 +99,8 @@ export const load: PageServerLoad = async (event) => {
       ? { id: logement.id, nom: logement.nom, code: logement.code }
       : { id: menage.logementId, nom: "Logement introuvable", code: "—" },
     avancement,
+    pieces,
+    avancementParPiece,
     photos: photos.map((photo) => ({
       id: photo.id,
       url: `/api/photos/${photo.id}`,

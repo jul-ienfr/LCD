@@ -130,6 +130,20 @@
         <button class="ui-bouton ui-bouton--primaire" type="submit">
           {t.planifier}
         </button>
+        {#if data.referentiel}
+          <p class="text-sm text-encre-douce">
+            {data.referentiel.personnalise
+              ? t.referentielDuLogement(data.referentiel.pieces, data.referentiel.taches)
+              : t.referentielModele(data.referentiel.pieces, data.referentiel.taches)}
+            ·
+            <a
+              class="ui-lien-action"
+              href={`/hote/menage/referentiel?logement=${data.logement.id}`}
+            >
+              {t.reglerReferentiel}
+            </a>
+          </p>
+        {/if}
       </form>
     </section>
 
@@ -148,6 +162,7 @@
                 <th>{t.colDate}</th>
                 <th>{t.colSejour}</th>
                 <th>{t.colAvancement}</th>
+                <th>{t.colPieces}</th>
                 <th>{t.colStatut}</th>
                 <th>{t.colNotes}</th>
                 <th>{t.colQualite}</th>
@@ -162,6 +177,7 @@
                   <td>{menage.date}</td>
                   <td>{menage.sejour}</td>
                   <td>{menage.avancement}</td>
+                  <td>{menage.pieces}</td>
                   <td>{menage.statut}</td>
                   <td>{menage.notes}</td>
                   <td>{menage.score}</td>

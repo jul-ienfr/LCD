@@ -52,6 +52,7 @@ export class DrizzleMenagesRepository implements MenagesRepository {
           data.taches.map((tache, ordre) => ({
             tenantId: data.tenantId,
             menageId: row.id,
+            piece: tache.piece,
             libelle: tache.libelle,
             fait: tache.fait,
             ordre,
@@ -126,7 +127,7 @@ export class DrizzleMenagesRepository implements MenagesRepository {
         row,
         taches
           .filter((t) => t.menageId === row.id)
-          .map((t) => ({ libelle: t.libelle, fait: t.fait })),
+          .map((t) => ({ piece: t.piece, libelle: t.libelle, fait: t.fait })),
       ),
     );
   }
@@ -158,6 +159,7 @@ export class DrizzleMenagesRepository implements MenagesRepository {
           data.taches.map((tache, ordre) => ({
             tenantId,
             menageId: id,
+            piece: tache.piece,
             libelle: tache.libelle,
             fait: tache.fait,
             ordre,
@@ -209,7 +211,7 @@ export class DrizzleMenagesRepository implements MenagesRepository {
     );
     return versDomaine(
       row,
-      taches.map((t) => ({ libelle: t.libelle, fait: t.fait })),
+      taches.map((t) => ({ piece: t.piece, libelle: t.libelle, fait: t.fait })),
     );
   }
 }

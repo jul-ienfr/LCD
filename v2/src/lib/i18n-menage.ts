@@ -32,6 +32,29 @@ export interface TraductionsMenage {
   colCout: string;
   colDuree: string;
   ouvrir: string;
+  colPieces: string;
+  reglerReferentiel: string;
+  referentielModele: (pieces: number, taches: number) => string;
+  referentielDuLogement: (pieces: number, taches: number) => string;
+  pieceGenerale: string;
+  piecesResume: (completes: number, total: number) => string;
+  pieceAvancement: (faites: number, total: number) => string;
+  pieceComplete: string;
+  titrePageReferentiel: string;
+  espaceReferentiel: string;
+  referentielTitre: string;
+  referentielDescription: string;
+  referentielAide: string;
+  referentielEnregistre: string;
+  referentielReinitialise: string;
+  colPiece: string;
+  colTache: string;
+  ligneVide: string;
+  lignesAide: (libres: number) => string;
+  limites: (pieces: number, tachesParPiece: number, piece: number, tache: number) => string;
+  enregistrerReferentiel: string;
+  reinitialiserReferentiel: string;
+  reinitialiserAide: string;
   titrePageDetail: (date: string) => string;
   espaceMenage: (ref: string) => string;
   titreDetail: (nom: string) => string;
@@ -83,6 +106,34 @@ const FR: TraductionsMenage = {
   colDate: "Date", colSejour: "Séjour", colAvancement: "Avancement",
   colStatut: "Statut", colNotes: "Notes", colQualite: "Qualité",
   colCout: "Coût", colDuree: "Durée", ouvrir: "Ouvrir",
+  colPieces: "Pièces", reglerReferentiel: "Référentiel du logement",
+  referentielModele: (pieces, taches) =>
+    `Modèle LCD Parc : ${pieces} pièce${pieces > 1 ? "s" : ""}, ${taches} tâche${taches > 1 ? "s" : ""}.`,
+  referentielDuLogement: (pieces, taches) =>
+    `Référentiel propre au logement : ${pieces} pièce${pieces > 1 ? "s" : ""}, ${taches} tâche${taches > 1 ? "s" : ""}.`,
+  pieceGenerale: "Général (sans pièce)",
+  piecesResume: (completes, total) =>
+    `${completes} / ${total} pièce${total > 1 ? "s" : ""} complète${completes > 1 ? "s" : ""}`,
+  pieceAvancement: (faites, total) => `${faites} / ${total}`,
+  pieceComplete: "pièce complète",
+  titrePageReferentiel: "Référentiel ménage — LCD Parc",
+  espaceReferentiel: "Espace hôte · Exploitation · Référentiel",
+  referentielTitre: "Référentiel de checklist",
+  referentielDescription:
+    "Les pièces du logement et les tâches de chacune : chaque ménage planifié ensuite part de cette liste et se coche pièce par pièce.",
+  referentielAide:
+    "Enregistrer ici ne touche pas les ménages déjà créés : ils gardent la checklist copiée le jour de leur planification.",
+  referentielEnregistre: "Référentiel enregistré : les prochains ménages partent de cette liste.",
+  referentielReinitialise: "Référentiel remis au modèle LCD Parc.",
+  colPiece: "Pièce", colTache: "Tâche", ligneVide: "Nouvelle pièce",
+  lignesAide: (libres) =>
+    `Complétez les ${libres} dernières lignes pour ajouter des tâches ; cochez « Supprimer » pour retirer une ligne. Gardez les tâches d’une même pièce ensemble.`,
+  limites: (pieces, tachesParPiece, piece, tache) =>
+    `Limites : ${pieces} pièces, ${tachesParPiece} tâches par pièce, ${piece} caractères pour une pièce et ${tache} pour une tâche.`,
+  enregistrerReferentiel: "Enregistrer le référentiel",
+  reinitialiserReferentiel: "Revenir au modèle",
+  reinitialiserAide:
+    "Le logement repart du modèle LCD Parc ; les ménages déjà créés ne changent pas.",
   titrePageDetail: (date) => `Ménage ${date} — LCD Parc`,
   espaceMenage: (ref) => `Espace hôte · Ménage · ${ref}`,
   titreDetail: (nom) => `Ménage — ${nom}`,
@@ -120,6 +171,34 @@ const EN: TraductionsMenage = {
   colDate: "Date", colSejour: "Stay", colAvancement: "Progress",
   colStatut: "Status", colNotes: "Notes", colQualite: "Quality",
   colCout: "Cost", colDuree: "Duration", ouvrir: "Open",
+  colPieces: "Rooms", reglerReferentiel: "Property checklist",
+  referentielModele: (pieces, taches) =>
+    `LCD Parc template: ${pieces} room${pieces === 1 ? "" : "s"}, ${taches} task${taches === 1 ? "" : "s"}.`,
+  referentielDuLogement: (pieces, taches) =>
+    `Property's own checklist: ${pieces} room${pieces === 1 ? "" : "s"}, ${taches} task${taches === 1 ? "" : "s"}.`,
+  pieceGenerale: "General (no room)",
+  piecesResume: (completes, total) =>
+    `${completes} / ${total} room${total === 1 ? "" : "s"} complete`,
+  pieceAvancement: (faites, total) => `${faites} / ${total}`,
+  pieceComplete: "room complete",
+  titrePageReferentiel: "Cleaning checklist — LCD Parc",
+  espaceReferentiel: "Staff area · Operations · Checklist",
+  referentielTitre: "Checklist template",
+  referentielDescription:
+    "The property's rooms and the tasks in each: every cleaning planned afterwards starts from this list and is ticked room by room.",
+  referentielAide:
+    "Saving here does not touch cleanings already created: they keep the checklist copied on the day they were planned.",
+  referentielEnregistre: "Checklist saved: the next cleanings start from this list.",
+  referentielReinitialise: "Checklist reset to the LCD Parc template.",
+  colPiece: "Room", colTache: "Task", ligneVide: "New room",
+  lignesAide: (libres) =>
+    `Fill in the last ${libres} rows to add tasks; tick “Delete” to remove a row. Keep the tasks of one room together.`,
+  limites: (pieces, tachesParPiece, piece, tache) =>
+    `Limits: ${pieces} rooms, ${tachesParPiece} tasks per room, ${piece} characters for a room and ${tache} for a task.`,
+  enregistrerReferentiel: "Save the checklist",
+  reinitialiserReferentiel: "Back to the template",
+  reinitialiserAide:
+    "The property returns to the LCD Parc template; cleanings already created do not change.",
   titrePageDetail: (date) => `Cleaning ${date} — LCD Parc`,
   espaceMenage: (ref) => `Staff area · Cleaning · ${ref}`,
   titreDetail: (nom) => `Cleaning — ${nom}`,
@@ -157,6 +236,34 @@ const ES: TraductionsMenage = {
   colDate: "Fecha", colSejour: "Estancia", colAvancement: "Avance",
   colStatut: "Estado", colNotes: "Notas", colQualite: "Calidad",
   colCout: "Coste", colDuree: "Duración", ouvrir: "Abrir",
+  colPieces: "Estancias", reglerReferentiel: "Lista del alojamiento",
+  referentielModele: (pieces, taches) =>
+    `Modelo LCD Parc: ${pieces} estancia${pieces === 1 ? "" : "s"}, ${taches} tarea${taches === 1 ? "" : "s"}.`,
+  referentielDuLogement: (pieces, taches) =>
+    `Lista propia del alojamiento: ${pieces} estancia${pieces === 1 ? "" : "s"}, ${taches} tarea${taches === 1 ? "" : "s"}.`,
+  pieceGenerale: "General (sin estancia)",
+  piecesResume: (completes, total) =>
+    `${completes} / ${total} estancia${total === 1 ? "" : "s"} completa${completes === 1 ? "" : "s"}`,
+  pieceAvancement: (faites, total) => `${faites} / ${total}`,
+  pieceComplete: "estancia completa",
+  titrePageReferentiel: "Lista de limpieza — LCD Parc",
+  espaceReferentiel: "Área profesional · Explotación · Lista",
+  referentielTitre: "Lista de tareas de referencia",
+  referentielDescription:
+    "Las estancias del alojamiento y las tareas de cada una: cada limpieza planificada después parte de esta lista y se marca estancia por estancia.",
+  referentielAide:
+    "Guardar aquí no modifica las limpiezas ya creadas: conservan la lista copiada el día en que se planificaron.",
+  referentielEnregistre: "Lista guardada: las próximas limpiezas parten de esta lista.",
+  referentielReinitialise: "Lista restablecida al modelo LCD Parc.",
+  colPiece: "Estancia", colTache: "Tarea", ligneVide: "Nueva estancia",
+  lignesAide: (libres) =>
+    `Complete las ${libres} últimas filas para añadir tareas; marque «Eliminar» para quitar una fila. Mantenga juntas las tareas de una misma estancia.`,
+  limites: (pieces, tachesParPiece, piece, tache) =>
+    `Límites: ${pieces} estancias, ${tachesParPiece} tareas por estancia, ${piece} caracteres para una estancia y ${tache} para una tarea.`,
+  enregistrerReferentiel: "Guardar la lista",
+  reinitialiserReferentiel: "Volver al modelo",
+  reinitialiserAide:
+    "El alojamiento vuelve al modelo LCD Parc; las limpiezas ya creadas no cambian.",
   titrePageDetail: (date) => `Limpieza ${date} — LCD Parc`,
   espaceMenage: (ref) => `Área profesional · Limpieza · ${ref}`,
   titreDetail: (nom) => `Limpieza — ${nom}`,
@@ -194,6 +301,34 @@ const IT: TraductionsMenage = {
   colDate: "Data", colSejour: "Soggiorno", colAvancement: "Avanzamento",
   colStatut: "Stato", colNotes: "Note", colQualite: "Qualità",
   colCout: "Costo", colDuree: "Durata", ouvrir: "Apri",
+  colPieces: "Locali", reglerReferentiel: "Checklist dell’alloggio",
+  referentielModele: (pieces, taches) =>
+    `Modello LCD Parc: ${pieces} local${pieces === 1 ? "e" : "i"}, ${taches} attività.`,
+  referentielDuLogement: (pieces, taches) =>
+    `Checklist propria dell’alloggio: ${pieces} local${pieces === 1 ? "e" : "i"}, ${taches} attività.`,
+  pieceGenerale: "Generale (senza locale)",
+  piecesResume: (completes, total) =>
+    `${completes} / ${total} loca${total === 1 ? "le" : "li"} complet${completes === 1 ? "o" : "i"}`,
+  pieceAvancement: (faites, total) => `${faites} / ${total}`,
+  pieceComplete: "locale completo",
+  titrePageReferentiel: "Checklist pulizie — LCD Parc",
+  espaceReferentiel: "Area professionale · Operazioni · Checklist",
+  referentielTitre: "Checklist di riferimento",
+  referentielDescription:
+    "I locali dell’alloggio e le attività di ciascuno: ogni pulizia pianificata in seguito parte da questo elenco e si spunta locale per locale.",
+  referentielAide:
+    "Salvare qui non modifica le pulizie già create: conservano la checklist copiata il giorno della pianificazione.",
+  referentielEnregistre: "Checklist salvata: le prossime pulizie partono da questo elenco.",
+  referentielReinitialise: "Checklist riportata al modello LCD Parc.",
+  colPiece: "Locale", colTache: "Attività", ligneVide: "Nuovo locale",
+  lignesAide: (libres) =>
+    `Compili le ultime ${libres} righe per aggiungere attività; spunti «Elimina» per togliere una riga. Tenga insieme le attività di uno stesso locale.`,
+  limites: (pieces, tachesParPiece, piece, tache) =>
+    `Limiti: ${pieces} locali, ${tachesParPiece} attività per locale, ${piece} caratteri per un locale e ${tache} per un’attività.`,
+  enregistrerReferentiel: "Salva la checklist",
+  reinitialiserReferentiel: "Torna al modello",
+  reinitialiserAide:
+    "L’alloggio riparte dal modello LCD Parc; le pulizie già create non cambiano.",
   titrePageDetail: (date) => `Pulizia ${date} — LCD Parc`,
   espaceMenage: (ref) => `Area professionale · Pulizia · ${ref}`,
   titreDetail: (nom) => `Pulizia — ${nom}`,
@@ -231,6 +366,34 @@ const DE: TraductionsMenage = {
   colDate: "Datum", colSejour: "Aufenthalt", colAvancement: "Fortschritt",
   colStatut: "Status", colNotes: "Notizen", colQualite: "Qualität",
   colCout: "Kosten", colDuree: "Dauer", ouvrir: "Öffnen",
+  colPieces: "Räume", reglerReferentiel: "Checkliste der Unterkunft",
+  referentielModele: (pieces, taches) =>
+    `LCD-Parc-Vorlage: ${pieces} Raum/Räume, ${taches} Aufgabe(n).`,
+  referentielDuLogement: (pieces, taches) =>
+    `Eigene Checkliste der Unterkunft: ${pieces} Raum/Räume, ${taches} Aufgabe(n).`,
+  pieceGenerale: "Allgemein (ohne Raum)",
+  piecesResume: (completes, total) =>
+    `${completes} / ${total} Raum/Räume vollständig`,
+  pieceAvancement: (faites, total) => `${faites} / ${total}`,
+  pieceComplete: "Raum vollständig",
+  titrePageReferentiel: "Reinigungs-Checkliste — LCD Parc",
+  espaceReferentiel: "Profibereich · Betrieb · Checkliste",
+  referentielTitre: "Checklisten-Vorlage",
+  referentielDescription:
+    "Die Räume der Unterkunft und die Aufgaben in jedem: jede danach geplante Reinigung startet aus dieser Liste und wird Raum für Raum abgehakt.",
+  referentielAide:
+    "Das Speichern hier ändert bereits erstellte Reinigungen nicht: sie behalten die am Planungstag kopierte Checkliste.",
+  referentielEnregistre: "Checkliste gespeichert: die nächsten Reinigungen starten aus dieser Liste.",
+  referentielReinitialise: "Checkliste auf die LCD-Parc-Vorlage zurückgesetzt.",
+  colPiece: "Raum", colTache: "Aufgabe", ligneVide: "Neuer Raum",
+  lignesAide: (libres) =>
+    `Füllen Sie die letzten ${libres} Zeilen aus, um Aufgaben hinzuzufügen; markieren Sie „Löschen“, um eine Zeile zu entfernen. Halten Sie die Aufgaben eines Raums zusammen.`,
+  limites: (pieces, tachesParPiece, piece, tache) =>
+    `Grenzen: ${pieces} Räume, ${tachesParPiece} Aufgaben pro Raum, ${piece} Zeichen für einen Raum und ${tache} für eine Aufgabe.`,
+  enregistrerReferentiel: "Checkliste speichern",
+  reinitialiserReferentiel: "Zurück zur Vorlage",
+  reinitialiserAide:
+    "Die Unterkunft startet wieder aus der LCD-Parc-Vorlage; bereits erstellte Reinigungen ändern sich nicht.",
   titrePageDetail: (date) => `Reinigung ${date} — LCD Parc`,
   espaceMenage: (ref) => `Profibereich · Reinigung · ${ref}`,
   titreDetail: (nom) => `Reinigung — ${nom}`,

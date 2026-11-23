@@ -18,6 +18,7 @@ import type {
   MouvementStock,
 } from "@/domain/stocks";
 import { LogementRepositoryMemoire } from "../helpers/logement-repository-memoire";
+import { MenageReferentielRepositoryMemoire } from "../helpers/menage-referentiel-repository-memoire";
 import { ReservationRepositoryMemoire } from "../helpers/reservation-repository-memoire";
 
 class MemoireMenages implements MenagesRepository {
@@ -147,6 +148,7 @@ async function preparer() {
   });
   const menages = new MemoireMenages();
   const consommables = new MemoireConsommables();
+  const referentiels = new MenageReferentielRepositoryMemoire();
   await consommables.enregistrer({
     tenantId: "t1",
     logementId: logement.id,
@@ -158,7 +160,12 @@ async function preparer() {
     cible: 10,
     consoRotation: 2,
   });
-  const planifier = new PlanifierMenage(menages, reservations, logements);
+  const planifier = new PlanifierMenage(
+    menages,
+    reservations,
+    logements,
+    referentiels,
+  );
   const enregistrer = new EnregistrerMenage(menages, consommables);
   const evaluer = new EvaluerMenage(menages);
   return {
@@ -167,6 +174,7 @@ async function preparer() {
     sejourAutre,
     menages,
     consommables,
+    referentiels,
     planifier,
     enregistrer,
     evaluer,
@@ -193,6 +201,28 @@ describe("cas d'usage ménage", () => {
     expect(menage.notes).toBe("Draps propres");
     expect(menage.reservationId).toBe(sejour.id);
     expect(menage.taches.length).toBeGreaterThan(0);
+    expect(menages.items).toHaveLength(1);
+  });
+
+  it("part du référentiel du logement quand il existe (FR-035)", async () => {
+    const { logement, menages, referentiels, planifier } = await preparer();
+    referentiels.definir("t1", logement.id, [
+      { piece: "Cuisine", taches: ["Sols", "Four"] },
+      { piece: "Sanitaires", taches: ["WC"] },
+    ]);
+
+    const menage = await planifier.executer({
+      ...base,
+      logementId: logement.id,
+    });
+
+    expect(menage.taches).toEqual([
+      { piece: "Cuisine", libelle: "Sols", fait: false },
+      { piece: "Cuisine", libelle: "Four", fait: false },
+      { piece: "Sanitaires", libelle: "WC", fait: false },
+    ]);
+    // La checklist est une copie : le modèle du logement n'est pas modifié.
+    expect(referentiels.ecritures).toHaveLength(0);
     expect(menages.items).toHaveLength(1);
   });
 
@@ -239,7 +269,7 @@ describe("cas d'usage ménage", () => {
       id: menage.id,
       statut: "fait",
       notes: "",
-      taches: menage.taches.map((t) => ({ libelle: t.libelle, fait: true })),
+      taches: menage.taches.map((t) => ({ ...t, fait: true })),
       qui: "menage@lcd.test",
     });
     expect(fait.statut).toBe("fait");
@@ -308,7 +338,7 @@ describe("cas d'usage ménage", () => {
       id: menage.id,
       statut: "fait",
       notes: "",
-      taches: menage.taches.map((t) => ({ libelle: t.libelle, fait: true })),
+      taches: menage.taches.map((t) => ({ ...t, fait: true })),
       qui: "menage@lcd.test",
     });
 
