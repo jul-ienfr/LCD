@@ -1,3 +1,8 @@
+# Supervision locale (dev) : Uptime Kuma + Prometheus contre le serveur de
+# développement sur l'hôte (`npm run dev`, port 3000). Le dossier `monitoring/`
+# est partagé avec la production ; `web:host-gateway` fait pointer la cible
+# `web:3000` du scrape vers l'hôte. Créer un jeton vide si absent :
+#   touch monitoring/metrics_token
 services:
   uptime-kuma:
     image: louislam/uptime-kuma:1
@@ -8,5 +13,20 @@ services:
     volumes:
       - uptime-kuma:/app/data
 
+  prometheus:
+    image: prom/prometheus:v3
+    container_name: lcd-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "web:host-gateway"
+    volumes:
+      - ./monitoring:/etc/prometheus/lcd:ro
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/lcd/prometheus.yml
+
 volumes:
   uptime-kuma:
+  prometheus-data:

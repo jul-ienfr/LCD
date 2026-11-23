@@ -103,12 +103,35 @@ services:
     networks:
       - lcd
 
+  # Scraper des métriques applicatives (FR-019). Le dossier monitoring/ est
+  # monté en lecture seule : `prometheus.yml` (versionné) et `metrics_token`
+  # (régénéré depuis .env.prod par scripts/deployer.sh, jamais versionné).
+  # Prometheus lit le jeton à chaque scrape : une rotation ne demande pas de
+  # redémarrage. Démarrage : --profile monitoring (voir v2/MONITORING.md).
+  prometheus:
+    image: prom/prometheus:v3
+    container_name: lcd-prometheus
+    restart: unless-stopped
+    logging: *default-logging
+    profiles: ["monitoring"]
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./monitoring:/etc/prometheus/lcd:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/lcd/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+    networks:
+      - lcd
+
 volumes:
   pgdata:
   photos:
   caddy_data:
   caddy_config:
   uptime_kuma:
+  prometheus_data:
 
 networks:
   lcd:

@@ -1,6 +1,23 @@
+/**
+ * Exposition Prometheus (spec 006, FR-019).
+ *
+ * Les compteurs d'exploitation sont dérivés de la base à chaque scrape
+ * (`metriques-exploitation.ts`) : ils survivent au redémarrage et restent
+ * justes. Si la base est injoignable, les séries de compteurs sont omises et
+ * `lcd_compteurs_collectes` vaut 0 — la panne reste visible côté Prometheus
+ * sans casser l'endpoint (il sert aussi de sonde de vie).
+ *
+ * Scrape configuré : `monitoring/prometheus.yml` (service compose sous le
+ * profil `monitoring`, jeton lu par `credentials_file`).
+ */
+
 import { sql } from "drizzle-orm";
 import { env } from "@/lib/env";
 import { db } from "@/infrastructure/db/client";
+import {
+  lignesPrometheus,
+  lireCompteursExploitation,
+} from "@/lib/server/metriques-exploitation";
 import type { RequestHandler } from "./$types";
 
 const debut = Date.now();
@@ -22,6 +39,7 @@ export const GET: RequestHandler = async ({ request }) => {
     pret = 0;
   }
   const latence = Math.round(performance.now() - t0);
+
   const lignes = [
     "# HELP lcd_up Processus applicatif joignable.",
     "# TYPE lcd_up gauge",
@@ -35,8 +53,22 @@ export const GET: RequestHandler = async ({ request }) => {
     "# HELP lcd_db_latency_ms Latence du ping base de données.",
     "# TYPE lcd_db_latency_ms gauge",
     `lcd_db_latency_ms ${latence}`,
-    "",
   ];
+
+  // Compteurs dérivés de la base : best-effort, jamais bloquants.
+  let collectes = 0;
+  try {
+    lignes.push(...lignesPrometheus(await lireCompteursExploitation()));
+    collectes = 1;
+  } catch {
+    collectes = 0;
+  }
+  lignes.push(
+    "# HELP lcd_compteurs_collectes Les compteurs dérivés de la base ont été lus.",
+    "# TYPE lcd_compteurs_collectes gauge",
+    `lcd_compteurs_collectes ${collectes}`,
+    "",
+  );
 
   return new Response(lignes.join("\n"), {
     headers: {

@@ -34,6 +34,7 @@ export const load: PageServerLoad = async (event) => {
     cronSecretConfigure: Boolean(env.CRON_SECRET),
     relanceAutoActivee: env.RELANCE_AUTO_ENABLED,
     sentryDsnConfigure: Boolean(env.SENTRY_DSN),
+    metricsTokenConfigure: Boolean(env.METRICS_TOKEN),
     boxRuntimeConfigure: Boolean(env.BOX_RUNTIME_CONFIG),
     superAdminEmails: env.SUPER_ADMIN_EMAILS,
   });

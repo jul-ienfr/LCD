@@ -83,6 +83,15 @@ log "Démarrage web et Caddy"
 export LCD_VERSION="${COURANT}"
 "${COMPOSE[@]}" up -d web caddy
 
+# Jeton de scrape Prometheus (FR-019) : Prometheus n'étend pas les variables
+# d'environnement dans sa configuration, le jeton vit donc dans un fichier
+# monté, régénéré à chaque déploiement. Vide = endpoint public (comportement
+# documenté) ; Prometheus relit le fichier à chaque scrape, sans redémarrage.
+log "Jeton de métriques (Prometheus)"
+mkdir -p monitoring
+JETON_METRIQUES="$(sed -n 's/^METRICS_TOKEN=//p' .env.prod | tail -n 1)"
+printf '%s' "${JETON_METRIQUES}" > monitoring/metrics_token
+
 attendre() {
   local description="$1" commande="$2" essais="${3:-30}" delai="${4:-5}" i
   for i in $(seq 1 "${essais}"); do

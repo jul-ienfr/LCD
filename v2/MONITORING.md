@@ -3,7 +3,7 @@
 ```text
 Statut : ACTIF
 Propriétaire : exploitation
-Dernière vérification : 2026-11-14
+Dernière vérification : 2026-11-20
 Remplace / remplacé par : —
 Source de vérité : v2/compose.prod.yml
 ```
@@ -59,6 +59,50 @@ si le certificat expire dans moins de `ALERTE_TLS_JOURS` ou si la box n'a plus
 donné de heartbeat depuis `BOX_HEARTBEAT_MAX_MINUTES`. Configurer une
 notification (email, ntfy, Slack) et la tester avec un monitor volontairement
 faux.
+
+## Prometheus (métriques)
+
+`/api/metrics` expose l'état du processus (`lcd_up`, `lcd_ready`,
+`lcd_db_latency_ms`, `lcd_uptime_seconds`) et des compteurs **dérivés de la
+base** à chaque scrape (`lcd_executions_24h`, `lcd_alertes`,
+`lcd_evenements_stripe_24h`, `lcd_journaux_24h`, `lcd_connexions_bloquees`,
+`lcd_compteurs_collectes`) : ils survivent au redémarrage et ne divergent
+jamais de l'état réel. Si la base est injoignable, les séries de compteurs
+sont omises et `lcd_compteurs_collectes` vaut `0` — l'endpoint reste debout.
+
+```bash
+cd /opt/lcd/v2
+docker compose --env-file .env.prod -f compose.prod.yml --profile monitoring \
+  up -d prometheus
+```
+
+Prometheus écoute sur `127.0.0.1:9090` ; y accéder par tunnel SSH :
+
+```bash
+ssh -L 9090:127.0.0.1:9090 user@VPS
+# puis http://localhost:9090 → Status → Targets → cible `lcd` en UP
+```
+
+- Config versionnée : `monitoring/prometheus.yml` (scrape toutes les 60 s,
+  cible `web:3000`, rétention TSDB 30 jours) ;
+- jeton : Prometheus n'étend pas les variables d'environnement dans sa
+  configuration, le jeton est donc lu par `credentials_file` dans
+  `monitoring/metrics_token`, régénéré depuis `.env.prod` à chaque
+  déploiement (`scripts/deployer.sh`) et jamais versionné ; une rotation
+  prend effet au scrape suivant, sans redémarrage ;
+- sans `METRICS_TOKEN` (endpoint public), le fichier est vide et
+  l'application ignore l'en-tête — comportement assumé, la page `/secrets`
+  affiche l'état du jeton ;
+- contrôle rapide : `lcd_up 1` et `lcd_compteurs_collectes 1` dans les
+  résultats de la requête.
+
+En local (serveur de dev sur l'hôte) :
+
+```bash
+touch monitoring/metrics_token   # si absent
+docker compose -f compose.monitoring.yml up -d
+# http://localhost:9090 → cible `lcd` (web:host-gateway → :3000) en UP
+```
 
 ## Intégrations fournisseurs (disjoncteur)
 
@@ -119,6 +163,8 @@ df -h /var/lib/docker
 - [ ] monitors `/api/health`, `/api/ready`, `/login`, `/api/health/systeme` ;
 - [ ] notification testée (email ou ntfy) ;
 - [ ] alerte sur `db: down`, `schema: pending` et `rls: unsafe` ;
+- [ ] Prometheus démarré (`--profile monitoring`), cible `lcd` en UP, jeton
+      régénéré au déploiement, `lcd_compteurs_collectes 1` ;
 - [ ] rotation des logs vérifiée (`docker inspect`) ;
 - [ ] alerte critique du disjoncteur fournisseur testée (simuler le seuil
       d'échecs sur une affectation de recette, vérifier l'email et la pause) ;

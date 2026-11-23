@@ -1,0 +1,31 @@
+# Scraper des métriques applicatives (spec 006, FR-019).
+#
+# Cible : le service `web` du compose de production (ou le serveur de dev sur
+# l'hôte avec compose.monitoring.yml), sur le réseau interne. Prometheus
+# n'étend pas les variables d'environnement dans sa configuration
+# (`${METRICS_TOKEN}` serait envoyé littéralement — mesuré en local, 401) :
+# le jeton est lu depuis un fichier, régénéré par `scripts/deployer.sh` depuis
+# `.env.prod` à chaque déploiement. Sans `METRICS_TOKEN` (endpoint public), le
+# fichier est vide et l'en-tête `Authorization: Bearer ` est ignoré par
+# l'application.
+#
+# Le dossier `monitoring/` entier est monté dans le conteneur (au lieu d'un
+# fichier isolé) : Docker créerait un *dossier* à la place d'un fichier
+# `metrics_token` absent, et le scrape échouerait. Avec le montage de dossier,
+# un jeton manquant reste un simple fichier à créer (`touch`).
+#
+# Vérification : Status → Targets doit montrer la cible `lcd` en UP, et
+# `lcd_up` / `lcd_compteurs_collectes` valoir 1 (voir v2/MONITORING.md).
+
+global:
+  scrape_interval: 60s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: lcd
+    metrics_path: /api/metrics
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/lcd/metrics_token
+    static_configs:
+      - targets: ["web:3000"]

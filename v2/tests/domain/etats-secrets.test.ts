@@ -23,6 +23,7 @@ function config(overrides: Partial<ConfigSecrets> = {}): ConfigSecrets {
     cronSecretConfigure: true,
     relanceAutoActivee: false,
     sentryDsnConfigure: true,
+    metricsTokenConfigure: true,
     boxRuntimeConfigure: false,
     superAdminEmails: "owner@lcd.test",
     ...overrides,

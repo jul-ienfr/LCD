@@ -44,3 +44,6 @@ backups/
 
 # État local des déploiements (tag courant, précédent) :
 .deploiement/
+
+# Jeton de scrape Prometheus (regenerer par scripts/deployer.sh, jamais versionne) :
+/monitoring/metrics_token

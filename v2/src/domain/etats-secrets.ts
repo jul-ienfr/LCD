@@ -21,6 +21,7 @@ export interface ConfigSecrets {
   cronSecretConfigure: boolean;
   relanceAutoActivee: boolean;
   sentryDsnConfigure: boolean;
+  metricsTokenConfigure: boolean;
   boxRuntimeConfigure: boolean;
   superAdminEmails: string;
 }
@@ -180,6 +181,13 @@ export function etatSecrets(config: ConfigSecrets): ItemSecret[] {
     note: config.sentryDsnConfigure
       ? "Erreurs remontées à Sentry."
       : "Aucun reporting d'erreurs distant.",
+  });
+  items.push({
+    cle: "METRICS_TOKEN",
+    etat: config.metricsTokenConfigure ? "configure" : "absent",
+    note: config.metricsTokenConfigure
+      ? "Scrape Prometheus authentifié par jeton."
+      : "Métriques exposées sans jeton (endpoint public).",
   });
   items.push({
     cle: "BOX_RUNTIME_CONFIG",
