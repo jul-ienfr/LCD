@@ -17,6 +17,11 @@ import { genererRequestId } from "@/lib/server/logger";
 import { logErreur } from "@/lib/logger";
 import { COOKIE_LANGUE, langueRequete } from "@/lib/server/langue";
 import { cachePublic, enteteCacheHtml } from "@/lib/server/cache-http";
+import {
+  corpsErreurApi,
+  doitNormaliserErreurApi,
+  entetesErreurApi,
+} from "@/lib/server/api-erreurs";
 import { tenantEnLectureSeule } from "@/lib/server/lecture-seule";
 import { doitBloquerEcriture } from "@/domain/lecture-seule";
 import { doitSuspendreMaintenance } from "@/domain/maintenance";
@@ -238,22 +243,38 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
   // L'identifiant de requête suit la réponse : support, journaux, traces.
   entetes.set("x-request-id", requestId);
-  // FR-028 : cache public réservé aux pages vitrine anonymes ; toute réponse
-  // personnalisée (session, cookie de langue, écriture de cookie) est
-  // `private, no-store`. Une route qui a déjà posé son cache garde la main.
-  const cacheControl = enteteCacheHtml({
+  // FR-029 : une erreur serveur d'API part toujours en JSON, jamais en page
+  // HTML ; `handleError` l'a déjà journalisée avec l'identifiant de requête.
+  const normaliserErreurApi = doitNormaliserErreurApi({
     chemin: event.url.pathname,
-    methode: event.request.method,
     statut: reponse.status,
     contentType: reponse.headers.get("content-type"),
-    aSession: Boolean(event.locals.session),
-    aCookieLangue: Boolean(event.cookies.get(COOKIE_LANGUE)),
-    aSetCookie: reponse.headers.has("set-cookie"),
-    cacheControlExistant: reponse.headers.get("cache-control"),
   });
-  if (cacheControl) {
-    entetes.set("Cache-Control", cacheControl);
-    if (cachePublic(cacheControl)) entetes.set("Vary", "Cookie");
+  if (normaliserErreurApi) {
+    for (const [cle, valeur] of Object.entries(entetesErreurApi(requestId))) {
+      entetes.set(cle, valeur);
+    }
+    // Le corps HTML est remplacé : sa longueur et son empreinte ne valent plus.
+    entetes.delete("content-length");
+    entetes.delete("etag");
+  } else {
+    // FR-028 : cache public réservé aux pages vitrine anonymes ; toute réponse
+    // personnalisée (session, cookie de langue, écriture de cookie) est
+    // `private, no-store`. Une route qui a déjà posé son cache garde la main.
+    const cacheControl = enteteCacheHtml({
+      chemin: event.url.pathname,
+      methode: event.request.method,
+      statut: reponse.status,
+      contentType: reponse.headers.get("content-type"),
+      aSession: Boolean(event.locals.session),
+      aCookieLangue: Boolean(event.cookies.get(COOKIE_LANGUE)),
+      aSetCookie: reponse.headers.has("set-cookie"),
+      cacheControlExistant: reponse.headers.get("cache-control"),
+    });
+    if (cacheControl) {
+      entetes.set("Cache-Control", cacheControl);
+      if (cachePublic(cacheControl)) entetes.set("Vary", "Cookie");
+    }
   }
   if (cheminWidget(event.url.pathname)) {
     // Le widget doit pouvoir être embarqué sur un site externe.
@@ -263,11 +284,14 @@ export const handle: Handle = async ({ event, resolve }) => {
     );
     entetes.delete("X-Frame-Options");
   }
-  return new Response(reponse.body, {
-    status: reponse.status,
-    statusText: reponse.statusText,
-    headers: entetes,
-  });
+  return new Response(
+    normaliserErreurApi ? corpsErreurApi(requestId) : reponse.body,
+    {
+      status: reponse.status,
+      statusText: reponse.statusText,
+      headers: entetes,
+    },
+  );
 };
 
 /**
