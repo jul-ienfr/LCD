@@ -21,6 +21,7 @@ import { DrizzleMenageReferentielRepository } from "@/infrastructure/db/reposito
 import { DrizzlePhotoReferenceRepository } from "@/infrastructure/db/repositories/photo-reference-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { stockageFichiers } from "@/lib/server/stockage";
 import type { Actions, PageServerLoad } from "./$types";
@@ -159,6 +160,13 @@ export const actions = {
     const donnees = await event.request.formData();
     const logementId = String(donnees.get("logementId") ?? "");
     const photoId = String(donnees.get("photoId") ?? "");
+
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimer",
+      retour: `/hote/menage/photos-reference?logement=${encodeURIComponent(logementId)}`,
+      cible: photoId,
+    });
 
     try {
       const photo = await new SupprimerPhotoReference(

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { messageFils } from "@/lib/i18n-fils";
 
   let { data, form }: { data: PageData; form: { erreur?: string } | null } = $props();
@@ -44,10 +45,14 @@
                 {automatisation.actif ? t.desactiver : t.activer}
               </button>
             </form>
-            <form method="POST" action="?/supprimer">
-              <input type="hidden" name="id" value={automatisation.id} />
-              <button class="ui-bouton ui-bouton--fantome" type="submit">{t.supprimer}</button>
-            </form>
+            <ConfirmationAction
+              langue={data.langue}
+              action="supprimer"
+              cible={automatisation.id}
+              libelle={t.supprimer}
+              champs={{ id: automatisation.id }}
+              classe="ui-bouton ui-bouton--fantome"
+            />
           </div>
         </header>
         <form method="POST" action="?/modifier" class="space-y-3">

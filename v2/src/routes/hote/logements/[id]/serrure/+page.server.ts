@@ -31,6 +31,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { creerSerrureNuki } from "@/infrastructure/adapters/serrures/nuki";
 import { jourParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -123,6 +124,7 @@ export const load: PageServerLoad = async (event) => {
   const serrureDisponible = creerSerrureNuki().estDisponible();
 
   return {
+    langue: event.cookies.get("lcd_langue") ?? "fr",
     logement: { id: logement.id, code: logement.code, nom: logement.nom },
     serrureDisponible,
     acces: acces
@@ -266,6 +268,13 @@ export const actions: Actions = {
     if (!existant) {
       return fail(404, { ok: false, message: "Code d'accès introuvable." });
     }
+
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est révoqué.
+    exigerConfirmation(donnees, {
+      action: "revoquer",
+      retour: `/hote/logements/${encodeURIComponent(event.params.id)}/serrure`,
+      cible: accesId,
+    });
 
     try {
       // Le domaine décide : un accès déjà révoqué lève `ACCES_INVALIDE`.

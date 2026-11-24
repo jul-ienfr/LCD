@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
 
   let { data }: { data: PageData } = $props();
 
@@ -178,11 +179,13 @@
           stockée en clair.
         </p>
       </div>
-      <form method="POST" action="?/purger">
-        <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">
-          Purger au-delà de 13 mois
-        </button>
-      </form>
+      <ConfirmationAction
+        langue={data.langue}
+        action="purger"
+        cible="purger"
+        libelle="Purger au-delà de 13 mois"
+        classe="ui-bouton ui-bouton--secondaire ui-bouton--petit"
+      />
     </div>
     {#if data.evenements.length === 0}
       <p class="text-sm text-encre-faine">Aucun événement enregistré.</p>

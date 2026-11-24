@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsEntretienDomaine } from "@/lib/i18n-entretien-domaine";
   import type { ActionData, PageData } from "./$types";
 
@@ -105,12 +106,13 @@
                 </button>
               </form>
             {/if}
-            <form method="POST" action="?/supprimer">
-              <input type="hidden" name="id" value={domaine.id} />
-              <button class="ui-bouton ui-bouton--danger ui-bouton--petit" type="submit">
-                {t.dSupprimer}
-              </button>
-            </form>
+            <ConfirmationAction
+              langue={data.langue}
+              action="supprimer"
+              cible={domaine.id}
+              libelle={t.dSupprimer}
+              champs={{ id: domaine.id }}
+            />
           </div>
         </article>
       {/each}

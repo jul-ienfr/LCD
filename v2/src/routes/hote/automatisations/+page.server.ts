@@ -15,6 +15,7 @@ import { DrizzleAutomatisationsRepository } from "@/infrastructure/db/repositori
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsFils } from "@/lib/i18n-fils";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -197,6 +198,12 @@ export const actions: Actions = {
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
     const id = texte(donnees, "id");
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimer",
+      retour: "/hote/automatisations",
+      cible: id,
+    });
     const depot = new DrizzleAutomatisationsRepository();
     const supprime = await depot.supprimer(tenantId, id);
     if (!supprime) {

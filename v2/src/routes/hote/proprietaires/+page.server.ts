@@ -21,6 +21,7 @@ import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-rep
 import { auditLogs } from "@/infrastructure/db/schema";
 import { centimesDepuisSaisie, formaterEuros } from "@/lib/format";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -184,6 +185,13 @@ export const actions = {
     const donnees = await event.request.formData();
     const logementId = texte(donnees, "logementId");
     const userId = texte(donnees, "userId");
+
+    // Deux étapes (FR-039) : sans `confirmation`, l'accès reste accordé.
+    exigerConfirmation(donnees, {
+      action: "retirer",
+      retour: "/hote/proprietaires",
+      cible: `${logementId}:${userId}`,
+    });
 
     try {
       await new DrizzleLogementProprietaireRepository().retirer(tenantId, logementId, userId);

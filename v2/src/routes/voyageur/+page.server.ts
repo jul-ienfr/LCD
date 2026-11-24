@@ -41,6 +41,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { formaterEuros } from "@/lib/format";
 import { dictionnaire, langueDepuisParam } from "@/lib/i18n";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { mesurerParcours } from "@/lib/server/mesure-ergonomie";
 import { verifierTokenVoyageur } from "@/lib/voyageur-token";
 import type { Actions, PageServerLoad } from "./$types";
@@ -509,6 +510,15 @@ export const actions = {
     const repo = new DrizzleMemoireRepository();
     try {
       if (texte(donnees, "intention") === "oublier") {
+        // Deux étapes (FR-039) : sans `confirmation`, la mémoire est conservée.
+        exigerConfirmation(donnees, {
+          action: "memoire",
+          jeton: "oublier",
+          retour: token
+            ? `/voyageur?t=${encodeURIComponent(token)}&lang=${langue}`
+            : `/voyageur?lang=${langue}`,
+          cible: "oublier",
+        });
         await new OublierVoyageur(repo).executer(
           payload.tenantId,
           reservation.clientEmail,

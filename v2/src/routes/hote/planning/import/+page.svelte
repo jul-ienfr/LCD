@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsPlanningImport } from "@/lib/i18n-planning-import";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -342,13 +343,14 @@
                     {t.synchroniser}
                   </button>
                 </form>
-                <form method="POST" action="?/supprimerFlux">
-                  <input type="hidden" name="logementId" value={data.logement.id} />
-                  <input type="hidden" name="fluxId" value={flux.id} />
-                  <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">
-                    {t.supprimer}
-                  </button>
-                </form>
+                <ConfirmationAction
+                  langue={data.langue}
+                  action="supprimerFlux"
+                  cible={flux.id}
+                  libelle={t.supprimer}
+                  champs={{ logementId: data.logement.id, fluxId: flux.id }}
+                  classe="ui-bouton ui-bouton--secondaire ui-bouton--petit"
+                />
               </div>
             </li>
           {/each}

@@ -9,6 +9,7 @@ import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-rep
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsAcces } from "@/lib/i18n-acces";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -34,6 +35,7 @@ export const load: PageServerLoad = async (event) => {
 
   return {
     t,
+    langue,
     sessions: sessions.map((ligne) => ({
       id: ligne.id,
       userName: ligne.userName,
@@ -73,6 +75,13 @@ export const actions = {
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
     const id = String(donnees.get("id") ?? "");
+
+    // Deux étapes (FR-039) : sans `confirmation`, la session reste active.
+    exigerConfirmation(donnees, {
+      action: "revoquer",
+      retour: "/hote/acces",
+      cible: id,
+    });
 
     try {
       const revoquee = await new RevoquerSession(

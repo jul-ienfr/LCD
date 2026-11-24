@@ -33,7 +33,9 @@ describe("UI clés API — T710", () => {
       expect(LIBELLES_SCOPE_API[scope]).toBeTruthy();
     }
     expect(page).toContain('action="?/creer"');
-    expect(page).toContain('action="?/revoquer"');
+    expect(page).toContain("<ConfirmationAction");
+    expect(page).toContain('action="revoquer"');
+    expect(serveur).toContain("exigerConfirmation(donnees,");
     expect(page).toContain('name="scopes"');
   });
 

@@ -8,6 +8,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { auth } from "@/lib/server/auth";
 import { env } from "@/lib/env";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -140,6 +141,12 @@ export const actions = {
   desactiver2fa: async (event) => {
     const session = requireSession(event);
     const donnees = await event.request.formData();
+    // Deux étapes (FR-039) : sans `confirmation`, la 2FA reste active.
+    exigerConfirmation(donnees, {
+      action: "desactiver2fa",
+      retour: "/hote/securite",
+      cible: "2fa",
+    });
     try {
       await auth.api.disableTwoFactor({
         headers: event.request.headers,

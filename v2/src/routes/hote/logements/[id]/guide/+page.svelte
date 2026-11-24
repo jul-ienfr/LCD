@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 </script>
@@ -71,14 +72,18 @@
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">{section.libelle}</h2>
         {#if section.existe}
-          <form method="POST" action="?/supprimer">
-            <input type="hidden" name="logementId" value={data.logement.id} />
-            <input type="hidden" name="section" value={section.section} />
-            <input type="hidden" name="langue" value={data.langueActive} />
-            <button class="ui-bouton ui-bouton--fantome ui-bouton--petit text-danger" type="submit">
-              Supprimer
-            </button>
-          </form>
+          <ConfirmationAction
+            langue={data.langueActive}
+            action="supprimer"
+            cible={`${section.section}:${data.langueActive}`}
+            libelle="Supprimer"
+            champs={{
+              logementId: data.logement.id,
+              section: section.section,
+              langue: data.langueActive,
+            }}
+            classe="ui-bouton ui-bouton--fantome ui-bouton--petit text-danger"
+          />
         {/if}
       </div>
 

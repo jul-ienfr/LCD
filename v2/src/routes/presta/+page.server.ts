@@ -28,6 +28,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { heureParis, jourParis } from "@/lib/date-paris";
 import { emettreEvenement } from "@/lib/evenements";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -178,6 +179,17 @@ export const actions = {
     const statut = String(donnees.get("statut") ?? "") as StatutMission;
     if (!missionId || !STATUTS.includes(statut)) {
       redirect(303, "/presta?erreur=statut");
+    }
+
+    // Deux étapes (FR-039) : seule l'annulation est irréversible, elle exige
+    // donc le jeton « annuler » ; les autres statuts suivent leur cours.
+    if (statut === "annulee") {
+      exigerConfirmation(donnees, {
+        action: "statut",
+        jeton: "annuler",
+        retour: "/presta",
+        cible: missionId,
+      });
     }
 
     try {

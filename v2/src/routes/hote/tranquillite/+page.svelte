@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import {
     SEUIL_DB_JOUR,
     SEUIL_DB_NUIT,
@@ -213,20 +214,14 @@
                     {/if}
                   </td>
                   <td>
-                    <form method="POST" action="?/supprimer">
-                      <input
-                        type="hidden"
-                        name="logementId"
-                        value={logement.id}
-                      />
-                      <input type="hidden" name="id" value={preuve.id} />
-                      <button
-                        class="ui-bouton ui-bouton--fantome ui-bouton--petit text-danger"
-                        type="submit"
-                      >
-                        {t.supprimer}
-                      </button>
-                    </form>
+                    <ConfirmationAction
+                      langue={data.langue}
+                      action="supprimer"
+                      cible={preuve.id}
+                      libelle={t.supprimer}
+                      champs={{ logementId: logement.id, id: preuve.id }}
+                      classe="ui-bouton ui-bouton--fantome ui-bouton--petit text-danger"
+                    />
                   </td>
                 </tr>
               {/each}

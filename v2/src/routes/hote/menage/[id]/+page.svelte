@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsMenage } from "@/lib/i18n-menage";
 
   let { data }: { data: PageData } = $props();
@@ -191,16 +192,14 @@
             <p class="text-xs text-encre-douce">
               {photo.phaseLabel}{photo.piece ? ` · ${photo.piece}` : ` · ${t.sansPiece}`} · {photo.tailleMo} Mo
             </p>
-            <form method="POST" action="?/supprimerPhoto">
-              <input type="hidden" name="id" value={data.menage.id} />
-              <input type="hidden" name="photoId" value={photo.id} />
-              <button
-                class="ui-bouton ui-bouton--fantome text-xs"
-                type="submit"
-              >
-                {t.supprimer}
-              </button>
-            </form>
+            <ConfirmationAction
+              langue={data.langue}
+              action="supprimerPhoto"
+              cible={photo.id}
+              libelle={t.supprimer}
+              champs={{ id: data.menage.id, photoId: photo.id }}
+              classe="ui-bouton ui-bouton--fantome text-xs"
+            />
           </li>
         {/each}
       </ul>

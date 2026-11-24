@@ -10,6 +10,7 @@ import { DrizzleMissionRepository } from "@/infrastructure/db/repositories/missi
 import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -126,6 +127,13 @@ export const actions = {
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
     const id = texte(donnees, "id");
+
+    // Deux étapes (FR-039) : sans `confirmation`, l'offre reste en place.
+    exigerConfirmation(donnees, {
+      action: "retirer",
+      retour: "/hote/dispatch",
+      cible: id,
+    });
 
     try {
       const dispatch = await new RetirerDispatch(

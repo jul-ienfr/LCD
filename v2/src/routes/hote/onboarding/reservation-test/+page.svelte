@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
 
   let { data }: { data: PageData } = $props();
 
@@ -108,12 +109,13 @@
                   </a>
                 {/if}
                 {#if test.statut !== "annulee"}
-                  <form method="POST" action="?/annuler">
-                    <input name="reservationId" type="hidden" value={test.id} />
-                    <button class="ui-bouton ui-bouton--danger ui-bouton--petit" type="submit">
-                      Annuler
-                    </button>
-                  </form>
+                  <ConfirmationAction
+                    langue={null}
+                    action="annuler"
+                    cible={test.id}
+                    libelle="Annuler"
+                    champs={{ reservationId: test.id }}
+                  />
                 {/if}
               </div>
             </div>

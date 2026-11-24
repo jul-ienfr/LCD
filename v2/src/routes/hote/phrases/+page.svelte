@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { CATEGORIES_PHRASE } from "@/domain/phrase";
   import { traductionsPhrases } from "@/lib/i18n-phrases";
 
@@ -184,17 +185,14 @@
                   >
                     {t.modifier}
                   </a>
-                  <form method="POST" action="?/supprimer">
-                    <input
-                      type="hidden"
-                      name="logementId"
-                      value={logement.id}
-                    />
-                    <input type="hidden" name="id" value={phrase.id} />
-                    <button class="underline text-danger" type="submit">
-                      {t.supprimer}
-                    </button>
-                  </form>
+                  <ConfirmationAction
+                    langue={data.langue}
+                    action="supprimer"
+                    cible={phrase.id}
+                    libelle={t.supprimer}
+                    champs={{ logementId: logement.id, id: phrase.id }}
+                    classe="inline-flex min-h-11 items-center text-danger underline"
+                  />
                 </div>
               </div>
               <p class="font-medium">{phrase.titre}</p>

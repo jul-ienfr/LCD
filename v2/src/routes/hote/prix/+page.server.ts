@@ -41,6 +41,7 @@ import { centimesDepuisSaisie, formaterEuros } from "@/lib/format";
 import { traductionsPrix } from "@/lib/i18n-prix";
 import { logErreur } from "@/lib/logger";
 import { planifierSyncFournisseur } from "@/lib/server/fournisseur-outbox";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -948,6 +949,13 @@ export const actions = {
     const planId = texte(donnees, "planId");
     const moisParam = texte(donnees, "mois");
     const mois = moisValide(moisParam) ? moisParam : moisCourant();
+
+    // Deux étapes (FR-039) : sans `confirmation`, le plan est conservé.
+    exigerConfirmation(donnees, {
+      action: "supprimerPlan",
+      retour: lien(mois, logementId),
+      cible: planId,
+    });
 
     try {
       const plan = await planDuFormulaire(donnees, tenantId, logementId);

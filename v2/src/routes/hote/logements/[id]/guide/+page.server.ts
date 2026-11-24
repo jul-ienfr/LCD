@@ -19,6 +19,7 @@ import { DrizzleGuideContenusRepository } from "@/infrastructure/db/repositories
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { auditLogs, logements } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -158,6 +159,13 @@ export const actions = {
     if (!sectionGuideValide(section) || !langueGuideValide(langue)) {
       return fail(400, { ok: false, message: "Paramètres invalides." });
     }
+
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimer",
+      retour: `/hote/logements/${encodeURIComponent(logementId)}/guide?langue=${encodeURIComponent(langue)}`,
+      cible: `${section}:${langue}`,
+    });
 
     try {
       await new DrizzleGuideContenusRepository().supprimer(

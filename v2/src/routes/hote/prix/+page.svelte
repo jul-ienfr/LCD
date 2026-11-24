@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsPrix } from "@/lib/i18n-prix";
   import type { PageData } from "./$types";
 
@@ -311,14 +312,17 @@
                   {plan.actif ? t.desactiver : t.activer}
                 </button>
               </form>
-              <form method="POST" action="?/supprimerPlan">
-                <input name="logementId" type="hidden" value={data.logement?.id} />
-                <input name="planId" type="hidden" value={plan.id} />
-                <input name="mois" type="hidden" value={data.mois} />
-                <button class="ui-bouton ui-bouton--danger ui-bouton--petit" type="submit">
-                  {t.supprimer}
-                </button>
-              </form>
+              <ConfirmationAction
+                langue={data.langue}
+                action="supprimerPlan"
+                cible={plan.id}
+                libelle={t.supprimer}
+                champs={{
+                  logementId: data.logement?.id ?? "",
+                  planId: plan.id,
+                  mois: data.mois,
+                }}
+              />
             </li>
           {/each}
         </ul>

@@ -7,6 +7,7 @@ import {
 import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleSuiviRepository } from "@/infrastructure/db/repositories/suivi-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -32,6 +33,7 @@ export const load: PageServerLoad = async (event) => {
     ),
   ]);
   return {
+    langue: event.cookies.get("lcd_langue") ?? "fr",
     configuration: configuration ?? configurationSuiviVide(),
     evenements,
     resume,
@@ -100,6 +102,13 @@ export const actions: Actions = {
   purger: async (event) => {
     const session = requireRole(event, ["admin", "hote"]);
     const tenantId = tenantIdDeSession(session);
+    const donnees = await event.request.formData();
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est purgé.
+    exigerConfirmation(donnees, {
+      action: "purger",
+      retour: "/hote/suivi",
+      cible: "purger",
+    });
     const avant = new Date(
       Date.now() - 396 * 24 * 60 * 60 * 1_000,
     ).toISOString();

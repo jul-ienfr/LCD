@@ -8,6 +8,7 @@
    * l'impression). Aucun composant local ne la duplique.
    */
   import BarreActionMobile from "@/lib/components/ui/barre-action-mobile.svelte";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import CarteEssentielle from "@/lib/components/voyageur/carte-essentielle.svelte";
   import SommaireSejour from "@/lib/components/voyageur/sommaire-sejour.svelte";
   import { traductionsVoyageur } from "@/lib/i18n/public/voyageur";
@@ -637,12 +638,19 @@
               </button>
             </form>
             {#if data.memoire}
-              <form method="POST" action="?/memoire" class="mt-3">
-                <input type="hidden" name="token" value={data.token} />
-                <input type="hidden" name="langue" value={data.langue} />
-                <input type="hidden" name="intention" value="oublier" />
-                <button class="text-sm text-danger underline" type="submit">{d.memoireOublier}</button>
-              </form>
+              <ConfirmationAction
+                langue={data.langue}
+                action="memoire"
+                jeton="oublier"
+                cible="oublier"
+                libelle={d.memoireOublier}
+                champs={{
+                  token: data.token ?? "",
+                  langue: data.langue,
+                  intention: "oublier",
+                }}
+                classe="text-sm text-danger underline"
+              />
             {/if}
           </div>
         </details>

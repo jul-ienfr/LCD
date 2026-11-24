@@ -21,6 +21,7 @@ import { creerTokenCalendrier } from "@/lib/calendrier-token";
 import { env } from "@/lib/env";
 import { traductionsCanaux } from "@/lib/i18n-canaux";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -59,6 +60,7 @@ export const load: PageServerLoad = async (event) => {
   if (logements.length === 0) {
     return {
       t,
+      langue,
       vide: true,
       logements: [],
       logement: null,
@@ -154,6 +156,7 @@ export const load: PageServerLoad = async (event) => {
   const imports = canauxVue.filter((canal) => canal.flux !== null);
   return {
     t,
+    langue,
     vide: false,
     logements: logements.map((entree) => ({
       id: entree.id,
@@ -322,6 +325,13 @@ export const actions = {
       return fail(400, { ok: false, message: "Canal introuvable." });
     }
 
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimer",
+      retour: `/hote/planning/canaux?logement=${encodeURIComponent(logementId)}`,
+      cible: canalId,
+    });
+
     try {
       await new SupprimerCanal(repo).executer(tenantId, canalId);
       await withTenant(tenantId, (tx) =>
@@ -428,6 +438,13 @@ export const actions = {
         message: "Ce canal n’a pas de flux iCal à retirer.",
       });
     }
+
+    // Deux étapes (FR-039) : sans `confirmation`, le flux est conservé.
+    exigerConfirmation(donnees, {
+      action: "supprimerFlux",
+      retour: `/hote/planning/canaux?logement=${encodeURIComponent(logementId)}`,
+      cible: canalId,
+    });
 
     try {
       await new DrizzleFluxIcsRepository().supprimer(tenantId, flux.id);

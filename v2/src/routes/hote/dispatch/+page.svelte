@@ -1,6 +1,7 @@
 <script lang="ts">
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import Alerte from "@/lib/components/ui/alerte.svelte";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsDispatch } from "@/lib/i18n-dispatch";
   import type { PageData } from "./$types";
 
@@ -81,10 +82,14 @@
                       </span>
                       <p class="text-xs text-encre-douce">{mission.active.prestataire}</p>
                       {#if mission.active.statut === "proposee"}
-                        <form method="POST" action="?/retirer">
-                          <input name="id" type="hidden" value={mission.active.id} />
-                          <button class="text-xs text-danger underline" type="submit">{t.retirerOffre}</button>
-                        </form>
+                        <ConfirmationAction
+                          langue={data.langue}
+                          action="retirer"
+                          cible={mission.active.id}
+                          libelle={t.retirerOffre}
+                          champs={{ id: mission.active.id }}
+                          classe="text-xs text-danger underline"
+                        />
                       {/if}
                     </div>
                   {:else}

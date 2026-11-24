@@ -15,6 +15,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzlePhrasesRepository } from "@/infrastructure/db/repositories/phrases-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -163,6 +164,13 @@ export const actions = {
     const donnees = await event.request.formData();
     const logementId = texte(donnees, "logementId");
     const id = texte(donnees, "id");
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimer",
+      retour: "/hote/phrases",
+      cible: id,
+      parametres: { logement: logementId },
+    });
 
     try {
       await new SupprimerPhrase(new DrizzlePhrasesRepository()).executer(

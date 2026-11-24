@@ -16,6 +16,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { env } from "@/lib/env";
 import { jourParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -153,6 +154,13 @@ export const actions = {
     if (!reservationId) {
       redirect(303, "/hote/onboarding/reservation-test");
     }
+
+    // Deux étapes (FR-039) : sans `confirmation`, la réservation reste active.
+    exigerConfirmation(donnees, {
+      action: "annuler",
+      retour: "/hote/onboarding/reservation-test",
+      cible: reservationId,
+    });
 
     try {
       const reservation = await new DrizzleReservationRepository().annuler(

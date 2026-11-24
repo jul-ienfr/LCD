@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsSecurite } from "@/lib/i18n-securite";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -55,10 +56,17 @@
       </div>
     {:else if data.twoFactorEnabled}
       <p class="ui-alerte ui-alerte--succes">{t.deuxFaActive}</p>
-      <form method="POST" action="?/desactiver2fa" class="flex flex-wrap items-end gap-3">
+      {#snippet motDePasse()}
         <label class="ui-champ-groupe"><span class="ui-label">{t.mdpDesactiver}</span><input class="ui-champ" type="password" name="password" autocomplete="current-password" required /></label>
-        <button class="ui-bouton ui-bouton--danger" type="submit">{t.desactiver}</button>
-      </form>
+      {/snippet}
+      <ConfirmationAction
+        langue={data.langue}
+        action="desactiver2fa"
+        cible="2fa"
+        libelle={t.desactiver}
+        contenu={motDePasse}
+        classe="ui-bouton ui-bouton--danger"
+      />
     {:else}
       <form method="POST" action="?/activer2fa" class="space-y-3">
         <label class="ui-champ-groupe"><span class="ui-label">{t.mdpActiver}</span><input class="ui-champ" type="password" name="password" autocomplete="current-password" required /></label>

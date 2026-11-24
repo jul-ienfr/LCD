@@ -25,6 +25,7 @@ import { DrizzlePhotoPreuveRepository } from "@/infrastructure/db/repositories/p
 import { auditLogs } from "@/infrastructure/db/schema";
 import { centimesDepuisSaisie } from "@/lib/format";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { stockageFichiers } from "@/lib/server/stockage";
 import type { Actions, PageServerLoad } from "./$types";
@@ -287,6 +288,13 @@ export const actions = {
     const id = String(donnees.get("id") ?? "");
     const photoId = String(donnees.get("photoId") ?? "");
     const photos = new DrizzlePhotoPreuveRepository();
+
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimerPhoto",
+      retour: `/hote/menage/${encodeURIComponent(id)}`,
+      cible: photoId,
+    });
 
     try {
       const photo = await photos.trouverParId(tenantId, photoId);

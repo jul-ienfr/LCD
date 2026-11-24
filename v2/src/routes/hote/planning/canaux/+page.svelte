@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsCanaux } from "@/lib/i18n-canaux";
   import type { ActionData, PageData } from "./$types";
 
@@ -341,13 +342,14 @@
                   {t.synchroniser}
                 </button>
               </form>
-              <form method="POST" action="?/supprimerFlux">
-                <input type="hidden" name="logementId" value={data.logement.id} />
-                <input type="hidden" name="canalId" value={canal.id} />
-                <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">
-                  {t.retirerImport}
-                </button>
-              </form>
+              <ConfirmationAction
+                langue={data.langue}
+                action="supprimerFlux"
+                cible={canal.id}
+                libelle={t.retirerImport}
+                champs={{ logementId: data.logement.id, canalId: canal.id }}
+                classe="ui-bouton ui-bouton--secondaire ui-bouton--petit"
+              />
             {/if}
           </div>
 
@@ -446,13 +448,14 @@
               <p class="mt-2 text-sm text-encre-douce">
                 {t.supprimerAide}
               </p>
-              <form method="POST" action="?/supprimer" class="mt-3">
-                <input type="hidden" name="logementId" value={data.logement.id} />
-                <input type="hidden" name="canalId" value={canal.id} />
-                <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">
-                  {t.confirmerSuppression}
-                </button>
-              </form>
+              <ConfirmationAction
+                langue={data.langue}
+                action="supprimer"
+                cible={canal.id}
+                libelle={t.confirmerSuppression}
+                champs={{ logementId: data.logement.id, canalId: canal.id }}
+                classe="ui-bouton ui-bouton--secondaire ui-bouton--petit"
+              />
             </details>
           </details>
         </article>

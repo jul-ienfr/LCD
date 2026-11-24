@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsProprietaires } from "@/lib/i18n-proprietaires";
 
   let { data }: { data: PageData } = $props();
@@ -157,11 +158,13 @@
                 <p class="mt-1 text-xs text-encre-douce">{assignation.notes}</p>
               {/if}
             </div>
-            <form method="POST" action="?/retirer">
-              <input name="logementId" type="hidden" value={assignation.logementId} />
-              <input name="userId" type="hidden" value={assignation.userId} />
-              <button class="ui-bouton ui-bouton--danger ui-bouton--petit" type="submit">{t.retirer}</button>
-            </form>
+            <ConfirmationAction
+              langue={data.langue}
+              action="retirer"
+              cible={`${assignation.logementId}:${assignation.userId}`}
+              libelle={t.retirer}
+              champs={{ logementId: assignation.logementId, userId: assignation.userId }}
+            />
           </li>
         {/each}
       </ul>

@@ -28,6 +28,7 @@ import { traiterDemandesSync } from "@/lib/server/fournisseur-outbox";
 import { creerSynchroniseurFournisseur } from "@/lib/server/fournisseur-runtime";
 import { santeLogementFournisseur } from "@/lib/server/fournisseur-sante";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireSuperAdmin, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -264,6 +265,12 @@ export const actions = {
     if (!tenantId || !logementId) {
       return fail(400, { ok: false, message: "Logement manquant." });
     }
+    // Deux étapes (FR-039) : sans `confirmation`, le fournisseur reste affecté.
+    exigerConfirmation(donnees, {
+      action: "retirer",
+      retour: "/supervision/fournisseurs",
+      cible: `${tenantId}:${logementId}`,
+    });
     try {
       await new RetirerFournisseur(
         new DrizzleFournisseurRepository(),

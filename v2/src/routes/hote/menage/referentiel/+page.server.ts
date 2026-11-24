@@ -13,6 +13,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzleMenageReferentielRepository } from "@/infrastructure/db/repositories/menage-referentiel-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -160,6 +161,13 @@ export const actions = {
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
     const logementId = String(donnees.get("logementId") ?? "");
+
+    // Deux étapes (FR-039) : sans `confirmation`, le référentiel est conservé.
+    exigerConfirmation(donnees, {
+      action: "reinitialiser",
+      retour: `/hote/menage/referentiel?logement=${encodeURIComponent(logementId)}`,
+      cible: logementId,
+    });
 
     try {
       const pieces = await new ConfigurerReferentielMenage(

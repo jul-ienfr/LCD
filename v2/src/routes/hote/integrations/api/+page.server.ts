@@ -11,6 +11,7 @@ import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleClesApiRepository } from "@/infrastructure/db/repositories/cles-api-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -24,6 +25,7 @@ export const load: PageServerLoad = async (event) => {
   const cles = await new DrizzleClesApiRepository().listerParTenant(tenantId);
 
   return {
+    langue: event.cookies.get("lcd_langue") ?? "fr",
     cles: cles.map((cle) => ({
       id: cle.id,
       nom: cle.nom,
@@ -101,6 +103,12 @@ export const actions = {
     const donnees = await event.request.formData();
     const cleId = texte(donnees, "cleId");
     if (!cleId) redirect(303, "/hote/integrations/api");
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est révoqué.
+    exigerConfirmation(donnees, {
+      action: "revoquer",
+      retour: "/hote/integrations/api",
+      cible: cleId,
+    });
 
     try {
       const cle = await new DrizzleClesApiRepository().revoquer(

@@ -18,6 +18,7 @@ import { DrizzlePreuvesTranquilliteRepository } from "@/infrastructure/db/reposi
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsExploitation } from "@/lib/i18n-exploitation";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -164,6 +165,13 @@ export const actions = {
     const donnees = await event.request.formData();
     const logementId = texte(donnees, "logementId");
     const id = texte(donnees, "id");
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimer",
+      retour: "/hote/tranquillite",
+      cible: id,
+      parametres: { logement: logementId },
+    });
 
     try {
       await new SupprimerPreuve(

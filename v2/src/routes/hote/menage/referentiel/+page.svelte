@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsMenage } from "@/lib/i18n-menage";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -156,12 +157,14 @@
 
     <section class="ui-carte space-y-3">
       <p class="text-sm text-encre-douce">{t.reinitialiserAide}</p>
-      <form method="POST" action="?/reinitialiser">
-        <input type="hidden" name="logementId" value={data.logement.id} />
-        <button class="ui-bouton ui-bouton--secondaire" type="submit">
-          {t.reinitialiserReferentiel}
-        </button>
-      </form>
+      <ConfirmationAction
+        langue={data.langue}
+        action="reinitialiser"
+        cible={data.logement.id}
+        libelle={t.reinitialiserReferentiel}
+        champs={{ logementId: data.logement.id }}
+        classe="ui-bouton ui-bouton--secondaire"
+      />
     </section>
 
     <nav class="flex flex-wrap gap-4 text-sm">

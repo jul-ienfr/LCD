@@ -6,6 +6,7 @@ import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleWebhookRepository } from "@/infrastructure/db/repositories/webhook-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -101,6 +102,12 @@ export const actions = {
     const donnees = await event.request.formData();
     const webhookId = texte(donnees, "webhookId");
     if (!webhookId) redirect(303, "/hote/integrations");
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimer",
+      retour: "/hote/integrations",
+      cible: webhookId,
+    });
 
     try {
       await new GererWebhook(new DrizzleWebhookRepository()).supprimer(tenantId, webhookId);

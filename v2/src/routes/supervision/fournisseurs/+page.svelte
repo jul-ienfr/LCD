@@ -1,5 +1,6 @@
 <script lang="ts">
   import NavSuperAdmin from "@/lib/components/nav-super-admin.svelte";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import type { ActionData, PageData } from "./$types";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -566,24 +567,17 @@
                           {logement.actif ? "Suspendre" : "Reprendre"}
                         </button>
                       </form>
-                      <form method="POST" action="?/retirer">
-                        <input
-                          type="hidden"
-                          name="tenantId"
-                          value={logement.tenantId}
-                        />
-                        <input
-                          type="hidden"
-                          name="logementId"
-                          value={logement.logementId}
-                        />
-                        <button
-                          class="ui-bouton ui-bouton--fantome"
-                          type="submit"
-                        >
-                          Retirer
-                        </button>
-                      </form>
+                      <ConfirmationAction
+                        langue={null}
+                        action="retirer"
+                        cible={`${logement.tenantId}:${logement.logementId}`}
+                        libelle="Retirer"
+                        champs={{
+                          tenantId: logement.tenantId,
+                          logementId: logement.logementId,
+                        }}
+                        classe="ui-bouton ui-bouton--fantome"
+                      />
                     </div>
                   {/if}
                 </td>

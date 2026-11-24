@@ -1,5 +1,6 @@
 <script lang="ts">
   import { traductionsAcces } from "@/lib/i18n-acces";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import Kpi from "@/lib/components/ui/kpi.svelte";
   import type { PageData } from "./$types";
@@ -75,10 +76,13 @@
                 {#if ligne.estSoi}
                   <span class="text-xs text-encre-faine">{t.sessionCourante}</span>
                 {:else}
-                  <form method="POST" action="?/revoquer">
-                    <input name="id" type="hidden" value={ligne.id} />
-                    <button class="ui-bouton ui-bouton--danger ui-bouton--petit" type="submit">{t.revoquer}</button>
-                  </form>
+                  <ConfirmationAction
+                    langue={data.langue}
+                    action="revoquer"
+                    cible={ligne.id}
+                    libelle={t.revoquer}
+                    champs={{ id: ligne.id }}
+                  />
                 {/if}
               </td>
             </tr>

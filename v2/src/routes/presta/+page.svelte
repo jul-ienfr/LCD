@@ -10,6 +10,7 @@
    * refus, pointage, durée) sont assemblés ici à partir des valeurs brutes.
    */
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import {
     traductionsPresta,
     type CodeErreurPresta,
@@ -244,13 +245,15 @@
                 </form>
               {/if}
               {#if mission.transitions.includes("annulee")}
-                <form method="POST" action="?/statut">
-                  <input type="hidden" name="missionId" value={mission.id} />
-                  <input type="hidden" name="statut" value="annulee" />
-                  <button class="ui-bouton ui-bouton--secondaire ui-bouton--petit" type="submit">
-                    {t.annulerMission}
-                  </button>
-                </form>
+                <ConfirmationAction
+                  langue={data.langue}
+                  action="statut"
+                  jeton="annuler"
+                  cible={mission.id}
+                  libelle={t.annulerMission}
+                  champs={{ missionId: mission.id, statut: "annulee" }}
+                  classe="ui-bouton ui-bouton--secondaire ui-bouton--petit"
+                />
               {/if}
             </div>
           </li>

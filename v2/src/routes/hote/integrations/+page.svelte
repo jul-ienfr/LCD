@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsIntegrations } from "@/lib/i18n-integrations";
 
   let { data }: { data: PageData } = $props();
@@ -100,10 +101,13 @@
                   {t.secretLabel} : {webhook.secret}
                 </p>
               </div>
-              <form method="POST" action="?/supprimer">
-                <input name="webhookId" type="hidden" value={webhook.id} />
-                <button class="ui-bouton ui-bouton--danger ui-bouton--petit" type="submit">{t.supprimer}</button>
-              </form>
+              <ConfirmationAction
+                langue={data.langue}
+                action="supprimer"
+                cible={webhook.id}
+                libelle={t.supprimer}
+                champs={{ webhookId: webhook.id }}
+              />
             </div>
           </li>
         {/each}

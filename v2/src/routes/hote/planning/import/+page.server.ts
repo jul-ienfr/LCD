@@ -14,6 +14,7 @@ import { creerTokenCalendrier } from "@/lib/calendrier-token";
 import { env } from "@/lib/env";
 import { traductionsPlanningImport } from "@/lib/i18n-planning-import";
 import { logErreur } from "@/lib/logger";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -416,6 +417,13 @@ export const actions = {
         resultat: null,
       });
     }
+
+    // Deux étapes (FR-039) : sans `confirmation`, le flux est conservé.
+    exigerConfirmation(donnees, {
+      action: "supprimerFlux",
+      retour: `/hote/planning/import?logement=${encodeURIComponent(logementId)}`,
+      cible: fluxId,
+    });
 
     await repo.supprimer(tenantId, fluxId);
     await withTenant(tenantId, (tx) =>

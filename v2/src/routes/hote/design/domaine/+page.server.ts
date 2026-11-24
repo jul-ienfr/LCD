@@ -10,6 +10,7 @@ import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleDomainesRepository } from "@/infrastructure/db/repositories/domaines-repository";
 import { DrizzleSitesTenantsRepository } from "@/infrastructure/db/repositories/sites-tenants-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
+import { exigerConfirmation } from "@/lib/server/confirmation";
 import { verifierDnsTxt } from "@/lib/server/domaine-dns";
 import { traductionsEntretienDomaine } from "@/lib/i18n-entretien-domaine";
 import { logErreur } from "@/lib/logger";
@@ -54,9 +55,11 @@ export const load: PageServerLoad = async (event) => {
     new DrizzleSitesTenantsRepository().trouverParTenant(tenantId),
   ]);
   const ok = event.url.searchParams.get("ok");
-  const t = traductionsEntretienDomaine(event.cookies.get("lcd_langue") ?? "fr");
+  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const t = traductionsEntretienDomaine(langue);
   return {
     t,
+    langue,
     domaines,
     sitePublie: site?.statut === "publie",
     message:
@@ -159,6 +162,12 @@ export const actions = {
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
     const id = texte(donnees, "id");
+    // Deux étapes (FR-039) : sans `confirmation`, rien n'est supprimé.
+    exigerConfirmation(donnees, {
+      action: "supprimer",
+      retour: "/hote/design/domaine",
+      cible: id,
+    });
     const repo = new DrizzleDomainesRepository();
     const domaine = domaineParId(await repo.listerParTenant(tenantId), id);
     if (!domaine) return fail(404, { message: "Domaine introuvable." });

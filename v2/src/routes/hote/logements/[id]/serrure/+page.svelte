@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 </script>
@@ -169,8 +170,7 @@
               </div>
 
               {#if acces.statut === "actif"}
-                <form method="POST" action="?/revoquer" class="space-y-2">
-                  <input type="hidden" name="accesId" value={acces.id} />
+                {#snippet motifRevocation()}
                   <label class="ui-label" for="motif-{acces.id}">
                     Motif de révocation
                   </label>
@@ -183,10 +183,16 @@
                     required
                     placeholder="Départ anticipé, code perdu..."
                   ></textarea>
-                  <button class="ui-bouton ui-bouton--danger" type="submit">
-                    Révoquer
-                  </button>
-                </form>
+                {/snippet}
+                <ConfirmationAction
+                  langue={data.langue}
+                  action="revoquer"
+                  cible={acces.id}
+                  libelle="Révoquer"
+                  champs={{ accesId: acces.id }}
+                  contenu={motifRevocation}
+                  classe="ui-bouton ui-bouton--danger"
+                />
               {/if}
             </div>
           </li>
