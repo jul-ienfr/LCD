@@ -1,0 +1,61 @@
+name: v2-verif-sauvegarde
+
+# Vérification quotidienne de la copie hors-site (spec 006, FR-006).
+#
+# `v2-backup.yml` produit la sauvegarde et la publie comme artefact GitHub,
+# donc hors du VPS. Ce job vérifie que cette copie existe encore et date de
+# moins de 26 h ; sinon il alerte le canal d'exploitation.
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verifier:
+    if: vars.LCD_APP_URL != ''
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v2
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      AGE_MAX_HEURES: "26"
+      PREUVE: preuves/sauvegarde-hors-site.json
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Vérifier la dernière copie hors-site
+        run: npm run db:verifier-hors-site
+
+      - name: Publier la preuve
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preuve-sauvegarde-hors-site-${{ github.run_id }}
+          path: v2/preuves/sauvegarde-hors-site.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Alerter en cas de copie absente ou trop ancienne
+        if: failure()
+        env:
+          WEBHOOK: ${{ secrets.ALERTE_WEBHOOK_URL }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ -z "${WEBHOOK}" ]; then
+            echo "::warning::ALERTE_WEBHOOK_URL absent : alerte non envoyée (voir T-11)."
+            exit 0
+          fi
+          message="Sauvegarde hors-site absente ou trop ancienne (run ${RUN_ID}). Runbook : v2/BACKUPS.md"
+          curl -fsS --max-time 15 -X POST -H 'content-type: application/json' \
+            --data "$(printf '{"source":"sauvegarde-hors-site","severite":"critique","message":"%s","runbook":"v2/BACKUPS.md"}' "${message}")" \
+            "${WEBHOOK}" || echo "::warning::Webhook d'alerte injoignable."

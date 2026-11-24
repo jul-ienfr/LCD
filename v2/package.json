@@ -48,6 +48,7 @@
     "db:nettoyer-recette": "node scripts/nettoyer-donnees-recette.mjs",
     "db:backup": "node scripts/backup.mjs",
     "db:restore-test": "node scripts/restore-test.mjs",
+    "db:verifier-hors-site": "node scripts/verifier-sauvegarde-externe.mjs",
     "db:purge-blobs": "tsx --env-file-if-exists=.env.local scripts/purger-blobs.ts",
     "mcp:lecture": "tsx scripts/mcp-lecture.ts",
     "db:purge-suivi": "tsx --env-file-if-exists=.env.local scripts/purger-suivi.ts",

@@ -137,3 +137,58 @@ rétention) et publie un artefact privé de 30 jours.
 > Le cron VPS historique est chiffré si la clé est présente dans `.env.prod`
 > (voir `DEPLOIEMENT-VPS.md`). Dans les deux cas, conserver la clé hors du
 > serveur et hors du dépôt.
+
+## Copie hors-site et preuve de fraîcheur (FR-006)
+
+L'artefact GitHub produit par `v2-backup.yml` **est** la copie hors-site : il
+quitte le VPS, vit chez GitHub (privé au dépôt) et reste 30 jours. Aucun rsync
+vers un second serveur n'est nécessaire pour satisfaire le RPO de 24 h.
+
+Le workflow `.github/workflows/v2-verif-sauvegarde.yml` s'exécute chaque jour à
+04:00 UTC, interroge l'API des artefacts (`npm run db:verifier-hors-site`) et
+échoue si la plus récente copie `lcd-backup-*` dépasse **26 h** (24 h de RPO +
+2 h de marge). La preuve datée est publiée comme artefact
+`preuve-sauvegarde-hors-site-<run>`. En cas d'absence, de copie trop ancienne
+ou d'erreur d'API, le workflow alerte `ALERTE_WEBHOOK_URL` (T-11) et échoue —
+une copie manquante ne reste jamais silencieuse.
+
+Le job `v2-backup` alerte aussi le même canal quand la sauvegarde elle-même
+échoue. Pour rejouer une vérification à la main :
+
+```bash
+GITHUB_REPOSITORY=owner/repo GITHUB_TOKEN=... npm run db:verifier-hors-site
+```
+
+## Photos : couverture et preuve de complétude (FR-007)
+
+`scripts/backup-vps.sh` archive le volume photos en même temps que la base :
+`docker compose exec web tar -czf - -C /var/lib/lcd/photos .` produit
+`backups/photos-<horodatage>.tar.gz`, avec checksum SHA-256 et, si
+`BACKUP_ENCRYPTION_KEY` est défini, la même enveloppe AES-256-GCM que les dumps
+(`.tar.gz.enc`, dump clair supprimé, checksum recalculé sur le chiffré).
+
+À côté de l'archive, `photos-<horodatage>.json` porte la preuve de complétude :
+
+```json
+{ "fichiers": 1284, "fichiersArchive": 1284, "octets": 734003200, "complet": true }
+```
+
+Le script compte les fichiers vivants (`find -type f`) et les entrées de
+l'archive (`tar -tzf`), puis compare : une différence marque `complet: false`,
+refuse la sauvegarde et alerte le canal d'exploitation. La même rétention de
+14 jours s'applique aux archives photos, à leurs checksums et aux manifestes.
+
+Un échec (dump, tar, incohérence de comptage, copie hors-site) appelle
+`scripts/alerter-exploitation.mjs`, qui poste sur `/api/cron/alerte` avec le
+secret cron : l'alerte suit le même cycle que celles du produit (anti-tempête,
+runbook, e-mail). Si `OFFSITE_CIBLE` est défini dans `.env.prod`,
+`scripts/copier-hors-site.sh` copie la dernière sauvegarde (base + photos) vers
+cette cible (chemin monté ou `user@hote:/chemin` via rsync) et revérifie chaque
+checksum sur la cible.
+
+Vérifier la couverture photos en local :
+
+```bash
+npx vitest run tests/ops/sauvegarde-photos.test.ts
+bash -n scripts/backup-vps.sh scripts/copier-hors-site.sh
+```

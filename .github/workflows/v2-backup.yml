@@ -52,3 +52,20 @@ jobs:
             v2/backups/*.sql.gz.json
             v2/backups/*.sql.gz.enc.json
           retention-days: 30
+
+      # FR-006 : l'absence de copie hors-site doit alerter, jamais rester
+      # silencieuse. L'artefact ci-dessus est la copie hors-site (GitHub).
+      - name: Alerter en cas d'échec de la sauvegarde
+        if: failure()
+        env:
+          WEBHOOK: ${{ secrets.ALERTE_WEBHOOK_URL }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ -z "${WEBHOOK}" ]; then
+            echo "::warning::ALERTE_WEBHOOK_URL absent : alerte non envoyée (voir T-11)."
+            exit 0
+          fi
+          message="Sauvegarde quotidienne en échec (run ${RUN_ID}). Runbook : v2/BACKUPS.md"
+          curl -fsS --max-time 15 -X POST -H 'content-type: application/json' \
+            --data "$(printf '{"source":"sauvegarde","severite":"critique","message":"%s","runbook":"v2/BACKUPS.md"}' "${message}")" \
+            "${WEBHOOK}" || echo "::warning::Webhook d'alerte injoignable."
