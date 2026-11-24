@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const statuts = $derived(traductionsStatuts(data.langue));
 </script>
 
 <svelte:head>
@@ -24,7 +27,7 @@
   {#if data.ok}
     <p class="ui-alerte ui-alerte--succes" role="status">Ticket créé.</p>
   {:else if form?.message}
-    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role="status">{form.message}</p>
+    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role={form.ok ? "status" : "alert"}>{form.message}</p>
   {/if}
 
   <section class="ui-carte">
@@ -53,7 +56,7 @@
           <li class="p-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <a class="font-medium underline" href={`/support/${ticket.id}`}>{ticket.sujet}</a>
-              <span class="ui-etiquette">{ticket.statut} · {ticket.priorite}</span>
+              <span class="ui-etiquette">{statuts[ticket.statut] ?? ticket.statut} · {statuts[ticket.priorite] ?? ticket.priorite}</span>
             </div>
             <p class="mt-1 text-sm text-encre-faine">{ticket.ref} · {ticket.date}</p>
           </li>

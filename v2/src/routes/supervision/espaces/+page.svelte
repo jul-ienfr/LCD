@@ -1,8 +1,11 @@
 <script lang="ts">
   import NavSuperAdmin from "@/lib/components/nav-super-admin.svelte";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const statuts = $derived(traductionsStatuts(data.langue));
 
   const date = new Intl.DateTimeFormat("fr-FR", { dateStyle: "short" });
 </script>
@@ -181,7 +184,7 @@
               class="ui-badge"
               class:ui-badge--danger={espace.statut === "suspendu"}
             >
-              {espace.statut}
+              {statuts[espace.statut] ?? espace.statut}
             </span>
           </li>
         {/each}

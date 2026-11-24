@@ -20,6 +20,7 @@ export interface TraductionsNavigation {
   navigationPrincipale: string;
   apercuLectureSeule: (role: string) => string;
   tableau: string;
+  tableauDefilant: string;
   logements: string;
   planning: string;
   canaux: string;
@@ -91,6 +92,7 @@ const FR: TraductionsNavigation = {
   navigationPrincipale: "Navigation principale",
   apercuLectureSeule: (role) => `Aperçu lecture seule — rôle « ${role} ». Toute écriture est bloquée.`,
   tableau: "Tableau de bord",
+  tableauDefilant: "Tableau défilant",
   logements: "Logements",
   planning: "Planning",
   canaux: "Canaux",
@@ -166,6 +168,7 @@ const EN: TraductionsNavigation = {
   navigationPrincipale: "Main navigation",
   apercuLectureSeule: (role) => `Read-only preview — “${role}” role. All writes are blocked.`,
   tableau: "Dashboard",
+  tableauDefilant: "Scrollable table",
   logements: "Properties",
   planning: "Calendar",
   canaux: "Channels",
@@ -241,6 +244,7 @@ const ES: TraductionsNavigation = {
   navigationPrincipale: "Navegación principal",
   apercuLectureSeule: (role) => `Vista previa de solo lectura — rol «${role}». Toda escritura está bloqueada.`,
   tableau: "Panel",
+  tableauDefilant: "Tabla desplazable",
   logements: "Alojamientos",
   planning: "Calendario",
   canaux: "Canales",
@@ -316,6 +320,7 @@ const IT: TraductionsNavigation = {
   navigationPrincipale: "Navigazione principale",
   apercuLectureSeule: (role) => `Anteprima sola lettura — ruolo «${role}». Ogni scrittura è bloccata.`,
   tableau: "Dashboard",
+  tableauDefilant: "Tabella scorrevole",
   logements: "Alloggi",
   planning: "Calendario",
   canaux: "Canali",
@@ -391,6 +396,7 @@ const DE: TraductionsNavigation = {
   navigationPrincipale: "Hauptnavigation",
   apercuLectureSeule: (role) => `Schreibgeschützte Vorschau — Rolle „${role}“. Alle Schreibvorgänge sind gesperrt.`,
   tableau: "Dashboard",
+  tableauDefilant: "Scrollbare Tabelle",
   logements: "Unterkünfte",
   planning: "Kalender",
   canaux: "Kanäle",

@@ -1,9 +1,11 @@
 <script lang="ts">
   import { traductionsEntretienDomaine } from "@/lib/i18n-entretien-domaine";
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
   const t = $derived(traductionsEntretienDomaine((data as { langue?: string }).langue ?? "fr"));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -171,7 +173,7 @@
         </p>
       {:else}
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
           <table class="ui-tableau min-w-[760px]">
             <thead>
               <tr>

@@ -42,9 +42,9 @@
       </div>
     </header>
 
-    {#if paiement === "ok"}<p class="ui-alerte ui-alerte--succes">Paiement reçu. La confirmation peut prendre quelques secondes ; rechargez la page si le statut n’est pas encore à jour.</p>{/if}
-    {#if paiement === "annule"}<p class="ui-alerte ui-alerte--alerte">Paiement annulé. Vous pouvez réessayer quand vous le souhaitez.</p>{/if}
-    {#if paiement === "erreur"}<p class="ui-alerte ui-alerte--danger">Le paiement en ligne n’a pas pu être ouvert. Contactez votre hôte.</p>{/if}
+    {#if paiement === "ok"}<p role="status" class="ui-alerte ui-alerte--succes">Paiement reçu. La confirmation peut prendre quelques secondes ; rechargez la page si le statut n’est pas encore à jour.</p>{/if}
+    {#if paiement === "annule"}<p role="status" class="ui-alerte ui-alerte--alerte">Paiement annulé. Vous pouvez réessayer quand vous le souhaitez.</p>{/if}
+    {#if paiement === "erreur"}<p role="alert" class="ui-alerte ui-alerte--danger">Le paiement en ligne n’a pas pu être ouvert. Contactez votre hôte.</p>{/if}
 
     <section class="grid gap-4 sm:grid-cols-2">
       <div class="ui-carte">

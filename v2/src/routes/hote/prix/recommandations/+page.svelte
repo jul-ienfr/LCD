@@ -1,7 +1,12 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const tNav = $derived(traductionsNavigation(data.langue));
+  const statuts = $derived(traductionsStatuts(data.langue));
 
   const messagesOk: Record<string, string> = {
     import: "Import terminé : les recommandations attendent votre décision.",
@@ -112,7 +117,7 @@
     </p>
   {:else}
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
+    <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto">
       <table class="ui-tableau w-full min-w-[420px] text-sm">
       <thead>
         <tr>
@@ -157,7 +162,7 @@
                   </form>
                 </div>
               {:else}
-                <span class="ui-etiquette-ui">{ligne.statut}</span>
+                <span class="ui-etiquette-ui">{statuts[ligne.statut] ?? ligne.statut}</span>
               {/if}
             </td>
           </tr>
@@ -182,7 +187,7 @@
       ne remplace pas une mesure sur 30 jours de réservations réelles.
     </p>
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
+    <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto">
       <table class="ui-tableau w-full min-w-[420px] text-sm">
       <thead>
         <tr>

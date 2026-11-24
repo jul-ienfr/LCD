@@ -1,9 +1,11 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
   import { traductionsReglagesGroupe } from "@/lib/i18n-reglages-groupe";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const t = $derived(traductionsReglagesGroupe(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -44,7 +46,7 @@
       class:ui-alerte--danger={!form.ok}
       class:ui-alerte--succes={form.ok}
       class="ui-alerte"
-      role="status"
+      role={form.ok ? "status" : "alert"}
     >
       {form.message}
     </p>
@@ -141,7 +143,7 @@
     <section class="space-y-3">
       <h2 class="text-xl font-semibold">{t.diffTitre}</h2>
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
         <table class="w-full min-w-[760px] text-left text-sm">
           <thead
             class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine"
@@ -199,7 +201,7 @@
       </p>
     {:else}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
         <table class="w-full min-w-[720px] text-left text-sm">
           <thead
             class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine"

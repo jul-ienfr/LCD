@@ -25,9 +25,9 @@
   </header>
 
   {#if data.ok === "cree" && data.okNom}
-    <p class="ui-alerte ui-alerte--ok">{t.okCree(data.okNom)}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.okCree(data.okNom)}</p>
   {:else if data.ok}
-    <p class="ui-alerte ui-alerte--ok">{t.okEnregistre}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.okEnregistre}</p>
   {/if}
   {#if erreur}
     <p class="ui-alerte ui-alerte--danger" role="alert">

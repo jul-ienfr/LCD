@@ -81,8 +81,7 @@
       <div
         class="overflow-x-auto rounded-2xl border border-bordure bg-surface"
         role="region"
-        tabindex="0"
-        aria-label={t.titre}
+        tabindex="0" aria-label={t.titre}
       >
         <table class="ui-tableau min-w-[880px]">
           <thead>

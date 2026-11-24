@@ -30,7 +30,7 @@
   </header>
 
   {#if data.ok === "purge"}
-    <p class="ui-alerte ui-alerte--succes">
+    <p role="status" class="ui-alerte ui-alerte--succes">
       {data.nombrePurges > 0
         ? t.messagePurge(data.nombrePurges, data.retention)
         : t.aucunePurge}

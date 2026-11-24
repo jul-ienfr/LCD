@@ -18,7 +18,7 @@
   {#if form?.message}<p class="ui-alerte ui-alerte--danger" role="alert">{form.message}</p>{/if}
 
   {#if !data.token}
-    <p class="ui-alerte ui-alerte--alerte">Ce lien est incomplet. Demandez un nouvel e-mail de réinitialisation.</p>
+    <p role="status" class="ui-alerte ui-alerte--alerte">Ce lien est incomplet. Demandez un nouvel e-mail de réinitialisation.</p>
     <a class="ui-bouton ui-bouton--primaire w-full" href="/mot-de-passe-oublie">Demander un lien</a>
   {:else}
     <form method="POST" class="ui-carte space-y-4">

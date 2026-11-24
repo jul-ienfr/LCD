@@ -2,8 +2,10 @@
   import type { PageData } from "./$types";
   import type { BadgeAction } from "./+page.server";
   import ChampErreur from "@/lib/components/ui/champ-erreur.svelte";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
+  const tNav = $derived(traductionsNavigation(data.langue));
 
   const dateLongue = $derived(new Intl.DateTimeFormat(data.langue, {
     weekday: "long",
@@ -276,7 +278,7 @@
           {/each}
         </div>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant" class="hidden overflow-x-auto md:block">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant} class="hidden overflow-x-auto md:block">
           <table class="ui-tableau w-full text-sm">
             <caption class="sr-only">Arrivées du jour</caption>
             <thead>
@@ -338,7 +340,7 @@
           {/each}
         </div>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant" class="hidden overflow-x-auto md:block">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant} class="hidden overflow-x-auto md:block">
           <table class="ui-tableau w-full text-sm">
             <caption class="sr-only">Départs du jour</caption>
             <thead>
@@ -398,7 +400,7 @@
           {/each}
         </div>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant" class="hidden overflow-x-auto md:block">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant} class="hidden overflow-x-auto md:block">
           <table class="ui-tableau w-full text-sm">
             <caption class="sr-only">{data.t.arrivees}</caption>
             <thead>
@@ -454,7 +456,7 @@
           {/each}
         </div>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant" class="hidden overflow-x-auto md:block">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant} class="hidden overflow-x-auto md:block">
           <table class="ui-tableau w-full text-sm">
             <caption class="sr-only">{data.t.departs}</caption>
             <thead>

@@ -39,7 +39,7 @@
   </header>
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">
+    <p role="status" class="ui-alerte ui-alerte--ok">
       {data.ok === "retire"
         ? t.okRetire
         : data.okProprietaire && data.okLogement
@@ -52,7 +52,7 @@
   {/if}
 
   {#if data.proprietaires.length === 0}
-    <p class="ui-alerte ui-alerte--alerte">{t.aucunProprietaire}</p>
+    <p role="status" class="ui-alerte ui-alerte--alerte">{t.aucunProprietaire}</p>
   {:else}
     <section class="ui-carte space-y-4">
       <div>

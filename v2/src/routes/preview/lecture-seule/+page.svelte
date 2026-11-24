@@ -9,7 +9,7 @@
   <h1 class="text-3xl font-semibold tracking-tight">
     Lecture seule pendant l’aperçu
   </h1>
-  <p class="ui-alerte ui-alerte--alerte">
+  <p role="status" class="ui-alerte ui-alerte--alerte">
     <strong>Écriture bloquée</strong> — aucune modification n’a été enregistrée.
   </p>
   <p class="text-encre-douce">

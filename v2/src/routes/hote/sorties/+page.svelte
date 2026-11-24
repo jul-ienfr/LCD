@@ -1,10 +1,12 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
   import { traductionsFinance } from "@/lib/i18n-finance";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   const t = $derived(traductionsFinance(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -103,7 +105,7 @@
       </p>
     {:else}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
         <table class="w-full min-w-[980px] text-left text-sm">
           <thead
             class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine"

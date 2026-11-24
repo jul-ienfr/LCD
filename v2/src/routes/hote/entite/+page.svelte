@@ -23,10 +23,10 @@
   </header>
 
   {#if !data.tenant}
-    <p class="ui-alerte ui-alerte--danger">{data.t.introuvable}</p>
+    <p role="alert" class="ui-alerte ui-alerte--danger">{data.t.introuvable}</p>
   {:else}
     {#if data.ok}
-      <p class="ui-alerte ui-alerte--ok">{data.t.ok}</p>
+      <p role="status" class="ui-alerte ui-alerte--ok">{data.t.ok}</p>
     {/if}
     {#if erreur}
       <p class="ui-alerte ui-alerte--danger" role="alert">

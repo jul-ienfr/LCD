@@ -2,6 +2,7 @@
   import type { PageData } from "./$types";
   import { LIBELLES_CANAL_FIL } from "@/domain/fil-voyageur";
   import { messageFils } from "@/lib/i18n-fils";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: {
     data: PageData;
@@ -22,6 +23,7 @@
   } = $props();
 
   const t = $derived(data.t);
+  const statuts = $derived(traductionsStatuts((data as { langue?: string }).langue));
   const ok = $derived(data.ok);
 
   const brouillons = $derived(data.messages.filter((m) => m.statut === "brouillon"));
@@ -71,7 +73,7 @@
             {message.sens === "entrant" ? "←" : "→"} {LIBELLES_CANAL_FIL[message.canal]}
             · {dateHeure(message.createdAt)}
           </span>
-          <span class="ui-etiquette-ui">{message.statut}</span>
+          <span class="ui-etiquette-ui">{statuts[message.statut] ?? message.statut}</span>
         </header>
         <p class="whitespace-pre-line">{message.contenu}</p>
 

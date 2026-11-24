@@ -1,8 +1,10 @@
 <script lang="ts">
   import NavSuperAdmin from "@/lib/components/nav-super-admin.svelte";
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -25,7 +27,7 @@
   </header>
 
   {#if data.indisponible}
-    <p class="ui-alerte ui-alerte--alerte">
+    <p role="status" class="ui-alerte ui-alerte--alerte">
       Journaux indisponibles : la table est absente ou la base est
       injoignable. Vérifiez que les migrations sont appliquées (0109).
     </p>
@@ -65,8 +67,7 @@
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div
       role="region"
-      tabindex="0"
-      aria-label="Tableau défilant"
+      tabindex="0" aria-label={tNav.tableauDefilant}
       class="overflow-x-auto rounded-2xl border border-bordure bg-surface"
     >
       <table class="ui-tableau min-w-[900px]">

@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -24,7 +26,7 @@
   </header>
 
   {#if data.vide}
-    <p class="ui-alerte ui-alerte--alerte">Aucun logement n’est encore rattaché à votre compte. Contactez votre gestionnaire.</p>
+    <p role="status" class="ui-alerte ui-alerte--alerte">Aucun logement n’est encore rattaché à votre compte. Contactez votre gestionnaire.</p>
   {:else}
     <div class="flex flex-wrap items-center gap-3 text-sm">
       <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/proprio?mois=${data.moisPrecedent}`}>← Mois précédent</a>
@@ -51,7 +53,7 @@
     </section>
 
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <section tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+    <section tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
       <table class="w-full min-w-[760px] border-collapse text-sm">
         <thead>
           <tr class="border-b border-bordure bg-fond text-left">
@@ -85,7 +87,7 @@
     <section class="space-y-3">
       <h2 class="text-lg font-semibold">Séjours du mois</h2>
       {#if data.sejoursDetail.length === 0}
-        <p class="ui-alerte">Aucun séjour sur ce mois.</p>
+        <p role="status" class="ui-alerte">Aucun séjour sur ce mois.</p>
       {:else}
         <ul class="divide-y divide-bordure rounded-2xl border border-bordure bg-surface text-sm">
           {#each data.sejoursDetail as sejour (sejour.id)}

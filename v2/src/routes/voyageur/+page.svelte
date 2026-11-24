@@ -276,9 +276,9 @@
           </span>
         </summary>
         <div class="mt-4">
-          {#if departEtat === "ok"}<p class="ui-alerte ui-alerte--succes mt-3">{d.departOk}</p>{/if}
-          {#if departEtat === "erreur"}<p class="ui-alerte ui-alerte--danger mt-3">{d.departErreur}</p>{/if}
-          {#if departEtat === "checklist"}<p class="ui-alerte ui-alerte--danger mt-3">{d.departChecklistErreur}</p>{/if}
+          {#if departEtat === "ok"}<p role="status" class="ui-alerte ui-alerte--succes mt-3">{d.departOk}</p>{/if}
+          {#if departEtat === "erreur"}<p role="alert" class="ui-alerte ui-alerte--danger mt-3">{d.departErreur}</p>{/if}
+          {#if departEtat === "checklist"}<p role="alert" class="ui-alerte ui-alerte--danger mt-3">{d.departChecklistErreur}</p>{/if}
           {#if data.reservation.departConfirmeLe}
             <div class="mt-4 rounded-controle border border-ok bg-ok-douce p-4 text-sm">
               <p class="font-medium">{d.departDeja}</p>
@@ -332,8 +332,8 @@
         </summary>
         <div class="mt-4">
           <p class="mt-2 text-sm"><a class="ui-lien-action" href={`/questionnaire/${encodeURIComponent(data.token)}`}>{d.questionnaireLien}</a></p>
-          {#if avisEtat === "ok"}<p class="ui-alerte ui-alerte--succes mt-3">{d.avisOk}</p>{/if}
-          {#if avisEtat === "erreur"}<p class="ui-alerte ui-alerte--danger mt-3">{d.avisErreur}</p>{/if}
+          {#if avisEtat === "ok"}<p role="status" class="ui-alerte ui-alerte--succes mt-3">{d.avisOk}</p>{/if}
+          {#if avisEtat === "erreur"}<p role="alert" class="ui-alerte ui-alerte--danger mt-3">{d.avisErreur}</p>{/if}
           {#if data.avis}
             <div class="mt-4 rounded-controle border border-bordure bg-surface-2 p-4">
               <p class="text-sm font-medium">{d.avisDeja}</p>
@@ -440,8 +440,8 @@
           </span>
         </summary>
         <div class="mt-4">
-          {#if extrasEtat === "ok"}<p class="ui-alerte ui-alerte--succes mt-2">{d.commandeEnregistree}</p>{/if}
-          {#if extrasEtat === "erreur"}<p class="ui-alerte ui-alerte--danger mt-2">{d.commandeErreur}</p>{/if}
+          {#if extrasEtat === "ok"}<p role="status" class="ui-alerte ui-alerte--succes mt-2">{d.commandeEnregistree}</p>{/if}
+          {#if extrasEtat === "erreur"}<p role="alert" class="ui-alerte ui-alerte--danger mt-2">{d.commandeErreur}</p>{/if}
           {#if data.extras.length === 0}
             <p class="mt-3 text-sm text-encre-douce">{d.aucunExtra}</p>
           {:else}
@@ -563,8 +563,8 @@
           </span>
         </summary>
         <div class="mt-4">
-          {#if preferencesEtat === "ok"}<p class="ui-alerte ui-alerte--succes mt-3">{d.preferencesOk}</p>{/if}
-          {#if preferencesEtat === "erreur"}<p class="ui-alerte ui-alerte--danger mt-3">{d.preferencesErreur}</p>{/if}
+          {#if preferencesEtat === "ok"}<p role="status" class="ui-alerte ui-alerte--succes mt-3">{d.preferencesOk}</p>{/if}
+          {#if preferencesEtat === "erreur"}<p role="alert" class="ui-alerte ui-alerte--danger mt-3">{d.preferencesErreur}</p>{/if}
           <form method="POST" action="?/preferences" class="mt-4 space-y-3">
             <input type="hidden" name="token" value={data.token} />
             <input type="hidden" name="langue" value={data.langue} />
@@ -613,9 +613,9 @@
             </span>
           </summary>
           <div class="mt-4">
-            {#if memoireEtat === "ok"}<p class="ui-alerte ui-alerte--succes mt-3">{d.memoireOk}</p>{/if}
-            {#if memoireEtat === "oublie"}<p class="ui-alerte ui-alerte--succes mt-3">{d.memoireOublie}</p>{/if}
-            {#if memoireEtat === "erreur"}<p class="ui-alerte ui-alerte--danger mt-3">{d.memoireErreur}</p>{/if}
+            {#if memoireEtat === "ok"}<p role="status" class="ui-alerte ui-alerte--succes mt-3">{d.memoireOk}</p>{/if}
+            {#if memoireEtat === "oublie"}<p role="status" class="ui-alerte ui-alerte--succes mt-3">{d.memoireOublie}</p>{/if}
+            {#if memoireEtat === "erreur"}<p role="alert" class="ui-alerte ui-alerte--danger mt-3">{d.memoireErreur}</p>{/if}
             {#if data.memoire}<p class="mt-3 text-xs text-encre-faine">{d.memoireOk} {data.memoire.expireAt}</p>{/if}
             <form method="POST" action="?/memoire" class="mt-4 space-y-3">
               <input type="hidden" name="token" value={data.token} />

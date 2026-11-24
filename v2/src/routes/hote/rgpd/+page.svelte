@@ -2,12 +2,14 @@
   import { traductionsConformite } from "@/lib/i18n-conformite";
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived(
     (form as { erreur?: string } | null)?.erreur ?? data.erreur,
   );
   const t = $derived(traductionsConformite((data as { langue?: string }).langue ?? "fr"));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -22,7 +24,7 @@
   />
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">{t.rOk}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.rOk}</p>
   {/if}
   {#if erreur}
     <p class="ui-alerte ui-alerte--danger" role="alert">
@@ -71,7 +73,7 @@
     </div>
 
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
+    <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto">
       <table class="ui-tableau min-w-[880px]">
         <thead>
           <tr>

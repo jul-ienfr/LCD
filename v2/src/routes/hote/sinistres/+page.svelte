@@ -7,6 +7,7 @@
   } from "@/domain/sinistre";
   import { formaterEuros } from "@/lib/format";
   import { traductionsExploitation } from "@/lib/i18n-exploitation";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived(
@@ -14,6 +15,7 @@
   );
 
   const t = $derived(traductionsExploitation(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
 
   const classesStatut: Record<string, string> = {
     declare: "ui-badge ui-badge--alerte",
@@ -206,7 +208,7 @@
         </p>
       {:else}
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant" class="ui-carte--plate overflow-x-auto rounded-2xl border border-bordure bg-surface">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant} class="ui-carte--plate overflow-x-auto rounded-2xl border border-bordure bg-surface">
           <table class="ui-tableau w-full min-w-[960px] text-left text-sm">
             <thead>
               <tr>

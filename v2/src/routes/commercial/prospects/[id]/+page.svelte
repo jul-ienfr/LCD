@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const statuts = $derived(traductionsStatuts(data.langue));
 
   const libellesProspect: Record<string, string> = {
     nouveau: "Nouveau",
@@ -34,13 +37,13 @@
   </header>
 
   {#if form?.message}
-    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role="status">{form.message}</p>
+    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role={form.ok ? "status" : "alert"}>{form.message}</p>
   {/if}
 
   <section class="ui-carte space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <h2 class="text-lg font-semibold">Statut</h2>
-      <span class="ui-etiquette">{data.prospect.statut}</span>
+      <span class="ui-etiquette">{statuts[data.prospect.statut] ?? data.prospect.statut}</span>
     </div>
     {#if data.transitionsProspect.length > 0}
       <div class="flex flex-wrap gap-2">
@@ -86,7 +89,7 @@
                 <p class="font-medium">{offre.titre}</p>
                 <p class="text-sm text-encre-douce">{offre.montant}{offre.logement ? ` · ${offre.logement}` : ""}</p>
               </div>
-              <span class="ui-etiquette">{offre.statut}</span>
+              <span class="ui-etiquette">{statuts[offre.statut] ?? offre.statut}</span>
             </div>
             {#if offre.notes}<p class="mt-2 text-sm text-encre-douce">{offre.notes}</p>{/if}
             {#if offre.transitions.length > 0}

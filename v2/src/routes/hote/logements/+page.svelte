@@ -1,10 +1,12 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
   import { traductionsLogements } from "@/lib/i18n-logements";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   const t = $derived(traductionsLogements(data.langue));
+  const statuts = $derived(traductionsStatuts(data.langue));
 </script>
 
 <svelte:head>
@@ -73,7 +75,7 @@
       {#if form?.message}
         <p
           class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"}
-          role="status"
+          role={form.ok ? "status" : "alert"}
         >
           {form.message}
         </p>
@@ -109,7 +111,7 @@
               {#if !logement.coproVerifiee}
                 <span class="ui-badge ui-badge--alerte">{t.copro}</span>
               {/if}
-              <span class="ui-badge">{logement.statut}</span>
+              <span class="ui-badge">{statuts[logement.statut] ?? logement.statut}</span>
               <span class="ui-badge">{logement.publication}</span>
               <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={`/hote/logements/${logement.id}/calendrier`}>
                 {t.calendrier}

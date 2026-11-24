@@ -337,8 +337,7 @@
       <div
         class="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 py-4 md:px-8"
         role="region"
-        tabindex="0"
-        aria-label={t.etiquettesTitre}
+        tabindex="0" aria-label={t.etiquettesTitre}
       >
         {#each t.etiquettes as etiquette (etiquette)}
           <span

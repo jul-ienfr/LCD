@@ -103,7 +103,7 @@
     </form>
   {:else}
     <section class="space-y-3">
-      <p class="ui-alerte">
+      <p role="status" class="ui-alerte">
         {t.fFermeAide}
       </p>
       <form method="POST" action="?/basculer">

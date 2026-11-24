@@ -1,10 +1,12 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
   import { traductionsPlanning } from "@/lib/i18n-planning";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   const t = $derived(traductionsPlanning(data.langue));
+  const statuts = $derived(traductionsStatuts(data.langue));
   const jours = $derived(t.jours);
 </script>
 
@@ -71,7 +73,7 @@
       </form>
     </div>
     {#if form?.message}
-      <p class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"} role="status">
+      <p class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"} role={form.ok ? "status" : "alert"}>
         {form.message}
       </p>
     {/if}
@@ -264,7 +266,7 @@
                   {reservation.ref}
                   {reservation.clientNom ? ` — ${reservation.clientNom}` : ""}
                 </p>
-                <span class="ui-badge">{reservation.statut}</span>
+                <span class="ui-badge">{statuts[reservation.statut] ?? reservation.statut}</span>
               </div>
               <p class="text-sm text-encre-douce">
                 {reservation.debut} → {reservation.fin} · {t.nuits(reservation.nuits)} · {t.voyageurCount(reservation.voyageurs)} · {reservation.montant}

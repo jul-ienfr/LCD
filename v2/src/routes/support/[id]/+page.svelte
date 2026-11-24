@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const statuts = $derived(traductionsStatuts(data.langue));
 
   const libelles: Record<string, string> = {
     ouvert: "Réouvrir",
@@ -20,13 +23,13 @@
     <div class="space-y-2">
       <p class="text-sm font-medium uppercase tracking-widest text-encre-faine">Ticket {data.ticket.ref}</p>
       <h1 class="text-3xl font-semibold tracking-tight">{data.ticket.sujet}</h1>
-      <p class="text-encre-douce">{data.ticket.statut} · priorité {data.ticket.priorite} · {data.ticket.date}</p>
+      <p class="text-encre-douce">{statuts[data.ticket.statut] ?? data.ticket.statut} · priorité {statuts[data.ticket.priorite] ?? data.ticket.priorite} · {data.ticket.date}</p>
     </div>
     <a class="ui-lien-action text-sm" href="/support">← Support</a>
   </header>
 
   {#if form?.message}
-    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role="status">{form.message}</p>
+    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role={form.ok ? "status" : "alert"}>{form.message}</p>
   {/if}
 
   {#if data.estStaff && data.transitions.length > 0}

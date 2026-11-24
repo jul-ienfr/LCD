@@ -1,9 +1,11 @@
 <script lang="ts">
   import { traductionsFactures } from "@/lib/i18n-factures";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
   import type { ActionData, PageData } from "./$types";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const t = $derived(traductionsFactures((data as { langue?: string }).langue ?? "fr"));
+  const statuts = $derived(traductionsStatuts((data as { langue?: string }).langue ?? "fr"));
 </script>
 
 <svelte:head>
@@ -32,7 +34,7 @@
       class={data.relanceKo
         ? "ui-alerte ui-alerte--danger"
         : "ui-alerte ui-alerte--succes"}
-      role="status"
+      role={data.relanceKo ? "alert" : "status"}
     >
       {data.relance}
     </p>
@@ -153,7 +155,7 @@
           <li class="flex flex-wrap items-center justify-between gap-3 p-4">
             <div>
               <a class="font-medium underline" href={`/hote/factures/${facture.id}`}>{facture.numero}</a>
-              <p class="text-sm text-encre-douce">{facture.clientNom} · {facture.dateEmission} · {facture.statut}</p>
+              <p class="text-sm text-encre-douce">{facture.clientNom} · {facture.dateEmission} · {statuts[facture.statut] ?? facture.statut}</p>
             </div>
             <p class="font-medium">{facture.montant}</p>
           </li>

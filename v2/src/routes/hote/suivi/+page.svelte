@@ -1,8 +1,10 @@
 <script lang="ts">
   import type { PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
+  const tNav = $derived(traductionsNavigation(data.langue));
 
   const dateCourte = (iso: string) =>
     new Intl.DateTimeFormat("fr-FR", {
@@ -34,14 +36,14 @@
   </header>
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">
+    <p role="status" class="ui-alerte ui-alerte--ok">
       {data.ok === "1"
         ? "Configuration enregistrée."
         : `${data.ok} événement(s) purgé(s).`}
     </p>
   {/if}
   {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger">{data.erreur}</p>
+    <p role="alert" class="ui-alerte ui-alerte--danger">{data.erreur}</p>
   {/if}
 
   <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -191,7 +193,7 @@
       <p class="text-sm text-encre-faine">Aucun événement enregistré.</p>
     {:else}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto">
         <table class="w-full text-left text-sm">
           <thead class="border-b border-bordure text-encre-faine">
             <tr>

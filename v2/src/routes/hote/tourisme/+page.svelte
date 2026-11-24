@@ -2,6 +2,7 @@
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import { traductionsTourisme } from "@/lib/i18n-tourisme";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived(
@@ -9,6 +10,7 @@
   );
 
   const t = $derived(traductionsTourisme(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -23,7 +25,7 @@
   />
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">
+    <p role="status" class="ui-alerte ui-alerte--ok">
       {data.ok === "desactive" ? t.okDesactive : t.okEnregistre}
     </p>
   {/if}
@@ -41,7 +43,7 @@
       </p>
     {:else}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table class="ui-tableau min-w-[860px]">
           <thead>
             <tr>

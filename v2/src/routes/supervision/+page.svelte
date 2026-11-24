@@ -1,8 +1,12 @@
 <script lang="ts">
   import NavSuperAdmin from "@/lib/components/nav-super-admin.svelte";
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data }: { data: PageData } = $props();
+  const tNav = $derived(traductionsNavigation(data.langue));
+  const statuts = $derived(traductionsStatuts(data.langue));
 
   const totals = $derived(
     data.situation
@@ -97,6 +101,7 @@
           <li
             class="ui-carte flex flex-wrap items-start justify-between gap-3"
             class:ui-alerte--danger={alerte.severite === "critique"}
+            role={alerte.severite === "critique" ? "alert" : "status"}
           >
             <div class="space-y-1">
               <p class="font-medium">
@@ -105,7 +110,7 @@
                     ? "ui-badge--danger"
                     : ""}"
                 >
-                  {alerte.severite}
+                  {statuts[alerte.severite] ?? alerte.severite}
                 </span>
                 {alerte.message}
               </p>
@@ -323,7 +328,7 @@
   </section>
 
   {#if !data.situation}
-    <p class="ui-alerte ui-alerte--danger">
+    <p role="alert" class="ui-alerte ui-alerte--danger">
       Connexion owner absente : renseignez <code>MIGRATION_DATABASE_URL</code>
       pour activer la supervision cross-tenant.
     </p>
@@ -340,7 +345,7 @@
     </dl>
 
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+    <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
       <table class="w-full min-w-[760px] text-left text-sm">
         <thead class="border-b border-bordure text-xs uppercase tracking-wide text-encre-faine">
           <tr>
@@ -361,7 +366,7 @@
                 <br />
                 <span class="text-xs text-encre-faine">{ligne.slug}</span>
               </td>
-              <td class="p-4">{ligne.statut}</td>
+              <td class="p-4">{statuts[ligne.statut] ?? ligne.statut}</td>
               <td class="p-4 text-right tabular-nums">{ligne.logements}</td>
               <td class="p-4 text-right tabular-nums">{ligne.reservations}</td>
               <td class="p-4 text-right tabular-nums">{ligne.utilisateurs}</td>
@@ -502,7 +507,7 @@
       <ul class="space-y-2 text-sm">
         {#each data.versions as version (version.id)}
           <li class="flex flex-wrap items-center justify-between gap-2 border-b border-bordure pb-2 last:border-0">
-            <span>Version {version.version} · {version.statut}</span>
+            <span>Version {version.version} · {statuts[version.statut] ?? version.statut}</span>
             <span class="text-xs text-encre-faine">
               {version.publieLe
                 ? new Intl.DateTimeFormat("fr-FR", {

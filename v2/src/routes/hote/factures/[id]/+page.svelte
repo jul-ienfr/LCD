@@ -1,10 +1,12 @@
 <script lang="ts">
   import { traductionsFactures } from "@/lib/i18n-factures";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
   import type { ActionData, PageData } from "./$types";
   import { formaterEuros } from "@/lib/format";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const t = $derived(traductionsFactures((data as { langue?: string }).langue ?? "fr"));
+  const statuts = $derived(traductionsStatuts((data as { langue?: string }).langue ?? "fr"));
 </script>
 
 <svelte:head>
@@ -23,7 +25,7 @@
   </div>
 
   {#if form?.message}
-    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte print:hidden" role="status">{form.message}</p>
+    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte print:hidden" role={form.ok ? "status" : "alert"}>{form.message}</p>
   {/if}
 
   <div class="flex flex-wrap gap-2 print:hidden">
@@ -59,7 +61,7 @@
       </div>
       <div class="sm:text-right">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-encre-faine">{t.statut}</h2>
-        <p class="mt-1 font-medium">{data.facture.statut}</p>
+        <p class="mt-1 font-medium">{statuts[data.facture.statut] ?? data.facture.statut}</p>
       </div>
     </section>
 
@@ -145,9 +147,9 @@
         <button class="ui-bouton ui-bouton--primaire" type="submit">{t.enregistrerPaiement}</button>
       </form>
     {:else if data.facture.statut === "brouillon"}
-      <p class="ui-alerte ui-alerte--alerte">{t.emettrePourPayer}</p>
+      <p role="status" class="ui-alerte ui-alerte--alerte">{t.emettrePourPayer}</p>
     {:else if data.facture.statut === "payee"}
-      <p class="ui-alerte ui-alerte--succes">{t.soldee}</p>
+      <p role="status" class="ui-alerte ui-alerte--succes">{t.soldee}</p>
     {/if}
   </section>
 
@@ -166,7 +168,7 @@
         <input type="hidden" name="factureId" value={data.facture.id} />
         <h3 class="text-sm font-semibold">{t.envoyerEmail}</h3>
         {#if !data.emailConfigured}
-          <p class="ui-alerte ui-alerte--alerte">{t.smtpOff}</p>
+          <p role="status" class="ui-alerte ui-alerte--alerte">{t.smtpOff}</p>
         {/if}
         <label class="ui-champ-groupe"><span class="ui-label">{t.destinataire}</span><input class="ui-champ" type="email" name="email" defaultValue={data.facture.clientEmail ?? ""} required /></label>
         <div class="flex flex-wrap gap-2">
@@ -177,7 +179,7 @@
         </div>
       </form>
     {:else}
-      <p class="ui-alerte ui-alerte--alerte">{t.emettrePourLien}</p>
+      <p role="status" class="ui-alerte ui-alerte--alerte">{t.emettrePourLien}</p>
     {/if}
   </section>
 </main>

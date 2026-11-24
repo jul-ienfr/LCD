@@ -24,16 +24,22 @@
   </header>
 
   {#if form?.erreurs.length}
-    <section class="ui-alerte ui-alerte--danger space-y-2" data-rapport-import>
+    <section role="alert" class="ui-alerte ui-alerte--danger space-y-2" data-rapport-import>
       <p class="font-medium">{form.message}</p>
-      <ul class="max-h-64 space-y-1 overflow-y-auto text-sm">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <ul
+        class="max-h-64 space-y-1 overflow-y-auto text-sm"
+        role="region"
+        tabindex="0"
+        aria-label="Erreurs d’import"
+      >
         {#each form.erreurs as erreur (erreur.ligne + erreur.message)}
           <li>Ligne {erreur.ligne} : {erreur.message}</li>
         {/each}
       </ul>
     </section>
   {:else if form?.message}
-    <p class="ui-alerte ui-alerte--ok" data-rapport-import>{form.message}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok" data-rapport-import>{form.message}</p>
   {/if}
 
   <section class="ui-carte space-y-4">

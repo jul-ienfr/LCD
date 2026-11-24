@@ -1,12 +1,14 @@
 <script lang="ts">
   import { traductionsDetails } from "@/lib/i18n-details";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived(
     (form as { erreur?: string } | null)?.erreur ?? data.erreur,
   );
   const t = $derived(traductionsDetails((data as { langue?: string }).langue ?? "fr"));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -37,7 +39,7 @@
   </header>
 
   {#if data.ok === "complet"}
-    <p class="ui-alerte ui-alerte--succes">
+    <p role="status" class="ui-alerte ui-alerte--succes">
       {t.eOkComplet}
     </p>
   {:else if erreur}
@@ -61,7 +63,7 @@
           <textarea class="ui-champ min-h-20" maxlength="2000" name="notes">{data.etat.notesValeur}</textarea>
         </label>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto">
           <table class="ui-tableau min-w-[760px]">
             <thead>
               <tr>
@@ -179,7 +181,7 @@
   <section class="space-y-3">
     <h2 class="text-lg font-semibold">{t.eConstat}</h2>
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+    <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
       <table class="ui-tableau min-w-[820px]">
         <thead>
           <tr>

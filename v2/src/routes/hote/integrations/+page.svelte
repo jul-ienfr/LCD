@@ -2,12 +2,14 @@
   import type { ActionData, PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsIntegrations } from "@/lib/i18n-integrations";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
 
   const t = $derived(traductionsIntegrations(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -31,7 +33,7 @@
   </header>
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">
+    <p role="status" class="ui-alerte ui-alerte--ok">
       {data.ok === "supprime" ? t.okSupprime : t.okEnregistre(data.libelle)}
     </p>
   {/if}
@@ -125,7 +127,7 @@
       </p>
     {:else}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table class="ui-tableau min-w-[640px]">
           <thead>
             <tr>

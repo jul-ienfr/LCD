@@ -1,8 +1,11 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const statuts = $derived(traductionsStatuts(data.langue));
 </script>
 
 <svelte:head>
@@ -32,7 +35,7 @@
   {#if form?.message}
     <p
       class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"}
-      role="status"
+      role={form.ok ? "status" : "alert"}
     >
       {form.message}
     </p>
@@ -71,7 +74,7 @@
                   {reservation.ref} — {reservation.clientNom}
                 </p>
                 <p class="text-encre-douce">
-                  Du {reservation.debut} au {reservation.fin} ({reservation.statut})
+                  Du {reservation.debut} au {reservation.fin} ({statuts[reservation.statut] ?? reservation.statut})
                 </p>
               </div>
               {#if reservation.aUnCode}

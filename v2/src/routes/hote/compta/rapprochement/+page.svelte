@@ -2,6 +2,8 @@
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import { traductionsCompta } from "@/lib/i18n-compta";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived(
@@ -9,6 +11,8 @@
   );
 
   const t = $derived(traductionsCompta(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
+  const statuts = $derived(traductionsStatuts(data.langue));
 </script>
 
 <svelte:head>
@@ -66,7 +70,7 @@
       </dl>
 
       {#if data.selectionne.alerte}
-        <p class="ui-alerte ui-alerte--alerte">
+        <p role="status" class="ui-alerte ui-alerte--alerte">
           {data.selectionne.ecartAlerte ? t.ecartAlerte(data.selectionne.ecart) : ""}
           {data.anciennes > 0 ? t.orphelines(data.anciennes) : ""}
           {t.verifier}
@@ -74,7 +78,7 @@
       {/if}
 
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto">
         <table class="ui-tableau min-w-[720px]">
           <thead>
             <tr>
@@ -90,7 +94,7 @@
                 <td class="tabular-nums">{ligne.date}</td>
                 <td>{ligne.libelle}</td>
                 <td class="text-right tabular-nums {ligne.negatif ? 'text-encre-douce' : ''}">{ligne.montant}</td>
-                <td>{ligne.statut}</td>
+                <td>{statuts[ligne.statut] ?? ligne.statut}</td>
               </tr>
             {/each}
           </tbody>

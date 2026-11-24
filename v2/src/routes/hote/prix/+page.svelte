@@ -2,10 +2,12 @@
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsPrix } from "@/lib/i18n-prix";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
   const t = $derived(traductionsPrix((data as { langue?: string }).langue ?? "fr"));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -32,7 +34,7 @@
     <a class="ui-bouton ui-bouton--primaire" href="/hote/logements">{t.gererLogements}</a>
   {:else}
     {#if data.ok}
-      <p class="ui-alerte ui-alerte--ok">
+      <p role="status" class="ui-alerte ui-alerte--ok">
         {data.ok === "1"
           ? t.ok1
           : data.ok === "restriction"
@@ -517,7 +519,7 @@
     </section>
 
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <section tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+    <section tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
       <table class="w-full min-w-[640px] border-collapse text-sm">
         <thead>
           <tr class="border-b border-bordure bg-fond">

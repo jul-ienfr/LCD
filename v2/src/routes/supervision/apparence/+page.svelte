@@ -1,8 +1,13 @@
 <script lang="ts">
   import NavSuperAdmin from "@/lib/components/nav-super-admin.svelte";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const tNav = $derived(traductionsNavigation(data.langue));
+  const statuts = $derived(traductionsStatuts(data.langue));
 
   // svelte-ignore state_referenced_locally
   let themeChoisi = $state(data.apparence.themeId);
@@ -75,12 +80,12 @@
   {#if form?.message}
     <p
       class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"}
-      role="status"
+      role={form.ok ? "status" : "alert"}
     >
       {form.message}
     </p>
     {#if problemes.length}
-      <ul class="ui-alerte ui-alerte--danger list-disc space-y-1 pl-6 text-sm">
+      <ul class="ui-alerte ui-alerte--danger list-disc space-y-1 pl-6 text-sm" role="alert">
         {#each problemes as probleme, index (index)}
           <li>
             <strong>{probleme.type === "contraste" ? "Contraste" : "Cible tactile"}</strong>
@@ -304,7 +309,7 @@
       <p class="text-sm text-encre-douce">Aucune version publiée pour l’instant.</p>
     {:else}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto">
         <table class="ui-tableau">
           <thead>
             <tr>
@@ -331,7 +336,7 @@
                       ? "ui-badge ui-badge--ok"
                       : "ui-badge"}
                   >
-                    {version.statut}
+                    {statuts[version.statut] ?? version.statut}
                   </span>
                 </td>
                 <td class="text-xs text-encre-faine">

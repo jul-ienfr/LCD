@@ -1,12 +1,14 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
   import { traductionsMissions } from "@/lib/i18n-missions";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
 
   const t = $derived(traductionsMissions(data.langue));
+  const statuts = $derived(traductionsStatuts(data.langue));
 </script>
 
 <svelte:head>
@@ -49,7 +51,7 @@
   {/if}
 
   {#if data.prestataires.length === 0}
-    <p class="ui-alerte ui-alerte--alerte">
+    <p role="status" class="ui-alerte ui-alerte--alerte">
       {t.aucunPrestataire}
     </p>
   {:else if data.logements.length > 0}
@@ -127,8 +129,10 @@
         {#each data.missions as mission (mission.id)}
           <li class="p-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <p class="font-medium">{mission.ref} — {mission.type}</p>
-              <span class="ui-badge">{mission.statut}</span>
+              <p class="font-medium">
+                {mission.ref} — {t.typesMission[mission.type as keyof typeof t.typesMission] ?? mission.type}
+              </p>
+              <span class="ui-badge">{statuts[mission.statut] ?? mission.statut}</span>
             </div>
             <p class="mt-1 text-sm text-encre-douce">
               {mission.date}{mission.heure ? ` ${mission.heure}` : ""} · {mission.logement} · {mission.prestataire}
@@ -169,7 +173,7 @@
                 </span>
               {/if}
               {#if mission.preuve === "refusee" && mission.preuveMotif}
-                <p class="ui-alerte ui-alerte--danger">{t.preuveMotif(mission.preuveMotif)}</p>
+                <p role="alert" class="ui-alerte ui-alerte--danger">{t.preuveMotif(mission.preuveMotif)}</p>
               {/if}
 
               {#if mission.preuveAHacher}

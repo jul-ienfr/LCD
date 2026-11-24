@@ -36,7 +36,7 @@
   </form>
 
   {#if data.q && !data.valide}
-    <p class="ui-alerte ui-alerte--alerte">{t.minimum(data.min)}</p>
+    <p role="status" class="ui-alerte ui-alerte--alerte">{t.minimum(data.min)}</p>
   {/if}
 
   {#if data.q && data.valide}

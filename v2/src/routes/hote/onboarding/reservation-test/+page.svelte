@@ -1,8 +1,11 @@
 <script lang="ts">
   import type { ActionData, PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
+  import { traductionsStatuts } from "@/lib/i18n-statuts";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const statuts = $derived(traductionsStatuts(data.langue));
 
   const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
 
@@ -35,12 +38,12 @@
   </header>
 
   {#if data.cree}
-    <p class="ui-alerte ui-alerte--ok">
+    <p role="status" class="ui-alerte ui-alerte--ok">
       Réservation test {data.cree} créée. Ouvrez son guide ci-dessous.
     </p>
   {/if}
   {#if data.annulee}
-    <p class="ui-alerte ui-alerte--ok">Réservation test annulée.</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">Réservation test annulée.</p>
   {/if}
   {#if erreur}
     <p class="ui-alerte ui-alerte--danger" role="alert">
@@ -101,7 +104,7 @@
                   {test.ref} · {test.logement}
                 </p>
                 <p class="text-xs text-encre-faine">
-                  {test.debut} → {test.fin} · {test.statut}
+                  {test.debut} → {test.fin} · {statuts[test.statut] ?? test.statut}
                 </p>
               </div>
               <div class="flex flex-wrap gap-2">

@@ -27,9 +27,9 @@
   </header>
 
   {#if data.ok === "activee"}
-    <p class="ui-alerte ui-alerte--ok">Intégration Nuki activée.</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">Intégration Nuki activée.</p>
   {:else if data.ok === "desactivee"}
-    <p class="ui-alerte ui-alerte--ok">Intégration Nuki désactivée.</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">Intégration Nuki désactivée.</p>
   {/if}
   {#if erreur === "inattendu"}
     <p class="ui-alerte ui-alerte--danger" role="alert">

@@ -29,7 +29,7 @@
   </header>
 
   {#if data.ok === "revoquee"}
-    <p class="ui-alerte ui-alerte--ok">La clé a été révoquée.</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">La clé a été révoquée.</p>
   {/if}
   {#if data.erreur === "inattendu"}
     <p class="ui-alerte ui-alerte--danger" role="alert">

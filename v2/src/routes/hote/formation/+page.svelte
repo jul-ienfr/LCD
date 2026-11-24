@@ -39,7 +39,7 @@
   </section>
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">
+    <p role="status" class="ui-alerte ui-alerte--ok">
       {t.fOk(data.module, data.pourcentage)}
     </p>
   {/if}

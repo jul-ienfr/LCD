@@ -7,6 +7,7 @@
     TYPES_PREUVE,
   } from "@/domain/preuve-tranquillite";
   import { traductionsTranquillite } from "@/lib/i18n-tranquillite";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived(
@@ -14,6 +15,7 @@
   );
 
   const t = $derived(traductionsTranquillite(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
 
   const classesType: Record<string, string> = {
     db: "ui-badge ui-badge--accent",
@@ -176,7 +178,7 @@
         </p>
       {:else}
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
           <table class="ui-tableau w-full min-w-[720px] text-left text-sm">
             <thead>
               <tr>

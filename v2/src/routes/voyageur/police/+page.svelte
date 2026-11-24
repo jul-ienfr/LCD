@@ -18,7 +18,7 @@
 <main id="contenu" class="mx-auto max-w-2xl space-y-8 px-6 py-12">
   {#if data.indisponible}
     <h1 class="text-3xl font-semibold tracking-tight">Fiche de police</h1>
-    <p class="ui-alerte ui-alerte--alerte">
+    <p role="status" class="ui-alerte ui-alerte--alerte">
       Lien invalide ou expiré, ou séjour introuvable. Ouvrez votre espace
       voyageur depuis le message de votre hôte.
     </p>
@@ -40,9 +40,9 @@
       </nav>
     </header>
 
-    {#if etat === "ok"}<p class="ui-alerte ui-alerte--succes">Fiche enregistrée. Merci.</p>{/if}
-    {#if etat === "erreur"}<p class="ui-alerte ui-alerte--danger">Fiche non enregistrée : vérifiez les champs obligatoires.</p>{/if}
-    {#if etat === "complet"}<p class="ui-alerte ui-alerte--alerte">Toutes les fiches prévues pour ce séjour sont déjà remplies.</p>{/if}
+    {#if etat === "ok"}<p role="status" class="ui-alerte ui-alerte--succes">Fiche enregistrée. Merci.</p>{/if}
+    {#if etat === "erreur"}<p role="alert" class="ui-alerte ui-alerte--danger">Fiche non enregistrée : vérifiez les champs obligatoires.</p>{/if}
+    {#if etat === "complet"}<p role="status" class="ui-alerte ui-alerte--alerte">Toutes les fiches prévues pour ce séjour sont déjà remplies.</p>{/if}
 
     <section class="ui-carte">
       <h2 class="text-lg font-semibold">{data.fiches.length}/{data.reservation.voyageurs} fiche(s) reçue(s)</h2>

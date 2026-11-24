@@ -36,7 +36,7 @@
   {/if}
 
   {#if data.apercu}
-    <section class="ui-alerte ui-alerte--alerte">
+    <section role="status" class="ui-alerte ui-alerte--alerte">
       <p>
         Aperçu en cours : <strong>{data.apercu.libelle}</strong> ({data.apercu.email}),
         jusqu’à {data.apercu.expire}.

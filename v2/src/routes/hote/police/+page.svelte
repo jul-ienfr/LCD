@@ -4,9 +4,11 @@
   import Carte from "@/lib/components/ui/carte.svelte";
   import EtatVide from "@/lib/components/ui/etat-vide.svelte";
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
   const t = $derived(traductionsConformite((data as { langue?: string }).langue ?? "fr"));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -25,7 +27,7 @@
       <EtatVide message={t.pAucune} />
     {:else}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant" class="mt-4 overflow-x-auto">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant} class="mt-4 overflow-x-auto">
         <table class="ui-tableau min-w-[720px]">
           <thead>
             <tr>

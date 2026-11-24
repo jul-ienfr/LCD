@@ -46,7 +46,7 @@
   <header class="space-y-3">
     <h1 class="ui-titre-2">{t.titre}</h1>
     <p class="ui-lecture text-encre-douce">{t.intro}</p>
-    <p class="ui-alerte ui-alerte--info text-sm">{t.sansPii}</p>
+    <p role="status" class="ui-alerte ui-alerte--info text-sm">{t.sansPii}</p>
   </header>
 
   {#if data.merci}

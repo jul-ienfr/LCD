@@ -68,9 +68,9 @@
 
   <section class="ui-carte space-y-3">
     <h2 class="text-xl font-semibold">Alertes</h2>
-    <p class="ui-alerte">Information neutre.</p>
+    <p role="status" class="ui-alerte">Information neutre.</p>
     <p class="ui-alerte ui-alerte--ok" role="status">Opération réussie.</p>
-    <p class="ui-alerte ui-alerte--alerte">Attention requise.</p>
+    <p role="status" class="ui-alerte ui-alerte--alerte">Attention requise.</p>
     <p class="ui-alerte ui-alerte--danger" role="alert">Erreur bloquante.</p>
   </section>
 
@@ -80,8 +80,7 @@
     <div
       class="w-full min-w-0 overflow-x-auto"
       role="region"
-      tabindex="0"
-      aria-label="Tableau de démonstration"
+      tabindex="0" aria-label="Tableau de démonstration"
     >
       <table class="ui-tableau">
         <caption class="sr-only">Exemple de tableau avec badge de statut</caption>
@@ -144,8 +143,7 @@
     <div
       class="w-full min-w-0 overflow-x-auto"
       role="region"
-      tabindex="0"
-      aria-label="Seuils bloquants de publication d’un thème"
+      tabindex="0" aria-label="Seuils bloquants de publication d’un thème"
     >
       <table class="ui-tableau w-full">
         <caption class="sr-only">Seuils bloquants de publication d’un thème</caption>

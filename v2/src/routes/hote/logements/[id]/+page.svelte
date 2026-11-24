@@ -115,7 +115,7 @@
       {#if form?.message}
         <p
           class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"}
-          role="status"
+          role={form.ok ? "status" : "alert"}
         >
           {form.message}
         </p>

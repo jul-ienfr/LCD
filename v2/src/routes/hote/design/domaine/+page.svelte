@@ -36,7 +36,7 @@
     <p class="ui-alerte ui-alerte--danger" role="alert">{form.message}</p>
   {/if}
   {#if !data.sitePublie}
-    <p class="ui-alerte ui-alerte--alerte">
+    <p role="status" class="ui-alerte ui-alerte--alerte">
       {t.dSiteNonPublie}
     </p>
   {/if}

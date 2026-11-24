@@ -29,7 +29,7 @@
   </header>
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">{t.avisMaj}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.avisMaj}</p>
   {/if}
   {#if erreur}
     <p class="ui-alerte ui-alerte--danger" role="alert">{t.avisIntrouvable}</p>

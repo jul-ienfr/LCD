@@ -2,9 +2,11 @@
   import type { ActionData, PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsPlanningImport } from "@/lib/i18n-planning-import";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const t = $derived(traductionsPlanningImport(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -33,7 +35,7 @@
       class={data.sync === "ok" || data.sync === "supprime"
         ? "ui-alerte ui-alerte--ok"
         : "ui-alerte ui-alerte--danger"}
-      role="status"
+      role={data.sync === "ok" || data.sync === "supprime" ? "status" : "alert"}
     >
       {#if data.sync === "ok"}
         {t.syncOk}
@@ -52,13 +54,13 @@
       {t.fluxOk(data.fluxOk)}
     </p>
   {:else if data.fluxErreur}
-    <p class="ui-alerte ui-alerte--danger" role="status">{data.fluxErreur}</p>
+    <p class="ui-alerte ui-alerte--danger" role="alert">{data.fluxErreur}</p>
   {/if}
 
   {#if form?.message}
     <p
       class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"}
-      role="status"
+      role={form.ok ? "status" : "alert"}
     >
       {form.message}
     </p>
@@ -202,7 +204,7 @@
 
           {#if resultat.lignes.length > 0}
             <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-            <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+            <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
               <table class="ui-tableau min-w-[640px]">
                 <thead>
                   <tr>

@@ -22,8 +22,8 @@
   {#if data.exigenceDeuxFacteurs}
     <p class="ui-alerte ui-alerte--danger" role="alert">{t.exigence}</p>
   {/if}
-  {#if form?.message}<p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role="status">{form.message}</p>{/if}
-  {#if data.motdepasse === "ok"}<p class="ui-alerte ui-alerte--succes">{t.motDePasseChange}</p>{/if}
+  {#if form?.message}<p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role={form.ok ? "status" : "alert"}>{form.message}</p>{/if}
+  {#if data.motdepasse === "ok"}<p role="status" class="ui-alerte ui-alerte--succes">{t.motDePasseChange}</p>{/if}
 
   <section class="ui-carte space-y-4">
     <div>
@@ -55,7 +55,7 @@
         </form>
       </div>
     {:else if data.twoFactorEnabled}
-      <p class="ui-alerte ui-alerte--succes">{t.deuxFaActive}</p>
+      <p role="status" class="ui-alerte ui-alerte--succes">{t.deuxFaActive}</p>
       {#snippet motDePasse()}
         <label class="ui-champ-groupe"><span class="ui-label">{t.mdpDesactiver}</span><input class="ui-champ" type="password" name="password" autocomplete="current-password" required /></label>
       {/snippet}
@@ -80,8 +80,8 @@
       <h2 class="text-lg font-semibold">{t.sessionsActives}</h2>
       <p class="mt-1 text-sm text-encre-douce">{t.sessionsOuvertes(data.totalSessions)}</p>
     </div>
-    {#if data.sessionsEtat === "ok"}<p class="ui-alerte ui-alerte--succes">{t.sessionsFermees}</p>{/if}
-    {#if data.sessionsEtat === "erreur"}<p class="ui-alerte ui-alerte--danger">{t.sessionsEchec}</p>{/if}
+    {#if data.sessionsEtat === "ok"}<p role="status" class="ui-alerte ui-alerte--succes">{t.sessionsFermees}</p>{/if}
+    {#if data.sessionsEtat === "erreur"}<p role="alert" class="ui-alerte ui-alerte--danger">{t.sessionsEchec}</p>{/if}
     <ul class="divide-y divide-bordure rounded-controle border border-bordure">
       {#each data.sessions as element (element.id)}
         <li class="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">

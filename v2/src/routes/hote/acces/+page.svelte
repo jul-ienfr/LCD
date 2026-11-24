@@ -4,12 +4,14 @@
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import Kpi from "@/lib/components/ui/kpi.svelte";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived(
     (form as { erreur?: string } | null)?.erreur ?? data.erreur,
   );
   const t = $derived(traductionsAcces((data as { langue?: string }).langue ?? "fr"));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -24,7 +26,7 @@
   />
 
   {#if data.ok === "revoque"}
-    <p class="ui-alerte ui-alerte--ok">{t.revoquee}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.revoquee}</p>
   {/if}
   {#if erreur}
     <p class="ui-alerte ui-alerte--danger" role="alert">
@@ -40,7 +42,7 @@
   </section>
 
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-  <section tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface shadow-sm">
+  <section tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-2xl border border-bordure bg-surface shadow-sm">
     <table class="ui-tableau min-w-[900px]">
       <thead>
         <tr>

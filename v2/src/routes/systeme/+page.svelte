@@ -48,7 +48,7 @@
   </header>
 
   {#if !data.etat}
-    <p class="ui-alerte ui-alerte--alerte">
+    <p role="status" class="ui-alerte ui-alerte--alerte">
       <code>MIGRATION_DATABASE_URL</code> absent : diagnostic base indisponible. La
       page ne se rabat pas sur la connexion applicative.
     </p>
@@ -64,7 +64,7 @@
         {/each}
       </dl>
       {#if data.etat.tablesRls < data.etat.tables}
-        <p class="ui-alerte ui-alerte--alerte mt-4">
+        <p role="status" class="ui-alerte ui-alerte--alerte mt-4">
           {data.etat.tables - data.etat.tablesRls} table(s) publique(s) sans RLS :
           vérifier qu’elles sont globales (tenants, catalogue), pas métier.
         </p>

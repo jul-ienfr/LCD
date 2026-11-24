@@ -21,10 +21,10 @@
   </header>
 
   {#if data.deuxfacteurs === "ok"}
-    <p class="ui-alerte ui-alerte--succes">{t.deuxfaOk}</p>
+    <p role="status" class="ui-alerte ui-alerte--succes">{t.deuxfaOk}</p>
   {/if}
   {#if form?.message}
-    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role="status">{form.message}</p>
+    <p class:ui-alerte--danger={!form.ok} class:ui-alerte--succes={form.ok} class="ui-alerte" role={form.ok ? "status" : "alert"}>{form.message}</p>
   {/if}
 
   <section class="grid gap-4 sm:grid-cols-3">

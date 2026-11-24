@@ -1,8 +1,10 @@
 <script lang="ts">
   import type { StatutPreuve } from "@/domain/preuve-intervention";
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
+  const tNav = $derived(traductionsNavigation(data.langue));
 
   const TON_PREUVE: Record<StatutPreuve, string> = {
     validee: "ui-badge--succes",
@@ -30,7 +32,7 @@
   </header>
 
   {#if data.logements.length === 0}
-    <p class="ui-alerte ui-alerte--alerte">Aucun logement n’est encore rattaché à votre compte. Contactez votre gestionnaire.</p>
+    <p role="status" class="ui-alerte ui-alerte--alerte">Aucun logement n’est encore rattaché à votre compte. Contactez votre gestionnaire.</p>
   {:else}
     {#each data.logements as logement (logement.logementId)}
       <section class="space-y-4">
@@ -40,15 +42,15 @@
         </div>
 
         {#if !logement.visible}
-          <p class="ui-alerte">Les interventions de ce logement ne sont pas partagées avec les propriétaires par votre mandat. Contactez votre gestionnaire pour en ouvrir l’accès.</p>
+          <p role="status" class="ui-alerte">Les interventions de ce logement ne sont pas partagées avec les propriétaires par votre mandat. Contactez votre gestionnaire pour en ouvrir l’accès.</p>
         {:else}
           <section class="space-y-3">
             <h3 class="text-lg font-semibold">Interventions</h3>
             {#if logement.interventions.length === 0}
-              <p class="ui-alerte">Aucune intervention enregistrée sur ce logement.</p>
+              <p role="status" class="ui-alerte">Aucune intervention enregistrée sur ce logement.</p>
             {:else}
               <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-              <div tabindex="0" aria-label="Tableau défilant" class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+              <div tabindex="0" role="region" aria-label={tNav.tableauDefilant} class="overflow-x-auto rounded-carte border border-bordure bg-surface">
                 <table class="w-full min-w-[680px] border-collapse text-sm">
                   <thead>
                     <tr class="border-b border-bordure bg-fond text-left">
@@ -93,7 +95,7 @@
             <section class="space-y-3">
               <h3 class="text-lg font-semibold">Photos de preuve</h3>
               {#if logement.photos.length === 0}
-                <p class="ui-alerte">Aucune photo de preuve sur ce logement.</p>
+                <p role="status" class="ui-alerte">Aucune photo de preuve sur ce logement.</p>
               {:else}
                 <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {#each logement.photos as photo (photo.id)}

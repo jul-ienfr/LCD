@@ -22,7 +22,7 @@
   />
 
   {#if data.ok}
-    <p class="ui-alerte ui-alerte--ok">{t.paramsOk}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.paramsOk}</p>
   {/if}
   {#if erreur}
     <p class="ui-alerte ui-alerte--danger" role="alert">{t.paramsErreurs[erreur] ?? erreur}</p>
@@ -68,7 +68,7 @@
     </form>
   </section>
 
-  <section class="ui-alerte ui-alerte--alerte">
+  <section role="status" class="ui-alerte ui-alerte--alerte">
     <h2 class="font-semibold">{t.facturXTitre}</h2>
     <p class="mt-2">{t.facturXAide}</p>
   </section>

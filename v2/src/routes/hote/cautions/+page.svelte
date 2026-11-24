@@ -35,25 +35,25 @@
   </div>
 
   {#if data.caution === "creee"}
-    <p class="ui-alerte ui-alerte--ok">{t.creee}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.creee}</p>
   {:else if data.caution === "ok"}
-    <p class="ui-alerte ui-alerte--ok">{t.maj}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.maj}</p>
   {:else if data.caution === "erreur"}
-    <p class="ui-alerte ui-alerte--danger">{t.erreurMaj}</p>
+    <p role="alert" class="ui-alerte ui-alerte--danger">{t.erreurMaj}</p>
   {/if}
 
   {#if data.validation === "en_attente"}
-    <p class="ui-alerte ui-alerte--ok">
+    <p role="status" class="ui-alerte ui-alerte--ok">
       {t.validationAttente}
     </p>
   {:else if data.validation === "approuvee"}
-    <p class="ui-alerte ui-alerte--ok">{t.validationApprouvee}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.validationApprouvee}</p>
   {:else if data.validation === "rejetee"}
-    <p class="ui-alerte ui-alerte--ok">{t.validationRejetee}</p>
+    <p role="status" class="ui-alerte ui-alerte--ok">{t.validationRejetee}</p>
   {:else if data.validation === "soi"}
-    <p class="ui-alerte ui-alerte--danger">{t.validationSoi}</p>
+    <p role="alert" class="ui-alerte ui-alerte--danger">{t.validationSoi}</p>
   {:else if data.validation === "erreur"}
-    <p class="ui-alerte ui-alerte--danger">{t.validationErreur}</p>
+    <p role="alert" class="ui-alerte ui-alerte--danger">{t.validationErreur}</p>
   {/if}
 
   {#if data.peutValider && data.validations.length > 0}

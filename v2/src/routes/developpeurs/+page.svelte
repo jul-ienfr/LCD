@@ -43,7 +43,7 @@
       manquant renvoie <code>403</code>.
     </p>
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div role="region" tabindex="0" aria-label="Tableau défilant" class="overflow-x-auto rounded-2xl border border-bordure">
+    <div role="region" tabindex="0" aria-label={tNav.tableauDefilant} class="overflow-x-auto rounded-2xl border border-bordure">
       <table class="ui-tableau min-w-[420px]">
         <thead>
           <tr><th>Scope</th><th>Ressource</th></tr>
@@ -63,7 +63,7 @@
   <section class="space-y-3">
     <h2 class="text-xl font-semibold">Endpoints</h2>
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div role="region" tabindex="0" aria-label="Tableau défilant" class="overflow-x-auto rounded-2xl border border-bordure">
+    <div role="region" tabindex="0" aria-label={tNav.tableauDefilant} class="overflow-x-auto rounded-2xl border border-bordure">
       <table class="ui-tableau min-w-[620px]">
         <thead>
           <tr><th>Méthode</th><th>Chemin</th><th>Paramètres</th></tr>

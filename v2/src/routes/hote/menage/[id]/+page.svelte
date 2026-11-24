@@ -58,7 +58,7 @@
 
   <section class="ui-carte">
     {#if data.menage.taches.length === 0}
-      <p class="ui-alerte ui-alerte--alerte">
+      <p role="status" class="ui-alerte ui-alerte--alerte">
         {t.aucuneTache}
       </p>
     {:else}

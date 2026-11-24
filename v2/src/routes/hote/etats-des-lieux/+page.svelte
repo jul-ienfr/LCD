@@ -1,9 +1,11 @@
 <script lang="ts">
   import { traductionsEtatsDesLieux } from "@/lib/i18n-etats-des-lieux";
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
   const t = $derived(traductionsEtatsDesLieux((data as { langue?: string }).langue ?? "fr"));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -63,7 +65,7 @@
 
       {#if data.biens.length === 0}
         <div class="space-y-3">
-          <p class="ui-alerte ui-alerte--alerte">
+          <p role="status" class="ui-alerte ui-alerte--alerte">
             {t.aucunBien}
           </p>
           <a class="ui-lien-action text-sm" href="/hote/logements">{t.gererLogements}</a>
@@ -110,7 +112,7 @@
           </div>
 
           <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-          <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+          <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
             <table class="ui-tableau min-w-[760px]">
               <thead>
                 <tr>
@@ -201,7 +203,7 @@
         </p>
       {:else}
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-carte border border-bordure bg-surface">
           <table class="ui-tableau min-w-[760px]">
             <thead>
               <tr>

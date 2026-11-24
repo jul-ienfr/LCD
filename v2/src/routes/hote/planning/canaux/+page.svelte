@@ -40,7 +40,7 @@
   {#if form?.message}
     <p
       class={form.ok ? "ui-alerte ui-alerte--ok" : "ui-alerte ui-alerte--danger"}
-      role="status"
+      role={form.ok ? "status" : "alert"}
     >
       {form.message}
     </p>
@@ -251,10 +251,10 @@
               <p class="text-sm text-encre-douce">{canal.description}</p>
             </div>
             <div class="flex flex-wrap gap-2 text-xs">
-              <span class={canal.actif ? "ui-alerte ui-alerte--ok" : "ui-alerte"}>
+              <span role="status" class={canal.actif ? "ui-alerte ui-alerte--ok" : "ui-alerte"}>
                 {canal.actif ? t.canalActif : t.canalDesactive}
               </span>
-              <span class={canal.exportActif ? "ui-alerte ui-alerte--ok" : "ui-alerte"}>
+              <span role="status" class={canal.exportActif ? "ui-alerte ui-alerte--ok" : "ui-alerte"}>
                 {canal.exportActif ? t.exportActif : t.exportCoupe}
               </span>
             </div>

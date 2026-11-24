@@ -74,7 +74,7 @@
       </p>
     {/if}
     {#if !data.simulation.microPossible}
-      <p class="ui-alerte ui-alerte--danger" role="status">
+      <p class="ui-alerte ui-alerte--danger" role="alert">
         {t.recettesSeuil(data.montants.seuil)}
       </p>
     {/if}

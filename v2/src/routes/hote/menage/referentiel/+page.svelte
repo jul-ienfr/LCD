@@ -92,8 +92,7 @@
         <div
           class="overflow-x-auto rounded-carte border border-bordure bg-surface"
           role="region"
-          tabindex="0"
-          aria-label={t.referentielTitre}
+          tabindex="0" aria-label={t.referentielTitre}
         >
           <table class="ui-tableau min-w-[560px]">
             <thead>

@@ -3,12 +3,14 @@
   import Alerte from "@/lib/components/ui/alerte.svelte";
   import { traductionsStocks } from "@/lib/i18n-stocks";
   import type { ActionData, PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const erreur = $derived(
     (form as { erreur?: string } | null)?.erreur ?? data.erreur,
   );
   const t = $derived(traductionsStocks(data.langue));
+  const tNav = $derived(traductionsNavigation(data.langue));
 
   const classes: Record<string, string> = {
     rupture: "ui-badge ui-badge--danger",
@@ -95,7 +97,7 @@
         </p>
       {:else}
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+        <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
           <table class="ui-tableau min-w-[760px]">
             <thead>
               <tr>

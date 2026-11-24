@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
+  const tNav = $derived(traductionsNavigation(data.langue));
 
   const themes = [
     { id: "sejour", nom: "Séjour" },
@@ -178,7 +180,7 @@
     <section class="ui-carte space-y-4">
       <h2 class="text-xl font-semibold">Tableau</h2>
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto">
         <table class="ui-tableau w-full">
           <caption class="sr-only">Exemple de tableau de séjours</caption>
           <thead>

@@ -64,8 +64,7 @@
       <div 
         class="overflow-x-auto rounded-2xl border border-bordure bg-surface"
         role="region"
-        tabindex="0"
-        aria-label={t.mixCanalTitre}
+        tabindex="0" aria-label={t.mixCanalTitre}
       >
         <table class="ui-tableau min-w-[480px]">
           <thead>
@@ -103,8 +102,7 @@
       <div 
         class="overflow-x-auto rounded-2xl border border-bordure bg-surface"
         role="region"
-        tabindex="0"
-        aria-label={t.parLogementTitre}
+        tabindex="0" aria-label={t.parLogementTitre}
       >
         <table class="ui-tableau min-w-[640px]">
           <thead>

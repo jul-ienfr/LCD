@@ -2,9 +2,11 @@
   import { traductionsCompta } from "@/lib/i18n-compta";
   import Kpi from "@/lib/components/ui/kpi.svelte";
   import type { PageData } from "./$types";
+  import { traductionsNavigation } from "@/lib/i18n-nav";
 
   let { data }: { data: PageData } = $props();
   const t = $derived(traductionsCompta((data as { langue?: string }).langue ?? "fr"));
+  const tNav = $derived(traductionsNavigation(data.langue));
 </script>
 
 <svelte:head>
@@ -51,7 +53,7 @@
   </section>
 
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-  <section tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+  <section tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
     <table class="ui-tableau min-w-[640px]">
       <thead>
         <tr>
@@ -87,7 +89,7 @@
       </p>
     {:else}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div role="region" tabindex="0" aria-label="Tableau défilant"  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
+      <div role="region" tabindex="0" aria-label={tNav.tableauDefilant}  class="overflow-x-auto rounded-2xl border border-bordure bg-surface">
         <table class="ui-tableau min-w-[640px]">
           <thead>
             <tr>
