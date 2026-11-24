@@ -29,6 +29,10 @@ import { lireMaintenance } from "@/lib/server/maintenance";
 import { pageMaintenance } from "@/lib/server/page-maintenance";
 import { apparencePourRequete } from "@/lib/server/apparence";
 import { estSuperAdmin } from "@/lib/server/session";
+import {
+  creerRegistreAntiDoublon,
+  empreinteSoumission,
+} from "@/lib/server/anti-doublon";
 
 const estRessource = (chemin: string): boolean =>
   chemin.startsWith("/_app/") ||
@@ -76,6 +80,77 @@ const entetesSecurite = (chemin: string): Record<string, string> => {
 
 const cheminWidget = (chemin: string): boolean =>
   chemin === "/api/widget" || chemin.startsWith("/api/widget/");
+
+/**
+ * FR-040 : une même soumission de formulaire rejouée dans la fenêtre courte
+ * n'exécute pas deux fois l'action. Le registre est en mémoire du processus :
+ * il couvre le double clic et le rejeu réseau, pas une seconde machine.
+ */
+const antiDoublon = creerRegistreAntiDoublon({ fenetreMs: 2_000 });
+const TAILLE_MAX_CHAMPS_ANTI_DOUBLON = 64 * 1024;
+
+async function reponseDoublon(
+  event: RequestEvent,
+): Promise<Response | null> {
+  if (event.request.method !== "POST") return null;
+  const chemin = event.url.pathname;
+  if (
+    chemin.startsWith("/api/") ||
+    chemin.startsWith("/preview/") ||
+    chemin.startsWith("/_app/")
+  ) {
+    return null;
+  }
+  const contentType = event.request.headers.get("content-type") ?? "";
+  if (!/^application\/(x-www-form-urlencoded|multipart\/form-data)/i.test(contentType)) {
+    return null;
+  }
+
+  const taille = Number(event.request.headers.get("content-length") ?? "");
+  const champs: Array<readonly [string, string]> = [];
+  // Un envoi de fichier volumineux n'est pas relu : sa clé se limite au
+  // chemin et à l'action, ce qui suffit à bloquer un second clic immédiat.
+  if (Number.isFinite(taille) && taille <= TAILLE_MAX_CHAMPS_ANTI_DOUBLON) {
+    try {
+      const donnees = await event.request.clone().formData();
+      for (const [nom, valeur] of donnees) {
+        if (typeof valeur === "string") champs.push([nom, valeur]);
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  let utilisateur = event.locals.session?.user.id ?? "";
+  if (!utilisateur) {
+    try {
+      utilisateur = event.getClientAddress();
+    } catch {
+      utilisateur = "inconnu";
+    }
+  }
+  const action =
+    [...event.url.searchParams.keys()].find((cle) => cle.startsWith("/")) ?? "";
+
+  const empreinte = empreinteSoumission({
+    utilisateur,
+    chemin,
+    action,
+    champs,
+  });
+  if (antiDoublon.enregistrer(empreinte)) return null;
+
+  const retour = new URL(event.url);
+  if (action) retour.searchParams.delete(action);
+  retour.searchParams.set("doublon", "1");
+  return new Response(null, {
+    status: 303,
+    headers: {
+      location: `${retour.pathname}${retour.search}`,
+      "cache-control": "no-store",
+    },
+  });
+}
 
 export const init = async () => {
   // Un déploiement réel (production + HTTPS) refuse de démarrer sur un secret
@@ -230,6 +305,10 @@ export const handle: Handle = async ({ event, resolve }) => {
           `<html lang="${langueRequete(requestEvent)}"`,
         ),
     });
+
+  // FR-040 : le doublon est écarté avant le routage, donc avant toute écriture.
+  const doublon = await reponseDoublon(event);
+  if (doublon) return doublon;
 
   const reponse = await svelteKitHandler({
     auth,

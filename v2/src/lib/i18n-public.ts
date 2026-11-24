@@ -21,6 +21,7 @@ export interface TraductionsPubliques {
   mentionsLegales: string;
   langue: string;
   choisirLangue: string;
+  doublon: string;
 }
 
 const FR: TraductionsPubliques = {
@@ -37,6 +38,7 @@ const FR: TraductionsPubliques = {
   mentionsLegales: "Mentions légales",
   langue: "Langue",
   choisirLangue: "Choisir la langue",
+  doublon: "Envoi déjà enregistré : le doublon a été ignoré.",
 };
 
 const EN: TraductionsPubliques = {
@@ -53,6 +55,7 @@ const EN: TraductionsPubliques = {
   mentionsLegales: "Legal notice",
   langue: "Language",
   choisirLangue: "Choose language",
+  doublon: "Submission already recorded: the duplicate was ignored.",
 };
 
 const ES: TraductionsPubliques = {
@@ -69,6 +72,7 @@ const ES: TraductionsPubliques = {
   mentionsLegales: "Aviso legal",
   langue: "Idioma",
   choisirLangue: "Elegir idioma",
+  doublon: "Envío ya registrado: se ignoró el duplicado.",
 };
 
 const IT: TraductionsPubliques = {
@@ -85,6 +89,7 @@ const IT: TraductionsPubliques = {
   mentionsLegales: "Note legali",
   langue: "Lingua",
   choisirLangue: "Scegli la lingua",
+  doublon: "Invio già registrato: il duplicato è stato ignorato.",
 };
 
 const DE: TraductionsPubliques = {
@@ -101,6 +106,7 @@ const DE: TraductionsPubliques = {
   mentionsLegales: "Impressum",
   langue: "Sprache",
   choisirLangue: "Sprache wählen",
+  doublon: "Übermittlung bereits erfasst: die Dublette wurde ignoriert.",
 };
 
 const DICTIONNAIRES: Record<Langue, TraductionsPubliques> = {

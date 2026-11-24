@@ -3,7 +3,9 @@
   import "@fontsource-variable/inter";
   import "../app.css";
   import type { Snippet } from "svelte";
+  import { onMount } from "svelte";
   import { page } from "$app/state";
+  import { installerVerrouSoumissions } from "@/lib/client/soumissions";
   import { styleTheme, themeResolu } from "@/lib/apparence";
   import { traductionsPubliques } from "@/lib/i18n-public";
   import type { LayoutData } from "./$types";
@@ -19,6 +21,11 @@
     ),
   );
   const t = $derived(traductionsPubliques(data.langue));
+  const doublon = $derived(page.url.searchParams.get("doublon") === "1");
+
+  // FR-040 : verrou côté navigateur des formulaires POST (état d'attente,
+  // second clic refusé). Le serveur écarte le doublon même sans JavaScript.
+  onMount(() => installerVerrouSoumissions());
 </script>
 
 <svelte:head>
@@ -41,6 +48,12 @@
 </svelte:head>
 
 <a class="lien-evitement" href="#contenu">{t.allerAuContenu}</a>
+
+{#if doublon}
+  <div class="doublon-bandeau" role="status" data-doublon>
+    {t.doublon}
+  </div>
+{/if}
 
 {#if data.apercu}
   <div class="apercu-bandeau" role="status">
