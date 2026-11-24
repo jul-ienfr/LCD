@@ -192,3 +192,41 @@ Vérifier la couverture photos en local :
 npx vitest run tests/ops/sauvegarde-photos.test.ts
 bash -n scripts/backup-vps.sh scripts/copier-hors-site.sh
 ```
+
+## Vérification hebdomadaire de la restauration, RTO et RPO (FR-008, FR-009)
+
+`scripts/verifier-restauration.sh` restaure la dernière sauvegarde dans une
+base jetable chaque semaine et écrit une **preuve datée**, succès comme échec,
+dans `preuves/restauration-<horodatage>.json` (+ `restauration-derniere.json`) :
+
+```json
+{
+  "ok": true,
+  "fichier": "backups/lcd-20261124-031500.sql.gz.enc",
+  "verifieLe": "2026-11-29T04:31:12.000Z",
+  "dureeMs": 184000,
+  "ageSauvegardeHeures": 1.3,
+  "rtoMaxMinutes": 30,
+  "rpoMaxHeures": 24,
+  "rtoConforme": true,
+  "rpoConforme": true,
+  "comptes": { "tenants": 1, "users": 244, "migrations": 57 }
+}
+```
+
+Le **RTO** est la durée réelle de la restauration (base créée, dump rejoué,
+comptes comparés au manifeste, base supprimée) ; le **RPO** est l'âge de la
+sauvegarde restaurée au moment du contrôle. Un dépassement (`RTO_MAX_MINUTES`,
+`RPO_MAX_HEURES`) invalide la preuve et fait échouer le script, qui alerte
+ensuite le canal d'exploitation. Les preuves sont conservées 90 jours.
+
+```cron
+30 4 * * 0 cd /opt/lcd/v2 && ./scripts/verifier-restauration.sh >> /var/log/lcd-restauration.log 2>&1
+```
+
+Vérifier la logique des seuils sans base :
+
+```bash
+npx vitest run tests/ops/verification-restauration.test.ts
+bash -n scripts/verifier-restauration.sh
+```

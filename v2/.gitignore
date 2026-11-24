@@ -47,3 +47,6 @@ backups/
 
 # Jeton de scrape Prometheus (regenerer par scripts/deployer.sh, jamais versionne) :
 /monitoring/metrics_token
+
+# Preuves de restauration (donnees de production)
+preuves/

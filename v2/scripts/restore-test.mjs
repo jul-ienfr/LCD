@@ -2,11 +2,13 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   existsSync,
+  mkdirSync,
   readFileSync,
   readdirSync,
   statSync,
+  writeFileSync,
 } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { config } from "dotenv";
 import {
@@ -14,8 +16,64 @@ import {
   estBackupChiffre,
 } from "./backup-crypto.mjs";
 import { comparerComptes, normaliserComptes } from "./backup-manifest.mjs";
+import {
+  construirePreuveRestauration,
+  evaluerObjectifs,
+  RPO_MAX_HEURES,
+  RTO_MAX_MINUTES,
+} from "./preuve-restauration.mjs";
 
 config({ path: ".env.local", quiet: true });
+
+function entierEnv(nom, defaut) {
+  const valeur = Number(process.env[nom]);
+  return Number.isFinite(valeur) && valeur > 0 ? valeur : defaut;
+}
+
+const rtoMaxMinutes = entierEnv("RTO_MAX_MINUTES", RTO_MAX_MINUTES);
+const rpoMaxHeures = entierEnv("RPO_MAX_HEURES", RPO_MAX_HEURES);
+const debut = Date.now();
+const demarreLe = new Date().toISOString();
+const preuve = {
+  fichier: null,
+  ageSauvegardeHeures: null,
+  comptes: null,
+  erreur: null,
+  ok: false,
+};
+
+// Preuve datée écrite dans tous les cas, succès comme échec (FR-008/FR-009) :
+// un contrôle hebdomadaire doit laisser une trace même quand il échoue.
+process.on("uncaughtExceptionMonitor", (erreur) => {
+  preuve.erreur = erreur instanceof Error ? erreur.message : String(erreur);
+});
+process.on("exit", (code) => {
+  try {
+    const document = construirePreuveRestauration({
+      fichier: preuve.fichier,
+      demarreLe,
+      dureeMs: Date.now() - debut,
+      ageSauvegardeHeures: preuve.ageSauvegardeHeures,
+      comptes: preuve.comptes,
+      ok: preuve.ok && code === 0,
+      erreur: preuve.erreur,
+      rtoMaxMinutes,
+      rpoMaxHeures,
+    });
+    const horodatage = new Date().toISOString().replace(/[:.]/g, "-");
+    const cheminPreuve =
+      process.env.PREUVE || join("preuves", `restauration-${horodatage}.json`);
+    mkdirSync(dirname(cheminPreuve), { recursive: true });
+    writeFileSync(cheminPreuve, `${JSON.stringify(document, null, 2)}\n`);
+    writeFileSync(
+      join(dirname(cheminPreuve), "restauration-derniere.json"),
+      `${JSON.stringify(document, null, 2)}\n`,
+    );
+    console.log(`Preuve de restauration : ${cheminPreuve}`);
+  } catch (erreur) {
+    console.error(`Preuve de restauration non écrite : ${erreur.message}`);
+  }
+});
 
 const url =
   process.env.MIGRATION_DATABASE_URL ??
@@ -68,6 +126,12 @@ const chemin = dernier.includes("/") || dernier.includes("\\")
 if (!existsSync(chemin)) {
   throw new Error(`Sauvegarde introuvable : ${chemin}`);
 }
+
+preuve.fichier = chemin;
+preuve.ageSauvegardeHeures = Math.max(
+  0,
+  (Date.now() - statSync(chemin).mtimeMs) / 3_600_000,
+);
 
 const archive = readFileSync(chemin);
 
@@ -150,6 +214,7 @@ try {
     .toString()
     .trim();
   const comptes = normaliserComptes(sortie);
+  preuve.comptes = comptes;
 
   console.log(
     `OK tenants=${comptes.tenants} users=${comptes.users} logements=${comptes.logements} reservations=${comptes.reservations} factures=${comptes.factures} paiements=${comptes.paiements} blocages=${comptes.blocages} tables=${comptes.tables} migrations=${comptes.migrations}`,
@@ -177,6 +242,26 @@ try {
     );
   }
 
+  // FR-009 : le RTO et le RPO sont prouvés à chaque contrôle, pas seulement
+  // au go-live. Un dépassement invalide la preuve et alerte le canal.
+  const objectifs = evaluerObjectifs({
+    dureeMs: Date.now() - debut,
+    ageSauvegardeHeures: preuve.ageSauvegardeHeures,
+    rtoMaxMinutes,
+    rpoMaxHeures,
+  });
+  if (!objectifs.rtoConforme) {
+    throw new Error(
+      `RTO dépassé : restauration en ${Math.round((Date.now() - debut) / 60_000)} min > ${rtoMaxMinutes} min.`,
+    );
+  }
+  if (!objectifs.rpoConforme) {
+    throw new Error(
+      `RPO dépassé : sauvegarde vieille de ${preuve.ageSauvegardeHeures.toFixed(1)} h > ${rpoMaxHeures} h.`,
+    );
+  }
+
+  preuve.ok = true;
   console.log("RESTAURATION VALIDÉE");
 } finally {
   try {
