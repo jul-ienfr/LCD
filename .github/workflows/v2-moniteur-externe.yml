@@ -1,0 +1,60 @@
+name: v2-moniteur-externe
+
+# Moniteur externe (spec 006, FR-005).
+#
+# Ce job tourne sur l'infrastructure GitHub, donc HORS du VPS surveillé : une
+# panne du serveur, de Caddy ou du réseau ne peut pas l'empêcher de sonder.
+# Il vérifie trois surfaces publiques toutes les cinq minutes et alerte par
+# webhook (ntfy, Slack, email-relais) quand l'une ne répond pas 200.
+#
+# Décision T-12 : GitHub Actions planifié comme moniteur externe gratuit.
+# Le webhook se configure en secret de dépôt `ALERTE_WEBHOOK_URL`.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: v2-moniteur-externe
+  cancel-in-progress: false
+
+jobs:
+  sonder:
+    # Avant go-live, aucune URL publique n'existe : le job est ignoré
+    # proprement (variable LCD_APP_URL absente) au lieu d'échouer.
+    if: vars.LCD_APP_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Sonder la disponibilité publique
+        run: |
+          set -eu
+          echec=0
+          for chemin in /api/health /api/ready /login; do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "${{ vars.LCD_APP_URL }}${chemin}" || echo 000)"
+            echo "${chemin} → ${code}"
+            if [ "${code}" != "200" ]; then
+              echec=1
+            fi
+          done
+          if [ "${echec}" -ne 0 ]; then
+            echo "::error::Au moins une surface publique ne répond pas 200."
+            exit 1
+          fi
+
+      - name: Alerter le canal d'exploitation
+        if: failure()
+        env:
+          WEBHOOK: ${{ secrets.ALERTE_WEBHOOK_URL }}
+          APP_URL: ${{ vars.LCD_APP_URL }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ -z "${WEBHOOK}" ]; then
+            echo "::warning::ALERTE_WEBHOOK_URL absent : alerte non envoyée (voir T-11)."
+            exit 0
+          fi
+          message="Moniteur externe : ${APP_URL} ne répond pas correctement (run ${RUN_ID}). Runbook : v2/MONITORING.md"
+          curl -fsS --max-time 15 -X POST \
+            -H 'content-type: application/json' \
+            --data "$(printf '{"source":"moniteur-externe","severite":"critique","message":"%s","runbook":"v2/MONITORING.md"}' "${message}")" \
+            "${WEBHOOK}" || echo "::warning::Webhook d'alerte injoignable."

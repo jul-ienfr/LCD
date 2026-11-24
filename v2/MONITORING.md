@@ -27,9 +27,14 @@ cassée. Les messages sont tronqués et les clés `password`, `token`, `secret`,
 
 ## Uptime Kuma (disponibilité)
 
+Déployé par défaut avec la pile (FR-004) : aucun profil à activer. Le
+tableau des monitors ci-dessous est la **configuration versionnée de
+référence** ; le volume `uptime_kuma` ne garde que l'état local. Toute
+modification se fait d'abord dans le tableau, puis dans l'interface.
+
 ```bash
 cd /opt/lcd/v2
-docker compose --env-file .env.prod -f compose.prod.yml --profile monitoring \
+docker compose --env-file .env.prod -f compose.prod.yml \
   up -d uptime-kuma
 ```
 
@@ -72,7 +77,7 @@ sont omises et `lcd_compteurs_collectes` vaut `0` — l'endpoint reste debout.
 
 ```bash
 cd /opt/lcd/v2
-docker compose --env-file .env.prod -f compose.prod.yml --profile monitoring \
+docker compose --env-file .env.prod -f compose.prod.yml \
   up -d prometheus
 ```
 
@@ -163,7 +168,7 @@ df -h /var/lib/docker
 - [ ] monitors `/api/health`, `/api/ready`, `/login`, `/api/health/systeme` ;
 - [ ] notification testée (email ou ntfy) ;
 - [ ] alerte sur `db: down`, `schema: pending` et `rls: unsafe` ;
-- [ ] Prometheus démarré (`--profile monitoring`), cible `lcd` en UP, jeton
+- [ ] Prometheus démarré (par défaut), cible `lcd` en UP, jeton
       régénéré au déploiement, `lcd_compteurs_collectes 1` ;
 - [ ] rotation des logs vérifiée (`docker inspect`) ;
 - [ ] alerte critique du disjoncteur fournisseur testée (simuler le seuil

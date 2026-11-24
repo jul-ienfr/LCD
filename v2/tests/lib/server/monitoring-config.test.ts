@@ -53,12 +53,13 @@ describe("chaîne de scrape Prometheus (FR-019)", () => {
     expect(volumes).toContain("./monitoring:/etc/prometheus/lcd:ro");
   });
 
-  it("compose.prod.yml monte ./monitoring en lecture seule pour Prometheus", () => {
+  it("compose.prod.yml monte ./monitoring et démarre Prometheus par défaut (FR-004)", () => {
     const config = lireYaml("compose.prod.yml") as {
       services: { prometheus: { volumes?: string[]; profiles?: string[] } };
     };
     const prometheus = config.services.prometheus;
-    expect(prometheus.profiles).toContain("monitoring");
+    // La supervision n'est plus optionnelle : pas de profil à activer.
+    expect(prometheus.profiles).toBeUndefined();
     expect(prometheus.volumes ?? []).toContain("./monitoring:/etc/prometheus/lcd:ro");
   });
 
