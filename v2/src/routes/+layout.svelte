@@ -9,6 +9,14 @@
     appliquerValeursSaisie,
     installerVerrouSoumissions,
   } from "@/lib/client/soumissions";
+  import {
+    creerFileNotifications,
+    ordonnerNotifications,
+    resultatDepuisUrl,
+    signatureResultat,
+    type NotificationAction,
+    type ResultatAction,
+  } from "@/lib/client/notifications";
   import { styleTheme, themeResolu } from "@/lib/apparence";
   import { traductionsPubliques } from "@/lib/i18n-public";
   import type { LayoutData } from "./$types";
@@ -25,6 +33,46 @@
   );
   const t = $derived(traductionsPubliques(data.langue));
   const doublon = $derived(page.url.searchParams.get("doublon") === "1");
+
+  // FR-042 : chaque résultat d'action (échec en priorité) double son message
+  // contextuel d'une notification in-app, visible sans remonter la page.
+  const file = creerFileNotifications({ limite: 3, dureeSuccesMs: 5_000 });
+  let notifications = $state<NotificationAction[]>([]);
+  const notificationsAffichees = $derived(ordonnerNotifications(notifications));
+
+  function libelleResultat(resultat: ResultatAction): string {
+    if (resultat === "succes") return t.notifSucces;
+    if (resultat === "doublon") return t.doublon;
+    return t.notifEchec;
+  }
+
+  function rafraichirNotifications(): void {
+    file.expirer();
+    notifications = [...file.liste()];
+  }
+
+  function fermerNotification(id: number): void {
+    file.retirer(id);
+    notifications = [...file.liste()];
+  }
+
+  $effect(() => {
+    const chemin = page.url.pathname + page.url.search;
+    const resultatForm = page.form as { erreur?: string; message?: string } | null;
+    const detail = resultatForm?.erreur ?? resultatForm?.message ?? "";
+    const resultat = detail
+      ? ("echec" as const)
+      : resultatDepuisUrl(page.url.searchParams);
+    if (!resultat) return;
+    const ajoutee = file.ajouter({
+      ton: resultat === "succes" ? "succes" : "echec",
+      texte: libelleResultat(resultat),
+      signature: signatureResultat(chemin, resultat, detail),
+    });
+    if (!ajoutee) return;
+    rafraichirNotifications();
+    setTimeout(rafraichirNotifications, 5_000);
+  });
 
   // FR-040 : verrou côté navigateur des formulaires POST (état d'attente,
   // second clic refusé). Le serveur écarte le doublon même sans JavaScript.
@@ -66,6 +114,33 @@
     {t.doublon}
   </div>
 {/if}
+
+<section
+  class="notifications"
+  aria-label={t.notifRegion}
+  aria-live="polite"
+  data-notifications
+>
+  {#each notificationsAffichees as notification (notification.id)}
+    <div
+      class="ui-alerte notification"
+      class:ui-alerte--danger={notification.ton === "echec"}
+      class:ui-alerte--ok={notification.ton === "succes"}
+      role={notification.ton === "echec" ? "alert" : "status"}
+      data-ton={notification.ton}
+    >
+      <p>{notification.texte}</p>
+      <button
+        type="button"
+        class="notification-fermer"
+        aria-label={t.notifFermer}
+        onclick={() => fermerNotification(notification.id)}
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+  {/each}
+</section>
 
 {#if data.apercu}
   <div class="apercu-bandeau" role="status">

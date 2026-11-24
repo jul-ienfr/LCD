@@ -985,6 +985,48 @@ samp {
   text-align: center;
 }
 
+/* FR-042 : notifications in-app des résultats d'action, échec en priorité. */
+.notifications {
+  position: fixed;
+  inset-block-start: 1rem;
+  inset-inline-end: 1rem;
+  z-index: 90;
+  display: grid;
+  gap: 0.5rem;
+  width: min(24rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.notification {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  box-shadow: var(--ombre-elevee);
+  pointer-events: auto;
+}
+
+.notification p {
+  margin: 0;
+}
+
+.notification-fermer {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  margin: -0.5rem -0.5rem -0.5rem 0;
+  border-radius: 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.notification-fermer:hover,
+.notification-fermer:focus-visible {
+  background: color-mix(in oklab, currentColor 12%, transparent);
+}
+
 /*
  * FR-040 : pendant l'envoi d'un formulaire, le bouton porte un état d'attente
  * visible (curseur, opacité, roue) et reste désactivé par le script client.

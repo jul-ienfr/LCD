@@ -22,6 +22,10 @@ export interface TraductionsPubliques {
   langue: string;
   choisirLangue: string;
   doublon: string;
+  notifSucces: string;
+  notifEchec: string;
+  notifFermer: string;
+  notifRegion: string;
 }
 
 const FR: TraductionsPubliques = {
@@ -39,6 +43,10 @@ const FR: TraductionsPubliques = {
   langue: "Langue",
   choisirLangue: "Choisir la langue",
   doublon: "Envoi déjà enregistré : le doublon a été ignoré.",
+  notifSucces: "Action enregistrée.",
+  notifEchec: "L'action n'a pas abouti. Corrigez les champs signalés puis réessayez.",
+  notifFermer: "Fermer la notification",
+  notifRegion: "Notifications d'action",
 };
 
 const EN: TraductionsPubliques = {
@@ -56,6 +64,10 @@ const EN: TraductionsPubliques = {
   langue: "Language",
   choisirLangue: "Choose language",
   doublon: "Submission already recorded: the duplicate was ignored.",
+  notifSucces: "Action saved.",
+  notifEchec: "The action did not go through. Fix the highlighted fields and try again.",
+  notifFermer: "Dismiss notification",
+  notifRegion: "Action notifications",
 };
 
 const ES: TraductionsPubliques = {
@@ -73,6 +85,10 @@ const ES: TraductionsPubliques = {
   langue: "Idioma",
   choisirLangue: "Elegir idioma",
   doublon: "Envío ya registrado: se ignoró el duplicado.",
+  notifSucces: "Acción guardada.",
+  notifEchec: "La acción no se completó. Corrija los campos señalados e inténtelo de nuevo.",
+  notifFermer: "Cerrar la notificación",
+  notifRegion: "Notificaciones de acciones",
 };
 
 const IT: TraductionsPubliques = {
@@ -90,6 +106,10 @@ const IT: TraductionsPubliques = {
   langue: "Lingua",
   choisirLangue: "Scegli la lingua",
   doublon: "Invio già registrato: il duplicato è stato ignorato.",
+  notifSucces: "Azione salvata.",
+  notifEchec: "L'azione non è andata a buon fine. Correggi i campi segnalati e riprova.",
+  notifFermer: "Chiudi la notifica",
+  notifRegion: "Notifiche delle azioni",
 };
 
 const DE: TraductionsPubliques = {
@@ -107,6 +127,10 @@ const DE: TraductionsPubliques = {
   langue: "Sprache",
   choisirLangue: "Sprache wählen",
   doublon: "Übermittlung bereits erfasst: die Dublette wurde ignoriert.",
+  notifSucces: "Aktion gespeichert.",
+  notifEchec: "Die Aktion ist fehlgeschlagen. Korrigieren Sie die markierten Felder und versuchen Sie es erneut.",
+  notifFermer: "Benachrichtigung schließen",
+  notifRegion: "Aktionsbenachrichtigungen",
 };
 
 const DICTIONNAIRES: Record<Langue, TraductionsPubliques> = {
