@@ -84,6 +84,13 @@ export interface TraductionsPresta {
   ecart: string;
   recuLe: (quand: string) => string;
 
+  /* Hors ligne terrain (FR-045). */
+  terrainHorsLigne: string;
+  terrainFileTitre: string;
+  terrainFileEnAttente: (n: number) => string;
+  terrainSynchronise: (n: number) => string;
+  terrainEchec: string;
+
   /* Preuve d'intervention. */
   preuveStatuts: Record<StatutPreuve, string>;
   preuveSoumiseLe: (le: string) => string;
@@ -145,6 +152,17 @@ const FR: TraductionsPresta = {
   prevu: (duree) => `prévu ${duree}`,
   ecart: "Écart",
   recuLe: (quand) => `hors ligne, reçu le ${quand}`,
+  terrainHorsLigne:
+    "Hors ligne : le contenu reste consultable et vos pointages sont conservés sur cet appareil.",
+  terrainFileTitre: "Pointages en attente",
+  terrainFileEnAttente: (n) =>
+    n === 1
+      ? "1 pointage en attente d’envoi."
+      : `${n} pointages en attente d’envoi.`,
+  terrainSynchronise: (n) =>
+    n === 1 ? "1 pointage synchronisé." : `${n} pointages synchronisés.`,
+  terrainEchec:
+    "Synchronisation impossible pour le moment. Les pointages restent sur cet appareil et repartiront au prochain réseau.",
 
   preuveStatuts: {
     a_soumettre: "Preuve à soumettre",
@@ -226,6 +244,17 @@ const EN: TraductionsPresta = {
   prevu: (duree) => `expected ${duree}`,
   ecart: "Variance",
   recuLe: (quand) => `offline, received on ${quand}`,
+  terrainHorsLigne:
+    "Offline: content stays readable and your clock-ins are kept on this device.",
+  terrainFileTitre: "Pending clock-ins",
+  terrainFileEnAttente: (n) =>
+    n === 1
+      ? "1 clock-in waiting to be sent."
+      : `${n} clock-ins waiting to be sent.`,
+  terrainSynchronise: (n) =>
+    n === 1 ? "1 clock-in synchronised." : `${n} clock-ins synchronised.`,
+  terrainEchec:
+    "Synchronisation failed for now. Clock-ins stay on this device and will be sent with the next connection.",
 
   preuveStatuts: {
     a_soumettre: "Evidence to submit",
@@ -306,6 +335,17 @@ const ES: TraductionsPresta = {
   prevu: (duree) => `previsto ${duree}`,
   ecart: "Desviación",
   recuLe: (quand) => `sin conexión, recibido el ${quand}`,
+  terrainHorsLigne:
+    "Sin conexión: el contenido sigue consultable y tus registros se guardan en este dispositivo.",
+  terrainFileTitre: "Registros pendientes",
+  terrainFileEnAttente: (n) =>
+    n === 1
+      ? "1 registro pendiente de envío."
+      : `${n} registros pendientes de envío.`,
+  terrainSynchronise: (n) =>
+    n === 1 ? "1 registro sincronizado." : `${n} registros sincronizados.`,
+  terrainEchec:
+    "No se puede sincronizar por ahora. Los registros quedan en este dispositivo y se enviarán con la próxima conexión.",
 
   preuveStatuts: {
     a_soumettre: "Prueba por enviar",
@@ -388,6 +428,15 @@ const IT: TraductionsPresta = {
   prevu: (duree) => `prevista ${duree}`,
   ecart: "Scostamento",
   recuLe: (quand) => `offline, ricevuto il ${quand}`,
+  terrainHorsLigne:
+    "Offline: il contenuto resta consultabile e le tue timbrature sono conservate su questo dispositivo.",
+  terrainFileTitre: "Timbrature in attesa",
+  terrainFileEnAttente: (n) =>
+    `${n} timbratur${n === 1 ? "a" : "e"} in attesa di invio.`,
+  terrainSynchronise: (n) =>
+    `${n} timbratur${n === 1 ? "a" : "e"} sincronizzat${n === 1 ? "a" : "e"}.`,
+  terrainEchec:
+    "Sincronizzazione impossibile per ora. Le timbrature restano su questo dispositivo e partiranno alla prossima connessione.",
 
   preuveStatuts: {
     a_soumettre: "Prova da inviare",
@@ -470,6 +519,15 @@ const DE: TraductionsPresta = {
   prevu: (duree) => `geplant ${duree}`,
   ecart: "Abweichung",
   recuLe: (quand) => `offline, erhalten am ${quand}`,
+  terrainHorsLigne:
+    "Offline: die Inhalte bleiben lesbar, und Ihre Stempelungen werden auf diesem Gerät gespeichert.",
+  terrainFileTitre: "Ausstehende Stempelungen",
+  terrainFileEnAttente: (n) =>
+    `${n} Stempelung${n === 1 ? "" : "en"} ${n === 1 ? "wartet" : "warten"} auf das Senden.`,
+  terrainSynchronise: (n) =>
+    `${n} Stempelung${n === 1 ? "" : "en"} synchronisiert.`,
+  terrainEchec:
+    "Synchronisierung derzeit nicht möglich. Die Stempelungen bleiben auf diesem Gerät und gehen mit der nächsten Verbindung raus.",
 
   preuveStatuts: {
     a_soumettre: "Nachweis einzureichen",

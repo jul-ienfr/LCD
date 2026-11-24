@@ -11,9 +11,12 @@
    */
   import type { LayoutData } from "./$types";
   import type { Snippet } from "svelte";
+  import { onMount } from "svelte";
   import { LANGUES } from "@/lib/i18n";
   import { traductionsNavigation } from "@/lib/i18n-nav";
   import { traductionsPresta } from "@/lib/i18n-presta";
+  import BandeauTerrain from "@/lib/components/terrain/bandeau-terrain.svelte";
+  import { installerFileTerrain } from "@/lib/client/file-terrain";
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
 
@@ -21,6 +24,9 @@
   const tNav = $derived(traductionsNavigation(data.langue));
   const role = $derived(data.utilisateur?.role ?? "");
   const roleLibelle = $derived(tNav.roles[role] ?? role);
+
+  // Hors ligne (FR-045) : indicateur + file de pointages sur l'appareil.
+  onMount(() => installerFileTerrain());
 </script>
 
 <div class="min-h-dvh bg-fond text-encre" lang={data.langue}>
@@ -122,6 +128,10 @@
       </div>
     </div>
   </header>
+
+  <div class="mx-auto max-w-3xl px-5 pt-3">
+    <BandeauTerrain langue={data.langue} />
+  </div>
 
   {@render children()}
 </div>

@@ -217,7 +217,7 @@
 
             <div class="mt-3 flex flex-wrap items-end gap-3">
               {#if mission.pointage === "non_commence" && (mission.statut === "planifiee" || mission.statut === "en_cours")}
-                <form class="space-y-2" method="POST" action="?/pointage">
+                <form class="space-y-2" method="POST" action="?/pointage" data-file-terrain>
                   <input type="hidden" name="missionId" value={mission.id} />
                   <input type="hidden" name="sens" value="debut" />
                   <button class="ui-bouton ui-bouton--primaire ui-bouton--petit" type="submit">
@@ -232,7 +232,7 @@
                   </details>
                 </form>
               {:else if mission.pointage === "en_cours" && mission.statut === "en_cours"}
-                <form class="space-y-2" method="POST" action="?/pointage">
+                <form class="space-y-2" method="POST" action="?/pointage" data-file-terrain>
                   <input type="hidden" name="missionId" value={mission.id} />
                   <input type="hidden" name="sens" value="fin" />
                   <button class="ui-bouton ui-bouton--primaire ui-bouton--petit" type="submit">

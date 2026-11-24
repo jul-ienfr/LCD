@@ -24,6 +24,8 @@ const ARGUMENTS: Record<string, string[]> = {
   preuveSoumiseLe: ["23/11/2026 08:12"],
   preuveValideeLe: ["23/11/2026 08:12", "equipe@lcd.test"],
   refusACorriger: ["photo illisible"],
+  terrainFileEnAttente: ["2"],
+  terrainSynchronise: ["2"],
 };
 
 /** Toutes les clés propres, fonctions comprises (`Object.keys` les cache). */
