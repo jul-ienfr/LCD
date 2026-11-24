@@ -9,6 +9,7 @@ import { centimesDepuisSaisie, formaterEuros } from "@/lib/format";
 import { traductionsDetails } from "@/lib/i18n-details";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function texte(donnees: FormData, nom: string): string {
@@ -114,13 +115,10 @@ export const actions: Actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/hote/promotions?erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("promotions.creer", error, { tenantId });
-      redirect(303, "/hote/promotions?erreur=promotion");
+      return echecSaisie(donnees, "promotion");
     }
   },
 
@@ -138,7 +136,7 @@ export const actions: Actions = {
         actif,
       );
       if (!promotion) {
-        redirect(303, "/hote/promotions?erreur=promotion");
+        return echecSaisie(donnees, "promotion");
       }
       await withTenant(tenantId, (tx) =>
         tx.insert(auditLogs).values({
@@ -154,7 +152,7 @@ export const actions: Actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("promotions.basculer", error, { tenantId, id });
-      redirect(303, "/hote/promotions?erreur=promotion");
+      return echecSaisie(donnees, "promotion");
     }
   },
 };

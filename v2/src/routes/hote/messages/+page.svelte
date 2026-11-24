@@ -1,8 +1,11 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import { traductionsVoyageurs } from "@/lib/i18n-voyageurs";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
 
   const t = $derived(traductionsVoyageurs(data.langue));
 </script>
@@ -35,7 +38,7 @@
 
     {#if data.ok === "prepare"}<p class="ui-alerte ui-alerte--succes" role="status">{t.prepare}</p>{/if}
     {#if data.ok === "envoi"}<p class="ui-alerte ui-alerte--succes" role="status">{t.envoye}</p>{/if}
-    {#if data.erreur}<p class="ui-alerte ui-alerte--danger" role="alert">{data.erreur === "inattendu" ? t.erreurInattendue : data.erreur}</p>{/if}
+    {#if erreur}<p class="ui-alerte ui-alerte--danger" role="alert">{erreur === "inattendu" ? t.erreurInattendue : erreur}</p>{/if}
 
     <section class="grid gap-4 sm:grid-cols-3">
       <div class="ui-carte"><p class="text-sm text-encre-faine">{t.brouillons}</p><p class="mt-1 text-3xl font-semibold">{data.brouillons}</p></div>

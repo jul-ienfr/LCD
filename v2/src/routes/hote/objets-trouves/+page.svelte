@@ -1,10 +1,13 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import { FORFAIT_OBJET_CENTIMES, JOURS_AVANT_DON } from "@/domain/objet-trouve";
   import { formaterEuros } from "@/lib/format";
   import { traductionsRelation } from "@/lib/i18n-relation";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
 
   const t = $derived(traductionsRelation(data.langue));
 
@@ -71,11 +74,11 @@
         {messageOk(data.ok)}
       </p>
     {/if}
-    {#if data.erreur}
+    {#if erreur}
       <p class="ui-alerte ui-alerte--danger" role="alert">
-        {data.erreur === "inattendu"
+        {erreur === "inattendu"
           ? t.erreurInattendue
-          : data.erreur}
+          : erreur}
       </p>
     {/if}
 

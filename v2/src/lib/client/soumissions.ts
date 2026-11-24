@@ -49,6 +49,124 @@ function languePage(): string {
   return document.documentElement.lang || "fr";
 }
 
+const TYPES_SANS_VALEUR = new Set([
+  "password",
+  "file",
+  "submit",
+  "button",
+  "image",
+  "reset",
+]);
+
+function texteUnique(valeur: unknown): string {
+  if (Array.isArray(valeur)) return String(valeur[0] ?? "");
+  return valeur === null || valeur === undefined ? "" : String(valeur);
+}
+
+function listeValeurs(valeur: unknown): string[] {
+  if (Array.isArray(valeur)) return valeur.map(String);
+  if (valeur === null || valeur === undefined) return [];
+  return [String(valeur)];
+}
+
+function appliquerChamp(champ: Element, valeur: unknown): boolean {
+  if (champ instanceof HTMLInputElement) {
+    if (TYPES_SANS_VALEUR.has(champ.type)) return false;
+    if (champ.type === "checkbox" || champ.type === "radio") {
+      champ.checked = listeValeurs(valeur).includes(champ.value);
+    } else {
+      champ.value = texteUnique(valeur);
+    }
+    return true;
+  }
+  if (champ instanceof HTMLTextAreaElement) {
+    champ.value = texteUnique(valeur);
+    return true;
+  }
+  if (champ instanceof HTMLSelectElement) {
+    const retenues = new Set(listeValeurs(valeur));
+    for (const option of champ.options) option.selected = retenues.has(option.value);
+    return true;
+  }
+  return false;
+}
+
+const CLES_LIGNE = [
+  "id",
+  "missionId",
+  "filId",
+  "reservationId",
+  "demandeId",
+  "logementId",
+  "planId",
+] as const;
+
+function porteeFormulaire(
+  valeurs: Record<string, unknown>,
+  racine: ParentNode,
+): ParentNode {
+  if (typeof location === "undefined") return racine;
+  let action = "";
+  try {
+    action =
+      [...new URLSearchParams(location.search).keys()].find((cle) =>
+        cle.startsWith("/"),
+      ) ?? "";
+  } catch {
+    return racine;
+  }
+  if (!action) return racine;
+  const candidats = [...racine.querySelectorAll("form")].filter((form) =>
+    (form.getAttribute("action") ?? "").includes(`?/${action}`),
+  );
+  if (candidats.length <= 1) return candidats[0] ?? racine;
+
+  // Plusieurs formulaires portent la même action (une ligne par élément) :
+  // la clé de ligne soumise désigne la bonne ligne.
+  for (const cle of CLES_LIGNE) {
+    const attendue = valeurs[cle];
+    if (attendue === undefined) continue;
+    const texte = String(Array.isArray(attendue) ? attendue[0] : attendue);
+    const trouve = candidats.find((form) => {
+      const champ = form.querySelector(`[name="${cle}"]`);
+      return (
+        (champ instanceof HTMLInputElement ||
+          champ instanceof HTMLSelectElement) &&
+        champ.value === texte
+      );
+    });
+    if (trouve) return trouve;
+  }
+  return candidats[0] ?? racine;
+}
+
+/**
+ * Replace dans la page les valeurs d'une saisie refusée (FR-041). Le nom du
+ * champ fait le lien : aucune page n'a besoin de lier chaque champ. Les
+ * secrets (mot de passe, code, jeton) ne sont jamais réappliqués.
+ */
+export function appliquerValeursSaisie(
+  valeurs: Record<string, unknown> | null | undefined,
+  racine: ParentNode = document,
+  portee?: ParentNode,
+): number {
+  if (!valeurs) return 0;
+  const cible = portee ?? porteeFormulaire(valeurs, racine);
+  let remplis = 0;
+  for (const [nom, valeur] of Object.entries(valeurs)) {
+    let champs: NodeListOf<Element>;
+    try {
+      champs = cible.querySelectorAll(`[name="${CSS.escape(nom)}"]`);
+    } catch {
+      continue;
+    }
+    for (const champ of champs) {
+      if (appliquerChamp(champ, valeur)) remplis += 1;
+    }
+  }
+  return remplis;
+}
+
 function restaurer(element: HTMLElement): void {
   const libelle = element.getAttribute(ATTRIBUT_LIBELLE);
   if (libelle !== null) {

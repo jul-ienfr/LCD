@@ -21,6 +21,7 @@ import {
   type TypeExtra,
 } from "@/domain/demande-extra";
 import { ErreurMetier } from "@/domain/erreurs";
+import { echecSaisie } from "@/lib/server/saisie";
 import {
   ORDRE_SECTIONS_GUIDE,
   resoudreContenuSection,
@@ -215,7 +216,7 @@ export const actions: Actions = {
       payload.reservationId,
     );
     if (!reservation || reservation.logementId !== payload.logementId) {
-      redirect(303, `${retour}?erreur=reservation`);
+      return echecSaisie(donnees, "reservation");
     }
 
     try {
@@ -249,16 +250,13 @@ export const actions: Actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `${retour}?erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("extra.demander", error, {
         tenantId: payload.tenantId,
         reservationId: payload.reservationId,
       });
-      redirect(303, `${retour}?erreur=extra`);
+      return echecSaisie(donnees, "extra", { statut: 500 });
     }
 
     redirect(303, `${retour}?extra=ok`);

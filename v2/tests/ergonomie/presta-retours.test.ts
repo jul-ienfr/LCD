@@ -32,10 +32,19 @@ function sansCommentaires(source: string): string {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
-/** Tous les codes `?ok=` / `?erreur=` écrits en dur dans la route. */
+/**
+ * Tous les codes de retour écrits en dur dans la route : `?ok=`, et pour les
+ * échecs `?erreur=` ou le code passé à `echecSaisie` (FR-041, qui conserve la
+ * saisie au lieu de rediriger).
+ */
 function codesEcrits(parametre: "ok" | "erreur"): string[] {
-  const motif = new RegExp(`\\?${parametre}=([a-z_]+)`, "g");
-  return [...SERVEUR.matchAll(motif)].map((correspondance) => correspondance[1] ?? "");
+  const motifs =
+    parametre === "erreur"
+      ? [/\?erreur=([a-z_]+)/g, /echecSaisie\(donnees, "([a-z_]+)"/g]
+      : [/\?ok=([a-z_]+)/g];
+  return motifs.flatMap((motif) =>
+    [...SERVEUR.matchAll(motif)].map((correspondance) => correspondance[1] ?? ""),
+  );
 }
 
 /** Découpe le fichier des actions en un segment par action. */
@@ -66,7 +75,9 @@ describe("retour d'action de l'espace prestataire (FR-038)", () => {
   it("n'a aucune action silencieuse : chacune rend un succès et un échec", () => {
     for (const [nom, segment] of segmentsActions()) {
       expect(segment, `${nom} : aucun code de succès`).toMatch(/\?ok=/);
-      expect(segment, `${nom} : aucun code d'échec`).toMatch(/\?erreur=/);
+      expect(segment, `${nom} : aucun code d'échec`).toMatch(
+        /\?erreur=|echecSaisie\(donnees, "/,
+      );
       // Les redirections Svelte ne doivent jamais être avalées par le catch.
       expect(segment, `${nom} : redirection non relayée`).toContain("isRedirect(error)");
     }

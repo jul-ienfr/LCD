@@ -2,9 +2,12 @@
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import Alerte from "@/lib/components/ui/alerte.svelte";
   import { traductionsStocks } from "@/lib/i18n-stocks";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
   const t = $derived(traductionsStocks(data.langue));
 
   const classes: Record<string, string> = {
@@ -53,8 +56,8 @@
             : t.okEnregistre}
       </Alerte>
     {/if}
-    {#if data.erreur}
-      <Alerte ton="danger">{data.erreur === "inattendu" ? t.erreurInattendue : data.erreur}</Alerte>
+    {#if erreur}
+      <Alerte ton="danger">{erreur === "inattendu" ? t.erreurInattendue : erreur}</Alerte>
     {/if}
 
     <section class="grid gap-4 sm:grid-cols-3">

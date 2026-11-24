@@ -3,6 +3,8 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
+
   function formatDateHeure(iso: string | null): string {
     if (!iso) return "—";
     return iso;
@@ -53,18 +55,18 @@
       Demande mise à jour : {data.libellesStatut[data.ok] ?? data.ok}.
     </p>
   {/if}
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger" role="status">
-      {#if data.erreur === "decision-invalide"}
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">
+      {#if erreur === "decision-invalide"}
         Décision invalide.
-      {:else if data.erreur === "demande-introuvable"}
+      {:else if erreur === "demande-introuvable"}
         Demande introuvable.
-      {:else if data.erreur === "echec-persistance"}
+      {:else if erreur === "echec-persistance"}
         Échec de l'enregistrement.
-      {:else if data.erreur === "demande"}
+      {:else if erreur === "demande"}
         Erreur inattendue. Réessayez.
       {:else}
-        {data.erreur}
+        {erreur}
       {/if}
     </p>
   {/if}

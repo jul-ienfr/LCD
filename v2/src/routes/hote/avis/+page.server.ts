@@ -5,6 +5,7 @@ import { DrizzleAvisRepository } from "@/infrastructure/db/repositories/avis-rep
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -53,7 +54,7 @@ export const actions = {
     const statut = texte(donnees, "statut");
 
     if (statut !== "publie" && statut !== "masque") {
-      redirect(303, "/hote/avis?erreur=statut");
+      return echecSaisie(donnees, "statut");
     }
 
     try {
@@ -62,7 +63,7 @@ export const actions = {
         id,
         statut,
       );
-      if (!avis) redirect(303, "/hote/avis?erreur=introuvable");
+      if (!avis) return echecSaisie(donnees, "introuvable");
 
       await withTenant(tenantId, (tx) =>
         tx.insert(auditLogs).values({
@@ -77,7 +78,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("avis.moderer", error, { tenantId, cible: id });
-      redirect(303, "/hote/avis?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, "/hote/avis?ok=1");

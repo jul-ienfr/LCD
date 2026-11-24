@@ -3,9 +3,12 @@
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import Kpi from "@/lib/components/ui/kpi.svelte";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
   const t = $derived(traductionsAcces((data as { langue?: string }).langue ?? "fr"));
 </script>
 
@@ -23,9 +26,9 @@
   {#if data.ok === "revoque"}
     <p class="ui-alerte ui-alerte--ok">{t.revoquee}</p>
   {/if}
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger">
-      {data.erreur === "inattendu" ? t.erreurInattendue : data.erreur}
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">
+      {erreur === "inattendu" ? t.erreurInattendue : erreur}
     </p>
   {/if}
 

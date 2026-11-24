@@ -23,6 +23,7 @@ import { centimesDepuisSaisie, formaterEuros } from "@/lib/format";
 import { logErreur } from "@/lib/logger";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function texte(donnees: FormData, nom: string): string {
@@ -101,20 +102,20 @@ export const actions = {
     const visibilite = visibiliteSaisie || VISIBILITE_PREUVES_DEFAUT;
 
     if (!visibilitePreuvesValide(visibilite)) {
-      redirect(303, "/hote/proprietaires?erreur=visibilite");
+      return echecSaisie(donnees, "visibilite");
     }
     if (!commissionBpValide(commissionBp)) {
-      redirect(303, "/hote/proprietaires?erreur=commission");
+      return echecSaisie(donnees, "commission");
     }
     if (!chargesMensuellesValides(chargesMensuellesCentimes)) {
-      redirect(303, "/hote/proprietaires?erreur=charges");
+      return echecSaisie(donnees, "charges");
     }
-    if (!modeMandatValide(mode)) redirect(303, "/hote/proprietaires?erreur=mode");
-    if (!statutMandatValide(statut)) redirect(303, "/hote/proprietaires?erreur=statut");
+    if (!modeMandatValide(mode)) return echecSaisie(donnees, "mode");
+    if (!statutMandatValide(statut)) return echecSaisie(donnees, "statut");
     if (!datesMandatValides(dateDebut, dateFin)) {
-      redirect(303, "/hote/proprietaires?erreur=dates");
+      return echecSaisie(donnees, "dates");
     }
-    if (!notesMandatValides(notes)) redirect(303, "/hote/proprietaires?erreur=notes");
+    if (!notesMandatValides(notes)) return echecSaisie(donnees, "notes");
 
     const commissionFinale = mode === "propre" ? 0 : commissionBp;
     let nomProprietaire = "";
@@ -122,12 +123,12 @@ export const actions = {
 
     try {
       const logement = await new DrizzleLogementRepository().trouverParId(tenantId, logementId);
-      if (!logement) redirect(303, "/hote/proprietaires?erreur=logement");
+      if (!logement) return echecSaisie(donnees, "logement");
       nomLogement = logement.nom;
 
       const proprietaire = await new DrizzleUserRepository().trouverParId(tenantId, userId);
       if (!proprietaire || proprietaire.role !== "proprietaire" || !proprietaire.actif) {
-        redirect(303, "/hote/proprietaires?erreur=proprietaire");
+        return echecSaisie(donnees, "proprietaire");
       }
       nomProprietaire = proprietaire.name;
 
@@ -168,7 +169,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("proprietaires.assigner", error, { tenantId, logementId, userId });
-      redirect(303, "/hote/proprietaires?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     const params = new URLSearchParams({
@@ -208,7 +209,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("proprietaires.retirer", error, { tenantId, logementId, userId });
-      redirect(303, "/hote/proprietaires?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, "/hote/proprietaires?ok=retire");

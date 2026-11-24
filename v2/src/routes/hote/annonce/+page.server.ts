@@ -20,6 +20,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsAnnonce } from "@/lib/i18n-annonce";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function texte(donnees: FormData, nom: string): string {
@@ -179,16 +180,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/hote/annonce?logement=${encodeURIComponent(logementId)}&erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("annonce.enregistrer", error, { tenantId, logementId });
-      redirect(
-        303,
-        `/hote/annonce?logement=${encodeURIComponent(logementId)}&erreur=inattendu`,
-      );
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(

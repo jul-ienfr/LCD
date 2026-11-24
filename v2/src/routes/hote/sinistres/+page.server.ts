@@ -18,6 +18,7 @@ import { DrizzleSinistresRepository } from "@/infrastructure/db/repositories/sin
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsExploitation } from "@/lib/i18n-exploitation";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -154,10 +155,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("sinistres.declarer", error, { tenantId, logementId });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=declare");
@@ -205,10 +206,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("sinistres.avancer", error, { tenantId, cible: id });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=statut");

@@ -1,8 +1,11 @@
 <script lang="ts">
   import { traductionsAudit } from "@/lib/i18n-audit";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
   const t = $derived(traductionsAudit((data as { langue?: string }).langue ?? "fr"));
 </script>
 
@@ -33,7 +36,7 @@
         : t.aucunePurge}
     </p>
   {/if}
-  {#if data.erreur}<p class="ui-alerte ui-alerte--danger">{data.erreur.slice(0, 300)}</p>{/if}
+  {#if erreur}<p class="ui-alerte ui-alerte--danger" role="alert">{erreur.slice(0, 300)}</p>{/if}
 
   <form action="/hote/audit" class="flex flex-wrap items-end gap-3 rounded-carte border border-bordure bg-surface p-5 shadow-carte">
     <label class="min-w-0 flex-1 ui-champ-groupe">

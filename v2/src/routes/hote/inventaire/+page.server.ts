@@ -13,6 +13,7 @@ import { DrizzleBiensRepository } from "@/infrastructure/db/repositories/biens-r
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -142,10 +143,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("inventaire.enregistrer", error, { tenantId });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=enregistre");
@@ -181,10 +182,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("inventaire.utiliser", error, { tenantId });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=utiliser");
@@ -221,10 +222,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("inventaire.etat", error, { tenantId });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=etat");

@@ -1,9 +1,10 @@
 <script lang="ts">
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsPrix } from "@/lib/i18n-prix";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
   const t = $derived(traductionsPrix((data as { langue?: string }).langue ?? "fr"));
 </script>
 
@@ -59,19 +60,19 @@
                           : t.okDate(data.ok)}
       </p>
     {/if}
-    {#if data.erreur}
-      <p class="ui-alerte ui-alerte--danger">
-        {data.erreur === "prix"
+    {#if erreur}
+      <p class="ui-alerte ui-alerte--danger" role="alert">
+        {erreur === "prix"
           ? t.errPrix
-          : data.erreur === "cutoff"
+          : erreur === "cutoff"
             ? t.errCutoff
-            : data.erreur === "buffer"
+            : erreur === "buffer"
               ? t.errBuffer
-              : data.erreur === "strategie"
+              : erreur === "strategie"
                 ? t.errStrategie
-              : data.erreur === "plan"
+              : erreur === "plan"
               ? t.errPlan
-              : data.erreur}
+              : erreur}
       </p>
     {/if}
 

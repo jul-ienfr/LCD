@@ -3,9 +3,10 @@
   import Alerte from "@/lib/components/ui/alerte.svelte";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsDispatch } from "@/lib/i18n-dispatch";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
 
   const t = $derived(traductionsDispatch(data.langue));
 
@@ -31,9 +32,9 @@
   {#if data.ok}
     <Alerte ton="ok">{data.ok === "retire" ? t.okRetire : t.okPropose}</Alerte>
   {/if}
-  {#if data.erreur}
+  {#if erreur}
     <Alerte ton="danger">
-      {data.erreur === "inattendu" ? t.erreurInattendue : data.erreur}
+      {erreur === "inattendu" ? t.erreurInattendue : erreur}
     </Alerte>
   {/if}
 

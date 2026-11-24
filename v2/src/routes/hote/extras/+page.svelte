@@ -1,8 +1,11 @@
 <script lang="ts">
   import { traductionsExtras } from "@/lib/i18n-extras";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
   const t = $derived(traductionsExtras(data.langue));
 </script>
 
@@ -26,13 +29,13 @@
   {:else if data.ok}
     <p class="ui-alerte ui-alerte--ok">{t.okEnregistre}</p>
   {/if}
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger">
-      {data.erreur === "code-existant"
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">
+      {erreur === "code-existant"
         ? t.erreurCodeExistant
-        : data.erreur === "prix"
+        : erreur === "prix"
           ? t.erreurPrix
-          : data.erreur}
+          : erreur}
     </p>
   {/if}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
 
   const messagesOk: Record<string, string> = {
     import: "Import terminé : les recommandations attendent votre décision.",
@@ -17,8 +17,11 @@
   const texteOk = $derived(
     data.messageOk ? (messagesOk[data.messageOk] ?? null) : null,
   );
+  const codeErreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.messageErreur,
+  );
   const texteErreur = $derived(
-    data.messageErreur ? (messagesErreur[data.messageErreur] ?? "Action refusée.") : null,
+    codeErreur ? (messagesErreur[codeErreur] ?? "Action refusée.") : null,
   );
 </script>
 
@@ -44,7 +47,7 @@
     </p>
   {/if}
   {#if texteErreur}
-    <p class="ui-carte ui-texte-danger">{texteErreur}</p>
+    <p class="ui-carte ui-texte-danger" role="alert">{texteErreur}</p>
   {/if}
 
   <section class="ui-carte space-y-3">

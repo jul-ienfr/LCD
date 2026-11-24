@@ -3,9 +3,12 @@
   import "@fontsource-variable/inter";
   import "../app.css";
   import type { Snippet } from "svelte";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import { page } from "$app/state";
-  import { installerVerrouSoumissions } from "@/lib/client/soumissions";
+  import {
+    appliquerValeursSaisie,
+    installerVerrouSoumissions,
+  } from "@/lib/client/soumissions";
   import { styleTheme, themeResolu } from "@/lib/apparence";
   import { traductionsPubliques } from "@/lib/i18n-public";
   import type { LayoutData } from "./$types";
@@ -26,6 +29,15 @@
   // FR-040 : verrou côté navigateur des formulaires POST (état d'attente,
   // second clic refusé). Le serveur écarte le doublon même sans JavaScript.
   onMount(() => installerVerrouSoumissions());
+
+  // FR-041 : après un refus de validation (`fail`), les valeurs saisies sont
+  // replacées dans les champs de même nom, sans lier chaque page.
+  $effect(() => {
+    const resultat = page.form as { valeurs?: Record<string, unknown> } | null;
+    const valeurs = resultat?.valeurs;
+    if (!valeurs) return;
+    void tick().then(() => appliquerValeursSaisie(valeurs));
+  });
 </script>
 
 <svelte:head>

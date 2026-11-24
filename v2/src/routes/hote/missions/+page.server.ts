@@ -38,6 +38,7 @@ import { emettreEvenement } from "@/lib/evenements";
 import { heureParis, jourParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 const LIBELLES_TYPE: Record<TypeMission, string> = {
@@ -187,16 +188,16 @@ export const actions = {
     const reservationId = texte(donnees, "reservationId") || null;
 
     if (!TYPES_MISSION.includes(type)) {
-      redirect(303, `/hote/missions?mois=${mois}&erreur=type`);
+      return echecSaisie(donnees, "type");
     }
 
     try {
       const logement = await new DrizzleLogementRepository().trouverParId(tenantId, logementId);
-      if (!logement) redirect(303, `/hote/missions?mois=${mois}&erreur=logement`);
+      if (!logement) return echecSaisie(donnees, "logement");
 
       const prestataire = await new DrizzleUserRepository().trouverParId(tenantId, assignedUserId);
       if (!prestataire || prestataire.role !== "presta" || !prestataire.actif) {
-        redirect(303, `/hote/missions?mois=${mois}&erreur=prestataire`);
+        return echecSaisie(donnees, "prestataire");
       }
 
       if (reservationId) {
@@ -205,7 +206,7 @@ export const actions = {
           reservationId,
         );
         if (!reservation || reservation.logementId !== logementId) {
-          redirect(303, `/hote/missions?mois=${mois}&erreur=reservation`);
+          return echecSaisie(donnees, "reservation");
         }
       }
 
@@ -239,10 +240,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(303, `/hote/missions?mois=${mois}&erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("missions.creer", error, { tenantId });
-      redirect(303, `/hote/missions?mois=${mois}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 
@@ -264,7 +265,7 @@ export const actions = {
       try {
         validerMotifRefus(motif);
       } catch {
-        redirect(303, `${retour}&erreur=preuve_motif`);
+        return echecSaisie(donnees, "preuve_motif");
       }
     }
 
@@ -316,10 +317,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(303, `${retour}&erreur=preuve_etat`);
+        return echecSaisie(donnees, "preuve_etat");
       }
       logErreur("missions.preuve", error, { tenantId, missionId });
-      redirect(303, `${retour}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 } satisfies Actions;

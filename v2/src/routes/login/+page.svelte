@@ -34,12 +34,15 @@
 
   {#if data.succes}<p class="ui-alerte ui-alerte--ok" role="status">{data.succes}</p>{/if}
   {#if data.erreur}<p class="ui-alerte ui-alerte--danger" role="alert">{data.erreur}</p>{/if}
-  {#if form?.message}<p class="ui-alerte ui-alerte--danger" role="alert">{form.message}</p>{/if}
+  {#if (form as { message?: string } | null)?.message}<p class="ui-alerte ui-alerte--danger" role="alert">{(form as { message?: string } | null)?.message}</p>{/if}
+  {#if (form as { erreur?: string } | null)?.erreur === "captcha"}
+    <p class="ui-alerte ui-alerte--danger" role="alert">{data.t.erreurCaptcha}</p>
+  {/if}
 
   <form class="ui-carte space-y-4" method="POST">
     <label class="ui-champ-groupe">
       <span class="ui-label">{data.t.email}</span>
-      <input class="ui-champ" name="email" type="email" autocomplete="username" defaultValue={form?.email ?? ""} required />
+      <input class="ui-champ" name="email" type="email" autocomplete="username" defaultValue={(form as { email?: string } | null)?.email ?? ""} required />
     </label>
     <label class="ui-champ-groupe">
       <span class="ui-label">{data.t.motDePasse}</span>

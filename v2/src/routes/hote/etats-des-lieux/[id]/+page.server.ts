@@ -15,6 +15,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { formaterEuros } from "@/lib/format";
 import { traductionsDetails } from "@/lib/i18n-details";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -134,19 +135,13 @@ export const actions: Actions = {
       });
     } catch (erreur) {
       if (erreur instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/hote/etats-des-lieux/${event.params.id}?erreur=constat`,
-        );
+        return echecSaisie(donnees, "constat");
       }
       logErreur("etats-des-lieux.completer", erreur, {
         tenantId,
         etatDesLieuxId: event.params.id,
       });
-      redirect(
-        303,
-        `/hote/etats-des-lieux/${event.params.id}?erreur=inattendu`,
-      );
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     if (!resultat) error(404, "État des lieux introuvable");

@@ -19,6 +19,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { env } from "@/lib/env";
 import { traductionsAudit } from "@/lib/i18n-audit";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -152,13 +153,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(303, `/hote/audit?erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("audit.purger", error, { tenantId });
-      redirect(
-        303,
-        `/hote/audit?erreur=${encodeURIComponent("La purge a échoué.")}`,
-      );
+      return echecSaisie(donnees, "La purge a échoué.", { statut: 500 });
     }
   },
 } satisfies Actions;

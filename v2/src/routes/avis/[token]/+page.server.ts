@@ -18,6 +18,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { verifierTokenVoyageur } from "@/lib/voyageur-token";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -108,19 +109,13 @@ export const actions: Actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/avis/${encodeURIComponent(params.token)}?erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("avis.deposer", error, {
         tenantId: payload.tenantId,
         reservationId: payload.reservationId,
       });
-      redirect(
-        303,
-        `/avis/${encodeURIComponent(params.token)}?erreur=avis`,
-      );
+      return echecSaisie(donnees, "avis", { statut: 500 });
     }
 
     redirect(303, `/avis/${encodeURIComponent(params.token)}?ok=1`);

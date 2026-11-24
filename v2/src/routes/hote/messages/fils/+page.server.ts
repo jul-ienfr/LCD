@@ -8,6 +8,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsFils } from "@/lib/i18n-fils";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function texte(donnees: FormData, nom: string): string {
@@ -104,7 +105,7 @@ export const actions: Actions = {
     } catch (erreur) {
       if (erreur instanceof ErreurMetier) {
         logErreur("fils.assigner", erreur, { filId });
-        redirect(303, `/hote/messages/fils?erreur=${encodeURIComponent(erreur.message)}`);
+        return echecSaisie(donnees, erreur.message);
       }
       throw erreur;
     }
@@ -118,19 +119,13 @@ export const actions: Actions = {
     const filId = texte(donnees, "filId");
     const statut = texte(donnees, "statut");
     if (!statutFilValide(statut)) {
-      redirect(
-        303,
-        `/hote/messages/fils?erreur=${encodeURIComponent("Statut inconnu.")}`,
-      );
+      return echecSaisie(donnees, "Statut inconnu.");
     }
     const fil = await new DrizzleFilsVoyageurRepository().mettreAJour(tenantId, filId, {
       statut: statut as StatutFil,
     });
     if (!fil) {
-      redirect(
-        303,
-        `/hote/messages/fils?erreur=${encodeURIComponent("Fil introuvable.")}`,
-      );
+      return echecSaisie(donnees, "Fil introuvable.");
     }
     await withTenant(tenantId, async (tx) => {
       await tx.insert(auditLogs).values({
@@ -153,10 +148,7 @@ export const actions: Actions = {
     const depot = new DrizzleFilsVoyageurRepository();
     const fil = await depot.trouverParId(tenantId, filId);
     if (!fil) {
-      redirect(
-        303,
-        `/hote/messages/fils?erreur=${encodeURIComponent("Fil introuvable.")}`,
-      );
+      return echecSaisie(donnees, "Fil introuvable.");
     }
     await depot.mettreAJour(tenantId, filId, {
       consentements: appliquerOptout(fil.consentements, canal),

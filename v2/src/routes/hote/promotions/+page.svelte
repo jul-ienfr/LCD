@@ -1,8 +1,10 @@
 <script lang="ts">
   import { traductionsDetails } from "@/lib/i18n-details";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
   const t = $derived(traductionsDetails((data as { langue?: string }).langue ?? "fr"));
 </script>
 
@@ -16,8 +18,8 @@
     <p class="mt-1 text-sm text-encre-douce">{t.pDescription}</p>
   </header>
 
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--erreur" role="alert">{data.erreur}</p>
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--erreur" role="alert">{erreur}</p>
   {:else if data.ok}
     <p class="ui-alerte" role="status">{t.pOk(data.ok)}</p>
   {/if}

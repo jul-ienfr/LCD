@@ -2,9 +2,12 @@
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import Kpi from "@/lib/components/ui/kpi.svelte";
   import { traductionsInventaire } from "@/lib/i18n-inventaire";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
   const t = $derived(traductionsInventaire(data.langue));
 </script>
 
@@ -43,8 +46,8 @@
         {data.ok === "utiliser" ? t.okUtiliser : data.ok === "etat" ? t.okEtat : t.okEnregistre}
       </p>
     {/if}
-    {#if data.erreur}
-      <p class="ui-alerte ui-alerte--danger">{data.erreur === "inattendu" ? t.erreurInattendue : data.erreur}</p>
+    {#if erreur}
+      <p class="ui-alerte ui-alerte--danger" role="alert">{erreur === "inattendu" ? t.erreurInattendue : erreur}</p>
     {/if}
 
     <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -15,6 +15,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { centimesDepuisSaisie, formaterEuros } from "@/lib/format";
 import { traductionsExtras } from "@/lib/i18n-extras";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -100,7 +101,7 @@ export const actions = {
     const extraNom = texte(donnees, "nom");
 
     if (prixCentimes === null) {
-      retour("erreur=prix");
+      return echecSaisie(donnees, "prix");
     }
 
     try {
@@ -110,7 +111,7 @@ export const actions = {
           tenantId,
           logementId,
         );
-        if (!logement) retour("erreur=logement");
+        if (!logement) return echecSaisie(donnees, "logement");
       }
 
       const extra = await new CreerExtra(new DrizzleExtraRepository()).executer({
@@ -135,7 +136,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(`erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       if (
         typeof error === "object" &&
@@ -143,10 +144,10 @@ export const actions = {
         "code" in error &&
         error.code === "23505"
       ) {
-        retour("erreur=code-existant");
+        return echecSaisie(donnees, "code-existant");
       }
       logErreur("extras.creer", error, { tenantId });
-      retour("erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(`ok=cree&nom=${encodeURIComponent(extraNom)}`);
@@ -160,7 +161,7 @@ export const actions = {
     const statut = texte(donnees, "statut") as StatutCommandeExtra;
 
     if (!commandeId || !STATUTS.includes(statut)) {
-      retour("erreur=statut");
+      return echecSaisie(donnees, "statut");
     }
 
     try {
@@ -180,10 +181,10 @@ export const actions = {
       );
     } catch (error) {
       if (error instanceof ErreurMetier) {
-        retour(`erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("extras.statut", error, { tenantId, commandeId });
-      retour("erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour("ok=statut");

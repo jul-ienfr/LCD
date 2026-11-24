@@ -28,6 +28,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { heureParis, jourParis } from "@/lib/date-paris";
 import { emettreEvenement } from "@/lib/evenements";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
@@ -165,7 +166,8 @@ export const load: PageServerLoad = async (event) => {
 
 /*
  * Retour d'action (FR-038, spec 006) : chaque action redirige vers l'espace
- * avec un code de succès (`?ok=`) ou d'échec (`?erreur=`), que la page traduit
+ * avec un code de succès (`?ok=`) ou d'échec (`echecSaisie`, qui conserve la
+ * saisie), que la page traduit
  * (`i18n-presta`). Aucun chemin ne rend la main sans code : le test
  * `tests/ergonomie/presta-retours.test.ts` relit ce fichier et refuse une
  * action silencieuse comme un code absent du dictionnaire.
@@ -178,7 +180,7 @@ export const actions = {
     const missionId = String(donnees.get("missionId") ?? "");
     const statut = String(donnees.get("statut") ?? "") as StatutMission;
     if (!missionId || !STATUTS.includes(statut)) {
-      redirect(303, "/presta?erreur=statut");
+      return echecSaisie(donnees, "statut");
     }
 
     // Deux étapes (FR-039) : seule l'annulation est irréversible, elle exige
@@ -197,9 +199,9 @@ export const actions = {
         tenantId,
         missionId,
       );
-      if (!mission) redirect(303, "/presta?erreur=statut");
+      if (!mission) return echecSaisie(donnees, "statut");
       if (session.user.role === "presta" && mission.assignedUserId !== session.user.id) {
-        redirect(303, "/presta?erreur=droits");
+        return echecSaisie(donnees, "droits");
       }
       const miseAJour = await new ChangerStatutMission(
         new DrizzleMissionRepository(),
@@ -225,9 +227,9 @@ export const actions = {
       if (isRedirect(error)) throw error;
       if (!(error instanceof ErreurMetier)) {
         logErreur("presta.statut", error, { tenantId, missionId });
-        redirect(303, "/presta?erreur=inattendu");
+        return echecSaisie(donnees, "inattendu", { statut: 500 });
       }
-      redirect(303, "/presta?erreur=statut");
+      return echecSaisie(donnees, "statut");
     }
     redirect(303, "/presta?ok=statut");
   },
@@ -239,18 +241,18 @@ export const actions = {
     const missionId = String(donnees.get("missionId") ?? "");
     const sens = String(donnees.get("sens") ?? "") as SensPointage;
     if (!missionId || (sens !== "debut" && sens !== "fin")) {
-      redirect(303, "/presta?erreur=pointage");
+      return echecSaisie(donnees, "pointage");
     }
 
     try {
       const repo = new DrizzleMissionRepository();
       const mission = await repo.trouverParId(tenantId, missionId);
-      if (!mission) redirect(303, "/presta?erreur=pointage");
+      if (!mission) return echecSaisie(donnees, "pointage");
       if (
         session.user.role === "presta" &&
         mission.assignedUserId !== session.user.id
       ) {
-        redirect(303, "/presta?erreur=droits");
+        return echecSaisie(donnees, "droits");
       }
       // FR-031 : horodatage serveur ; l'horodatage local n'est accepté que
       // fourni par un client revenu en ligne après une coupure.
@@ -292,9 +294,9 @@ export const actions = {
       if (isRedirect(error)) throw error;
       if (!(error instanceof ErreurMetier)) {
         logErreur("presta.pointage", error, { tenantId, missionId });
-        redirect(303, "/presta?erreur=inattendu");
+        return echecSaisie(donnees, "inattendu", { statut: 500 });
       }
-      redirect(303, "/presta?erreur=pointage");
+      return echecSaisie(donnees, "pointage");
     }
     redirect(
       303,
@@ -307,17 +309,17 @@ export const actions = {
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
     const missionId = String(donnees.get("missionId") ?? "");
-    if (!missionId) redirect(303, "/presta?erreur=preuve");
+    if (!missionId) return echecSaisie(donnees, "preuve");
 
     try {
       const repo = new DrizzleMissionRepository();
       const mission = await repo.trouverParId(tenantId, missionId);
-      if (!mission) redirect(303, "/presta?erreur=preuve");
+      if (!mission) return echecSaisie(donnees, "preuve");
       if (
         session.user.role === "presta" &&
         mission.assignedUserId !== session.user.id
       ) {
-        redirect(303, "/presta?erreur=droits");
+        return echecSaisie(donnees, "droits");
       }
       const resultat = await new SoumettrePreuveIntervention(
         repo,
@@ -354,10 +356,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(303, "/presta?erreur=preuve");
+        return echecSaisie(donnees, "preuve");
       }
       logErreur("presta.preuve", error, { tenantId, missionId });
-      redirect(303, "/presta?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 
@@ -368,16 +370,16 @@ export const actions = {
     const id = String(donnees.get("id") ?? "");
     const decision = String(donnees.get("decision") ?? "");
     if (decision !== "accepter" && decision !== "refuser") {
-      redirect(303, "/presta?erreur=dispatch");
+      return echecSaisie(donnees, "dispatch");
     }
     try {
       const dispatch = await new DrizzleDispatchRepository().trouverParId(
         tenantId,
         id,
       );
-      if (!dispatch) redirect(303, "/presta?erreur=dispatch");
+      if (!dispatch) return echecSaisie(donnees, "dispatch");
       if (session.user.role === "presta" && dispatch.prestataireId !== session.user.id) {
-        redirect(303, "/presta?erreur=droits");
+        return echecSaisie(donnees, "droits");
       }
       const misAJour = await new RepondreDispatch(
         new DrizzleDispatchRepository(),
@@ -398,9 +400,9 @@ export const actions = {
       if (isRedirect(error)) throw error;
       if (!(error instanceof ErreurMetier)) {
         logErreur("presta.dispatch", error, { tenantId, cible: id });
-        redirect(303, "/presta?erreur=inattendu");
+        return echecSaisie(donnees, "inattendu", { statut: 500 });
       }
-      redirect(303, "/presta?erreur=dispatch");
+      return echecSaisie(donnees, "dispatch");
     }
     redirect(
       303,

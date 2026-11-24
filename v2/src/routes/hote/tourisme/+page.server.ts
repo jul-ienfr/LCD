@@ -11,6 +11,7 @@ import { DrizzleLieuxTourismeRepository } from "@/infrastructure/db/repositories
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -91,10 +92,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(`erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("tourisme.enregistrer", error, { tenantId });
-      retour("erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour("ok=enregistre");
@@ -121,7 +122,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("tourisme.desactiver", error, { tenantId });
-      retour("erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour("ok=desactive");

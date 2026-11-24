@@ -14,6 +14,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsDemandes } from "@/lib/i18n-demandes";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function texte(donnees: FormData, nom: string): string {
@@ -107,13 +108,10 @@ export const actions: Actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/hote/demandes?erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("demandes.qualifier", error, { tenantId, id });
-      redirect(303, "/hote/demandes?erreur=demande");
+      return echecSaisie(donnees, "demande");
     }
   },
 
@@ -149,13 +147,10 @@ export const actions: Actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/hote/demandes?erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("demandes.convertir", error, { tenantId, id });
-      redirect(303, "/hote/demandes?erreur=demande");
+      return echecSaisie(donnees, "demande");
     }
   },
 };

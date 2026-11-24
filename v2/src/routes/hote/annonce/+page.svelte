@@ -1,6 +1,6 @@
 <script lang="ts">
   import { traductionsAnnonce } from "@/lib/i18n-annonce";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import {
     CLASSEMENTS_MEUBLE,
     ETIQUETTES_DPE,
@@ -8,7 +8,8 @@
     MENTIONS_ANNONCE,
   } from "@/domain/annonce";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
   const t = $derived(traductionsAnnonce((data as { langue?: string }).langue ?? "fr"));
 </script>
 
@@ -72,11 +73,11 @@
         {t.restaurationOk}
       </p>
     {/if}
-    {#if data.erreur}
+    {#if erreur}
       <p class="ui-alerte ui-alerte--danger" role="alert">
-        {data.erreur === "inattendu"
+        {erreur === "inattendu"
           ? t.erreurInattendue
-          : data.erreur}
+          : erreur}
       </p>
     {/if}
 

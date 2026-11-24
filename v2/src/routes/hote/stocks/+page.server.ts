@@ -13,6 +13,7 @@ import { DrizzleConsommablesRepository } from "@/infrastructure/db/repositories/
 import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/logement-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -35,7 +36,7 @@ function retour(logementId: string, suffixe: string): never {
 async function mouvement(
   event: Parameters<NonNullable<Actions[string]>>[0],
   action: "consommer" | "reassort",
-): Promise<never> {
+) {
   const session = requireRole(event, ["admin", "hote"]);
   const tenantId = tenantIdDeSession(session);
   const donnees = await event.request.formData();
@@ -76,10 +77,10 @@ async function mouvement(
   } catch (error) {
     if (isRedirect(error)) throw error;
     if (error instanceof ErreurMetier) {
-      retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+      return echecSaisie(donnees, error.message);
     }
     logErreur(`stock.${action}`, error, { tenantId });
-    retour(logementId, "erreur=inattendu");
+    return echecSaisie(donnees, "inattendu", { statut: 500 });
   }
 
   retour(logementId, `ok=${action}`);
@@ -165,10 +166,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("stocks.enregistrer", error, { tenantId });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=enregistre");

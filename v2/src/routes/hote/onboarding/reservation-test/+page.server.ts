@@ -18,6 +18,7 @@ import { jourParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function texte(donnees: FormData, nom: string): string {
@@ -89,10 +90,10 @@ export const actions = {
         logementId,
       );
       if (!logement) {
-        redirect(303, "/hote/onboarding/reservation-test?erreur=logement");
+        return echecSaisie(donnees, "logement");
       }
       if (!debut || !fin || fin <= debut) {
-        redirect(303, "/hote/onboarding/reservation-test?erreur=dates");
+        return echecSaisie(donnees, "dates");
       }
       const chevauche = await depot.chevauche(
         tenantId,
@@ -101,7 +102,7 @@ export const actions = {
         fin,
       );
       if (chevauche) {
-        redirect(303, "/hote/onboarding/reservation-test?erreur=chevauchement");
+        return echecSaisie(donnees, "chevauchement");
       }
 
       const ref = `TEST-${Date.now().toString(36).toUpperCase()}`;
@@ -135,14 +136,11 @@ export const actions = {
       );
     } catch (error) {
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/hote/onboarding/reservation-test?erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       if (error && typeof error === "object" && "status" in error) throw error;
       logErreur("onboarding.reservation-test.creer", error, { tenantId });
-      redirect(303, "/hote/onboarding/reservation-test?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 
@@ -184,7 +182,7 @@ export const actions = {
         tenantId,
         reservationId,
       });
-      redirect(303, "/hote/onboarding/reservation-test?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, "/hote/onboarding/reservation-test?annulee=1");

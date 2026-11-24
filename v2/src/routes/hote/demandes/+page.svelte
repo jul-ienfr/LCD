@@ -1,8 +1,9 @@
 <script lang="ts">
   import { traductionsDemandes } from "@/lib/i18n-demandes";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
   const t = $derived(traductionsDemandes((data as { langue?: string }).langue ?? "fr"));
 
   function lienStatut(statut: string): string {
@@ -20,9 +21,9 @@
     <p class="mt-1 text-sm text-encre-douce">{t.description}</p>
   </header>
 
-  {#if data.erreur}
+  {#if erreur}
     <p class="ui-alerte ui-alerte--danger" role="alert">
-      {t.erreur} ({data.erreur})
+      {t.erreur} ({erreur})
     </p>
   {:else if data.ok === "qualifiee"}
     <p class="ui-alerte" role="status">{t.okQualifiee}</p>

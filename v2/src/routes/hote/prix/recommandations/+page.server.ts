@@ -18,6 +18,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { formaterEuros } from "@/lib/format";
 import { jourParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { donneesPeriodeParLogements } from "@/lib/server/planificateur-pricing";
 import {
   ecartCumuleDecisions,
@@ -225,12 +226,12 @@ export const actions = {
         : texte(donnees, "fin") || ajouterJours(debut, 90);
     const lien = `/hote/prix/recommandations?debut=${debut}&fin=${fin}`;
 
-    if (!logementId) redirect(303, `${lien}&erreur=logement`);
+    if (!logementId) return echecSaisie(donnees, "logement");
 
     const logement = (await new DrizzleLogementRepository().listerParTenant(tenantId)).find(
       (l) => l.id === logementId,
     );
-    if (!logement) redirect(303, `${lien}&erreur=logement`);
+    if (!logement) return echecSaisie(donnees, "logement");
 
     const priceLabs = creerPricingPriceLabs();
     const local = creerPricingLocal({
@@ -273,7 +274,9 @@ export const actions = {
     } catch (erreur) {
       const code = erreur instanceof ErreurMetier ? erreur.code : "PRICING_INDISPONIBLE";
       logErreur("pricing.import.ecran", erreur, { tenantId, logementId });
-      destination = `${lien}&erreur=${code}`;
+      return echecSaisie(donnees, code, {
+        statut: erreur instanceof ErreurMetier ? 400 : 500,
+      });
     }
     redirect(303, destination);
   },
@@ -327,7 +330,7 @@ export const actions = {
       const code: CodeErreurMetier =
         erreur instanceof ErreurMetier ? erreur.code : "RECOMMANDATION_INVALIDE";
       logErreur("pricing.application", erreur, { tenantId, recommandationId });
-      destination = `${retour}&erreur=${code}`;
+      return echecSaisie(donnees, code, { statut: 400 });
     }
     redirect(303, destination);
   },
@@ -348,7 +351,7 @@ export const actions = {
       session.user.email,
     );
     if (!resultat) {
-      redirect(303, `${retour}&erreur=RECOMMANDATION_INVALIDE`);
+      return echecSaisie(donnees, "RECOMMANDATION_INVALIDE");
     }
     await withTenant(tenantId, (tx) =>
       tx.insert(auditLogs).values({

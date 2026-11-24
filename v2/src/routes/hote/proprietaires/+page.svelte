@@ -1,11 +1,12 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { traductionsProprietaires } from "@/lib/i18n-proprietaires";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
 
   const t = $derived(traductionsProprietaires(data.langue));
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
 
   const messages: Record<string, string> = $derived({
     commission: t.msgCommission,
@@ -46,8 +47,8 @@
           : t.okEnregistre}
     </p>
   {/if}
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger">{messages[data.erreur] ?? data.erreur}</p>
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">{messages[erreur] ?? erreur}</p>
   {/if}
 
   {#if data.proprietaires.length === 0}

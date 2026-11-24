@@ -1,10 +1,13 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import { CATEGORIES_PHRASE } from "@/domain/phrase";
   import { traductionsPhrases } from "@/lib/i18n-phrases";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
 
   const t = $derived(traductionsPhrases(data.langue));
 
@@ -71,9 +74,9 @@
     {#if data.ok}
       <p class="ui-alerte ui-alerte--ok" role="status">{messageOk}</p>
     {/if}
-    {#if data.erreur}
+    {#if erreur}
       <p class="ui-alerte ui-alerte--danger" role="alert">
-        {data.erreur === "inattendu" ? t.erreurInattendue : data.erreur}
+        {erreur === "inattendu" ? t.erreurInattendue : erreur}
       </p>
     {/if}
 

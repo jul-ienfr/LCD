@@ -43,6 +43,7 @@ import { logErreur } from "@/lib/logger";
 import { planifierSyncFournisseur } from "@/lib/server/fournisseur-outbox";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function moisLocalise(mois: string, langue: string): string {
@@ -292,7 +293,7 @@ export const actions = {
     const strategie = texte(donnees, "strategiePrix");
 
     if (!strategiePrixValide(strategie)) {
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=strategie`);
+      return echecSaisie(donnees, "strategie");
     }
 
     try {
@@ -302,7 +303,7 @@ export const actions = {
         strategie,
       );
       if (!logement) {
-        redirect(303, `${lien(mois, logementId, planId)}&erreur=logement`);
+        return echecSaisie(donnees, "logement");
       }
 
       let prixAppliques = 0;
@@ -358,7 +359,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("prix.strategie", error, { tenantId, logementId, strategie });
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 
@@ -378,7 +379,7 @@ export const actions = {
     const personnesIncluses = Number(texte(donnees, "personnesIncluses") || "2");
 
     if (prixCentimes === null || (supplementSaisi && supplementCentimes === null)) {
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=prix`);
+      return echecSaisie(donnees, "prix");
     }
 
     try {
@@ -387,7 +388,7 @@ export const actions = {
         logementId,
       );
       if (!logement) {
-        redirect(303, `${lien(mois, logementId, planId)}&erreur=logement`);
+        return echecSaisie(donnees, "logement");
       }
       const plan = await planDuFormulaire(donnees, tenantId, logementId);
 
@@ -421,13 +422,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `${lien(mois, logementId, planId)}&erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("prix.definir", error, { tenantId, logementId, date });
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(
@@ -459,7 +457,7 @@ export const actions = {
       prixCentimes === null ||
       (supplementPlageSaisi && supplementPlageCentimes === null)
     ) {
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=prix`);
+      return echecSaisie(donnees, "prix");
     }
 
     try {
@@ -468,7 +466,7 @@ export const actions = {
         logementId,
       );
       if (!logement) {
-        redirect(303, `${lien(mois, logementId, planId)}&erreur=logement`);
+        return echecSaisie(donnees, "logement");
       }
       const plan = await planDuFormulaire(donnees, tenantId, logementId);
       const resultat = await new DefinirPrixPlage(
@@ -505,10 +503,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `${lien(mois, logementId, planId)}&erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("prix.plage", error, {
         tenantId,
@@ -516,7 +511,7 @@ export const actions = {
         dateDebut,
         dateFin,
       });
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, `${lien(mois, logementId, planId)}&ok=prix-plage`);
@@ -534,7 +529,7 @@ export const actions = {
     const jours = valeur === "" ? 0 : Number(valeur);
 
     if (!Number.isInteger(jours) || jours < 0 || jours > 365) {
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=cutoff`);
+      return echecSaisie(donnees, "cutoff");
     }
 
     try {
@@ -544,7 +539,7 @@ export const actions = {
         jours,
       );
       if (!logement) {
-        redirect(303, `${lien(mois, logementId, planId)}&erreur=logement`);
+        return echecSaisie(donnees, "logement");
       }
       await withTenant(tenantId, (tx) =>
         tx.insert(auditLogs).values({
@@ -560,7 +555,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("prix.cutoff", error, { tenantId, logementId });
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, `${lien(mois, logementId, planId)}&ok=cutoff`);
@@ -578,7 +573,7 @@ export const actions = {
     const jours = valeur === "" ? 0 : Number(valeur);
 
     if (!Number.isInteger(jours) || jours < 0 || jours > 7) {
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=buffer`);
+      return echecSaisie(donnees, "buffer");
     }
 
     try {
@@ -588,7 +583,7 @@ export const actions = {
         jours,
       );
       if (!logement) {
-        redirect(303, `${lien(mois, logementId, planId)}&erreur=logement`);
+        return echecSaisie(donnees, "logement");
       }
       await withTenant(tenantId, (tx) =>
         tx.insert(auditLogs).values({
@@ -604,7 +599,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("prix.buffer", error, { tenantId, logementId });
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, `${lien(mois, logementId, planId)}&ok=buffer`);
@@ -625,10 +620,7 @@ export const actions = {
         (jour) => !Number.isInteger(jour) || jour < 1 || jour > 7,
       )
     ) {
-      redirect(
-        303,
-        `${lien(mois, logementId, planId)}&erreur=${encodeURIComponent("Jours de semaine invalides.")}`,
-      );
+      return echecSaisie(donnees, "Jours de semaine invalides.");
     }
     const supprimer = texte(donnees, "supprimer") === "1";
     const valeurs = supprimer
@@ -654,7 +646,7 @@ export const actions = {
         logementId,
       );
       if (!logement) {
-        redirect(303, `${lien(mois, logementId, planId)}&erreur=logement`);
+        return echecSaisie(donnees, "logement");
       }
       const plan = await planDuFormulaire(donnees, tenantId, logementId);
 
@@ -715,13 +707,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `${lien(mois, logementId, planId)}&erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("prix.restriction", error, { tenantId, logementId, date });
-      redirect(303, `${lien(mois, logementId, planId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     const ok = dateFin
@@ -761,7 +750,7 @@ export const actions = {
       !ajustementPlanValide(ajustementPourcentage) ||
       !prioritePlanValide(priorite)
     ) {
-      redirect(303, `${lien(mois, logementId)}&erreur=plan`);
+      return echecSaisie(donnees, "plan");
     }
 
     try {
@@ -770,7 +759,7 @@ export const actions = {
         logementId,
       );
       if (!logement) {
-        redirect(303, `${lien(mois, logementId)}&erreur=logement`);
+        return echecSaisie(donnees, "logement");
       }
       const plan = await new DrizzlePlanTarifaireRepository().creer({
         tenantId,
@@ -806,13 +795,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `${lien(mois, logementId)}&erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("prix.creer-plan", error, { tenantId, logementId });
-      redirect(303, `${lien(mois, logementId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 
@@ -828,7 +814,7 @@ export const actions = {
     try {
       const plan = await planDuFormulaire(donnees, tenantId, logementId);
       if (!plan) {
-        redirect(303, `${lien(mois, logementId)}&erreur=plan`);
+        return echecSaisie(donnees, "plan");
       }
       const nom = texte(donnees, "nom");
       const externalRatePlanId =
@@ -847,10 +833,7 @@ export const actions = {
         !ajustementPlanValide(ajustementPourcentage) ||
         !prioritePlanValide(priorite)
       ) {
-        redirect(
-          303,
-          `${lien(mois, logementId, plan.id)}&erreur=plan`,
-        );
+        return echecSaisie(donnees, "plan");
       }
       await new DrizzlePlanTarifaireRepository().mettreAJour(
         tenantId,
@@ -886,13 +869,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `${lien(mois, logementId, planId || null)}&erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("prix.modifier-plan", error, { tenantId, logementId, planId });
-      redirect(303, `${lien(mois, logementId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 
@@ -909,7 +889,7 @@ export const actions = {
     try {
       const plan = await planDuFormulaire(donnees, tenantId, logementId);
       if (!plan) {
-        redirect(303, `${lien(mois, logementId)}&erreur=plan`);
+        return echecSaisie(donnees, "plan");
       }
       await new DrizzlePlanTarifaireRepository().mettreAJour(
         tenantId,
@@ -931,13 +911,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `${lien(mois, logementId, planId || null)}&erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("prix.basculer-plan", error, { tenantId, logementId, planId });
-      redirect(303, `${lien(mois, logementId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 
@@ -960,7 +937,7 @@ export const actions = {
     try {
       const plan = await planDuFormulaire(donnees, tenantId, logementId);
       if (!plan) {
-        redirect(303, `${lien(mois, logementId)}&erreur=plan`);
+        return echecSaisie(donnees, "plan");
       }
       await new DrizzlePlanTarifaireRepository().supprimer(tenantId, plan.id);
       await withTenant(tenantId, (tx) =>
@@ -978,13 +955,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `${lien(mois, logementId, planId || null)}&erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("prix.supprimer-plan", error, { tenantId, logementId, planId });
-      redirect(303, `${lien(mois, logementId)}&erreur=inattendu`);
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 } satisfies Actions;

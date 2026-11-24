@@ -15,6 +15,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
 import { traductionsEntite } from "@/lib/i18n-entite";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function texte(donnees: FormData, nom: string): string {
@@ -74,10 +75,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(303, `/hote/entite?erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("entite.enregistrer", error, { tenantId });
-      redirect(303, "/hote/entite?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, "/hote/entite?ok=1");

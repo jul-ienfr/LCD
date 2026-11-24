@@ -1,9 +1,11 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import { LIBELLES_CANAL_FIL } from "@/domain/fil-voyageur";
   import { messageFils } from "@/lib/i18n-fils";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
 
   const t = $derived(data.t);
 
@@ -37,7 +39,7 @@
   </header>
 
   {#if data.ok}<p class="ui-alerte ui-alerte--succes" role="status">{messageFils(t, data.ok)}</p>{/if}
-  {#if data.erreur}<p class="ui-alerte ui-alerte--danger" role="alert">{data.erreur}</p>{/if}
+  {#if erreur}<p class="ui-alerte ui-alerte--danger" role="alert">{erreur}</p>{/if}
 
   <form class="ui-carte grid gap-3 sm:grid-cols-4" method="GET">
     <label class="ui-champ-groupe">

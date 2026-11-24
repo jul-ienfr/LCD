@@ -9,7 +9,7 @@
    * correspondant — aucun échec silencieux. Les libellés composés (motif de
    * refus, pointage, durée) sont assemblés ici à partir des valeurs brutes.
    */
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
   import {
     traductionsPresta,
@@ -17,7 +17,10 @@
     type CodeRetourPresta,
   } from "@/lib/i18n-presta";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const codeErreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
 
   const t = $derived(traductionsPresta(data.langue));
 
@@ -62,9 +65,9 @@
       {t.retours[data.ok as CodeRetourPresta] ?? t.retourEnregistre}
     </p>
   {/if}
-  {#if data.erreur}
+  {#if codeErreur}
     <p class="ui-alerte ui-alerte--danger" role="alert">
-      {t.erreurs[data.erreur as CodeErreurPresta] ?? t.erreurs.inattendu}
+      {t.erreurs[codeErreur as CodeErreurPresta] ?? t.erreurs.inattendu}
     </p>
   {/if}
 

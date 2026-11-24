@@ -1,4 +1,5 @@
 import { fail, isRedirect, redirect } from "@sveltejs/kit";
+import { echecSaisie } from "@/lib/server/saisie";
 import { APIError } from "better-auth/api";
 import { verifierChallengeCaptcha } from "@/domain/captcha";
 import { auth } from "@/lib/server/auth";
@@ -122,7 +123,7 @@ export const actions = {
           })
         ) {
           await enregistrerEchecTentative(cle);
-          redirect(303, "/login?erreur=captcha");
+          return echecSaisie(donnees, "captcha");
         }
       }
     }

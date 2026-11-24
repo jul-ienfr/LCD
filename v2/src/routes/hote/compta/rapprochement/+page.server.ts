@@ -12,6 +12,7 @@ import { DrizzlePaiementRepository } from "@/infrastructure/db/repositories/paie
 import { auditLogs } from "@/infrastructure/db/schema";
 import { formaterEuros } from "@/lib/format";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -110,10 +111,10 @@ export const actions = {
     const fichier = donnees.get("fichier");
 
     if (!(fichier instanceof File) || fichier.size === 0) {
-      redirect(303, "/hote/compta/rapprochement?erreur=Fichier%20manquant.");
+      return echecSaisie(donnees, "Fichier manquant.");
     }
     if (fichier.size > TAILLE_MAX) {
-      redirect(303, "/hote/compta/rapprochement?erreur=Fichier%20trop%20volumineux.");
+      return echecSaisie(donnees, "Fichier trop volumineux.");
     }
 
     const ref = `BAN-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 8)}`;
@@ -150,23 +151,14 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/hote/compta/rapprochement?erreur=${encodeURIComponent(error.message.slice(0, 200))}`,
-        );
+        return echecSaisie(donnees, error.message.slice(0, 200));
       }
       logErreur("rapprochement.importer", error, { tenantId });
-      redirect(
-        303,
-        `/hote/compta/rapprochement?erreur=${encodeURIComponent("Import impossible.")}`,
-      );
+      return echecSaisie(donnees, "Import impossible.", { statut: 500 });
     }
 
     if (!importId) {
-      redirect(
-        303,
-        `/hote/compta/rapprochement?erreur=${encodeURIComponent("Import impossible.")}`,
-      );
+      return echecSaisie(donnees, "Import impossible.", { statut: 500 });
     }
     redirect(303, `/hote/compta/rapprochement?import=${importId}`);
   },

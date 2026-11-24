@@ -32,7 +32,7 @@
     <p class="ui-alerte ui-alerte--ok">La clé a été révoquée.</p>
   {/if}
   {#if data.erreur === "inattendu"}
-    <p class="ui-alerte ui-alerte--danger">
+    <p class="ui-alerte ui-alerte--danger" role="alert">
       Opération impossible pour le moment. Réessayez.
     </p>
   {/if}
@@ -53,7 +53,7 @@
   {/if}
 
   {#if form?.erreur}
-    <p class="ui-alerte ui-alerte--danger">{form.erreur}</p>
+    <p class="ui-alerte ui-alerte--danger" role="alert">{form.erreur}</p>
   {/if}
 
   <section class="ui-carte space-y-4">

@@ -1,8 +1,10 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import ConfirmationAction from "@/lib/components/ui/confirmation-action.svelte";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
 
   const messagesErreur: Record<string, string> = {
     logement: "Choisissez un logement actif.",
@@ -40,9 +42,9 @@
   {#if data.annulee}
     <p class="ui-alerte ui-alerte--ok">Réservation test annulée.</p>
   {/if}
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger">
-      {messagesErreur[data.erreur] ?? data.erreur}
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">
+      {messagesErreur[erreur] ?? erreur}
     </p>
   {/if}
 

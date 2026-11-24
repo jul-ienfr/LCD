@@ -1,8 +1,11 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
   const notes = [5, 4, 3, 2, 1];
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
 </script>
 
 <svelte:head>
@@ -40,12 +43,12 @@
         Merci, votre avis a bien été enregistré.
       </p>
     {/if}
-    {#if data.erreur}
+    {#if erreur}
       <p class="ui-alerte ui-alerte--danger" role="alert">
-        {#if data.erreur === "avis"}
+        {#if erreur === "avis"}
           Une erreur est survenue. Réessayez.
         {:else}
-          {data.erreur}
+          {erreur}
         {/if}
       </p>
     {/if}

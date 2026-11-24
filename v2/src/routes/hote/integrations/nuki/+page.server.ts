@@ -13,6 +13,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { auditLogs } from "@/infrastructure/db/schema";
 import { creerSerrureNuki } from "@/infrastructure/adapters/serrures/nuki";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -71,7 +72,7 @@ export const actions = {
       );
     } catch (error) {
       logErreur("integrations.nuki", error, { tenantId, actif });
-      redirect(303, "/hote/integrations/nuki?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, `/hote/integrations/nuki?ok=${actif ? "activee" : "desactivee"}`);

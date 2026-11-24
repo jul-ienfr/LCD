@@ -176,9 +176,8 @@ describe("verrou navigateur (FR-040)", () => {
   });
 
   it("est installé par la racine et signale le doublon écarté", () => {
-    expect(LAYOUT).toContain(
-      `import { installerVerrouSoumissions } from "@/lib/client/soumissions"`,
-    );
+    expect(LAYOUT).toContain(`installerVerrouSoumissions`);
+    expect(LAYOUT).toContain(`from "@/lib/client/soumissions"`);
     expect(LAYOUT).toContain("onMount(() => installerVerrouSoumissions())");
     expect(LAYOUT).toContain(`page.url.searchParams.get("doublon") === "1"`);
     expect(LAYOUT).toContain(`class="doublon-bandeau" role="status" data-doublon`);

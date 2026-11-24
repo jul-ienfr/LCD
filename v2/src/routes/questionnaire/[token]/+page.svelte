@@ -1,11 +1,14 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
   const ok = $derived(page.url.searchParams.get("ok"));
   const deja = $derived(page.url.searchParams.get("deja"));
-  const erreur = $derived(page.url.searchParams.get("erreur"));
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ??
+      page.url.searchParams.get("erreur"),
+  );
   const notes = $derived(
     (data.existant?.notes ?? {}) as Record<string, number>,
   );

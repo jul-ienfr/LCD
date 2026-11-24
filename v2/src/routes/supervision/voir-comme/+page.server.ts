@@ -1,4 +1,5 @@
 import { isRedirect, redirect } from "@sveltejs/kit";
+import { echecSaisie } from "@/lib/server/saisie";
 import { ROLES_APERCU, roleApercuValide } from "@/domain/apercu";
 import { libelleRole } from "@/domain/utilisateur";
 import { withTenant } from "@/infrastructure/db/client";
@@ -34,10 +35,10 @@ export const actions = {
     const email = session.user.email;
 
     if (!roleApercuValide(role)) {
-      redirect(303, "/supervision/voir-comme?erreur=role");
+      return echecSaisie(donnees, "role");
     }
     if (!email) {
-      redirect(303, "/supervision/voir-comme?erreur=email");
+      return echecSaisie(donnees, "email");
     }
 
     poserCookieApercu(event, email, role);

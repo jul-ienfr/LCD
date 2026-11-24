@@ -9,6 +9,7 @@ import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-rep
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsAcces } from "@/lib/i18n-acces";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
@@ -101,10 +102,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(303, `/hote/acces?erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("acces.revoquer", error, { tenantId, cible: id });
-      redirect(303, "/hote/acces?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, "/hote/acces?ok=revoque");

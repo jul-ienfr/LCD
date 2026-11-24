@@ -1,4 +1,5 @@
 import { isRedirect, redirect } from "@sveltejs/kit";
+import { echecSaisie } from "@/lib/server/saisie";
 import {
   EnregistrerParametresFiscaux,
   ObtenirParametresFiscaux,
@@ -60,16 +61,16 @@ export const actions = {
     const taux = Number(tauxSaisie);
 
     if (!tauxSaisie || !Number.isFinite(taux)) {
-      redirect(303, "/hote/compta/parametres?erreur=taux");
+      return echecSaisie(donnees, "taux");
     }
     const taxeCentimes = centimesOuNull(donnees.get("taxeNuitEuros"));
     if (taxeCentimes === null) {
-      redirect(303, "/hote/compta/parametres?erreur=taxe");
+      return echecSaisie(donnees, "taxe");
     }
     const plafondTexte = String(donnees.get("plafondEuros") ?? "").trim();
     const plafondCentimes = plafondTexte ? centimesDepuisSaisie(plafondTexte) : null;
     if (plafondTexte && plafondCentimes === null) {
-      redirect(303, "/hote/compta/parametres?erreur=plafond");
+      return echecSaisie(donnees, "plafond");
     }
 
     try {
@@ -101,10 +102,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(303, `/hote/compta/parametres?erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("fiscalite.enregistrer", error, { tenantId });
-      redirect(303, "/hote/compta/parametres?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, "/hote/compta/parametres?ok=1");

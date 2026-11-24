@@ -1,7 +1,10 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
 </script>
 
 <svelte:head>
@@ -28,8 +31,8 @@
   {:else if data.ok === "desactivee"}
     <p class="ui-alerte ui-alerte--ok">Intégration Nuki désactivée.</p>
   {/if}
-  {#if data.erreur === "inattendu"}
-    <p class="ui-alerte ui-alerte--danger">
+  {#if erreur === "inattendu"}
+    <p class="ui-alerte ui-alerte--danger" role="alert">
       Modification impossible pour le moment.
     </p>
   {/if}

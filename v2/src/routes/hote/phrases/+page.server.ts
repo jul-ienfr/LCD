@@ -15,6 +15,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzlePhrasesRepository } from "@/infrastructure/db/repositories/phrases-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
@@ -149,10 +150,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("phrases.enregistrer", error, { tenantId });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, `ok=enregistre&ref=${encodeURIComponent(phraseRef)}`);
@@ -189,7 +190,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("phrases.supprimer", error, { tenantId, cible: id });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=supprime");
@@ -220,7 +221,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("phrases.installer", error, { tenantId });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=modeles");

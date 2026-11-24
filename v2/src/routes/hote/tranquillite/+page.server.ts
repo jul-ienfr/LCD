@@ -18,6 +18,7 @@ import { DrizzlePreuvesTranquilliteRepository } from "@/infrastructure/db/reposi
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsExploitation } from "@/lib/i18n-exploitation";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
@@ -150,10 +151,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(logementId, `erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("tranquillite.enregistrer", error, { tenantId, preuveId });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=preuve");
@@ -190,7 +191,7 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       logErreur("tranquillite.supprimer", error, { tenantId, cible: id });
-      retour(logementId, "erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     retour(logementId, "ok=supprime");

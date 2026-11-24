@@ -17,6 +17,7 @@ import { DrizzleDemandesExtraRepository } from "@/infrastructure/db/repositories
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 function texte(donnees: FormData, nom: string): string {
@@ -79,14 +80,14 @@ export const actions: Actions = {
     const motifRefus = texte(donnees, "motifRefus") || null;
 
     if (decision !== "validee" && decision !== "refusee") {
-      redirect(303, "/hote/demandes-extra?erreur=decision-invalide");
+      return echecSaisie(donnees, "decision-invalide");
     }
 
     try {
       const repo = new DrizzleDemandesExtraRepository();
       const demande = await repo.trouverParId(tenantId, id);
       if (!demande) {
-        redirect(303, "/hote/demandes-extra?erreur=demande-introuvable");
+        return echecSaisie(donnees, "demande-introuvable");
       }
 
       // Validation domaine pure (lève si déjà décidée, motif trop court, etc.)
@@ -107,7 +108,7 @@ export const actions: Actions = {
         },
       );
       if (!misAJour) {
-        redirect(303, "/hote/demandes-extra?erreur=echec-persistance");
+        return echecSaisie(donnees, "echec-persistance");
       }
 
       // Audit
@@ -131,13 +132,10 @@ export const actions: Actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(
-          303,
-          `/hote/demandes-extra?erreur=${encodeURIComponent(error.message)}`,
-        );
+        return echecSaisie(donnees, error.message);
       }
       logErreur("demandes-extra.decider", error, { tenantId, id });
-      redirect(303, "/hote/demandes-extra?erreur=demande");
+      return echecSaisie(donnees, "demande");
     }
   },
 };

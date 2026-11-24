@@ -11,6 +11,7 @@ import { withTenant } from "@/infrastructure/db/client";
 import { DrizzleClesApiRepository } from "@/infrastructure/db/repositories/cles-api-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
@@ -129,7 +130,7 @@ export const actions = {
       }
     } catch (error) {
       logErreur("integrations.api.revoquer", error, { tenantId, cleId });
-      redirect(303, "/hote/integrations/api?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, "/hote/integrations/api?ok=revoquee");

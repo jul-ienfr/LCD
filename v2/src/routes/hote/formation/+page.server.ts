@@ -13,6 +13,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsConformite } from "@/lib/i18n-conformite";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
+import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async (event) => {
@@ -87,10 +88,10 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        redirect(303, `/hote/formation?erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("formation.enregistrer", error, { tenantId, moduleCode });
-      redirect(303, "/hote/formation?erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
 
     redirect(303, `/hote/formation?ok=1&module=${encodeURIComponent(moduleCode)}&p=${pourcentage}`);

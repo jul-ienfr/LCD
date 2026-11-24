@@ -13,6 +13,7 @@ import { DrizzleQuestionnairesRepository } from "@/infrastructure/db/repositorie
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { auditLogs } from "@/infrastructure/db/schema";
 import { logErreur } from "@/lib/logger";
+import { echecSaisie } from "@/lib/server/saisie";
 import { verifierTokenVoyageur } from "@/lib/voyageur-token";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -111,12 +112,12 @@ export const actions = {
     } catch (error) {
       if (isRedirect(error)) throw error;
       if (error instanceof ErreurMetier) {
-        retour(`erreur=${encodeURIComponent(error.message)}`);
+        return echecSaisie(donnees, error.message);
       }
       logErreur("questionnaire.deposer", error, {
         tenantId: payload.tenantId,
       });
-      retour("erreur=inattendu");
+      return echecSaisie(donnees, "inattendu", { statut: 500 });
     }
   },
 } satisfies Actions;

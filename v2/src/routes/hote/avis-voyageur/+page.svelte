@@ -1,7 +1,10 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
 
   const LIBELLES_ACTION: Record<string, string> = {
     publier: "Avis publié.",
@@ -54,8 +57,8 @@
       {LIBELLES_ACTION[data.ok] ?? "Avis mis à jour."}
     </p>
   {/if}
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger" role="alert">{data.erreur}</p>
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">{erreur}</p>
   {/if}
 
   {#if data.avis.length === 0}

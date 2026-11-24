@@ -1,8 +1,10 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
   import { traductionsMissions } from "@/lib/i18n-missions";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const erreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.erreur);
 
   const t = $derived(traductionsMissions(data.langue));
 </script>
@@ -42,8 +44,8 @@
       {/if}
     </p>
   {/if}
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger" role="alert">{t.erreurs[data.erreur] ?? data.erreur}</p>
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">{t.erreurs[erreur] ?? erreur}</p>
   {/if}
 
   {#if data.prestataires.length === 0}

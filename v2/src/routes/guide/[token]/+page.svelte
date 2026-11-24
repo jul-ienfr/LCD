@@ -1,7 +1,9 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  const extraErreur = $derived((form as { erreur?: string } | null)?.erreur ?? data.extraErreur);
 </script>
 
 <svelte:head>
@@ -129,11 +131,11 @@
           Demande transmise à votre hôte.
         </p>
       {/if}
-      {#if data.extraErreur}
+      {#if extraErreur}
         <p class="ui-alerte ui-alerte--danger" role="alert">
-          {data.extraErreur === "extra" || data.extraErreur === "reservation"
+          {extraErreur === "extra" || extraErreur === "reservation"
             ? "La demande n'a pas pu être transmise. Réessayez ou contactez votre hôte."
-            : data.extraErreur}
+            : extraErreur}
         </p>
       {/if}
 

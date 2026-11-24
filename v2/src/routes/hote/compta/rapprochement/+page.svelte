@@ -1,9 +1,12 @@
 <script lang="ts">
   import PageEntete from "@/lib/components/ui/page-entete.svelte";
   import { traductionsCompta } from "@/lib/i18n-compta";
-  import type { PageData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const erreur = $derived(
+    (form as { erreur?: string } | null)?.erreur ?? data.erreur,
+  );
 
   const t = $derived(traductionsCompta(data.langue));
 </script>
@@ -19,8 +22,8 @@
     description={t.rappDescription}
   />
 
-  {#if data.erreur}
-    <p class="ui-alerte ui-alerte--danger">{data.erreur}</p>
+  {#if erreur}
+    <p class="ui-alerte ui-alerte--danger" role="alert">{erreur}</p>
   {/if}
 
   <section class="ui-carte">
