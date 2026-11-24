@@ -2,6 +2,7 @@ import { DrizzleEcheancesPaiementRepository } from "@/infrastructure/db/reposito
 import { DrizzleFilsVoyageurRepository } from "@/infrastructure/db/repositories/fils-voyageur-repository";
 import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/reservation-repository";
 import { traductionsFils } from "@/lib/i18n-fils";
+import { bornerPage, nombreDePages } from "@/domain/pagination";
 import { jourParis } from "@/lib/date-paris";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
@@ -92,11 +93,54 @@ export const load: PageServerLoad = async (event) => {
     paiement: notifications.filter((n) => n.type === "paiement").length,
   };
 
+  // FR-043 : le centre est paginé côté serveur, du plus récent au plus ancien.
+  // Les tailles et bornes viennent de `@/domain/pagination` (FR-026) : une page
+  // forgée ne charge jamais tout le tenant.
+  const dateDe = (notification: Notification): number => {
+    const instant = notification.date ? Date.parse(notification.date) : Number.NaN;
+    return Number.isFinite(instant) ? instant : 0;
+  };
+  notifications.sort(
+    (a, b) =>
+      dateDe(b) - dateDe(a) ||
+      a.libelle.localeCompare(b.libelle, langue),
+  );
+
+  const typeFiltreBrut = event.url.searchParams.get("type");
+  const typeFiltre =
+    typeFiltreBrut === "message" || typeFiltreBrut === "paiement"
+      ? typeFiltreBrut
+      : null;
+  const filtrees = typeFiltre
+    ? notifications.filter((n) => n.type === typeFiltre)
+    : notifications;
+
+  const taillePage = 20;
+  const bornee = bornerPage(event.url.searchParams.get("page"), taillePage);
+  const pages = nombreDePages(filtrees.length, bornee.taille);
+  const pageCourante = Math.min(bornee.page, pages);
+  const debut = (pageCourante - 1) * bornee.taille;
+  const affichees = filtrees.slice(debut, debut + bornee.taille);
+
+  const lien = (numero: number) => {
+    const params = new URLSearchParams();
+    if (typeFiltre) params.set("type", typeFiltre);
+    params.set("page", String(numero));
+    return `/hote/notifications?${params.toString()}`;
+  };
+
   return {
     t: traductionsFils(langue),
     langue,
-    notifications,
+    notifications: affichees,
     parType,
-    total: notifications.length,
+    total: filtrees.length,
+    totalGlobal: notifications.length,
+    typeFiltre,
+    pageCourante,
+    pages,
+    taillePage: bornee.taille,
+    lienPrecedent: pageCourante > 1 ? lien(pageCourante - 1) : null,
+    lienSuivant: pageCourante < pages ? lien(pageCourante + 1) : null,
   };
 };

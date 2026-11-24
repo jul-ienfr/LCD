@@ -77,15 +77,54 @@ function declarations(jetons: Record<string, string>): string {
     .join("");
 }
 
-export function styleTheme(theme: Theme): string {
+/** Réglages personnels qui changent le rendu des jetons (FR-043). */
+export interface OptionsStyleTheme {
+  /** Mode forcé ; `systeme` (ou absent) suit le réglage de l'appareil. */
+  mode?: "systeme" | "clair" | "sombre" | null;
+  /** Densité choisie ; seule `compacte` resserre les espacements. */
+  densite?: "confortable" | "compacte" | null;
+}
+
+const UNITES = /^([\d.]+)\s*(rem|px|em)$/;
+
+/** Réduit une longueur CSS d'un quart, sans jamais toucher aux cibles tactiles. */
+function resserrer(valeur: string): string {
+  const correspondance = UNITES.exec(valeur.trim());
+  if (!correspondance) return valeur;
+  const nombre = Number.parseFloat(correspondance[1] ?? "");
+  if (!Number.isFinite(nombre)) return valeur;
+  return `${Math.round(nombre * 0.75 * 1000) / 1000}${correspondance[2]}`;
+}
+
+export function styleTheme(theme: Theme, options: OptionsStyleTheme = {}): string {
   const communs = declarations(jetonsCommuns(theme));
   const clair = declarations(jetonsCouleur(theme, "clair"));
   const sombre = declarations(jetonsCouleur(theme, "sombre"));
-  return [
-    `:root:root{${clair}${communs}}`,
-    `@media (prefers-color-scheme: dark){:root:root:not(.theme-clair){${sombre}}}`,
-    `:root:root.theme-sombre{${sombre}}`,
-  ].join("");
+  const mode = options.mode ?? "systeme";
+
+  // Un mode explicite fige la palette dès le rendu serveur : plus de media
+  // query qui contredirait le choix, plus de bascule côté navigateur.
+  const base =
+    mode === "sombre"
+      ? `:root:root{${sombre}${communs}}`
+      : `:root:root{${clair}${communs}}`;
+
+  const suite =
+    mode === "systeme"
+      ? [
+          `@media (prefers-color-scheme: dark){:root:root:not(.theme-clair){${sombre}}}`,
+          `:root:root.theme-sombre{${sombre}}`,
+        ]
+      : [];
+
+  // La densité compacte resserre les espacements seulement : la hauteur des
+  // contrôles reste celle du thème, donc jamais sous la cible tactile de 44 px.
+  const densite =
+    options.densite === "compacte"
+      ? `:root:root{--espace-section:${resserrer(theme.densite.espaceSection)};--espace-carte:${resserrer(theme.densite.espaceCarte)}}`
+      : "";
+
+  return [base, ...suite, densite].join("");
 }
 
 export type PaletteEmail = {

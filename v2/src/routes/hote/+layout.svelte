@@ -296,6 +296,7 @@
                   OK
                 </button>
               </form>
+              <a class="ui-menu-lien" href="/hote/preferences">{data.tNav.preferences}</a>
               <a class="ui-menu-lien" href="/">{data.tNav.voirSite}</a>
               <form method="POST" action="/logout">
                 <button class="ui-menu-lien w-full text-left" type="submit">

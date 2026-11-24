@@ -24,7 +24,15 @@
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
 
   const theme = $derived(themeResolu(data.apparence));
-  const css = $derived(styleTheme(theme));
+  // FR-043 : le mode et la densité choisis par la personne sont appliqués au
+  // rendu serveur ; « système » conserve la préférence de l'appareil.
+  const css = $derived(
+    styleTheme(theme, {
+      mode: data.preferences.mode,
+      densite: data.preferences.densite,
+    }),
+  );
+  const notificationsActives = $derived(data.preferences.notifications);
   const retour = $derived(page.url.pathname + page.url.search);
   const pageAuth = $derived(
     ["/login", "/logout", "/mot-de-passe-oublie", "/reinitialiser-mot-de-passe", "/two-factor"].some(
@@ -57,6 +65,7 @@
   }
 
   $effect(() => {
+    if (!notificationsActives) return;
     const chemin = page.url.pathname + page.url.search;
     const resultatForm = page.form as { erreur?: string; message?: string } | null;
     const detail = resultatForm?.erreur ?? resultatForm?.message ?? "";
@@ -92,8 +101,15 @@
   {@html `<style>${css}</style>`}
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-  <meta name="theme-color" content={theme.clair.accent} media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content={theme.sombre.accent} media="(prefers-color-scheme: dark)" />
+  {#if data.preferences.mode === "systeme"}
+    <meta name="theme-color" content={theme.clair.accent} media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content={theme.sombre.accent} media="(prefers-color-scheme: dark)" />
+  {:else}
+    <meta
+      name="theme-color"
+      content={data.preferences.mode === "sombre" ? theme.sombre.accent : theme.clair.accent}
+    />
+  {/if}
   {#if data.suivi}
     {#each data.suivi.scriptsMesure as script}
       {@html script}
@@ -121,7 +137,8 @@
   aria-live="polite"
   data-notifications
 >
-  {#each notificationsAffichees as notification (notification.id)}
+  {#if notificationsActives}
+    {#each notificationsAffichees as notification (notification.id)}
     <div
       class="ui-alerte notification"
       class:ui-alerte--danger={notification.ton === "echec"}
@@ -139,7 +156,8 @@
         <span aria-hidden="true">×</span>
       </button>
     </div>
-  {/each}
+    {/each}
+  {/if}
 </section>
 
 {#if data.apercu}
@@ -167,6 +185,8 @@
   class:mode-lite={data.lite}
   data-nav={theme.variantes.nav}
   data-entete={theme.variantes.entete}
+  data-mode={data.preferences.mode}
+  data-densite={data.preferences.densite}
 >
   {@render children()}
 

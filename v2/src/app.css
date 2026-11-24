@@ -573,6 +573,13 @@ samp {
     color: var(--accent-fonce);
   }
 
+  .ui-etiquette-ui--accent,
+  .ui-etiquette-ui--accent:hover {
+    background: var(--accent-douce);
+    border-color: var(--accent);
+    color: var(--accent-fonce);
+  }
+
   .ui-champ-groupe {
     display: flex;
     flex-direction: column;

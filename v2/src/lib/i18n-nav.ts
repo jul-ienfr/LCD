@@ -16,6 +16,7 @@ export interface TraductionsNavigation {
   maintenance: string;
   journaux: string;
   langue: string;
+  preferences: string;
   navigationPrincipale: string;
   apercuLectureSeule: (role: string) => string;
   tableau: string;
@@ -86,6 +87,7 @@ const FR: TraductionsNavigation = {
   maintenance: "Maintenance",
   journaux: "Journaux applicatifs",
   langue: "Langue",
+  preferences: "Préférences",
   navigationPrincipale: "Navigation principale",
   apercuLectureSeule: (role) => `Aperçu lecture seule — rôle « ${role} ». Toute écriture est bloquée.`,
   tableau: "Tableau de bord",
@@ -160,6 +162,7 @@ const EN: TraductionsNavigation = {
   maintenance: "Maintenance",
   journaux: "Application logs",
   langue: "Language",
+  preferences: "Preferences",
   navigationPrincipale: "Main navigation",
   apercuLectureSeule: (role) => `Read-only preview — “${role}” role. All writes are blocked.`,
   tableau: "Dashboard",
@@ -234,6 +237,7 @@ const ES: TraductionsNavigation = {
   maintenance: "Mantenimiento",
   journaux: "Registros de la aplicación",
   langue: "Idioma",
+  preferences: "Preferencias",
   navigationPrincipale: "Navegación principal",
   apercuLectureSeule: (role) => `Vista previa de solo lectura — rol «${role}». Toda escritura está bloqueada.`,
   tableau: "Panel",
@@ -308,6 +312,7 @@ const IT: TraductionsNavigation = {
   maintenance: "Manutenzione",
   journaux: "Registri dell’applicazione",
   langue: "Lingua",
+  preferences: "Preferenze",
   navigationPrincipale: "Navigazione principale",
   apercuLectureSeule: (role) => `Anteprima sola lettura — ruolo «${role}». Ogni scrittura è bloccata.`,
   tableau: "Dashboard",
@@ -382,6 +387,7 @@ const DE: TraductionsNavigation = {
   maintenance: "Wartung",
   journaux: "Anwendungsprotokolle",
   langue: "Sprache",
+  preferences: "Einstellungen",
   navigationPrincipale: "Hauptnavigation",
   apercuLectureSeule: (role) => `Schreibgeschützte Vorschau — Rolle „${role}“. Alle Schreibvorgänge sind gesperrt.`,
   tableau: "Dashboard",

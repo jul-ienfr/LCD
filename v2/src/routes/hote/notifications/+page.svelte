@@ -29,11 +29,22 @@
     </a>
   </header>
 
-  <ul class="flex flex-wrap gap-2 text-sm">
+  <div class="flex flex-wrap gap-2 text-sm" role="group" aria-label="Filtrer les notifications">
+    <a
+      class="ui-etiquette-ui"
+      class:ui-etiquette-ui--accent={!data.typeFiltre}
+      href="/hote/notifications"
+      aria-current={!data.typeFiltre ? "page" : undefined}
+    >Tous : {data.totalGlobal}</a>
     {#each Object.entries(data.parType) as [type, nombre] (type)}
-      <li class="ui-etiquette-ui">{libelles[type] ?? type} : {nombre}</li>
+      <a
+        class="ui-etiquette-ui"
+        class:ui-etiquette-ui--accent={data.typeFiltre === type}
+        href="/hote/notifications?type={type}"
+        aria-current={data.typeFiltre === type ? "page" : undefined}
+      >{libelles[type] ?? type} : {nombre}</a>
     {/each}
-  </ul>
+  </div>
 
   {#if data.notifications.length === 0}
     <p class="ui-carte border-dashed text-encre-douce">
@@ -41,7 +52,7 @@
     </p>
   {:else}
     <ul class="space-y-3">
-      {#each data.notifications as notification (notification.href + notification.libelle)}
+      {#each data.notifications as notification, index (notification.href + notification.libelle + index)}
         <li class="ui-carte flex flex-wrap items-start justify-between gap-3">
           <div class="space-y-1">
             <p class="font-semibold">{notification.libelle}</p>
@@ -55,6 +66,20 @@
         </li>
       {/each}
     </ul>
+  {/if}
+
+  {#if data.pages > 1}
+    <nav aria-label="Pagination du centre de notifications" class="flex flex-wrap items-center gap-3 text-sm">
+      {#if data.lienPrecedent}
+        <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={data.lienPrecedent} rel="prev">← Précédent</a>
+      {/if}
+      <span class="text-encre-faine">
+        Page {data.pageCourante} sur {data.pages} · {data.total} élément(s)
+      </span>
+      {#if data.lienSuivant}
+        <a class="ui-bouton ui-bouton--secondaire ui-bouton--petit" href={data.lienSuivant} rel="next">Suivant →</a>
+      {/if}
+    </nav>
   {/if}
 
   <p class="text-sm">
