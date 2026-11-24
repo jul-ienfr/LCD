@@ -16,6 +16,7 @@ import { traductionsEntretienDomaine } from "@/lib/i18n-entretien-domaine";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, cle: string): string {
   return String(donnees.get(cle) ?? "").trim();
@@ -55,7 +56,7 @@ export const load: PageServerLoad = async (event) => {
     new DrizzleSitesTenantsRepository().trouverParTenant(tenantId),
   ]);
   const ok = event.url.searchParams.get("ok");
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsEntretienDomaine(langue);
   return {
     t,

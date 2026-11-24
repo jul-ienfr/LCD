@@ -17,6 +17,7 @@ import { traductionsEntite } from "@/lib/i18n-entite";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -28,7 +29,7 @@ export const load: PageServerLoad = async (event) => {
   const tenant = await new DrizzleTenantRepository().trouver(tenantId);
 
   return {
-    t: traductionsEntite(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsEntite(langueRequete(event)),
     tenant,
     natures: NATURES_ENTITE.map((valeur) => ({ valeur, libelle: LIBELLES_NATURE[valeur] })),
     regimes: REGIMES_ENTITE.map((valeur) => ({ valeur, libelle: LIBELLES_REGIME[valeur] })),

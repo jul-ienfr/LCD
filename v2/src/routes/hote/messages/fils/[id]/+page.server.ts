@@ -35,6 +35,7 @@ import { creerEmailSmtp } from "@/infrastructure/adapters/email-smtp";
 import { creerSmsBrevo, smsConfigured } from "@/infrastructure/adapters/sms-brevo";
 import { creerWhatsAppCloud, whatsappConfigured } from "@/infrastructure/adapters/whatsapp-cloud";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -60,7 +61,7 @@ function canalMessage() {
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote", "operateur"]);
   const tenantId = tenantIdDeSession(session);
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const depot = new DrizzleFilsVoyageurRepository();
   const fil = await depot.trouverParId(tenantId, event.params.id);
   if (!fil) throw error(404, "Fil introuvable.");
@@ -275,8 +276,7 @@ export const actions: Actions = {
     const messageId = texte(donnees, "messageId");
     const vers =
       texte(donnees, "vers") ||
-      event.cookies.get("lcd_langue") ||
-      "fr";
+      langueRequete(event);
     try {
       const resultat = await new TraduireMessageFil(
         new DrizzleFilsVoyageurRepository(),
@@ -319,7 +319,7 @@ export const actions: Actions = {
     }
     const donnees = await event.request.formData();
     const contenu = texte(donnees, "contenu");
-    const de = event.cookies.get("lcd_langue") ?? "fr";
+    const de = langueRequete(event);
     try {
       const resultat = await new TraduireMessageFil(
         new DrizzleFilsVoyageurRepository(),

@@ -15,6 +15,7 @@ import { logErreur } from "@/lib/logger";
 import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const TAILLE_MAX = 2 * 1024 * 1024;
 
@@ -59,7 +60,7 @@ export const load: PageServerLoad = async (event) => {
     selectionne !== null && (alerteEcart(selectionne.ecartBp) || anciennes.length > 0);
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     selectionne: selectionne
       ? {
           ...selectionne,

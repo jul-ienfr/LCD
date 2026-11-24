@@ -26,6 +26,7 @@ import { traductionsRapports } from "@/lib/i18n-rapports";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 /**
  * Dérive le canal depuis la source de réservation.
@@ -142,7 +143,7 @@ export const load: PageServerLoad = async (event) => {
   });
 
   // --- i18n ---
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsRapports(langue);
   const moisLibelle = new Intl.DateTimeFormat(
     langue === "fr" ? "fr-FR" : langue,

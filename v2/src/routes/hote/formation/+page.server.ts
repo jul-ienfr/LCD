@@ -15,6 +15,7 @@ import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
@@ -26,7 +27,7 @@ export const load: PageServerLoad = async (event) => {
   const globale = avancementGlobal(progressions);
 
   return {
-    t: traductionsConformite(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsConformite(langueRequete(event)),
     globale,
     modules: MODULES_FORMATION.map((module) => {
       const progression = progressions.find((entree) => entree.moduleCode === module.code);

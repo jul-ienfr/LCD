@@ -27,6 +27,7 @@ import {
   tokenVoyageurExpireDansJours,
 } from "@/lib/voyageur-token";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
@@ -34,7 +35,7 @@ export const load: PageServerLoad = async (event) => {
   const params = event.url.searchParams;
   const moisDemande = params.get("mois");
   const mois = moisDemande && moisValide(moisDemande) ? moisDemande : moisCourant();
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsPlanning(langue);
   const moisLabel = new Intl.DateTimeFormat(langue === "fr" ? "fr-FR" : langue, {
     month: "long",

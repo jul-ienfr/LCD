@@ -17,6 +17,7 @@ import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-rep
 import { traductionsIntervenants } from "@/lib/i18n-intervenants";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const SANS_MESURE = "—";
 
@@ -49,7 +50,7 @@ export const load: PageServerLoad = async (event) => {
     new DrizzleUserRepository().listerParRole(tenantId, "presta"),
   ]);
 
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsIntervenants(langue);
   const noms = new Map(prestataires.map((user) => [user.id, user]));
 

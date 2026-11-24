@@ -22,6 +22,7 @@ import { echecSaisie } from "@/lib/server/saisie";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "");
@@ -40,7 +41,7 @@ export const load: PageServerLoad = async (event) => {
   const logements = await new DrizzleLogementRepository().listerParTenant(
     tenantId,
   );
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const logement =
     logements.find(
       (entree) => entree.id === event.url.searchParams.get("logement"),

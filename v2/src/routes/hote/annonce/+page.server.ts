@@ -22,6 +22,7 @@ import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "");
@@ -54,7 +55,7 @@ export const load: PageServerLoad = async (event) => {
 
   if (!logement) {
     return {
-      t: traductionsAnnonce(event.cookies.get("lcd_langue") ?? "fr"),
+      t: traductionsAnnonce(langueRequete(event)),
       vide: true,
       logements: [],
       logement: null,
@@ -86,7 +87,7 @@ export const load: PageServerLoad = async (event) => {
   const mentions = conformite?.mentions ?? mentionsParDefaut();
 
   return {
-    t: traductionsAnnonce(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsAnnonce(langueRequete(event)),
     vide: false,
     logements: logements.map((entree) => ({
       id: entree.id,

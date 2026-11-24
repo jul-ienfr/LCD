@@ -11,6 +11,7 @@ import { logErreur } from "@/lib/logger";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function nomNavigateur(userAgent: string | null | undefined): string {
   if (!userAgent) return "Navigateur inconnu";
@@ -50,7 +51,7 @@ export const load: PageServerLoad = async (event) => {
           : "/hote";
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     email: session.user.email,
     role: session.user.role,
     twoFactorEnabled: Boolean(session.user.twoFactorEnabled),

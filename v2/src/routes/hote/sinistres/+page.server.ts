@@ -21,6 +21,7 @@ import { logErreur } from "@/lib/logger";
 import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "");
@@ -43,7 +44,7 @@ export const load: PageServerLoad = async (event) => {
     logements.find(
       (entree) => entree.id === event.url.searchParams.get("logement"),
     ) ?? logements[0];
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
 
   if (!logement) {
     return {

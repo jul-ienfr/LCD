@@ -9,6 +9,7 @@ import { DrizzleLogementRepository } from "@/infrastructure/db/repositories/loge
 import { DrizzleQuestionnairesRepository } from "@/infrastructure/db/repositories/questionnaires-repository";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function dateCourte(date: Date): string {
   return date.toLocaleDateString("fr-FR", {
@@ -33,7 +34,7 @@ export const load: PageServerLoad = async (event) => {
   const parCritere = moyennesParCritere(questionnaires);
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     logements: logements.map((entree) => ({ id: entree.id, nom: entree.nom })),
     logement: logement ? { id: logement.id, nom: logement.nom } : null,
     criteres: CRITERES_QUESTIONNAIRE.map((critere) => ({

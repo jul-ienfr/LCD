@@ -8,6 +8,7 @@ import { logErreur } from "@/lib/logger";
 import { traductionsLogements } from "@/lib/i18n-logements";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
@@ -18,7 +19,7 @@ export const load: PageServerLoad = async (event) => {
   ).filter((logement) => tous || logement.statut !== "archive");
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     tenantId,
     tous,
     logements: logements.map((logement) => ({
@@ -56,7 +57,7 @@ export const actions = {
           payload: { code: logement.code, nom: logement.nom },
         }),
       );
-      const t = traductionsLogements(event.cookies.get("lcd_langue") ?? "fr");
+      const t = traductionsLogements(langueRequete(event));
       return {
         ok: true,
         message: t.cree(logement.code),

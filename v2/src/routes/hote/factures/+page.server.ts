@@ -34,6 +34,7 @@ import {
   tenantIdDeSession,
 } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -76,7 +77,7 @@ export const load: PageServerLoad = async (event) => {
     mois === aujourdHui.slice(0, 7) ? aujourdHui : premier;
   const annee = Number(mois.slice(0, 4));
 
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsFactures(langue);
   const moisLabel = new Intl.DateTimeFormat(langue === "fr" ? "fr-FR" : langue, {
     month: "long",

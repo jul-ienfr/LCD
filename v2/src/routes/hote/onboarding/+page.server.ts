@@ -15,6 +15,7 @@ import { traductionsAdministration } from "@/lib/i18n-administration";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "");
@@ -59,7 +60,7 @@ export const load: PageServerLoad = async (event) => {
 
   if (!logement) {
     return {
-      t: traductionsAdministration(event.cookies.get("lcd_langue") ?? "fr"),
+      t: traductionsAdministration(langueRequete(event)),
       logement: null,
       logements: [],
       etapes: [],
@@ -188,7 +189,7 @@ export const load: PageServerLoad = async (event) => {
   ];
 
   return {
-    t: traductionsAdministration(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsAdministration(langueRequete(event)),
     logement: {
       id: logement.id,
       nom: logement.nom,
@@ -211,10 +212,10 @@ export const load: PageServerLoad = async (event) => {
     // Les fonctions de `t` ne traversent pas la frontière serveur/client :
     // on pré-formate les phrases dynamiques pour que l'hydratation reste sûre.
     avancementTexte: traductionsAdministration(
-      event.cookies.get("lcd_langue") ?? "fr",
+      langueRequete(event),
     ).avancement(logement.nom),
     progressionTexte: traductionsAdministration(
-      event.cookies.get("lcd_langue") ?? "fr",
+      langueRequete(event),
     ).progression(
       etapes.filter((etape) => etape.fait).length,
       etapes.length,
@@ -223,7 +224,7 @@ export const load: PageServerLoad = async (event) => {
       ),
     ),
     pretNoteTexte: traductionsAdministration(
-      event.cookies.get("lcd_langue") ?? "fr",
+      langueRequete(event),
     ).pretNote(tenant?.slug ?? "lcd"),
     chrono,
     copro: event.url.searchParams.get("copro"),

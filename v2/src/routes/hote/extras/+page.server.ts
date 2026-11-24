@@ -18,6 +18,7 @@ import { logErreur } from "@/lib/logger";
 import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const STATUTS: StatutCommandeExtra[] = [
   "demandee",
@@ -85,7 +86,7 @@ export const load: PageServerLoad = async (event) => {
       statut: commande.statut,
       transitions: TRANSITIONS_COMMANDE_EXTRA[commande.statut],
     })),
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     ok: event.url.searchParams.get("ok"),
     okNom: event.url.searchParams.get("nom"),
     erreur: event.url.searchParams.get("erreur"),

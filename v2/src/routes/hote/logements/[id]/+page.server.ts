@@ -9,6 +9,7 @@ import { traductionsDetails } from "@/lib/i18n-details";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texteOuNull(valeur: FormDataEntryValue | null, max: number): string | null {
   const texte = String(valeur ?? "").trim();
@@ -36,7 +37,7 @@ export const load: PageServerLoad = async (event) => {
   const urlCalendrier = `${baseCalendrier()}/hote/logements/${logement.id}/calendrier?t=${encodeURIComponent(token)}`;
 
   return {
-    t: traductionsDetails(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsDetails(langueRequete(event)),
     logement: {
       id: logement.id,
       code: logement.code,

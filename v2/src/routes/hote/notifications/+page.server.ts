@@ -6,6 +6,7 @@ import { bornerPage, nombreDePages } from "@/domain/pagination";
 import { jourParis } from "@/lib/date-paris";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export interface Notification {
   type: "message" | "brouillon" | "reservation" | "paiement";
@@ -18,7 +19,7 @@ export interface Notification {
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote", "operateur"]);
   const tenantId = tenantIdDeSession(session);
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const notifications: Notification[] = [];
 
   const fils = new DrizzleFilsVoyageurRepository();

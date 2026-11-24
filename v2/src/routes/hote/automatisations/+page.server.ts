@@ -18,6 +18,7 @@ import { logErreur } from "@/lib/logger";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -36,7 +37,7 @@ function defautParCode(code: string) {
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
   const tenantId = tenantIdDeSession(session);
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const automatisations = await new DrizzleAutomatisationsRepository().listerParTenant(
     tenantId,
   );

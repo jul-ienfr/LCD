@@ -14,6 +14,7 @@ import { traductionsCompta } from "@/lib/i18n-compta";
 import { formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote", "comptable"]);
@@ -45,7 +46,7 @@ export const load: PageServerLoad = async (event) => {
   const encaisse = totalPaiements(paiements);
   const parFacture = new Map(factures.map((facture) => [facture.id, facture]));
 
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsCompta(langue);
   const moisLibelle = new Intl.DateTimeFormat(langue === "fr" ? "fr-FR" : langue, {
     month: "long",

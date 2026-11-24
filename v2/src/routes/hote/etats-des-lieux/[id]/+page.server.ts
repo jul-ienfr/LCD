@@ -18,6 +18,7 @@ import { logErreur } from "@/lib/logger";
 import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const LIBELLES_TYPE = {
   entree: "Entrée",
@@ -45,7 +46,7 @@ export const load: PageServerLoad = async (event) => {
   const analyse = analyserEtatDesLieux(etat.lignes);
 
   return {
-    t: traductionsDetails(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsDetails(langueRequete(event)),
     etat: {
       id: etat.id,
       ref: etat.ref,

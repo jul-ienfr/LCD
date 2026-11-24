@@ -17,6 +17,7 @@ import { logErreur } from "@/lib/logger";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const TAILLE_MAX_ICS = 2_000_000;
 
@@ -42,8 +43,8 @@ export const load: PageServerLoad = async (event) => {
 
   if (logements.length === 0) {
     return {
-      langue: event.cookies.get("lcd_langue") ?? "fr",
-      t: traductionsPlanningImport(event.cookies.get("lcd_langue") ?? "fr"),
+      langue: langueRequete(event),
+      t: traductionsPlanningImport(langueRequete(event)),
       vide: true,
       logements: [],
       logement: null,
@@ -109,8 +110,8 @@ export const load: PageServerLoad = async (event) => {
 
   const actifs = flux.filter((entree) => entree.actif);
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
-    t: traductionsPlanningImport(event.cookies.get("lcd_langue") ?? "fr"),
+    langue: langueRequete(event),
+    t: traductionsPlanningImport(langueRequete(event)),
     vide: false,
     logements: logements.map((entree) => ({ id: entree.id, nom: entree.nom, code: entree.code })),
     logement: { id: logement.id, nom: logement.nom, code: logement.code },
@@ -132,7 +133,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions = {
   importer: async (event) => {
-    const t = traductionsPlanningImport(event.cookies.get("lcd_langue") ?? "fr");
+    const t = traductionsPlanningImport(langueRequete(event));
     const session = requireRole(event, ["admin", "hote"]);
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
@@ -230,7 +231,7 @@ export const actions = {
   },
 
   enregistrerFlux: async (event) => {
-    const t = traductionsPlanningImport(event.cookies.get("lcd_langue") ?? "fr");
+    const t = traductionsPlanningImport(langueRequete(event));
     const session = requireRole(event, ["admin", "hote"]);
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
@@ -294,7 +295,7 @@ export const actions = {
   },
 
   synchroniser: async (event) => {
-    const t = traductionsPlanningImport(event.cookies.get("lcd_langue") ?? "fr");
+    const t = traductionsPlanningImport(langueRequete(event));
     const session = requireRole(event, ["admin", "hote"]);
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
@@ -346,7 +347,7 @@ export const actions = {
   },
 
   synchroniserTout: async (event) => {
-    const t = traductionsPlanningImport(event.cookies.get("lcd_langue") ?? "fr");
+    const t = traductionsPlanningImport(langueRequete(event));
     const session = requireRole(event, ["admin", "hote"]);
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();
@@ -401,7 +402,7 @@ export const actions = {
   },
 
   supprimerFlux: async (event) => {
-    const t = traductionsPlanningImport(event.cookies.get("lcd_langue") ?? "fr");
+    const t = traductionsPlanningImport(langueRequete(event));
     const session = requireRole(event, ["admin", "hote"]);
     const tenantId = tenantIdDeSession(session);
     const donnees = await event.request.formData();

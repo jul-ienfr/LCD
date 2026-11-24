@@ -16,6 +16,7 @@ import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -38,7 +39,7 @@ export const load: PageServerLoad = async (event) => {
   );
 
   return {
-    t: traductionsDemandes(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsDemandes(langueRequete(event)),
     statut: statut ?? "",
     statuts: STATUTS_FILTRE,
     demandes: demandes.map((demande) => ({

@@ -13,6 +13,7 @@ import { echecSaisie } from "@/lib/server/saisie";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function formaterDate(date: Date, langue: string): string {
   return new Intl.DateTimeFormat(langue === "fr" ? "fr-FR" : langue, {
@@ -25,7 +26,7 @@ export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin"]);
   const tenantId = tenantIdDeSession(session);
   const repo = new DrizzleSessionsRepository();
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsAcces(langue);
 
   const [sessions, parUtilisateur, utilisateurs] = await Promise.all([

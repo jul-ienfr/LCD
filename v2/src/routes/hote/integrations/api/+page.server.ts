@@ -15,6 +15,7 @@ import { echecSaisie } from "@/lib/server/saisie";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -26,7 +27,7 @@ export const load: PageServerLoad = async (event) => {
   const cles = await new DrizzleClesApiRepository().listerParTenant(tenantId);
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     cles: cles.map((cle) => ({
       id: cle.id,
       nom: cle.nom,

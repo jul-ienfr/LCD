@@ -14,6 +14,7 @@ import { traductionsCompta } from "@/lib/i18n-compta";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function euros(centimes: number | null): string {
   return centimes === null ? "" : (centimes / 100).toFixed(2).replace(".", ",");
@@ -30,7 +31,7 @@ export const load: PageServerLoad = async (event) => {
   const parametres = await new ObtenirParametresFiscaux(
     new DrizzleParametresFiscauxRepository(),
   ).executer(tenantId);
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
 
   return {
     langue,

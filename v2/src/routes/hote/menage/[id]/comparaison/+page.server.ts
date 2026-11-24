@@ -9,6 +9,7 @@ import { DrizzlePhotoPreuveRepository } from "@/infrastructure/db/repositories/p
 import { DrizzlePhotoReferenceRepository } from "@/infrastructure/db/repositories/photo-reference-repository";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
@@ -29,7 +30,7 @@ export const load: PageServerLoad = async (event) => {
   );
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     menage: {
       id: comparaison.menage.id,
       ref: comparaison.menage.ref,

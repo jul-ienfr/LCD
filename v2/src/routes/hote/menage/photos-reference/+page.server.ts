@@ -25,6 +25,7 @@ import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { stockageFichiers } from "@/lib/server/stockage";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function lien(logementId: string, params: Record<string, string> = {}): string {
   return `/hote/menage/photos-reference?${new URLSearchParams({ logement: logementId, ...params })}`;
@@ -33,7 +34,7 @@ function lien(logementId: string, params: Record<string, string> = {}): string {
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
   const tenantId = tenantIdDeSession(session);
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const logements = await new DrizzleLogementRepository().listerParTenant(tenantId);
   const logement =
     logements.find(

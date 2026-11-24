@@ -30,6 +30,7 @@ import { traductionsCommunication } from "@/lib/i18n-communication";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function coutLibelle(centimes: number): string {
   return centimes === 0 ? "Gratuit (local)" : formaterEuros(centimes);
@@ -121,7 +122,7 @@ export const load: PageServerLoad = async (event) => {
     consomme.nombre >= QUOTA_ASSISTANT_MENSUEL ||
     consomme.coutCentimes >= BUDGET_ASSISTANT_MENSUEL_CENTIMES;
 
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
 
   return {
     t: traductionsCommunication(langue),

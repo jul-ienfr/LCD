@@ -30,6 +30,7 @@ import {
   tenantIdDeSession,
 } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const STATUTS: StatutCaution[] = ["recue", "restituee", "retenue"];
 
@@ -80,7 +81,7 @@ export const load: PageServerLoad = async (event) => {
   const cautions = toutesCautions.filter((caution) => ids.has(caution.reservationId));
   const parReservation = new Map(cautions.map((caution) => [caution.reservationId, caution]));
 
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const moisLibelle = new Intl.DateTimeFormat(langue === "fr" ? "fr-FR" : langue, {
     month: "long",
     year: "numeric",

@@ -35,6 +35,7 @@ import { DrizzleUserRepository } from "@/infrastructure/db/repositories/user-rep
 import { auditLogs } from "@/infrastructure/db/schema";
 import { traductionsMissions } from "@/lib/i18n-missions";
 import { emettreEvenement } from "@/lib/evenements";
+import { langueRequete } from "@/lib/server/langue";
 import { heureParis, jourParis } from "@/lib/date-paris";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
@@ -91,7 +92,7 @@ export const load: PageServerLoad = async (event) => {
   const parUser = new Map(prestataires.map((utilisateur) => [utilisateur.id, utilisateur]));
   const parLogement = new Map(logements.map((logement) => [logement.id, logement]));
 
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsMissions(langue);
   const moisLibelle = new Intl.DateTimeFormat(langue === "fr" ? "fr-FR" : langue, {
     month: "long",

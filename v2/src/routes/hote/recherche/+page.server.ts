@@ -10,6 +10,7 @@ import { traductionsRecherche } from "@/lib/i18n-recherche";
 import { mesurerParcours } from "@/lib/server/mesure-ergonomie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const LIBELLES: Record<CategorieRecherche, string> = {
   logement: "Logements",
@@ -47,7 +48,7 @@ export const load: PageServerLoad = async (event) => {
   const resultats = q && valide
     ? await new RechercherRefs(new DrizzleRechercheRepository()).executer(tenantId, q)
     : [];
-  const t = traductionsRecherche(event.cookies.get("lcd_langue") ?? "fr");
+  const t = traductionsRecherche(langueRequete(event));
 
   /* --- Mesure (T092) : recherche effectuée ou sans résultat --- */
   // Seul le nombre de résultats est mesuré : jamais le texte cherché (PII).

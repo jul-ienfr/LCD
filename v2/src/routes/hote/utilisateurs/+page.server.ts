@@ -23,6 +23,7 @@ import {
   tenantIdDeSession,
 } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -57,7 +58,7 @@ export const load: PageServerLoad = async (event) => {
   const aujourdHui = new Date().toISOString().slice(0, 10);
 
   return {
-    t: traductionsAdministration(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsAdministration(langueRequete(event)),
     utilisateurs: tries.map((utilisateur) => ({
       id: utilisateur.id,
       name: utilisateur.name,

@@ -29,6 +29,7 @@ import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { stockageFichiers } from "@/lib/server/stockage";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function tachesDepuisFormulaire(
   donnees: FormData,
@@ -80,7 +81,7 @@ export const load: PageServerLoad = async (event) => {
   );
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     menage: {
       id: menage.id,
       ref: menage.ref,

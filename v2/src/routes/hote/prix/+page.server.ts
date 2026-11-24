@@ -45,6 +45,7 @@ import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function moisLocalise(mois: string, langue: string): string {
   const libelle = new Intl.DateTimeFormat(langue, {
@@ -103,7 +104,7 @@ async function planDuFormulaire(
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
   const tenantId = tenantIdDeSession(session);
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const moisParam = event.url.searchParams.get("mois");
   const mois = moisParam && moisValide(moisParam) ? moisParam : moisCourant();
 

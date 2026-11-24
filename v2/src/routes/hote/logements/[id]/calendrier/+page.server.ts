@@ -4,6 +4,7 @@ import { creerTokenCalendrier } from "@/lib/calendrier-token";
 import { traductionsDetails } from "@/lib/i18n-details";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
@@ -20,7 +21,7 @@ export const load: PageServerLoad = async (event) => {
   });
 
   return {
-    t: traductionsDetails(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsDetails(langueRequete(event)),
     logement: { id: logement.id, nom: logement.nom, code: logement.code },
     url: `/api/calendrier/${logement.id}?t=${encodeURIComponent(token)}`,
   };

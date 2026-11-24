@@ -4,6 +4,7 @@ import { DrizzleReservationRepository } from "@/infrastructure/db/repositories/r
 import { traductionsConformite } from "@/lib/i18n-conformite";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
@@ -24,7 +25,7 @@ export const load: PageServerLoad = async (event) => {
   const refSejour = new Map(reservations.map((reservation) => [reservation.id, reservation.ref]));
 
   return {
-    t: traductionsConformite(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsConformite(langueRequete(event)),
     fiches: fiches.map((fiche) => ({
       id: fiche.id,
       sejour: refSejour.get(fiche.reservationId) ?? "—",

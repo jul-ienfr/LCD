@@ -15,6 +15,7 @@ import { traductionsCommunication } from "@/lib/i18n-communication";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote", "operateur"]);
@@ -28,8 +29,8 @@ export const load: PageServerLoad = async (event) => {
   ]);
 
   return {
-    t: traductionsCommunication(event.cookies.get("lcd_langue") ?? "fr"),
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    t: traductionsCommunication(langueRequete(event)),
+    langue: langueRequete(event),
     fils: fils.map((fil) => ({
       ...fil,
       canalLibelle: LIBELLES_CANAL_FIL[fil.canal],

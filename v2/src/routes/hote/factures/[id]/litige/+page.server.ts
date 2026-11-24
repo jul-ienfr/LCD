@@ -15,6 +15,7 @@ import { traductionsFactures } from "@/lib/i18n-factures";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const ROLES = ["admin", "hote", "comptable"] as const;
 
@@ -93,7 +94,7 @@ export const load: PageServerLoad = async (event) => {
   });
 
   return {
-    t: traductionsFactures(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsFactures(langueRequete(event)),
     facture: {
       id: facture.id,
       numero: facture.numero,

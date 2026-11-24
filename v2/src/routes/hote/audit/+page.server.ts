@@ -22,6 +22,7 @@ import { logErreur } from "@/lib/logger";
 import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const LIMITE = 50;
 const formateurDate = new Intl.DateTimeFormat("fr-FR", {
@@ -80,7 +81,7 @@ export const load: PageServerLoad = async (event) => {
   const queryExport = new URLSearchParams({ jours: String(jours) });
   if (recherche) queryExport.set("q", recherche);
   if (famille) queryExport.set("famille", famille);
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsAudit(langue);
 
   return {

@@ -20,6 +20,7 @@ import { formaterEuros } from "@/lib/format";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
@@ -28,7 +29,7 @@ export const load: PageServerLoad = async (event) => {
   const logement =
     logements.find((entree) => entree.id === event.url.searchParams.get("logement")) ??
     logements[0];
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
 
   if (!logement) {
     return {

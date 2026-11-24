@@ -17,6 +17,7 @@ import { traductionsEntretienDomaine } from "@/lib/i18n-entretien-domaine";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function lien(logementId: string, params: Record<string, string> = {}): string {
   return `/hote/entretien?${new URLSearchParams({
@@ -32,7 +33,7 @@ export const load: PageServerLoad = async (event) => {
 
   if (logements.length === 0) {
     return {
-      t: traductionsEntretienDomaine(event.cookies.get("lcd_langue") ?? "fr"),
+      t: traductionsEntretienDomaine(langueRequete(event)),
       vide: true,
       logements: [],
       logement: null,
@@ -61,7 +62,7 @@ export const load: PageServerLoad = async (event) => {
   );
 
   return {
-    t: traductionsEntretienDomaine(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsEntretienDomaine(langueRequete(event)),
     vide: false,
     logements: logements.map((entree) => ({ id: entree.id, nom: entree.nom })),
     logement: { id: logement.id, nom: logement.nom, code: logement.code },

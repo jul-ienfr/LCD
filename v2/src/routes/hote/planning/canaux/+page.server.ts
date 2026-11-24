@@ -24,6 +24,7 @@ import { logErreur } from "@/lib/logger";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function creerSynchroniseur(flux: DrizzleFluxIcsRepository) {
   return new SynchroniserFluxIcs(
@@ -52,7 +53,7 @@ function erreurAction(
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote"]);
   const tenantId = tenantIdDeSession(session);
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   const t = traductionsCanaux(langue);
   const locale = langue === "fr" ? "fr-FR" : langue;
   const logements = await new DrizzleLogementRepository().listerParTenant(tenantId);

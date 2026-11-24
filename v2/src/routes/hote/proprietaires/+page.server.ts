@@ -25,6 +25,7 @@ import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import { echecSaisie } from "@/lib/server/saisie";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -42,7 +43,7 @@ export const load: PageServerLoad = async (event) => {
 
   const parUser = new Map(proprietaires.map((utilisateur) => [utilisateur.id, utilisateur]));
   const parLogement = new Map(logements.map((logement) => [logement.id, logement]));
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
 
   return {
     langue,

@@ -20,6 +20,7 @@ import { traductionsEtatsDesLieux } from "@/lib/i18n-etats-des-lieux";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const LIBELLES_TYPE: Record<TypeEtatDesLieux, string> = {
   entree: "Entrée",
@@ -40,7 +41,7 @@ export const load: PageServerLoad = async (event) => {
 
   if (logements.length === 0) {
     return {
-      t: traductionsEtatsDesLieux(event.cookies.get("lcd_langue") ?? "fr"),
+      t: traductionsEtatsDesLieux(langueRequete(event)),
       vide: true,
       logements: [],
       logement: null,
@@ -83,7 +84,7 @@ export const load: PageServerLoad = async (event) => {
   );
 
   return {
-    t: traductionsEtatsDesLieux(event.cookies.get("lcd_langue") ?? "fr"),
+    t: traductionsEtatsDesLieux(langueRequete(event)),
     vide: false,
     logements: logements.map((entree) => ({ id: entree.id, nom: entree.nom })),
     logement: { id: logement.id, nom: logement.nom, code: logement.code },

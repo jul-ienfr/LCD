@@ -16,6 +16,7 @@ import {
   tenantIdDeSession,
 } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 /**
  * Tableau de bord hôte (T062/T063) : bloc « À faire maintenant » construit à
@@ -69,7 +70,7 @@ export const load: PageServerLoad = async (event) => {
   const apercu = lireApercu(event, session);
   const tenantId = tenantIdDeSession(session);
   const roleEffectif = apercu?.role ?? session.user.role ?? "";
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
 
   const logements = await new DrizzleLogementRepository().listerParTenant(tenantId);
   const aujourdHui = jourParis();

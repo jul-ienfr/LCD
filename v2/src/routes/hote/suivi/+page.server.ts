@@ -10,6 +10,7 @@ import { auditLogs } from "@/infrastructure/db/schema";
 import { exigerConfirmation } from "@/lib/server/confirmation";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -33,7 +34,7 @@ export const load: PageServerLoad = async (event) => {
     ),
   ]);
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     configuration: configuration ?? configurationSuiviVide(),
     evenements,
     resume,

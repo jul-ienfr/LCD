@@ -8,6 +8,7 @@ import { logErreur } from "@/lib/logger";
 import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, nom: string): string {
   return String(donnees.get(nom) ?? "").trim();
@@ -25,7 +26,7 @@ export const load: PageServerLoad = async (event) => {
   const publies = avis.filter((entree) => entree.statut === "publie");
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     avis: avis.map((entree) => ({
       id: entree.id,
       nom: entree.nom,

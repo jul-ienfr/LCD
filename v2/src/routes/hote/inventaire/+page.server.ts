@@ -16,6 +16,7 @@ import { logErreur } from "@/lib/logger";
 import { echecSaisie } from "@/lib/server/saisie";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const CLASSES: Record<EtatBien, string> = {
   1: "ui-badge ui-badge--danger",
@@ -58,7 +59,7 @@ export const load: PageServerLoad = async (event) => {
     : null;
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     logements: logements.map((entree) => ({ id: entree.id, nom: entree.nom })),
     logement: logement ? { id: logement.id, nom: logement.nom } : null,
     biens: (tableau?.biens ?? []).map((bien) => ({

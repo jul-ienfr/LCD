@@ -14,6 +14,7 @@ import { traductionsDetails } from "@/lib/i18n-details";
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 export const load: PageServerLoad = async (event) => {
   const session = requireRole(event, ["admin", "hote", "operateur"]);
@@ -24,7 +25,7 @@ export const load: PageServerLoad = async (event) => {
   );
   if (!fil) error(404, "Fil introuvable.");
 
-  const langue = event.cookies.get("lcd_langue") ?? "fr";
+  const langue = langueRequete(event);
   return {
     t: traductionsDetails(langue),
     langue,

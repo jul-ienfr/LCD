@@ -15,6 +15,7 @@ import {
 import { logErreur } from "@/lib/logger";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { Actions, PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 function texte(donnees: FormData, cle: string): string {
   return String(donnees.get(cle) ?? "").trim();
@@ -57,7 +58,7 @@ export const load: PageServerLoad = async (event) => {
   ]);
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     email: session.user.email ?? null,
     logements,
     strategies: STRATEGIES_PRIX.map((valeur) => ({
@@ -83,7 +84,7 @@ export const actions = {
     const session = requireRole(event, ["admin"]);
     const tenantId = tenantIdDeSession(session);
     const t = traductionsReglagesGroupe(
-      event.cookies.get("lcd_langue") ?? "fr",
+      langueRequete(event),
     );
     const donnees = await event.request.formData();
     try {
@@ -114,7 +115,7 @@ export const actions = {
     const session = requireRole(event, ["admin"]);
     const tenantId = tenantIdDeSession(session);
     const t = traductionsReglagesGroupe(
-      event.cookies.get("lcd_langue") ?? "fr",
+      langueRequete(event),
     );
     const donnees = await event.request.formData();
     try {
@@ -159,7 +160,7 @@ export const actions = {
     const session = requireRole(event, ["admin"]);
     const tenantId = tenantIdDeSession(session);
     const t = traductionsReglagesGroupe(
-      event.cookies.get("lcd_langue") ?? "fr",
+      langueRequete(event),
     );
     const donnees = await event.request.formData();
     const versionId = texte(donnees, "versionId");

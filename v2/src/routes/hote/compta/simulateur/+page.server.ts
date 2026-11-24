@@ -3,6 +3,7 @@ import { DrizzleTenantRepository } from "@/infrastructure/db/repositories/tenant
 import { centimesDepuisSaisie, formaterEuros } from "@/lib/format";
 import { requireRole, tenantIdDeSession } from "@/lib/server/session";
 import type { PageServerLoad } from "./$types";
+import { langueRequete } from "@/lib/server/langue";
 
 const ROLES = ["admin", "hote", "comptable"] as const;
 
@@ -44,7 +45,7 @@ export const load: PageServerLoad = async (event) => {
   });
 
   return {
-    langue: event.cookies.get("lcd_langue") ?? "fr",
+    langue: langueRequete(event),
     regimes: (["micro_bic_non_classe", "micro_bic_classe"] as const).map(
       (id) => ({ id, label: LIBELLES_REGIME_SIMULABLE[id] }),
     ),
