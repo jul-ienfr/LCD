@@ -9,8 +9,10 @@
 #   ./scripts/deployer.sh --sans-domaine      # ne teste que la santé interne
 #
 # Séquence : verrou → sauvegarde → checkout → build → migrations → démarrage →
-# /api/health puis /api/ready → test HTTPS public. En cas d'échec, aucun
-# redémarrage silencieux : le script sort en erreur et indique ./scripts/revenir.sh.
+# /api/health puis /api/ready → test HTTPS public. Si un contrôle
+# post-déploiement échoue, le script revient automatiquement au déploiement
+# précédent (./scripts/revenir.sh --sans-sauvegarde) puis alerte le canal
+# d'exploitation. Si le retour arrière échoue lui-même, l'alerte le dit.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -35,6 +37,36 @@ done
 
 log() { printf '\n== %s ==\n' "$*"; }
 erreur() { printf '\nERREUR : %s\n' "$*" >&2; }
+
+# Alerte d'exploitation (FR-010) : le retour arrière ne doit jamais être muet.
+alerter() {
+  echo "ALERTE : $1" >&2
+  node scripts/alerter-exploitation.mjs \
+    --source deploiement \
+    --severite critique \
+    --message "$1" \
+    --runbook "v2/DEPLOIEMENT-VPS.md" >/dev/null 2>&1 || true
+}
+
+# FR-010 : un contrôle post-déploiement en échec déclenche le retour arrière,
+# puis une alerte dans tous les cas. Le verrou est libéré avant d'appeler
+# revenir.sh, qui prend le même verrou.
+retour_arriere() {
+  local motif="$1"
+  erreur "${motif}"
+  if [ "${PRECEDENT}" = "${COURANT}" ]; then
+    alerter "Déploiement ${COURANT} en échec (${motif}). Aucun retour arrière possible : version précédente identique. Intervention requise."
+    exit 1
+  fi
+  echo "Retour arrière automatique vers ${PRECEDENT}…"
+  exec 9>&-
+  if ./scripts/revenir.sh --sans-sauvegarde; then
+    alerter "Déploiement ${COURANT} en échec (${motif}). Retour arrière automatique vers ${PRECEDENT} réussi."
+  else
+    alerter "Déploiement ${COURANT} en échec (${motif}). Le retour arrière automatique a échoué : intervention manuelle requise (./scripts/revenir.sh)."
+  fi
+  exit 1
+}
 
 if [ ! -f .env.prod ]; then
   erreur ".env.prod introuvable. Copier .env.prod.example et le remplir."
@@ -110,20 +142,17 @@ SANTE='docker compose --env-file .env.prod -f compose.prod.yml exec -T web node 
 PRET='docker compose --env-file .env.prod -f compose.prod.yml exec -T web node -e "fetch(\"http://127.0.0.1:3000/api/ready\").then(async r=>{const c=await r.json();if(!r.ok||c.db!==\"up\"||c.schema!==\"ok\"||c.rls!==\"ok\")process.exit(1)}).catch(()=>process.exit(1))"'
 
 if ! attendre "/api/health" "${SANTE}"; then
-  erreur "le service web ne répond pas."
   "${COMPOSE[@]}" logs --tail=80 web || true
-  exit 1
+  retour_arriere "le service web ne répond pas (/api/health)."
 fi
 if ! attendre "/api/ready" "${PRET}"; then
-  erreur "la base, le schéma ou la RLS n'est pas prêt."
-  exit 1
+  retour_arriere "la base, le schéma ou la RLS n'est pas prêt (/api/ready)."
 fi
 
 if [ "${VERIFIER_DOMAINE}" -eq 1 ] && [ -n "${DOMAINE}" ]; then
   log "Contrôle HTTPS public (${DOMAINE})"
   if ! attendre "https://${DOMAINE}/api/ready" "curl -fsS --max-time 10 https://${DOMAINE}/api/ready" 12 10; then
-    erreur "l'accès HTTPS public échoue (DNS, certificat ou proxy)."
-    exit 1
+    retour_arriere "l'accès HTTPS public échoue (DNS, certificat ou proxy)."
   fi
 fi
 

@@ -323,6 +323,14 @@ cd /opt/lcd/v2
 ./scripts/revenir.sh --tag v2.0.0-rc1   # tag explicite
 ```
 
+**Automatique (FR-010)** : si `/api/health`, `/api/ready` ou l'accès HTTPS
+public échoue après le déploiement, `deployer.sh` libère son verrou, exécute
+`revenir.sh --sans-sauvegarde` vers la version précédente puis alerte le canal
+d'exploitation (`ALERTE_WEBHOOK_URL` / e-mail) avec le motif. Le déploiement
+sort en erreur dans tous les cas. Si le retour arrière échoue lui-même, ou si
+la version précédente est identique (aucun changement de commit), l'alerte le
+dit explicitement : l'intervention manuelle reste alors la seule issue.
+
 Équivalent manuel :
 
 ```bash
